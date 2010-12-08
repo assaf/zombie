@@ -1,7 +1,4 @@
-require.paths.unshift(__dirname);
-vows = require("vows")
-assert = require("assert")
-fs = require("fs")
+require.paths.unshift(__dirname)
 JSDOM = require("jsdom")
 URL = require("url")
 
@@ -28,19 +25,21 @@ JSDOM.dom.level3.core.resourceLoader.load = (element, href, callback)->
 # The browser maintains state for cookies and localStorage.
 class Browser
   constructor: ->
-  # Opens a new window, loads document from the specified URL and returns the
-  # window.
-  open: (url, callback)->
-    window = JSDOM.createWindow(JSDOM.dom.level3.html)
+    # Start out with an empty window
+    @window = JSDOM.createWindow(JSDOM.dom.level3.html)
     # Attach history/location objects to window/document.
-    require("history").apply(window)
+    require("history").apply(@window)
     # All asynchronous processing handled by event loop.
-    @addEventLoop window
-    window.XMLHttpRequest = -> {}
+    @addEventLoop @window
+    @window.XMLHttpRequest = -> {}
+  # Loads document from the specified URL, and calls callback with the window
+  # when the document is done loading (i.e ready).
+  open: (url, callback)->
     # Hook into event  
-    window.location = url
-    window.document.addEventListener "DOMContentLoaded", ->
-      process.nextTick => callback null, this
+    @window.location = url
+    @window.document.addEventListener "DOMContentLoaded", =>
+      process.nextTick => callback null, @window
+    return # nothing
   cookies: {}
   localStorage: {}
   # Adds an event loop to the window.
@@ -101,33 +100,19 @@ class Browser
           timer.fire()
       callback(clock)
 
+# Creates and returns new Browser
+exports.new = -> new Browser
+# Creates new browser, navigates to the specified URL and calls callback with
+# err and window
+exports.open = (url, callback)-> new Browser().open(url, callback)
 
 
-server = require("express").createServer()
-server.get "/jquery.js", (req, res)->
-  fs.readFile "#{__dirname}/data/jquery.js", (err, data)-> res.send data
-server.get "/", (req, res)->
-  res.send """
-           <html>
-             <head>
-              <script src="jquery.js"></script>
-             </head>
-             <body>Hello World</body>
-             <script>
-              document.title = "HAI"
-              $(function() {
-                $("body").data("foo", "bar");
-              })
-             </script>
-           </html>"
-           """
-
+###
 vows.describe("Browser").addBatch({
   "open page":
     topic: ->
       browser = new Browser()
-      server.listen 3003, =>
-        browser.open("http://localhost:3003/", @callback)
+      server.ready => browser.open("http://localhost:3003/", @callback)
     "callback with document": (document)->
       assert.ok document, "no a document"
       assert.ok document instanceof JSDOM.dom.level3.html.HTMLDocument, "not an HTML document"
@@ -143,23 +128,15 @@ vows.describe("Browser").addBatch({
       $ = document.parentWindow.jQuery
       assert.equal $("body").data("foo"), "bar"
 
-    ###
+
     "change location":
       topic: (document)->
-        document.location = "http://localhost:3003/check"
-        document.addEventListener "DOMContentLoaded", @callback
+        server.ready ->
+          document.parentWindow.location = "http://localhost:3003/check"
+          document.addEventListener "DOMContentLoaded", @callback
       "change document URL": (document)->
         console.log "hai"
-    ###
-    
 
-    ###
-    "fire events":
-      topic: ()->
-        document.window.process(@callback)
-        return
-      "do something interesting": ->
-        "hai"
-    ###
-    #teardown: -> server.close()
+  #teardown: -> server.close()
 }).export(module);
+###

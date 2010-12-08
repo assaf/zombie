@@ -7,20 +7,22 @@ class History
     @stack = []
     @index = -1
     history = @
-  length: -> @stack.length
   forward: -> @go(1)
   back: -> @go(-1)
   go: (steps)->
-    index = Math.min(Math.max(@index + steps, 0), @stack.length - 1)
+    index = @index + steps
+    index = 0 if index < 0
+    index = @stack.length - 1 if @stack.length > 0 && index >= @stack.length
     old = @_url
     if index != @index && entry = @stack[index]
       @index = index
       if entry.pop
-        # Created with pushState/replaceState, send popstate event
-        evt = @window.createEvent("HTMLEvents")
-        evt.initEvent "popstate", false, false
-        evt.state = entry.state
-        @window.dispatchEvent evt
+        if @window.document
+          # Created with pushState/replaceState, send popstate event
+          evt = @window.document.createEvent("HTMLEvents")
+          evt.initEvent "popstate", false, false
+          evt.state = entry.state
+          @window.dispatchEvent evt
         # Do not load different page unless we're on a different host
         @_reload() if @window.location.host != entry.host
       else
@@ -81,7 +83,9 @@ class History
 History.prototype.__defineGetter__ "_url", ->
   # Returns current URL (as object not string).
   entry = @stack[@index]
-  entry.url if entry
+  entry?.url
+History.prototype.__defineGetter__ "length", -> @stack.length
+
 
 # Represents window.location and document.location.
 class Location
@@ -90,10 +94,10 @@ class Location
   replace: (url)-> @history._replace url
   reload: (force)-> @history._reload()
   toString: -> URL.format(@history.current)
-Location.prototype.__defineGetter__ "href", -> @history._url?.toString()
+Location.prototype.__defineGetter__ "href", -> @history._url?.href
 Location.prototype.__defineSetter__ "href", (url)-> @history._assign url
 for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search"]
-  Location.prototype.__defineGetter__ prop, -> @history._url[prop]
+  Location.prototype.__defineGetter__ prop, -> @history._url?[prop]
   Location.prototype.__defineSetter__ prop, (value)->
     url = URL.parse(@current.toString())
     url[prop] = value
