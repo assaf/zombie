@@ -1,57 +1,14 @@
-require.paths.unshift(__dirname)
+require.paths.push(__dirname + "/../lib", __dirname)
 fs = require("fs")
-vows = require("vows")
+vows = require("vows", "assert")
 assert = require("assert")
-browser = require("browser")
 jsdom = require("jsdom")
+{ browser: browser } = require("zombie")
+{ server: server, visit: visit } = require("helpers")
 
 
-server = require("express").createServer()
-server.get "/jquery.js", (req, res)->
-  fs.readFile "#{__dirname}/data/jquery.js", (err, data)-> res.send data
-server.get "/", (req, res)->
-  res.send """
-           <html>
-             <title>Little Red</title>
-           </html>"
-           """
-server.ready = (callback)->
-  if @_waiting
-    @_waiting.push callback
-  else if @_active
-    ++@_active
-    callback()
-  else
-    @_waiting = [callback]
-    server.listen 3003, ->
-      @_active = @_waiting.length
-      @_waiting.forEach (callback)-> callback()
-      @_waiting = null
-  return # nothing
-server.done = -> @close() if --@_active == 0
-
-# Creates a new Vows context that will wait for the HTTP server to be ready,
-# then create a new Browser, visit the specified page (url), run all the tests
-# and shutdown the HTTP server.
-#
-# The second argument is the context with all its tests (and subcontexts). The
-# topic passed to all tests is the browser window after loading the document.
-# However, you can (and often need to) supply a ready function that will be
-# called with err and window; the ready function can then call this.callback.
-visit = (url, context)->
-  context.topic = ->
-    ready = context.ready
-    delete context.ready
-    server.ready =>
-      browser.open "http://localhost:3003/", (err, window)=>
-        if ready
-          ready.apply this, [err, window]
-        else
-          @callback err, window
-    return
-  context.teardown = -> server.done()
-  return context
-  
+server.get "/boo", (req, res)->
+  res.send "<html><title>Eeek!</title></html>"
 
 vows.describe("History").addBatch({
   "new window":
@@ -73,35 +30,101 @@ vows.describe("History").addBatch({
         assert.length window.history, 0
         assert.isUndefined window.location.href
 
-  "pushState":
-    visit "http://localhost:3003/"
-      ready: (err,window)->
-        window.history.pushState { is: "start" }, null, "/start"
-        window.history.pushState { is: "end" }, null, "/end"
-        @callback err, window
-      "should add state to history": (window)-> assert.length window.history, 3
-      "should change location URL": (window)-> assert.equal window.location.href, "/end"
-      "go backwards":
-        topic: (window)->
-          window.addEventListener "popstate", (evt)=> @callback(null, evt)
-          window.history.back()
-        "should fire popstate event": (evt)-> assert.instanceOf evt, jsdom.dom.level3.events.Event
-        "should include state": (evt)-> assert.equal evt.state.is, "start"
-      "go forwards":
-        visit "http://localhost:3003/"
-          ready: (err, window)->
-            window.history.pushState { is: "start" }, null, "/start"
-            window.history.pushState { is: "end" }, null, "/end"
-            window.history.back()
+  "history":
+    "pushState":
+      visit "http://localhost:3003/"
+        ready: (err,window)->
+          window.history.pushState { is: "start" }, null, "/start"
+          window.history.pushState { is: "end" }, null, "/end"
+          @callback err, window
+        "should add state to history": (window)-> assert.length window.history, 3
+        "should change location URL": (window)-> assert.equal window.location.href, "/end"
+        "go backwards":
+          topic: (window)->
             window.addEventListener "popstate", (evt)=> @callback(null, evt)
-            window.history.forward()
+            window.history.back()
           "should fire popstate event": (evt)-> assert.instanceOf evt, jsdom.dom.level3.events.Event
-          "should include state": (evt)-> assert.equal evt.state.is, "end"
+          "should include state": (evt)-> assert.equal evt.state.is, "start"
+        "go forwards":
+          visit "http://localhost:3003/"
+            ready: (err, window)->
+              window.history.pushState { is: "start" }, null, "/start"
+              window.history.pushState { is: "end" }, null, "/end"
+              window.history.back()
+              window.addEventListener "popstate", (evt)=> @callback(null, evt)
+              window.history.forward()
+            "should fire popstate event": (evt)-> assert.instanceOf evt, jsdom.dom.level3.events.Event
+            "should include state": (evt)-> assert.equal evt.state.is, "end"
+    "replaceState":
+      visit "http://localhost:3003/"
+        ready: (err,window)->
+          window.history.pushState { is: "start" }, null, "/start"
+          window.history.replaceState { is: "end" }, null, "/end"
+          @callback err, window
+        "should not add state to history": (window)-> assert.length window.history, 2
+        "should change location URL": (window)-> assert.equal window.location.href, "/end"
+        "go backwards":
+          topic: (window)->
+            window.addEventListener "popstate", (evt)=> window.popstate = true
+            window.history.back()
+            @callback null, window
+          "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/"
+          "should not fire popstate event": (window)-> assert.isUndefined window.popstate
 
-  "navigate":
-    visit "http://localhost:3003/"
-      "should add page to history": (window)-> assert.length window.history, 1
-      "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/"
-      "should load document": (window)-> assert.match window.document.innerHTML, /Little Red/
-
+  "location":
+    "open page":
+      visit "http://localhost:3003/"
+        "should add page to history": (window)-> assert.length window.history, 1
+        "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/"
+        "should load document": (window)-> assert.match window.document.innerHTML, /Little Red/
+    "change location":
+      visit "http://localhost:3003/"
+        ready: (err, window)->
+          window.location = "http://localhost:3003/boo"
+          window.document.addEventListener "DOMContentLoaded", => @callback err, window
+        "should add page to history": (window)-> assert.length window.history, 2
+        "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/boo"
+        "should load document": (window)-> assert.match window.document.innerHTML, /Eeek!/
+    "change pathname":
+      visit "http://localhost:3003/"
+        ready: (err, window)->
+          window.location.pathname = "/boo"
+          window.document.addEventListener "DOMContentLoaded", => @callback err, window
+        "should add page to history": (window)-> assert.length window.history, 2
+        "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/boo"
+        "should load document": (window)-> assert.match window.document.innerHTML, /Eeek!/
+    "change hash":
+      visit "http://localhost:3003/"
+        ready: (err, window)->
+          window.document.innerHTML = "Wolf"
+          window.addEventListener "hashchange", => @callback err, window
+          window.location.hash = "boo"
+        "should add page to history": (window)-> assert.length window.history, 2
+        "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/#boo"
+        "should not reload document": (window)-> assert.match window.document.innerHTML, /Wolf/
+    "assign":
+      visit "http://localhost:3003/"
+        ready: (err, window)->
+          window.location.assign "http://localhost:3003/boo"
+          window.document.addEventListener "DOMContentLoaded", => @callback err, window
+        "should add page to history": (window)-> assert.length window.history, 2
+        "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/boo"
+        "should load document": (window)-> assert.match window.document.innerHTML, /Eeek!/
+    "replace":
+      visit "http://localhost:3003/"
+        ready: (err, window)->
+          window.location.replace "http://localhost:3003/boo"
+          window.document.addEventListener "DOMContentLoaded", => @callback err, window
+        "should not add page to history": (window)-> assert.length window.history, 1
+        "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/boo"
+        "should load document": (window)-> assert.match window.document.innerHTML, /Eeek!/
+    "reload":
+      visit "http://localhost:3003/"
+        ready: (err, window)->
+          window.document.innerHTML = "Wolf"
+          window.location.reload()
+          window.document.addEventListener "DOMContentLoaded", => @callback err, window
+        "should not add page to history": (window)-> assert.length window.history, 1
+        "should not change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/"
+        "should reload document": (window)-> assert.match window.document.innerHTML, /Little Red/
 }).export(module);
