@@ -3,7 +3,7 @@ class EventLoop
     window.clock = 0
     timers = {}
     lastHandle = 0
-    queue = []
+
     # Implements window.setTimeout using event queue
     @setTimeout = (fn, delay)->
       timer = 
@@ -15,8 +15,6 @@ class EventLoop
               fn.apply(window)
             else
               eval fn
-          catch ex
-            console.error "Timeout #{handle} failed", ex
           finally
             delete timers[handle]
       handle = ++lastHandle
@@ -33,9 +31,6 @@ class EventLoop
               fn.apply(window)
             else
               eval fn
-          catch ex
-            console.error "Interval #{handle} failed", ex
-            delete timers[handle]
           finally
             timer.when = window.clock + delay
       handle = ++lastHandle
@@ -45,35 +40,58 @@ class EventLoop
     @clearTimeout = (handle)-> delete timers[handle] if timers[handle]?.timeout
     # Implements window.clearInterval using event queue
     @clearInterval = (handle)-> delete timers[handle] if timers[handle]?.interval
-    # Process all pending events and timers in the queue
-    @process = (terminator)->
-      next = ->
-        return queue.shift() if queue.length > 0
-        earliest = null
-        for handle, timer of timers
-          earliest = timer if !earliest || timer.when < earliest.when
-        return unless earliest
-        return ->
-          window.clock = earliest.when
-          earliest.fire()
-      event = next()
-      event() if event
-      while event && terminator && terminator(window) != false
-        event = next()
-        event() if event
-      return this
-      ###
-      while @queue.length > 0
-        events = [].concat(@queue)
-        @queue.clear
-        for event in events
-          console.log "firing", event
-          event.apply(@window)
-        for timer in @timers
-          console.log "firing", timer
-          timer.fire()
-      ###
-      #callback(clock)
+
+    # Requests on wait that cannot be handled yet: there's no event in the
+    # queue, but we anticipate one (in-progress XHR request).
+    waiting = []
+    # Queue of events.
+    queue = []
+
+    # Queue an event to be processed by wait(). Event is a function call in the
+    # context of the window.
+    @queue = (event)->
+      queue.push event
+      wait() for wait in waiting
+      waiting = []
+
+    # Process all events from the queue. This method returns immediately, events
+    # are processed in the background. When all events are exhausted, it calls
+    # the callback with null, window; if any event fails, it calls the callback
+    # with the exception.
+    #
+    # Events include timeout, interval and XHR onreadystatechange. DOM events
+    # are handled synchronously.
+    @wait = (count, callback)->
+      if typeof count is "function"
+        if !callback
+          callback = count
+          count = null
+        else
+          count = count()
+      if typeof count is "number" && count <= 0
+        callback null, window
+        return
+      --count if count
+      process.nextTick =>
+        unless event = queue.shift()
+          earliest = null
+          for handle, timer of timers
+            earliest = timer if !earliest || timer.when < earliest.when
+          if earliest
+            event = ->
+              window.clock = earliest.when
+              earliest.fire()
+        if event
+          try 
+            event.call(window)
+            @wait count, callback
+          catch err
+            callback err, window
+        else if window._xhr > 0
+          waiting.push => @wait count, callback
+        else
+          callback null, window
+
 
 # Apply event loop to window: creates new event loop and adds
 # timeout/interval methods and XHR class.
@@ -81,5 +99,6 @@ exports.apply = (window)->
   eventLoop = new EventLoop(window)
   for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
     window[fn] = -> eventLoop[fn].apply(window, arguments)
-  window.XMLHttpRequest = -> {}
   window.process = eventLoop.process
+  window.queue = eventLoop.queue
+  window.wait = eventLoop.wait

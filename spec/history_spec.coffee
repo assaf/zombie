@@ -1,8 +1,7 @@
-require.paths.push(__dirname)
 vows = require("vows", "assert")
 assert = require("assert")
 jsdom = require("jsdom")
-{ server: server, visit: visit } = require("helpers")
+{ server: server, visit: visit } = require("./helpers")
 { browser: browser } = require("zombie")
 
 

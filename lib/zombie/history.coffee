@@ -1,4 +1,4 @@
-JSDOM = require("jsdom")
+jsdom = require("jsdom")
 URL = require("url")
 
 # Represents window.history.
@@ -56,13 +56,13 @@ class History
   # whenever we switch to a different page and need to load it.
   _loadPage: (force)->
     if url = @_url
-      browser = JSDOM.browserAugmentation(JSDOM.dom.level3.html)
+      browser = jsdom.browserAugmentation(jsdom.dom.level3.html)
       document = new browser.HTMLDocument()
       document._documentRoot = document._URL = URL.format(url)
       document.readyState = "loading"
-      JSDOM.applyDocumentFeatures(document)
+      jsdom.applyDocumentFeatures(document)
       @window.document = document
-      loader = JSDOM.dom.level3.core.resourceLoader
+      loader = jsdom.dom.level3.core.resourceLoader
       loader.download url, (err, data)->
         if err
           evt = document.createEvent("HTMLEvents")
@@ -110,7 +110,7 @@ for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search
     @history._assign URL.format(url)
 
 # document.location is same as window.location
-JSDOM.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", => @ownerWindow.location
+jsdom.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", => @ownerWindow.location
 
 # Apply Location/History to window: creates new history and adds
 # location/history accessors.
