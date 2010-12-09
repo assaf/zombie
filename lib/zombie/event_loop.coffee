@@ -59,19 +59,20 @@ class EventLoop
     # the callback with null, window; if any event fails, it calls the callback
     # with the exception.
     #
+    # With one argument, that argument is the callback. With two arguments, the
+    # first argument is a terminator and the last argument is the callback. The
+    # terminator is one of:
+    # - null -- process all events
+    # - number -- process that number of events
+    # - function -- called after each event, stop processing when function
+    #   returns false
+    #
     # Events include timeout, interval and XHR onreadystatechange. DOM events
     # are handled synchronously.
-    @wait = (count, callback)->
-      if typeof count is "function"
-        if !callback
-          callback = count
-          count = null
-        else
-          count = count()
-      if typeof count is "number" && count <= 0
-        callback null, window
-        return
-      --count if count
+    @wait = (terminate, callback)->
+      if !callback
+        callback = terminate
+        terminate = null
       process.nextTick =>
         unless event = queue.shift()
           earliest = null
@@ -84,11 +85,20 @@ class EventLoop
         if event
           try 
             event.call(window)
-            @wait count, callback
+            if typeof terminate is "number"
+              --terminate
+              if terminate <= 0
+                process.nextTick -> callback null, window
+                return
+            else if typeof terminate is "function"
+              if terminate.call(window) == false
+                process.nextTick -> callback null, window
+                return
+            @wait terminate, callback
           catch err
             callback err, window
         else if window._xhr > 0
-          waiting.push => @wait count, callback
+          waiting.push => @wait terminate, callback
         else
           callback null, window
 
