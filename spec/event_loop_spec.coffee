@@ -44,8 +44,10 @@ vows.describe("EventLoop").addBatch({
     "cancel timeout":
       visit "http://localhost:3003/timeout"
         ready: (err, window)->
-          window.wait @callback
-          process.nextTick -> window.clearTimeout(window.second)
+          terminate = ->
+            window.clearTimeout window.second
+            false
+          window.wait terminate, @callback
         "should fire only uncancelled timeout events": (window)->
           assert.equal window.document.title, "One Two"
           assert.equal window.clock, 1000
