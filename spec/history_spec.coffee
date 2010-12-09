@@ -1,14 +1,14 @@
-require.paths.push(__dirname + "/../lib", __dirname)
-fs = require("fs")
+require.paths.push(__dirname)
 vows = require("vows", "assert")
 assert = require("assert")
 jsdom = require("jsdom")
-{ browser: browser } = require("zombie")
 { server: server, visit: visit } = require("helpers")
+{ browser: browser } = require("zombie")
 
 
 server.get "/boo", (req, res)->
   res.send "<html><title>Eeek!</title></html>"
+
 
 vows.describe("History").addBatch({
   "new window":

@@ -1,11 +1,12 @@
-{ browser: browser } = require("zombie")
-
+require.paths.push(__dirname + "/../lib")
+fs = require("fs")
+browser = exports.browser = require("zombie").browser
 
 exports.server = server = require("express").createServer()
 server.get "/", (req, res)->
   res.send "<html><title>Little Red</title></html>"
 server.get "/jquery.js", (req, res)->
-  fs.readFile "#{__dirname}/data/jquery.js", (err, data)-> res.send data
+  fs.readFile "#{__dirname}/../data/jquery.js", (err, data)-> res.send data
 server.ready = (callback)->
   if @_waiting
     @_waiting.push callback
@@ -36,7 +37,7 @@ exports.visit = (url, context)->
     ready = context.ready
     delete context.ready
     server.ready =>
-      browser.open "http://localhost:3003/", (err, window)=>
+      browser.open url, (err, window)=>
         if ready
           ready.apply this, [err, window]
         else
