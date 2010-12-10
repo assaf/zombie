@@ -40,8 +40,9 @@ class History
     @stack[@index] = { state: state, title: title, url: URL.parse(url.toString()), pop: true }
   # Location uses this to move to a new URL.
   _assign: (url)->
-    url = URL.parse(url.toString())
     old = @_url # before we destroy stack
+    url = URL.resolve(URL.format(old), url) if old
+    url = URL.parse(url.toString())
     @stack = @stack[0..@index]
     @stack[++@index] = { url: url }
     @_pageChanged old
@@ -97,7 +98,7 @@ class Location
   assign: (url)-> @history._assign url
   replace: (url)-> @history._replace url
   reload: (force)-> @history._loadPage(force)
-  toString: -> URL.format(@history.current)
+  toString: -> URL.format(@history._url)
 # Getter/setter for full URL.
 Location.prototype.__defineGetter__ "href", -> @history._url?.href
 Location.prototype.__defineSetter__ "href", (url)-> @history._assign url

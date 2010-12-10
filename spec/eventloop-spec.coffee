@@ -2,31 +2,28 @@ require("./helpers")
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 
 
-brains.get "/timeout", (req, res)->
-  res.send """
-           <html>
-             <head><title>One</title></head>
-             <body>
-               <script>
-                 window.second = window.setTimeout(function() { document.title = document.title + " Three" }, 5000);
-                 window.first = window.setTimeout(function() { document.title = document.title + " Two" }, 1000);
-               </script>
-             </body>
-           </html>
-           """
+brains.get "/timeout", (req, res)-> res.send """
+  <html>
+    <head><title>One</title></head>
+    <body>
+      <script>
+        window.second = window.setTimeout(function() { document.title = document.title + " Three" }, 5000);
+        window.first = window.setTimeout(function() { document.title = document.title + " Two" }, 1000);
+      </script>
+    </body>
+  </html>
+  """
 
-brains.get "/interval", (req, res)->
-  res.send """
-           <html>
-             <head><title></title></head>
-             <body>
-               <script>
-                 window.interval = window.setInterval(function() { document.title = document.title + "." }, 1000);
-               </script>
-             </body>
-           </html>
-           """
-
+brains.get "/interval", (req, res)-> res.send """
+  <html>
+    <head><title></title></head>
+    <body>
+      <script>
+        window.interval = window.setInterval(function() { document.title = document.title + "." }, 1000);
+      </script>
+    </body>
+  </html>
+  """
 
 
 vows.describe("EventLoop").addBatch({
