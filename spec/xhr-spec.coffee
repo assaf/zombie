@@ -1,9 +1,7 @@
-vows = require("vows", "assert")
-assert = require("assert")
-{ server: server, visit: visit } = require("./helpers")
+require("./helpers")
+{ vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 
-
-server.get "/xhr", (req, res)->
+brains.get "/xhr", (req, res)->
   res.send """
            <html>
              <head><script src="/jquery.js"></script></head>
@@ -14,12 +12,12 @@ server.get "/xhr", (req, res)->
              </body>
            </html>
            """
-server.get "/text", (req, res)-> res.send "XMLOL"
+brains.get "/text", (req, res)-> res.send "XMLOL"
 
 
 vows.describe("XMLHttpRequest").addBatch({
   "load asynchronously":
-    visit "http://localhost:3003/xhr"
+    zombie.wants "http://localhost:3003/xhr"
       ready: (err, window)-> window.wait @callback
       "should load resource": (window)-> assert.equal window.response, "XMLOL"
 }).export(module);

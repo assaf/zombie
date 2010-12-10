@@ -2,8 +2,8 @@ require.paths.unshift(__dirname)
 jsdom = require("jsdom")
 require "./jsdom_patches"
 history = require("./history")
-event_loop = require("./event_loop")
-xhr = require("./xmlhttprequest")
+event_loop = require("./eventloop")
+xhr = require("./xhr")
 
 # Use the browser to open up new windows and load documents.
 #

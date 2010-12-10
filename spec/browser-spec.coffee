@@ -1,10 +1,9 @@
-vows = require("vows")
-assert = require("assert")
+require("./helpers")
+{ vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 jsdom = require("jsdom")
-{ server: server, visit: visit } = require("./helpers")
 
 
-server.get "/scripted", (req, res)->
+brains.get "/scripted", (req, res)->
   res.send """
            <html>
              <head>
@@ -20,7 +19,7 @@ server.get "/scripted", (req, res)->
 
 vows.describe("Browser").addBatch({
   "open page":
-    visit "http://localhost:3003/scripted"
+    zombie.wants "http://localhost:3003/scripted"
       "should create HTML document": (window)-> assert.instanceOf window.document, jsdom.dom.level3.html.HTMLDocument
       "should load document from server": (window)-> assert.match window.document.outerHTML, /<body>Hello World<\/body>/
       "should load external scripts": (window)->

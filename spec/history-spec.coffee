@@ -1,17 +1,15 @@
-vows = require("vows", "assert")
-assert = require("assert")
+require("./helpers")
+{ vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 jsdom = require("jsdom")
-{ server: server, visit: visit } = require("./helpers")
-{ browser: browser } = require("zombie")
 
 
-server.get "/boo", (req, res)->
+brains.get "/boo", (req, res)->
   res.send "<html><title>Eeek!</title></html>"
 
 
 vows.describe("History").addBatch({
   "new window":
-    topic: -> browser.new().window
+    topic: -> zombie.new().window
     "should start out empty": (window)-> assert.length window.history, 0
     "should start out with no location": (window)-> assert.isUndefined window.location.href
     "go forward":
@@ -31,7 +29,7 @@ vows.describe("History").addBatch({
 
   "history":
     "pushState":
-      visit "http://localhost:3003/"
+      zombie.wants "http://localhost:3003/"
         ready: (err,window)->
           window.history.pushState { is: "start" }, null, "/start"
           window.history.pushState { is: "end" }, null, "/end"
@@ -45,7 +43,7 @@ vows.describe("History").addBatch({
           "should fire popstate event": (evt)-> assert.instanceOf evt, jsdom.dom.level3.events.Event
           "should include state": (evt)-> assert.equal evt.state.is, "start"
         "go forwards":
-          visit "http://localhost:3003/"
+          zombie.wants "http://localhost:3003/"
             ready: (err, window)->
               window.history.pushState { is: "start" }, null, "/start"
               window.history.pushState { is: "end" }, null, "/end"
@@ -55,7 +53,7 @@ vows.describe("History").addBatch({
             "should fire popstate event": (evt)-> assert.instanceOf evt, jsdom.dom.level3.events.Event
             "should include state": (evt)-> assert.equal evt.state.is, "end"
     "replaceState":
-      visit "http://localhost:3003/"
+      zombie.wants "http://localhost:3003/"
         ready: (err,window)->
           window.history.pushState { is: "start" }, null, "/start"
           window.history.replaceState { is: "end" }, null, "/end"
@@ -72,12 +70,12 @@ vows.describe("History").addBatch({
 
   "location":
     "open page":
-      visit "http://localhost:3003/"
+      zombie.wants "http://localhost:3003/"
         "should add page to history": (window)-> assert.length window.history, 1
         "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/"
-        "should load document": (window)-> assert.match window.document.innerHTML, /Little Red/
+        "should load document": (window)-> assert.match window.document.innerHTML, /Tap, Tap/
     "change location":
-      visit "http://localhost:3003/"
+      zombie.wants "http://localhost:3003/"
         ready: (err, window)->
           window.location = "http://localhost:3003/boo"
           window.document.addEventListener "DOMContentLoaded", => @callback err, window
@@ -85,7 +83,7 @@ vows.describe("History").addBatch({
         "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/boo"
         "should load document": (window)-> assert.match window.document.innerHTML, /Eeek!/
     "change pathname":
-      visit "http://localhost:3003/"
+      zombie.wants "http://localhost:3003/"
         ready: (err, window)->
           window.location.pathname = "/boo"
           window.document.addEventListener "DOMContentLoaded", => @callback err, window
@@ -93,7 +91,7 @@ vows.describe("History").addBatch({
         "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/boo"
         "should load document": (window)-> assert.match window.document.innerHTML, /Eeek!/
     "change hash":
-      visit "http://localhost:3003/"
+      zombie.wants "http://localhost:3003/"
         ready: (err, window)->
           window.document.innerHTML = "Wolf"
           window.addEventListener "hashchange", => @callback err, window
@@ -102,7 +100,7 @@ vows.describe("History").addBatch({
         "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/#boo"
         "should not reload document": (window)-> assert.match window.document.innerHTML, /Wolf/
     "assign":
-      visit "http://localhost:3003/"
+      zombie.wants "http://localhost:3003/"
         ready: (err, window)->
           window.location.assign "http://localhost:3003/boo"
           window.document.addEventListener "DOMContentLoaded", => @callback err, window
@@ -110,7 +108,7 @@ vows.describe("History").addBatch({
         "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/boo"
         "should load document": (window)-> assert.match window.document.innerHTML, /Eeek!/
     "replace":
-      visit "http://localhost:3003/"
+      zombie.wants "http://localhost:3003/"
         ready: (err, window)->
           window.location.replace "http://localhost:3003/boo"
           window.document.addEventListener "DOMContentLoaded", => @callback err, window
@@ -118,12 +116,12 @@ vows.describe("History").addBatch({
         "should change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/boo"
         "should load document": (window)-> assert.match window.document.innerHTML, /Eeek!/
     "reload":
-      visit "http://localhost:3003/"
+      zombie.wants "http://localhost:3003/"
         ready: (err, window)->
           window.document.innerHTML = "Wolf"
           window.location.reload()
           window.document.addEventListener "DOMContentLoaded", => @callback err, window
         "should not add page to history": (window)-> assert.length window.history, 1
         "should not change location URL": (window)-> assert.equal window.location.href, "http://localhost:3003/"
-        "should reload document": (window)-> assert.match window.document.innerHTML, /Little Red/
+        "should reload document": (window)-> assert.match window.document.innerHTML, /Tap, Tap/
 }).export(module);
