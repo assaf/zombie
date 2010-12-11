@@ -1,13 +1,13 @@
 class EventLoop
   constructor: (window)->
-    window.clock = 0
+    window.browser.clock = 0
     timers = {}
     lastHandle = 0
 
     # Implements window.setTimeout using event queue
     @setTimeout = (fn, delay)->
       timer = 
-        when: window.clock + delay
+        when: window.browser.clock + delay
         timeout: true
         fire: ->
           try
@@ -23,7 +23,7 @@ class EventLoop
     # Implements window.setInterval using event queue
     @setInterval = (fn, delay)->
       timer = 
-        when: window.clock + delay
+        when: window.browser.clock + delay
         interval: true
         fire: ->
           try
@@ -32,7 +32,7 @@ class EventLoop
             else
               eval fn
           finally
-            timer.when = window.clock + delay
+            timer.when = window.browser.clock + delay
       handle = ++lastHandle
       timers[handle] = timer
       handle
@@ -69,18 +69,23 @@ class EventLoop
     #
     # Events include timeout, interval and XHR onreadystatechange. DOM events
     # are handled synchronously.
-    @wait = (terminate, callback)->
+    @wait = (terminate, callback, intervals)->
       if !callback
+        intervals = callback
         callback = terminate
         terminate = null
       process.nextTick =>
-        unless event = queue.shift()
+        if event = queue.shift()
+          intervals = true
+        else
           earliest = null
           for handle, timer of timers
+            continue if timer.interval && intervals == false
             earliest = timer if !earliest || timer.when < earliest.when
           if earliest
+            intervals = false
             event = ->
-              window.clock = earliest.when
+              window.browser.clock = earliest.when if window.browser.clock < earliest.when
               earliest.fire()
         if event
           try 
@@ -94,11 +99,11 @@ class EventLoop
               if terminate.call(window) == false
                 process.nextTick -> callback null, window
                 return
-            @wait terminate, callback
+            @wait terminate, callback, intervals
           catch err
             callback err, window
         else if window._xhr > 0
-          waiting.push => @wait terminate, callback
+          waiting.push => @wait terminate, callback, intervals
         else
           callback null, window
 

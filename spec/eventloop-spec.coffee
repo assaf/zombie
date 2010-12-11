@@ -30,41 +30,50 @@ vows.describe("EventLoop").addBatch({
   "setTimeout":
     "no wait":
       zombie.wants "http://localhost:3003/timeout"
-        "should not fire any timeout events": (window)-> assert.equal window.document.title, "One"
-        "should not change clock": (window) -> assert.equal window.clock, 0
+        "should not fire any timeout events": (browser)-> assert.equal browser.document.title, "One"
+        "should not change clock": (browser) -> assert.equal browser.clock, 0
     "wait for all":
       zombie.wants "http://localhost:3003/timeout"
-        ready: (err, window)-> window.wait @callback
-        "should fire all timeout events": (window)-> assert.equal window.document.title, "One Two Three"
-        "should move clock forward": (window) -> assert.equal window.clock, 5000
+        ready: (browser)-> browser.wait @callback
+        "should fire all timeout events": (browser)-> assert.equal browser.document.title, "One Two Three"
+        "should move clock forward": (browser) -> assert.equal browser.clock, 5000
     "cancel timeout":
       zombie.wants "http://localhost:3003/timeout"
-        ready: (err, window)->
+        ready: (browser)->
           terminate = ->
-            window.clearTimeout window.second
+            browser.window.clearTimeout browser.window.second
             false
-          window.wait terminate, @callback
-        "should fire only uncancelled timeout events": (window)->
-          assert.equal window.document.title, "One Two"
-          assert.equal window.clock, 1000
+          browser.wait terminate, @callback
+        "should fire only uncancelled timeout events": (browser)->
+          assert.equal browser.document.title, "One Two"
+          assert.equal browser.clock, 1000
 
   "setInterval":
     "no wait":
       zombie.wants "http://localhost:3003/interval"
-        "should not fire any timeout events": (window)-> assert.equal window.document.title, ""
-        "should not change clock": (window) -> assert.equal window.clock, 0
-    "wait for five":
+        "should not fire any timeout events": (browser)-> assert.equal browser.document.title, ""
+        "should not change clock": (browser) -> assert.equal browser.clock, 0
+    "wait once":
       zombie.wants "http://localhost:3003/interval"
-        ready: (err, window)-> window.wait 5, @callback
-        "should fire five interval event": (window)-> assert.equal window.document.title, "....."
-        "should move clock forward": (window) -> assert.equal window.clock, 5000
+        ready: (browser)-> browser.wait @callback
+        "should fire interval event once": (browser)->
+          assert.equal browser.document.title, "."
+          assert.equal browser.clock, 1000
+    "wait three times":
+      zombie.wants "http://localhost:3003/interval"
+        ready: (browser)->
+          browser.wait 5, =>
+            browser.wait =>
+              browser.wait @callback
+        "should fire five interval event": (browser)-> assert.equal browser.document.title, "..."
+        "should move clock forward": (browser) -> assert.equal browser.clock, 3000
     "cancel interval":
       zombie.wants "http://localhost:3003/interval"
-        ready: (err, window)->
-          window.wait 5, =>
-            window.clearInterval window.interval
-            window.wait 5, @callback
-        "should fire only uncancelled interval events": (window)->
-          assert.equal window.document.title, "....."
-          assert.equal window.clock, 5000
+        ready: (browser)->
+          browser.wait  =>
+            browser.window.clearInterval browser.window.interval
+            browser.wait @callback
+        "should fire only uncancelled interval events": (browser)->
+          assert.equal browser.document.title, "."
+          assert.equal browser.clock, 1000
 }).export(module);

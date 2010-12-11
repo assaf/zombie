@@ -18,6 +18,6 @@ brains.get "/text", (req, res)->
 vows.describe("XMLHttpRequest").addBatch({
   "load asynchronously":
     zombie.wants "http://localhost:3003/xhr"
-      ready: (err, window)-> window.wait @callback
-      "should load resource": (window)-> assert.equal window.response, "XMLOL"
+      ready: (browser)-> browser.wait @callback
+      "should load resource": (browser)-> assert.equal browser.window.response, "XMLOL"
 }).export(module);

@@ -45,22 +45,26 @@ brains.get "/app.js", (req, res)-> res.send """
 vows.describe("Browser").addBatch({
   "open page":
     zombie.wants "http://localhost:3003/scripted"
-      "should create HTML document": (window)-> assert.instanceOf window.document, jsdom.dom.level3.html.HTMLDocument
-      "should load document from server": (window)-> assert.match window.document.outerHTML, /<body>Hello World<\/body>/
-      "should load external scripts": (window)->
-        assert.ok jQuery = window.jQuery, "window.jQuery not available"
+      "should create HTML document": (browser)-> assert.instanceOf browser.document, jsdom.dom.level3.html.HTMLDocument
+      "should load document from server": (browser)-> assert.match browser.html, /<body>Hello World<\/body>/
+      "should load external scripts": (browser)->
+        assert.ok jQuery = browser.window.jQuery, "window.jQuery not available"
         assert.typeOf jQuery.ajax, "function"
-      "should run jQuery.onready": (window)-> assert.equal window.document.title, "Awesome"
+      "should run jQuery.onready": (browser)-> assert.equal browser.document.title, "Awesome"
 
-  "run sammy app":
+  "run app":
     zombie.wants "http://localhost:3003/living"
-      #ready: (err, window)-> window.wait @callback
-      "should execute route": (window)-> assert.equal window.$("body").html(), "The Living"
-      "should change location": (window)-> assert.equal window.location.href, "http://localhost:3003/living#/"
+      "should execute route": (browser)-> assert.equal browser.body.innerHTML, "The Living"
+      "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
       "move around":
-        topic: (window)->
-          window.location = "#/dead"
-          window.wait @callback
-        "should execute route": (window)-> assert.equal window.$("body").html(), "The Living Dead"
-        "should change location": (window)-> assert.equal window.location.href, "http://localhost:3003/living#/dead"
+        topic: (browser)->
+          browser.location = "#/dead"
+          browser.wait @callback
+        "should execute route": (browser)-> assert.equal browser.body.innerHTML, "The Living Dead"
+        "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
+
+  "click links":
+    zombie.wants "http://localhost:3003/living"
+      ready: (browser)-> browser.clickLink "dead", @callback
+      "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
 }).export(module);

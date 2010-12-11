@@ -1,6 +1,6 @@
 require.paths.push(__dirname + "/../lib")
 fs = require("fs")
-browser = require("zombie").browser
+zombie = require("zombie")
 
 
 # When you run the vows command, it picks all the files in the spec directory
@@ -36,32 +36,27 @@ brains.ready = (callback)->
       process.nextTick callback
   return # nothing
 
-
-# Zombie wants brain.
-zombie =
-  # Returns a new browser
-  new: browser.new
-  # Creates a new Vows context that will wait for the HTTP server to be ready,
-  # then create a new Browser, visit the specified page (url), run all the tests
-  # and shutdown the HTTP server.
-  #
-  # The second argument is the context with all its tests (and subcontexts). The 
-  # topic passed to all tests is the browser window after loading the document.
-  # However, you can (and often need to) supply a ready function that will be
-  # called with err and window; the ready function can then call this.callback.
-  wants: (url, context)->
-    context ||= {}
-    context.topic = ->
-      ready = context.ready
-      delete context.ready
-      brains.ready =>
-        browser.open url, (err, window)=>
-          if ready
-            ready.apply this, [err, window]
-          else
-            @callback err, window
-      return
-    return context
+# Creates a new Vows context that will wait for the HTTP server to be ready,
+# then create a new Browser, visit the specified page (url), run all the tests
+# and shutdown the HTTP server.
+#
+# The second argument is the context with all its tests (and subcontexts). The 
+# topic passed to all tests is the browser window after loading the document.
+# However, you can (and often need to) supply a ready function that will be
+# called with err and window; the ready function can then call this.callback.
+zombie.wants = (url, context)->
+  context ||= {}
+  context.topic = ->
+    ready = context.ready
+    delete context.ready
+    brains.ready =>
+      zombie.browse url, (err, browser)=>
+        if ready
+          ready.call this, browser, browser.window
+        else
+          @callback err, browser
+    return
+  return context
 
 vows.zombie = zombie
 vows.brains = brains
