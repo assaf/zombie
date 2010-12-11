@@ -64,7 +64,7 @@ class History
       jsdom.applyDocumentFeatures(document)
       @window.document = document
       loader = jsdom.dom.level3.core.resourceLoader
-      loader.download url, (err, data)->
+      loader.download url, (err, data)=>
         if err
           evt = document.createEvent("HTMLEvents")
           evt.initEvent "error", true, false
@@ -73,6 +73,7 @@ class History
           document.open()
           document.write(data)
           document.close()
+          @window.enhance document
   # Called when we switch to a new page with the URL of the old page.
   _pageChanged: (old)->
     url = @_url

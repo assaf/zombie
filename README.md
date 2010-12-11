@@ -34,3 +34,5 @@ License/Credit
 --------------
 
 Zombie.js is copyright of Assaf Arkin, released under the MIT License.
+
+Sizzle.js is copyright of John Resig, released under the MIT, BSD and GPL.

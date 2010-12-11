@@ -1,9 +1,7 @@
 require.paths.unshift(__dirname)
+fs = require("fs")
 jsdom = require("jsdom")
 require "./jsdom_patches"
-history = require("./history")
-event_loop = require("./eventloop")
-xhr = require("./xhr")
 
 # Use the browser to open up new windows and load documents.
 #
@@ -14,10 +12,12 @@ class Browser
     @window = jsdom.createWindow(jsdom.dom.level3.html)
     @window.browser = this
     # Attach history/location objects to window/document.
-    history.apply(@window)
+    require("./history").apply(@window)
     # All asynchronous processing handled by event loop.
-    xhr.apply(@window)
-    event_loop.apply(@window)
+    require("./xhr").apply(@window)
+    require("./eventloop").apply(@window)
+    # Add Sizzle, default event handling, etc
+    require("./document").apply(@window)
 
   # Loads document from the specified URL, and calls callback with null,
   # browser when done loading (corresponds to DOMContentLoaded event).
@@ -55,9 +55,21 @@ class Browser
       callback err, this
     return
 
+  # Returns elements that match the selector, either from the document or the
+  # specified context element. Uses Sizzle.js.
+  select: (selector, context)-> @window.select(selector, context)
+
   clickLink: (selector, callback)->
-    # TODO: do something
-    @wait callback if callback
+    for l in @select("a")
+      if l.innerHTML == selector
+        link = l
+        break
+    link ||= @select(selector)[0]
+    if link
+      evt = @window.document.createEvent("HTMLEvents")
+      evt.initEvent "click", true, true
+      link.dispatchEvent evt
+      @wait callback if callback
 
 # The main window's document. Only valid after opening a document
 # (Browser.open).
@@ -70,7 +82,7 @@ Browser.prototype.__defineSetter__ "location", (url)-> @window.location = url
 # Returns the HTML contents of the current document as a string.
 Browser.prototype.__defineGetter__ "html", -> @window.document.outerHTML
 # Returns the body Element of the current document.
-Browser.prototype.__defineGetter__ "body", -> @window.$("body")[0]
+Browser.prototype.__defineGetter__ "body", -> @window.Sizzle("body")[0]
 
 
 exports.Browser = Browser

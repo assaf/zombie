@@ -24,13 +24,16 @@ brains.get "/living", (req, res)-> res.send """
       <script src="/sammy.js"></script>
       <script src="/app.js"></script>
     </head>
-    <body></body>
+    <body>
+      <div id="main"></div>
+      <a href="#/dead">Kill</a>
+    </body>
   </html>
   """
 brains.get "/sammy.js", (req, res)->
   fs.readFile "#{__dirname}/../data/sammy.js", (err, data)-> res.send data
 brains.get "/app.js", (req, res)-> res.send """
-  Sammy("body", function(app) {
+  Sammy("#main", function(app) {
     app.get("#/", function(context) {
       context.swap("The Living");
     });
@@ -38,7 +41,7 @@ brains.get "/app.js", (req, res)-> res.send """
       context.swap("The Living Dead");
     });
   });
-  $(function() { Sammy("body").run("#/") });
+  $(function() { Sammy("#main").run("#/") });
   """
 
 
@@ -54,17 +57,18 @@ vows.describe("Browser").addBatch({
 
   "run app":
     zombie.wants "http://localhost:3003/living"
-      "should execute route": (browser)-> assert.equal browser.body.innerHTML, "The Living"
+      "should execute route": (browser)-> assert.equal browser.select("#main")[0].innerHTML, "The Living"
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
       "move around":
         topic: (browser)->
           browser.location = "#/dead"
           browser.wait @callback
-        "should execute route": (browser)-> assert.equal browser.body.innerHTML, "The Living Dead"
+        "should execute route": (browser)-> assert.equal browser.select("#main")[0].innerHTML, "The Living Dead"
         "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
 
   "click links":
     zombie.wants "http://localhost:3003/living"
-      ready: (browser)-> browser.clickLink "dead", @callback
+      ready: (browser)->
+        browser.clickLink "Kill", @callback
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
 }).export(module);
