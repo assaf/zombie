@@ -21,6 +21,13 @@ Using
 Coming.
 
 
+Selecting Elements
+------------------
+
+See the documentation for Sizzle.js:
+https://github.com/jeresig/sizzle/wiki
+
+
 Contributing
 ------------
 
@@ -30,8 +37,8 @@ Make your changes.
 Send me a pull request.
 
 
-License/Credit
---------------
+Brains
+------
 
 Zombie.js is copyright of Assaf Arkin, released under the MIT License.
 

@@ -50,7 +50,7 @@ class EventLoop
     # Queue an event to be processed by wait(). Event is a function call in the
     # context of the window.
     @queue = (event)->
-      queue.push event
+      queue.push event if event
       wait() for wait in waiting
       waiting = []
 
@@ -102,10 +102,22 @@ class EventLoop
             @wait terminate, callback, intervals
           catch err
             callback err, window
-        else if window._xhr > 0
+        else if requests > 0
           waiting.push => @wait terminate, callback, intervals
         else
           callback null, window
+
+    # Counts outstanding requests.
+    requests = 0
+    # Used internally for the duration of an internal request (loading
+    # resource, XHR). Function is invoked with single argument (done), a
+    # function to call when done processing the request.
+    @request = (fn)->
+      ++requests
+      fn ->
+        if --requests == 0
+          wait() for wait in waiting
+          waiting = []
 
 
 # Apply event loop to window: creates new event loop and adds
@@ -114,6 +126,6 @@ exports.apply = (window)->
   eventLoop = new EventLoop(window)
   for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
     window[fn] = -> eventLoop[fn].apply(window, arguments)
-  window.process = eventLoop.process
   window.queue = eventLoop.queue
   window.wait = eventLoop.wait
+  window.request = eventLoop.request 

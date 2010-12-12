@@ -27,71 +27,71 @@ XMLHttpRequest = (window)->
     @getResponseHeader = @getAllResponseHeader = ->
     # Open method.
     @open = (method, url, async, user, password)->
-      ++window._xhr
-      method = method.toUpperCase()
-      throw new core.DOMException(core.SECURITY_ERR, "Unsupported HTTP method") if /^(CONNECT|TRACE|TRACK)$/.test(method)
-      throw new core.DOMException(core.SYNTAX_ERR, "Unsupported HTTP method") unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
-      url = URL.parse(URL.resolve(window.location, url))
-      url.hash = null
-      throw new core.DOMException(core.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
-      throw new core.DOMException(core.NOT_SUPPORTED_ERR, "Only HTTP protocol supported") unless url.protocol == "http:"
-      [user, password] = url.auth.split(":") if url.auth
+      window.request (done)=>
+        method = method.toUpperCase()
+        throw new core.DOMException(core.SECURITY_ERR, "Unsupported HTTP method") if /^(CONNECT|TRACE|TRACK)$/.test(method)
+        throw new core.DOMException(core.SYNTAX_ERR, "Unsupported HTTP method") unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
+        url = URL.parse(URL.resolve(window.location, url))
+        url.hash = null
+        throw new core.DOMException(core.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
+        throw new core.DOMException(core.NOT_SUPPORTED_ERR, "Only HTTP protocol supported") unless url.protocol == "http:"
+        [user, password] = url.auth.split(":") if url.auth
 
-      # Aborting open request.
-      @_error = null
-      aborted = false
-      @abort = ->
-        aborted = true
-        --window._xhr
-        reset()
-
-      # Allow setting headers in this state.
-      headers = []
-      @setRequestHandler = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
-      # Allow calling send method.
-      @send = (data)->
-        # Aborting request in progress.
+        # Aborting open request.
+        @_error = null
+        aborted = false
         @abort = ->
           aborted = true
-          --window._xhr
-          @_error = new core.DOMException(core.ABORT_ERR, "Request aborted")
-          stateChanged 4
+          done()
           reset()
-        
-        client = http.createClient(url.port, url.hostname)
-        if data && method != "GET" && method != "HEAD"
-          headers["content-type"] ||= "text/plain;charset=UTF-8"
-        else
-          data = ""
-        request = client.request(method, url.pathname, headers)
-        request.end data, "utf8"
-        request.on "response", (response)=>
-          return request.destroy() if aborted
-          response.setEncoding "utf8"
-          # At this state, allow retrieving of headers and status code.
-          @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
-          @getAllResponseHeader = -> response.headers
-          @__defineGetter__ "status", -> response.statusCode
-          @__defineGetter__ "statusText", -> XMLHttpRequest.STATUS[response.statusCode]
-          stateChanged 2
-          body = ""
-          response.on "data", (chunk)=>
-            return response.destroy() if aborted
-            body += chunk
-            stateChanged 3
-          response.on "end", (chunk)=>
-            return response.destroy() if aborted
-            @__defineGetter__ "responseText", -> body
-            @__defineGetter__ "responseXML", -> # not implemented
-            stateChanged 4
-            --window._xhr
 
-        client.on "error", (err)=>
-           console.error "XHR error", err
-           --window._xhr
-           @_error = new core.DOMException(core.NETWORK_ERR, err.message)
-           stateChanged 4
-           reset()
+        # Allow setting headers in this state.
+        headers = []
+        @setRequestHandler = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
+        # Allow calling send method.
+        @send = (data)->
+          # Aborting request in progress.
+          @abort = ->
+            aborted = true
+            done()
+            @_error = new core.DOMException(core.ABORT_ERR, "Request aborted")
+            stateChanged 4
+            reset()
+        
+          client = http.createClient(url.port, url.hostname)
+          if data && method != "GET" && method != "HEAD"
+            headers["content-type"] ||= "text/plain;charset=UTF-8"
+          else
+            data = ""
+          request = client.request(method, url.pathname, headers)
+          request.end data, "utf8"
+          request.on "response", (response)=>
+            return request.destroy() if aborted
+            response.setEncoding "utf8"
+            # At this state, allow retrieving of headers and status code.
+            @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
+            @getAllResponseHeader = -> response.headers
+            @__defineGetter__ "status", -> response.statusCode
+            @__defineGetter__ "statusText", -> XMLHttpRequest.STATUS[response.statusCode]
+            stateChanged 2
+            body = ""
+            response.on "data", (chunk)=>
+              return response.destroy() if aborted
+              body += chunk
+              stateChanged 3
+            response.on "end", (chunk)=>
+              return response.destroy() if aborted
+              @__defineGetter__ "responseText", -> body
+              @__defineGetter__ "responseXML", -> # not implemented
+              stateChanged 4
+              done()
+
+          client.on "error", (err)=>
+             console.error "XHR error", err
+             done()
+             @_error = new core.DOMException(core.NETWORK_ERR, err.message)
+             stateChanged 4
+             reset()
           
       # Calling open at this point aborts the ongoing request, resets the
       # state and starts a new request going
@@ -113,7 +113,5 @@ XMLHttpRequest.STATUS = { 200: "OK", 404: "Not Found", 500: "Internal Server Err
 
 
 exports.apply = (window)->
-  # Counts in-progress XHR requests.
-  window._xhr = 0
   # XHR constructor needs reference to window.
   window.XMLHttpRequest = -> XMLHttpRequest.call this, window

@@ -7,14 +7,19 @@ core.resourceLoader.resolve = (document, path)->
   path.replace(/^file:/, '').replace(/^([\/]+)/, "/")
 core.resourceLoader.load = (element, href, callback)->
   document = element.ownerDocument
+  window = document.parentWindow
   ownerImplementation = document.implementation
   if ownerImplementation.hasFeature('FetchExternalResources', element.tagName.toLowerCase())
     url = URL.parse(@resolve(document, href))
-    if url.hostname
-      @download url, @enqueue(element, callback, url.pathname)
-    else
-      file = @resolve(document, url.pathname)
-      @readFile file, @enqueue(element, callback, file)
+    window.request (done)=>
+      loaded = (data, filename)->
+        done()
+        callback.call this, data, filename
+      if url.hostname
+        @download url, @enqueue(element, loaded, url.pathname)
+      else
+        file = @resolve(document, url.pathname)
+        @readFile file, @enqueue(element, loaded, file)
 # Need to use the same context for all the scripts we load in the same document,
 # otherwise simple things won't work (e.g $.xhr)
 core.languageProcessors =

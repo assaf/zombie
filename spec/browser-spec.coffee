@@ -26,7 +26,7 @@ brains.get "/living", (req, res)-> res.send """
     </head>
     <body>
       <div id="main"></div>
-      <a href="#/dead">Kill</a>
+      <a href="/dead">Kill</a>
     </body>
   </html>
   """
@@ -42,6 +42,21 @@ brains.get "/app.js", (req, res)-> res.send """
     });
   });
   $(function() { Sammy("#main").run("#/") });
+  """
+
+brains.get "/dead", (req, res)->
+  console.log "requested the dead"
+  res.send """
+  <html>
+    <head>
+      <script src="/jquery.js"></script>
+    </head>
+    <body>
+      <script>
+        $(function() { document.title = "The Dead" });
+      </script>
+    </body>
+  </html>
   """
 
 
@@ -66,9 +81,10 @@ vows.describe("Browser").addBatch({
         "should execute route": (browser)-> assert.equal browser.select("#main")[0].innerHTML, "The Living Dead"
         "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
 
-  "click links":
+  "click link":
     zombie.wants "http://localhost:3003/living"
       ready: (browser)->
         browser.clickLink "Kill", @callback
-      "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
+      "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/dead"
+      "should run all events": (browser)-> assert.equal browser.document.title, "The Dead"
 }).export(module);

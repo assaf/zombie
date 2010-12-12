@@ -10,7 +10,8 @@ exports.apply = (window)->
     process.binding("evals").Script.runInContext sizzle, ctx
     Sizzle = window.Sizzle
     window.select = (selector, context)-> new Sizzle(selector, context)
+
     # Add default behavior for clicking links
     document.addEventListener "click", (evt)=>
-      href = evt.target.getAttribute("href")
-      window.location.href = href
+      if evt.target.nodeName == "A" && href = evt.target.href
+        window.location = href
