@@ -9,7 +9,7 @@ exports.apply = (window)->
     ctx.document = document
     process.binding("evals").Script.runInContext sizzle, ctx
     Sizzle = window.Sizzle
-    window.select = (selector, context)-> new Sizzle(selector, context)
+    window.find = (selector, context)-> new Sizzle(selector, context)
 
     # Add default behavior for clicking links
     document.addEventListener "click", (evt)=>

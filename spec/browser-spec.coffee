@@ -27,6 +27,13 @@ brains.get "/living", (req, res)-> res.send """
     <body>
       <div id="main"></div>
       <a href="/dead">Kill</a>
+      <form>
+        <label>Name <input type="text" name="name" id="field-name"></label>
+        <label for="field-email">Email</label>
+        <input type="text" name="email" id="field-email"></label>
+        <textarea name="likes" id="field-likes"></textarea>
+        <input type="password" name="password" id="field-password">
+      </form>
     </body>
   </html>
   """
@@ -44,9 +51,7 @@ brains.get "/app.js", (req, res)-> res.send """
   $(function() { Sammy("#main").run("#/") });
   """
 
-brains.get "/dead", (req, res)->
-  console.log "requested the dead"
-  res.send """
+brains.get "/dead", (req, res)-> res.send """
   <html>
     <head>
       <script src="/jquery.js"></script>
@@ -72,13 +77,13 @@ vows.describe("Browser").addBatch({
 
   "run app":
     zombie.wants "http://localhost:3003/living"
-      "should execute route": (browser)-> assert.equal browser.select("#main")[0].innerHTML, "The Living"
+      "should execute route": (browser)-> assert.equal browser.find("#main")[0].innerHTML, "The Living"
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
       "move around":
         topic: (browser)->
           browser.location = "#/dead"
           browser.wait @callback
-        "should execute route": (browser)-> assert.equal browser.select("#main")[0].innerHTML, "The Living Dead"
+        "should execute route": (browser)-> assert.equal browser.find("#main")[0].innerHTML, "The Living Dead"
         "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
 
   "click link":
@@ -87,4 +92,5 @@ vows.describe("Browser").addBatch({
         browser.clickLink "Kill", @callback
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/dead"
       "should run all events": (browser)-> assert.equal browser.document.title, "The Dead"
+
 }).export(module);
