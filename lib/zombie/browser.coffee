@@ -111,9 +111,9 @@ class Browser
     # ----- Forms -----
 
     # HTML5 field types that you can "fill in".
-    fieldTypes = "email number password range search text url".split(" ")
+    textTypes = "email number password range search text url".split(" ")
     # Find input field from selector, name or label.
-    findField = (selector, match)=>
+    findInput = (selector, match)=>
       # Try more specific selector first.
       fields = @find(selector)
       return fields[0] if fields[0] && match(fields[0])
@@ -139,41 +139,58 @@ class Browser
     # value -- Field value
     # Returns this
     @fill = (selector, value)->
-      match = (field)-> field.nodeName == "TEXTAREA" || fieldTypes.indexOf(field.getAttribute("type")?.toLowerCase()) >= 0
-      if field = findField(selector, match)
-        if field.value != value
-          field.value = value
-          @fire "change", field
+      match = (elem)-> elem.nodeName == "TEXTAREA" || textTypes.indexOf(elem.type?.toLowerCase()) >= 0
+      if input = findInput(selector, match)
+        throw new Error("This INPUT field is disabled") if input.getAttribute("input")
+        throw new Error("This INPUT field is readonly") if input.getAttribute("readonly")
+        input.value = value
+        @fire "change", input
         return this
-      throw new Error("No input matching the selector #{selector}")
+      throw new Error("No INPUT matching '#{selector}'")
+
+    setCheckbox = (selector, state)=>
+      match = (elem)-> elem.nodeName == "INPUT" && elem.type == "checkbox"
+      if input = findInput(selector, match)
+        throw new Error("This INPUT field is disabled") if input.getAttribute("input")
+        throw new Error("This INPUT field is readonly") if input.getAttribute("readonly")
+        input.checked = state
+        @fire "change", input
+        @fire "click", input
+        return this
+      else
+        throw new Error("No checkbox INPUT matching '#{selector}'")
 
     # Checks a checkbox.
     #
     # selector -- CSS selector, field name or text of the field label
     # Returns this
-    @check = (selector)->
-      match = (field)-> field.nodeName == "INPUT" && field.getAttribute("type").toLowerCase() == "checkbox"
-      if field = findField(selector, match)
-        unless field.checked
-          field.checked = true
-          @fire "change", field
-        return this
-      else
-        throw new Error("No checkbox input matching the selector #{selector}")
+    @check = (selector)-> setCheckbox selector, true
 
     # Unchecks a checkbox.
     #
     # selector -- CSS selector, field name or text of the field label
     # Returns this
-    @uncheck = (selector)->
-      match = (field)-> field.nodeName == "INPUT" && field.getAttribute("type").toLowerCase() == "checkbox"
-      if field = findField(selector, match)
-        if field.checked
-          field.checked = false
-          @fire "change", field
+    @uncheck = (selector)-> setCheckbox selector, false
+
+    # Selects a radio box option.
+    #
+    # selector -- CSS selector, field value or text of the field label
+    # Returns this
+    @choose = (selector)->
+      match = (elem)-> elem.nodeName == "INPUT" && elem.type?.toLowerCase() == "radio"
+      input = findInput(selector, match) || @find(":radio[value='#{selector}']")[0]
+      if input
+        radios = @find(":radio[name='#{input.getAttribute("name")}']", input.form)
+        for radio in radios
+          throw new Error("This INPUT field is disabled") if radio.getAttribute("input")
+          throw new Error("This INPUT field is readonly") if radio.getAttribute("readonly")
+        radio.checked = false for radio in radios
+        input.checked = true
+        @fire "change", input
+        @fire "click", input
         return this
       else
-        throw new Error("No checkbox input matching the selector #{selector}")
+        throw new Error("No radio INPUT matching '#{selector}'")
 
     # Selects an option.
     #
@@ -181,41 +198,21 @@ class Browser
     # value -- Value (or label) or option to select
     # Returns this
     @select = (selector, value)->
-      match = (field)-> field.nodeName == "SELECT"
-      if field = findField(selector, match)
-        for option in field.options
+      match = (elem)-> elem.nodeName == "SELECT"
+      if select = findInput(selector, match)
+        throw new Error("This SELECT field is disabled") if select.getAttribute("disabled")
+        for option in select.options
           if option.value == value
-            if field.value != value
-              field.value = value
-              @fire "change", field
+            select.value = option.value
+            @fire "change", select
             return this
-        for option in field.options
-          if option.label == option.getAttribute("label")
-            if field.value != value
-              field.value = value
-              @fire "change", field
+        for option in select.options
+          if option.label == value
+            select.value = option.value
+            @fire "change", select
             return this
-        throw new Error("No option #{value}")
+        throw new Error("No OPTION #{value}")
       else
-        throw new Error("No select/options matching the selector #{selector}")
-
-    # Selects a radio box option.
-    #
-    # selector -- CSS selector, field value or text of the field label
-    # Returns this
-    @choose = (selector)->
-      match = (field)-> field.nodeName == "INPUT" && field.getAttribute("type").toLowerCase() == "radio"
-      field = findField(selector, match) || @find(":radio[value='#{selector}']")[0]
-      if field
-        if !field.checked
-          if form = field.form
-            for radio in @find(":radio[name='#{field.getAttribute("name")}']", form)
-              radio.checked = false
-          field.checked = true
-          @fire "change", field
-        return this
-      else
-        throw new Error("No radio button matching the selector #{selector}")
-
+        throw new Error("No SELECT matching '#{selector}'")
 
 exports.Browser = Browser

@@ -32,3 +32,24 @@ core.languageProcessors =
         process.binding("evals").Script.runInContext code, document._jsContext, filename
       catch ex
         console.error "Loading #{filename}", ex.stack
+
+# Implement form.reset
+core.HTMLFormElement.prototype.reset = ->
+  for field in @elements
+    if field.nodeName == "SELECT"
+      for option in field.options
+        option.selected = option._defaultSelected
+    else if field.nodeName == "INPUT" && field.type == "check" || field.type == "radio"
+      field.checked = field._defaultChecked
+    else if field.nodeName == "INPUT" || field.nodeName == "TEXTAREA"
+      field.value = field._defaultValue
+core.HTMLInputElement.prototype.click = ->
+  if @type == "checkbox" || @type == "radio"
+    @checked = !@checked
+  # Instead of handling event directly we bubble it and let the default behavior kick in.
+  event = @ownerDocument.createEvent("HTMLEvents")
+  event.initEvent "click", true, true
+  @dispatchEvent event
+  
+core.HTMLFormElement.prototype.submit = ->
+  console.log "SUBMIT"

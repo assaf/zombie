@@ -13,5 +13,12 @@ exports.apply = (window)->
 
     # Add default behavior for clicking links
     document.addEventListener "click", (evt)=>
-      if evt.target.nodeName == "A" && href = evt.target.href
-        window.location = href
+      return if evt._preventDefault
+      target = evt.target
+      switch target.nodeName
+        when "A" then window.location = target.href if target.href
+        when "INPUT"
+          if form = target.form
+            switch target.type
+              when "reset" then target.form.reset()
+              when "submit" then target.form._dispatchSubmitEvent()
