@@ -60,7 +60,7 @@ core.HTMLInputElement.prototype.click = ->
   event.initEvent "click", true, true
   @dispatchEvent event
 
-# TODO
+# Default behavior for form BUTTON: submit form.
 core.HTMLButtonElement.prototype._eventDefault = (event)->
   return if @getAttribute("disabled")
   if event.type == "click" && form = @form

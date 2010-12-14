@@ -120,9 +120,9 @@ class EventLoop
           waiting = []
 
 
-# Apply event loop to window: creates new event loop and adds
+# Attach event loop to window: creates new event loop and adds
 # timeout/interval methods and XHR class.
-exports.apply = (window)->
+exports.attach = (window)->
   eventLoop = new EventLoop(window)
   for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
     window[fn] = -> eventLoop[fn].apply(window, arguments)

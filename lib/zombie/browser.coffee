@@ -14,10 +14,13 @@ class Browser
     window = jsdom.createWindow(jsdom.dom.level3.html)
     window.browser = this
     # Attach history/location objects to window/document.
-    require("./history").apply(window)
+    require("./history").attach window
     # All asynchronous processing handled by event loop.
-    require("./xhr").apply(window)
-    require("./eventloop").apply(window)
+    require("./xhr").attach window
+    require("./eventloop").attach window
+    # Cookies and storage.
+    cookies = new require("./cookies").cookies(this)
+    cookies.attach window
 
     # Loads document from the specified URL, and calls callback with null,
     # browser when done loading (corresponds to DOMContentLoaded event).
@@ -105,6 +108,8 @@ class Browser
     @__defineSetter__ "location", (url)-> window.location = url
     # Returns the body Element of the current document.
     @__defineGetter__ "body", -> window.document?.find("body")[0]
+    # Returns all the cookies for this browser.
+    @__defineGetter__ "cookies", -> cookies
 
 
     # ----- Actions -----
@@ -258,5 +263,6 @@ class Browser
           input.click()
           return @wait(callback)
       throw new Error("No BUTTON '#{selector}'")
+
 
 exports.Browser = Browser

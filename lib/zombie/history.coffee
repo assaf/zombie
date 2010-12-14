@@ -160,9 +160,9 @@ class Location
 jsdom.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", => @ownerWindow.location
 
 
-# Apply Location/History to window: creates new history and adds
+# Attach Location/History to window: creates new history and adds
 # location/history accessors.
-exports.apply = (window)->
+exports.attach = (window)->
   history = new History(window)
   window.__defineGetter__ "history", -> history
   window.__defineSetter__ "history", (history)-> # runInNewContext needs this

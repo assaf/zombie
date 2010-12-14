@@ -112,6 +112,7 @@ XMLHttpRequest.DONE = 4
 XMLHttpRequest.STATUS = { 200: "OK", 404: "Not Found", 500: "Internal Server Error" }
 
 
-exports.apply = (window)->
+# Attach XHR support to window.
+exports.attach = (window)->
   # XHR constructor needs reference to window.
   window.XMLHttpRequest = -> XMLHttpRequest.call this, window

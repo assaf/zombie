@@ -1,16 +1,14 @@
-{
-  "name": "zombie",
-  "version": "0.4.0",
+{ "name": "zombie",
+  "version": "0.4.1",
   "description": "Superfast headless full stack testing framework using node.js",
   "homepage": "https://github.com/assaf/zombie",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
   "keywords": ["test", "spec", "headless", "full-stack"],
   "main": "./lib/zombie",
-  "directories": {
-  },
-  "repository: {
-    { "type": "git",
-      "url" : "https://assaf@github.com/assaf/zombie.git" }
+  "directories": { },
+  "repository": {
+    "type": "git",
+    "url": "https://assaf@github.com/assaf/zombie.git"
   },
   "scripts": {
     "test": "vows"
