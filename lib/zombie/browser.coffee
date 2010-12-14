@@ -3,6 +3,7 @@ fs = require("fs")
 jsdom = require("jsdom")
 require "./jsdom_patches"
 require "./sizzle"
+require "./forms"
 
 # Use the browser to open up new windows and load documents.
 #
@@ -112,7 +113,7 @@ class Browser
     # page, etc: use a callback to be notified of completion.
     #
     # selector -- CSS selector or link text
-    # callback -- Called with null, browser or error
+    # callback -- Called with two arguments: error and browser
     @clickLink = (selector, callback)->
       if link = @find(selector)[0]
         @fire "click", link, callback if link
@@ -227,8 +228,35 @@ class Browser
             select.value = option.value
             @fire "change", select
             return this
-        throw new Error("No OPTION #{value}")
+        throw new Error("No OPTION '#{value}'")
       else
         throw new Error("No SELECT matching '#{selector}'")
+
+    # Press a button (button element of input type submit). Generally this will
+    # submit the form. Use the callback to wait for the from submission, page
+    # to load and all events run their course.
+    #
+    # selector -- CSS selector, button name or text of BUTTON element
+    # callback -- Called with two arguments: error and browser
+    @pressButton = (selector, callback)->
+      if button = @find(selector).first
+        button.click()
+        return @wait(callback)
+      for button in @find("form button")
+        continue if button.getAttribute("disabled")
+        if window.Sizzle.getText([button]).trim() == selector
+          @fire "click", button
+          return @wait(callback)
+      for input in @find("form :submit")
+        continue if input.getAttribute("disabled")
+        if input.name == selector
+          input.click()
+          return @wait(callback)
+      for input in @find("form :submit")
+        continue if input.getAttribute("disabled")
+        if input.value == selector
+          input.click()
+          return @wait(callback)
+      throw new Error("No BUTTON '#{selector}'")
 
 exports.Browser = Browser

@@ -5,7 +5,7 @@ require("./helpers")
 brains.get "/form", (req, res)-> res.send """
   <html>
     <body>
-      <form action="/form" method="post">
+      <form action="/submit" method="post">
         <label>Name <input type="text" name="name" id="field-name"></label>
         <label for="field-email">Email</label>
         <input type="text" name="email" id="field-email"></label>
@@ -32,13 +32,14 @@ brains.get "/form", (req, res)-> res.send """
         </select>
 
         <input type="reset" value="Reset">
-        <input type="submit" value="Submit">
+        <input type="submit" name="button" value="Submit">
+
+        <button name="button" value="hit-me">Hit Me</button>
       </form>
     </body>
   </html>
   """
-brains.post "/form", (req, res)->
-  res.send """
+brains.post "/submit", (req, res)-> res.send """
   <html>
     <body>
       <div id="name">#{req.body.name}</div>
@@ -47,6 +48,7 @@ brains.post "/form", (req, res)->
       <div id="state">#{req.body.state}</div>
       <div id="scary">#{req.body.scary}</div>
       <div id="state">#{req.body.state}</div>
+      <div id="clicked">#{req.body.button}</div>
     </body>
   </html>
   """
@@ -194,9 +196,34 @@ vows.describe("Forms").addBatch({
             check("Hungry").choose("Scary").select("state", "dead")
           browser.find("form")[0].submit()
           browser.wait @callback
+        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
+        "should add location to history": (browser)-> assert.length browser.window.history, 2
         "should send text input values to server": (browser)-> assert.equal browser.text("#name"), "ArmBiter"
         "should send textarea values to server": (browser)-> assert.equal browser.text("#likes"), "Arm Biting"
         "should send checkbox values to server": (browser)-> assert.equal browser.text("#hungry"), "you bet"
         "should send radio button to server": (browser)-> assert.equal browser.text("#scary"), "yes"
         "should send selected option to server": (browser)-> assert.equal browser.text("#state"), "dead"
+    "by clicking button":
+      zombie.wants "http://localhost:3003/form"
+        ready: (browser)->
+          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
+            pressButton "Hit Me", @callback
+        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
+        "should add location to history": (browser)-> assert.length browser.window.history, 2
+        "should send button value to server": (browser)-> assert.equal browser.text("#clicked"), "hit-me"
+        "should send input values to server": (browser)->
+          assert.equal browser.text("#name"), "ArmBiter"
+          assert.equal browser.text("#likes"), "Arm Biting"
+    "by clicking input":
+      zombie.wants "http://localhost:3003/form"
+        ready: (browser)->
+          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
+            pressButton "Submit", @callback
+        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
+        "should add location to history": (browser)-> assert.length browser.window.history, 2
+        "should send submit value to server": (browser)-> assert.equal browser.text("#clicked"), "Submit"
+        "should send input values to server": (browser)->
+          assert.equal browser.text("#name"), "ArmBiter"
+          assert.equal browser.text("#likes"), "Arm Biting"
+
 }).export(module);

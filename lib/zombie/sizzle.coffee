@@ -13,5 +13,4 @@ core.HTMLDocument.prototype.close = ->
     ctx.window = window
     ctx.document = this
     process.binding("evals").Script.runInContext sizzle, ctx
-    Sizzle = window.Sizzle
-    @find = (selector, context)-> new Sizzle(selector, context)
+    @find = (selector, context)-> new window.Sizzle(selector, context)
