@@ -13,8 +13,20 @@ log = (message, color, explanation) ->
   console.log color + message + reset + ' ' + (explanation or '')
 
 task "doc:source", "Builds source documentation", ->
-  exec "docco lib/**/*.coffee && rm -rf html && cp -r docs html && rm -rf docs", (err) ->
+  log "Documenting source files", green
+  exec "docco lib/**/*.coffee && mv -f docs/* html/ && rm -rf docs", (err) ->
     throw err if err
+
+task "doc:readme", "Build README file", ->
+  markdown = require("node-markdown").Markdown
+  fs.mkdir "html", 0777, ->
+    fs.readFile "README.md", "utf8", (err, text)->
+      log "Writing html/index.html", green
+      fs.writeFile "html/index.html", markdown(text), "utf8"
+
+task "doc", "Generate documentation", ->
+  invoke "doc:readme"
+  invoke "doc:source"
 
 task "test", "Run all tests", -> exec "vows"
 
