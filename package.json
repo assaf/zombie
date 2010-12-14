@@ -11,6 +11,7 @@
     "url": "https://assaf@github.com/assaf/zombie.git"
   },
   "scripts": {
+    "build": "cake",
     "test": "vows"
   },
   "engines": {

@@ -1,5 +1,8 @@
+# Patches to JSDOM for properly handling forms.
 core = require("jsdom").dom.level3.core
 
+# The Form
+# --------
 
 serializeFieldTypes = "email number password range search text url".split(" ")
 core.HTMLFormElement.prototype.submit = -> @_submit()
@@ -40,6 +43,10 @@ core.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
 # also pass the submitting button.
 core.HTMLFormElement.prototype._eventDefault = (event)->
   @_submit event._button if event.type == "submit"
+
+
+# Buttons
+# -------
 
 # Default behavior for clicking on reset/submit buttons.
 core.HTMLInputElement.prototype._eventDefault = (event)->

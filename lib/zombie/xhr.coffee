@@ -1,3 +1,4 @@
+# window.XMLHttpRequest
 core = require("jsdom").dom.level3.core
 http = require("http")
 URL = require("url")

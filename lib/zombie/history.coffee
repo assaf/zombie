@@ -1,17 +1,23 @@
+# Window history and location.
 jsdom = require("jsdom")
 http = require("http")
 URL = require("url")
 
+# ## window.history
+#
 # Represents window.history.
 class History
   constructor: (window)->
     stack = []
     index = -1
     history = @
+    # ### history.forward amount
     @forward = -> @go(1)
+    # ### history.back amount
     @back = -> @go(-1)
-    @go = (steps)->
-      new_index = index + steps
+    # ### history.go amount
+    @go = (amount)->
+      new_index = index + amount
       new_index = 0 if new_index < 0
       new_index = stack.length - 1 if stack.length > 0 && new_index >= stack.length
       old = @_location
@@ -32,11 +38,15 @@ class History
     # Number of states/URLs in the history.
     @__defineGetter__ "length", -> stack.length
 
+    # ### window.history.pushState state, title, url
+    #
     # Push new state to the stack, do not reload
     @pushState = (state, title, url)->
       entry = stack[index] if index >= 0
       url = URL.resolve(entry, url) if entry
       stack[++index] = { state: state, title: title, url: URL.parse(url.toString()), pop: true }
+    # ### window.history.replaceState state, title, url
+    #
     # Replace existing state in the stack, do not reload
     @replaceState = (state, title, url)->
       index = 0 if index < 0
@@ -138,15 +148,23 @@ class History
         window.dispatchEvent evt
 
 
+# ## window.location
+#
 # Represents window.location and document.location.
 class Location
   constructor: (history, @_url)->
+    # ### window.location.assign url
     @assign = (url)-> history._assign url
+    # ### window.location.replace url
     @replace = (url)-> history._replace url
+    # ### window.location.reload force?
     @reload = (force)-> history._loadPage(force)
+    # ### window.location.toString
     @toString = -> URL.format(@_url)
     # Getter/setter for full URL.
+    # ### window.location.href
     @__defineGetter__ "href", -> @_url?.href
+    # ### window.location.href = url
     @__defineSetter__ "href", (url)-> history._assign url
     # Getter/setter for location parts.
     for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search"]

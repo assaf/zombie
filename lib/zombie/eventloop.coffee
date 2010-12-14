@@ -1,11 +1,14 @@
+# Handles the Window event loop, timers and pending requests.
 class EventLoop
   constructor: (window)->
     window.browser.clock = 0
     timers = {}
     lastHandle = 0
 
+    # ### window.setTimeout fn, delay
+    #
     # Implements window.setTimeout using event queue
-    @setTimeout = (fn, delay)->
+    this.setTimeout = (fn, delay)->
       timer = 
         when: window.browser.clock + delay
         timeout: true
@@ -20,8 +23,11 @@ class EventLoop
       handle = ++lastHandle
       timers[handle] = timer
       handle
+
+    # ### window.setInterval fn, delay
+    #
     # Implements window.setInterval using event queue
-    @setInterval = (fn, delay)->
+    this.setInterval = (fn, delay)->
       timer = 
         when: window.browser.clock + delay
         interval: true
@@ -36,10 +42,15 @@ class EventLoop
       handle = ++lastHandle
       timers[handle] = timer
       handle
+
+    # ### window.clearTimeout timeout
+    #
     # Implements window.clearTimeout using event queue
-    @clearTimeout = (handle)-> delete timers[handle] if timers[handle]?.timeout
+    this.clearTimeout = (handle)-> delete timers[handle] if timers[handle]?.timeout
+    # ### window.clearInterval interval
+    #
     # Implements window.clearInterval using event queue
-    @clearInterval = (handle)-> delete timers[handle] if timers[handle]?.interval
+    this.clearInterval = (handle)-> delete timers[handle] if timers[handle]?.interval
 
     # Requests on wait that cannot be handled yet: there's no event in the
     # queue, but we anticipate one (in-progress XHR request).
@@ -49,7 +60,7 @@ class EventLoop
 
     # Queue an event to be processed by wait(). Event is a function call in the
     # context of the window.
-    @queue = (event)->
+    this.queue = (event)->
       queue.push event if event
       wait() for wait in waiting
       waiting = []
@@ -69,7 +80,7 @@ class EventLoop
     #
     # Events include timeout, interval and XHR onreadystatechange. DOM events
     # are handled synchronously.
-    @wait = (terminate, callback, intervals)->
+    this.wait = (terminate, callback, intervals)->
       if !callback
         intervals = callback
         callback = terminate
@@ -112,7 +123,7 @@ class EventLoop
     # Used internally for the duration of an internal request (loading
     # resource, XHR). Function is invoked with single argument (done), a
     # function to call when done processing the request.
-    @request = (fn)->
+    this.request = (fn)->
       ++requests
       fn ->
         if --requests == 0

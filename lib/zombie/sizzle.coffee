@@ -1,3 +1,4 @@
+# Select document elements using Sizzle.js.
 fs = require("fs")
 sizzle = fs.readFileSync(__dirname + "/../../dep/sizzle.js", "utf8")
 core = require("jsdom").dom.level3.core

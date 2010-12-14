@@ -1,8 +1,10 @@
+# Fix things that JSDOM doesn't do quite right.
 core = require("jsdom").dom.level3.core
 URL = require("url")
 
 
-# ----- Event Handling -----
+# Event Handling
+# --------------
 
 # Add default event behavior (click link to navigate, click button to submit
 # form, etc). We start by wrapping dispatchEvent so we can forward events to
@@ -16,7 +18,8 @@ core.HTMLElement.prototype.dispatchEvent = (event)->
 core.HTMLElement.prototype._eventDefault = (event)->
 
 
-# ----- Scripts -----
+# Scripts
+# -------
 
 # Need to use the same context for all the scripts we load in the same document,
 # otherwise simple things won't work (e.g $.xhr)
@@ -32,7 +35,8 @@ core.languageProcessors =
         console.error "Loading #{filename}", ex.stack
 
 
-# ----- Links/Resources ------
+# Links/Resources
+# ---------------
 
 # Default behavior for clicking on links: navigate to new URL is specified.
 core.HTMLAnchorElement.prototype._eventDefault = (event)->

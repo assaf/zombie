@@ -22,17 +22,12 @@ class Browser
     cookies = new require("./cookies").cookies(this)
     cookies.attach window
 
-    # Loads document from the specified URL, and calls callback with null,
-    # browser when done loading (corresponds to DOMContentLoaded event).
-    #
-    # If it fails to download, calls the callback with the error.
-    @open = (url, callback)->
-      window.location = url
-      window.addEventListener "error", (err)-> callback err
-      window.document.addEventListener "DOMContentLoaded", =>
-        process.nextTick => callback null, this
-      return
+    # Events
+    # ------
 
+    # ### browser.wait callback
+    # ### browser.wait terminator, callback
+    #
     # Process all events from the queue. This method returns immediately, events
     # are processed in the background. When all events are exhausted, it calls
     # the callback with null, browser; if any event fails, it calls the callback
@@ -48,13 +43,15 @@ class Browser
     #
     # Events include timeout, interval and XHR onreadystatechange. DOM events
     # are handled synchronously.
-    @wait = (terminate, callback)->
+    this.wait = (terminate, callback)->
       if !callback
         callback = terminate
         terminate = null
       window.wait terminate, (err) => callback err, this
       return
 
+    # ### browser.fire name, target, calback?
+    #
     # Fire a DOM event. Some events are executed synchronously, but some incur
     # more work (loading resources, using timers, etc), in which case you'll want
     # to pass a callback.
@@ -62,64 +59,101 @@ class Browser
     # name -- Even name (e.g click)
     # target -- Target element (e.g a link)
     # callback -- Wait for events to be processed, then call me (optional)
-    @fire = (name, target, callback)->
+    this.fire = (name, target, callback)->
       event = window.document.createEvent("HTMLEvents")
       event.initEvent name, true, true
       target.dispatchEvent event
       @wait callback if callback
 
+    # Accessors
+    # ---------
+
+    # ### browser.find selector, context?
+    #
     # Returns elements that match the selector, either from the document or the #
     # specified context element. Uses Sizzle.js, see
     # https://github.com/jeresig/sizzle/wiki.
     #
     # selector -- CSS selector
     # context -- Context element (if missing, uses document)
-    @find = (selector, context)-> window.document?.find(selector, context)
+    this.find = (selector, context)-> window.document?.find(selector, context)
 
+    # ### browser.text selector, context?
+    #
     # Returns the text contents of the selected elements. With no arguments,
     # returns the text contents of the document body.
     #
     # selector -- CSS selector
     # context -- Context element (if missing, uses document)
-    @text = (selector, context)->
+    this.text = (selector, context)->
       elements = @find(selector || "body", context)
       window.Sizzle?.getText(elements)
 
+    # ### browser.html selector?, context?
+    #
     # Returns the HTML contents of the selected elements. With no arguments,
     # returns the HTML contents of the document.
     #
     # selector -- CSS selector
     # context -- Context element (if missing, uses document)
-    @html = (selector, context)->
+    this.html = (selector, context)->
       if selector
         @find(selector, context).map((elem)-> elem.outerHTML).join("")
       else
         return window.document.outerHTML
 
-    # The main window.
+    # ### browser.window
+    #
+    # Returns the main window.
     @__defineGetter__ "window", -> window
-    # The main window's document. Only valid after opening a document
+    # ### browser.document
+    #
+    # Retursn the main window's document. Only valid after opening a document
     # (Browser.open).
     @__defineGetter__ "document", -> window.document
-    # Location of the current document (same as window.location.href).
+    # ### browser.location
+    #
+    # Return the location of the current document (same as window.location.href).
     @__defineGetter__ "location", -> window.location.href
+    # ### browser.location = url
+    #
     # Changes document location, loads new document if necessary (same as
     # setting window.location).
     @__defineSetter__ "location", (url)-> window.location = url
+    # ### browser.body
+    #
     # Returns the body Element of the current document.
     @__defineGetter__ "body", -> window.document?.find("body")[0]
+    # ### browser.cookies
+    #
     # Returns all the cookies for this browser.
     @__defineGetter__ "cookies", -> cookies
 
 
-    # ----- Actions -----
+    # Actions
+    # -------
 
+    # ### browser.open url, callback
+    #
+    # Loads document from the specified URL, and calls callback with null,
+    # browser when done loading (corresponds to DOMContentLoaded event).
+    #
+    # If it fails to download, calls the callback with the error.
+    this.open = (url, callback)->
+      window.location = url
+      window.addEventListener "error", (err)-> callback err
+      window.document.addEventListener "DOMContentLoaded", =>
+        process.nextTick => callback null, this
+      return
+
+    # ### browser.clickLink selector, callback
+    #
     # Clicks on a link. Clicking on a link can trigger other events, load new #
     # page, etc: use a callback to be notified of completion.
     #
     # selector -- CSS selector or link text
     # callback -- Called with two arguments: error and browser
-    @clickLink = (selector, callback)->
+    this.clickLink = (selector, callback)->
       if link = @find(selector)[0]
         @fire "click", link, callback if link
         return
@@ -130,7 +164,8 @@ class Browser
       return
 
 
-    # ----- Forms -----
+    # Forms
+    # -----
 
     # HTML5 field types that you can "fill in".
     textTypes = "email number password range search text url".split(" ")
@@ -155,24 +190,26 @@ class Browser
             fields = @find("input, textarea, select", label)
           return fields[0] if fields[0] && match(fields[0])
 
+    # ### browser.fill field, value
+    #
     # Fill in a field: input field or text area.
     #
-    # selector -- CSS selector, field name or text of the field label
+    # field -- CSS selector, field name or text of the field label
     # value -- Field value
     # Returns this
-    @fill = (selector, value)->
+    this.fill = (field, value)->
       match = (elem)-> elem.nodeName == "TEXTAREA" || textTypes.indexOf(elem.type?.toLowerCase()) >= 0
-      if input = findInput(selector, match)
+      if input = findInput(field, match)
         throw new Error("This INPUT field is disabled") if input.getAttribute("input")
         throw new Error("This INPUT field is readonly") if input.getAttribute("readonly")
         input.value = value
         @fire "change", input
         return this
-      throw new Error("No INPUT matching '#{selector}'")
+      throw new Error("No INPUT matching '#{field}'")
 
-    setCheckbox = (selector, state)=>
+    setCheckbox = (field, state)=>
       match = (elem)-> elem.nodeName == "INPUT" && elem.type == "checkbox"
-      if input = findInput(selector, match)
+      if input = findInput(field, match)
         throw new Error("This INPUT field is disabled") if input.getAttribute("input")
         throw new Error("This INPUT field is readonly") if input.getAttribute("readonly")
         input.checked = state
@@ -180,27 +217,33 @@ class Browser
         @fire "click", input
         return this
       else
-        throw new Error("No checkbox INPUT matching '#{selector}'")
+        throw new Error("No checkbox INPUT matching '#{field}'")
 
+    # ### browser.check field
+    #
     # Checks a checkbox.
     #
-    # selector -- CSS selector, field name or text of the field label
+    # field -- CSS selector, field name or text of the field label
     # Returns this
-    @check = (selector)-> setCheckbox selector, true
+    this.check = (field)-> setCheckbox field, true
 
+    # ### browser.check field
+    #
     # Unchecks a checkbox.
     #
-    # selector -- CSS selector, field name or text of the field label
+    # field -- CSS selector, field name or text of the field label
     # Returns this
-    @uncheck = (selector)-> setCheckbox selector, false
+    this.uncheck = (field)-> setCheckbox field, false
 
+    # ### browser.choose field
+    #
     # Selects a radio box option.
     #
-    # selector -- CSS selector, field value or text of the field label
+    # field -- CSS selector, field value or text of the field label
     # Returns this
-    @choose = (selector)->
+    this.choose = (field)->
       match = (elem)-> elem.nodeName == "INPUT" && elem.type?.toLowerCase() == "radio"
-      input = findInput(selector, match) || @find(":radio[value='#{selector}']")[0]
+      input = findInput(field, match) || @find(":radio[value='#{field}']")[0]
       if input
         radios = @find(":radio[name='#{input.getAttribute("name")}']", input.form)
         for radio in radios
@@ -212,16 +255,18 @@ class Browser
         @fire "click", input
         return this
       else
-        throw new Error("No radio INPUT matching '#{selector}'")
+        throw new Error("No radio INPUT matching '#{field}'")
 
+    # ### browser.select field, value
+    #
     # Selects an option.
     #
-    # selector -- CSS selector, field name or text of the field label
+    # field -- CSS selector, field name or text of the field label
     # value -- Value (or label) or option to select
     # Returns this
-    @select = (selector, value)->
+    this.select = (field, value)->
       match = (elem)-> elem.nodeName == "SELECT"
-      if select = findInput(selector, match)
+      if select = findInput(field, match)
         throw new Error("This SELECT field is disabled") if select.getAttribute("disabled")
         for option in select.options
           if option.value == value
@@ -235,34 +280,36 @@ class Browser
             return this
         throw new Error("No OPTION '#{value}'")
       else
-        throw new Error("No SELECT matching '#{selector}'")
+        throw new Error("No SELECT matching '#{field}'")
 
+    # ### browser.pressButton name, callback
+    #
     # Press a button (button element of input type submit). Generally this will
     # submit the form. Use the callback to wait for the from submission, page
     # to load and all events run their course.
     #
-    # selector -- CSS selector, button name or text of BUTTON element
+    # name -- CSS selector, button name or text of BUTTON element
     # callback -- Called with two arguments: error and browser
-    @pressButton = (selector, callback)->
-      if button = @find(selector).first
+    this.pressButton = (name, callback)->
+      if button = @find(name).first
         button.click()
         return @wait(callback)
       for button in @find("form button")
         continue if button.getAttribute("disabled")
-        if window.Sizzle.getText([button]).trim() == selector
+        if window.Sizzle.getText([button]).trim() == name
           @fire "click", button
           return @wait(callback)
       for input in @find("form :submit")
         continue if input.getAttribute("disabled")
-        if input.name == selector
+        if input.name == name
           input.click()
           return @wait(callback)
       for input in @find("form :submit")
         continue if input.getAttribute("disabled")
-        if input.value == selector
+        if input.value == name
           input.click()
           return @wait(callback)
-      throw new Error("No BUTTON '#{selector}'")
+      throw new Error("No BUTTON '#{name}'")
 
 
 exports.Browser = Browser
