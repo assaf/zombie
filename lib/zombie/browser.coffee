@@ -2,6 +2,7 @@ require.paths.unshift(__dirname)
 fs = require("fs")
 jsdom = require("jsdom")
 require "./jsdom_patches"
+require "./sizzle"
 
 # Use the browser to open up new windows and load documents.
 #
@@ -16,8 +17,6 @@ class Browser
     # All asynchronous processing handled by event loop.
     require("./xhr").apply(window)
     require("./eventloop").apply(window)
-    # Add Sizzle, default event handling, etc
-    require("./document").apply(window)
 
     # Loads document from the specified URL, and calls callback with null,
     # browser when done loading (corresponds to DOMContentLoaded event).

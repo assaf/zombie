@@ -37,8 +37,6 @@ brains.get "/living", (req, res)-> res.send """
     </body>
   </html>
   """
-brains.get "/sammy.js", (req, res)->
-  fs.readFile "#{__dirname}/../data/sammy.js", (err, data)-> res.send data
 brains.get "/app.js", (req, res)-> res.send """
   Sammy("#main", function(app) {
     app.get("#/", function(context) {

@@ -28,6 +28,7 @@ class History
           @_loadPage() if window.location.host != entry.host
         else
           pageChanged old
+      return
     # Number of states/URLs in the history.
     @__defineGetter__ "length", -> stack.length
 
@@ -50,8 +51,9 @@ class History
       old = @_location # before we destroy stack
       url = URL.resolve(URL.format(old), url) if old
       url = URL.parse(url.toString())
-      stack = stack[0..index]
-      stack[++index] = { url: url }
+      if URL.format(url) != URL.format(old)
+        stack = stack[0..index]
+        stack[++index] = { url: url }
       pageChanged old
     # Location uses this to load new page without changing history.
     @_replace = (url)->
@@ -63,46 +65,40 @@ class History
     # Location uses this to force a reload (location.reload), history uses this
     # whenever we switch to a different page and need to load it.
     @_loadPage = (force)->
-      if url = @_location
-        aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
-        document = new aug.HTMLDocument(url: url.toString(), deferClose: true)
-        jsdom.applyDocumentFeatures(document)
-        window.document = document
-        window.request (done)->
-          jsdom.dom.level3.core.resourceLoader.download url, (err, data)=>
-            if err
-              evt = document.createEvent("HTMLEvents")
-              evt.initEvent "error", true, false
-              document.dispatchEvent evt
-            else
-              document.open()
-              document.write data
-              document.close()
-            done()
+      resource @_location
     # Form submission. Makes request and loads response in the background.
     #
     # url -- Same as form action, can be relative to current document
     # method -- Method to use, defaults to GET
     # data -- Form valuesa
     # enctype -- Encoding type, or use default
-    @_submit = (url, method = "GET", data, enctype)=>
+    @_submit = (url, method, data, enctype)->
       url = URL.resolve(URL.format(@_location), url)
       url = URL.parse(url)
-
-      # Add location to stack.
+      # Add location to stack, also clears any forward history.
       stack = stack[0..index]
       stack[++index] = { url: url }
-      # Create new document and associate it with current window.
-      aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
-      document = new aug.HTMLDocument(url: url.toString(), deferClose: true)
-      window.document = document
+      resource url, method, data, enctype
 
+    # Make a request to external resource. We use this to fetch pages and
+    # submit forms, see _loadPage and _submit.
+    resource = (url, method = "GET", data, enctype)=>
+      # Create new DOM Level 3 document, add features (load external resources,
+      # etc) and associate it with current document. From this point on the
+      # browser sees a new document, client register event handlers for
+      # DOMContentLoaded/error.
+      aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
+      document = new aug.HTMLDocument(url: URL.format(url), deferClose: true)
+      jsdom.applyDocumentFeatures document
+      window.document = document
+      # HTTP request, nothing fancy.
       client = http.createClient(url.port || 80, url.hostname)
-      headers = { "host": url.hostname, "content-type": enctype || "application/x-www-form-urlencoded" }
+      headers = { "host": url.hostname }
       if method == "GET"
         url.search = URL.resolve(url, { query: data }).split("?")[1]
       else
         body = URL.format({ query: data }).substring(1)
+        headers["content-type"] = enctype || "application/x-www-form-urlencoded"
         headers["content-length"] = body.length
       path = url.pathname + (url.search || "")
       window.request (done)=>
@@ -112,16 +108,22 @@ class History
           data = ""
           response.on "data", (chunk)-> data += chunk
           response.on "end", ->
-            document.open()
-            document.write data
-            document.close()
-            unless document.documentElement
-              console.error "Could not parse document at #{URL.format(url)}"
+            if response.statusCode == 200
+              document.open()
+              document.write data
+              document.close()
+              error = "Could not parse document at #{URL.format(url)}" unless document.documentElement
+            else
+              error = "Could not load document at #{URL.format(url)}, got #{response.statusCode}"
+            # onerror is the only reliable way we have to notify the
+            # application.
+            if error
+              console.error error
               event = document.createEvent("HTMLEvents")
               event.initEvent "error", true, false
               document.dispatchEvent event
             done()
-        request.end body || "", "utf8"
+        request.end body, "utf8"
 
     # Called when we switch to a new page with the URL of the old page.
     pageChanged = (old)=>

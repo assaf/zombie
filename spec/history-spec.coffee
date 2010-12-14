@@ -7,7 +7,7 @@ brains.get "/boo", (req, res)->
   res.send "<html><title>Eeek!</title></html>"
 
 
-vows.describe("History").addBatch({
+vows.describe("History").addBatch(
   "new window":
     topic: -> new zombie.Browser().window
     "should start out empty": (window)-> assert.length window.history, 0
@@ -125,4 +125,4 @@ vows.describe("History").addBatch({
         "should not add page to history": (browser)-> assert.length browser.window.history, 1
         "should not change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/"
         "should reload document": (browser)-> assert.match browser.html(), /Tap, Tap/
-}).export(module);
+).export(module);

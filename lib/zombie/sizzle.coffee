@@ -15,18 +15,3 @@ core.HTMLDocument.prototype.close = ->
     process.binding("evals").Script.runInContext sizzle, ctx
     Sizzle = window.Sizzle
     @find = (selector, context)-> new Sizzle(selector, context)
-
-  # Add default behavior for clicking links
-  @addEventListener "click", (evt)=>
-    return if evt._preventDefault
-    evt.preventDefault()
-    target = evt.target
-    switch target.nodeName
-      when "A" then window.location = target.href if target.href
-      when "INPUT"
-        if form = target.form
-          switch target.type
-            when "reset" then target.form.reset()
-            when "submit" then target.form._dispatchSubmitEvent()
-
-exports.apply = (window)->
