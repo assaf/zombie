@@ -50,6 +50,17 @@ core.HTMLInputElement.prototype.click = ->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "click", true, true
   @dispatchEvent event
-  
+ 
+serializeFieldTypes = "email number password range search text url".split(" ")
+# Implement form.submit
 core.HTMLFormElement.prototype.submit = ->
-  console.log "SUBMIT"
+  document = @ownerDocument
+  params = {}
+  for field in @elements
+    continue if field.getAttribute("disabled")
+    if field.nodeName == "SELECT" || field.nodeName == "TEXTAREA" || (field.nodeName == "INPUT" && serializeFieldTypes.indexOf(field.type) >= 0)
+      params[field.getAttribute("name")] = field.value
+    else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
+      params[field.getAttribute("name")] = field.value if field.checked
+  history = document.parentWindow.history
+  history._submit @getAttribute("action"), @getAttribute("method"), params, @getAttribute("enctype")

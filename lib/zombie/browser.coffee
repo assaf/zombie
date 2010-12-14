@@ -71,8 +71,27 @@ class Browser
     #
     # selector -- CSS selector
     # context -- Context element (if missing, uses document)
-    @find = (selector, context)-> window.find(selector, context)
+    @find = (selector, context)-> window.document?.find(selector, context)
 
+    # Returns the text contents of the selected elements. With no arguments,
+    # returns the text contents of the document body.
+    #
+    # selector -- CSS selector
+    # context -- Context element (if missing, uses document)
+    @text = (selector, context)->
+      elements = @find(selector || "body", context)
+      window.Sizzle?.getText(elements)
+
+    # Returns the HTML contents of the selected elements. With no arguments,
+    # returns the HTML contents of the document.
+    #
+    # selector -- CSS selector
+    # context -- Context element (if missing, uses document)
+    @html = (selector, context)->
+      if selector
+        @find(selector, context).map((elem)-> elem.outerHTML).join("")
+      else
+        return window.document.outerHTML
 
     # The main window.
     @__defineGetter__ "window", -> window
@@ -84,10 +103,8 @@ class Browser
     # Changes document location, loads new document if necessary (same as
     # setting window.location).
     @__defineSetter__ "location", (url)-> window.location = url
-    # Returns the HTML contents of the current document as a string.
-    @__defineGetter__ "html", -> window.document.outerHTML
     # Returns the body Element of the current document.
-    @__defineGetter__ "body", -> window.Sizzle("body")[0]
+    @__defineGetter__ "body", -> window.document?.find("body")[0]
 
 
     # ----- Actions -----

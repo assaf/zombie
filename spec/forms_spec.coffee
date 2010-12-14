@@ -5,17 +5,17 @@ require("./helpers")
 brains.get "/form", (req, res)-> res.send """
   <html>
     <body>
-      <form>
+      <form action="/form" method="post">
         <label>Name <input type="text" name="name" id="field-name"></label>
         <label for="field-email">Email</label>
         <input type="text" name="email" id="field-email"></label>
         <textarea name="likes" id="field-likes">Warm brains</textarea>
         <input type="password" name="password" id="field-password">
         
-        <label>Hungry <input type="checkbox" name="hungry" id="field-hungry"></label>
+        <label>Hungry <input type="checkbox" name="hungry" value="you bet" id="field-hungry"></label>
         <label for="field-brains">Brains?</label>
         <input type="checkbox" name="brains" id="field-brains">
-        <input type="checkbox" name="dead" id="field-dead" checked>
+        <input type="checkbox" name="green" id="field-green" checked>
 
         <label>Looks
           <select name="looks" id="field-looks">
@@ -34,6 +34,19 @@ brains.get "/form", (req, res)-> res.send """
         <input type="reset" value="Reset">
         <input type="submit" value="Submit">
       </form>
+    </body>
+  </html>
+  """
+brains.post "/form", (req, res)->
+  res.send """
+  <html>
+    <body>
+      <div id="name">#{req.body.name}</div>
+      <div id="likes">#{req.body.likes}</div>
+      <div id="hungry">#{req.body.hungry}</div>
+      <div id="state">#{req.body.state}</div>
+      <div id="scary">#{req.body.scary}</div>
+      <div id="state">#{req.body.state}</div>
     </body>
   </html>
   """
@@ -69,7 +82,7 @@ vows.describe("Forms").addBatch({
   "check box":
     zombie.wants "http://localhost:3003/form"
       ready: (browser)->
-        for field in ["hungry", "brains", "dead"]
+        for field in ["hungry", "brains", "green"]
           browser.find("#field-#{field}")[0].addEventListener "click", -> browser["#{field}Clicked"] = true
           browser.find("#field-#{field}")[0].addEventListener "click", -> browser["#{field}Changed"] = true
         @callback null, browser
@@ -87,10 +100,10 @@ vows.describe("Forms").addBatch({
         "should fire change event": (browser)-> assert.ok browser.brainsChanged
       "checkbox by name":
         topic: (browser)->
-          browser.uncheck "dead"
-        "should uncheck checkbox": (browser)-> assert.ok !browser.find("#field-dead")[0].checked
-        "should fire click event": (browser)-> assert.ok browser.deadClicked
-        "should fire change event": (browser)-> assert.ok browser.deadChanged
+          browser.uncheck "green"
+        "should uncheck checkbox": (browser)-> assert.ok !browser.find("#field-green")[0].checked
+        "should fire click event": (browser)-> assert.ok browser.greenClicked
+        "should fire change event": (browser)-> assert.ok browser.greenChanged
 
   "radio buttons":
     zombie.wants "http://localhost:3003/form"
@@ -173,4 +186,17 @@ vows.describe("Forms").addBatch({
           @callback null, browser
         "should reset input field to original value": (browser)-> assert.equal browser.find("#field-name")[0].value, ""
 
+  "submit form":
+    "by calling submit":
+      zombie.wants "http://localhost:3003/form"
+        ready: (browser)->
+          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
+            check("Hungry").choose("Scary").select("state", "dead")
+          browser.find("form")[0].submit()
+          browser.wait @callback
+        "should send text input values to server": (browser)-> assert.equal browser.text("#name"), "ArmBiter"
+        "should send textarea values to server": (browser)-> assert.equal browser.text("#likes"), "Arm Biting"
+        "should send checkbox values to server": (browser)-> assert.equal browser.text("#hungry"), "you bet"
+        "should send radio button to server": (browser)-> assert.equal browser.text("#scary"), "yes"
+        "should send selected option to server": (browser)-> assert.equal browser.text("#state"), "dead"
 }).export(module);

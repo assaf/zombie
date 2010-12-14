@@ -74,7 +74,7 @@ vows.describe("History").addBatch({
       zombie.wants "http://localhost:3003/"
         "should add page to history": (browser)-> assert.length browser.window.history, 1
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/"
-        "should load document": (browser)-> assert.match browser.html, /Tap, Tap/
+        "should load document": (browser)-> assert.match browser.html(), /Tap, Tap/
     "change location":
       zombie.wants "http://localhost:3003/"
         ready: (browser)->
@@ -82,7 +82,7 @@ vows.describe("History").addBatch({
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
         "should add page to history": (browser)-> assert.length browser.window.history, 2
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
-        "should load document": (browser)-> assert.match browser.html, /Eeek!/
+        "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "change pathname":
       zombie.wants "http://localhost:3003/"
         ready: (browser)->
@@ -90,7 +90,7 @@ vows.describe("History").addBatch({
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
         "should add page to history": (browser)-> assert.length browser.window.history, 2
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
-        "should load document": (browser)-> assert.match browser.html, /Eeek!/
+        "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "change hash":
       zombie.wants "http://localhost:3003/"
         ready: (browser)->
@@ -107,7 +107,7 @@ vows.describe("History").addBatch({
           browser.document.addEventListener "DOMContentLoaded", => @callback null, browser
         "should add page to history": (browser)-> assert.length browser.window.history, 2
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
-        "should load document": (browser)-> assert.match browser.html, /Eeek!/
+        "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "replace":
       zombie.wants "http://localhost:3003/"
         ready: (browser)->
@@ -115,7 +115,7 @@ vows.describe("History").addBatch({
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
         "should not add page to history": (browser)-> assert.length browser.window.history, 1
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
-        "should load document": (browser)-> assert.match browser.html, /Eeek!/
+        "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "reload":
       zombie.wants "http://localhost:3003/"
         ready: (browser)->
@@ -124,5 +124,5 @@ vows.describe("History").addBatch({
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
         "should not add page to history": (browser)-> assert.length browser.window.history, 1
         "should not change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/"
-        "should reload document": (browser)-> assert.match browser.html, /Tap, Tap/
+        "should reload document": (browser)-> assert.match browser.html(), /Tap, Tap/
 }).export(module);

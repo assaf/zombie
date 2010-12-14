@@ -69,7 +69,7 @@ vows.describe("Browser").addBatch({
   "open page":
     zombie.wants "http://localhost:3003/scripted"
       "should create HTML document": (browser)-> assert.instanceOf browser.document, jsdom.dom.level3.html.HTMLDocument
-      "should load document from server": (browser)-> assert.match browser.html, /<body>Hello World<\/body>/
+      "should load document from server": (browser)-> assert.match browser.html(), /<body>Hello World<\/body>/
       "should load external scripts": (browser)->
         assert.ok jQuery = browser.window.jQuery, "window.jQuery not available"
         assert.typeOf jQuery.ajax, "function"

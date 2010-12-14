@@ -1,5 +1,6 @@
 require.paths.push(__dirname + "/../lib")
 fs = require("fs")
+express = require("express")
 zombie = require("zombie")
 
 
@@ -20,9 +21,9 @@ vows.console.result = (results)->
   brains.close() if brains.active
   result.call vows.console, results
 
-
 # An Express server we use to test the browser.
-brains = require("express").createServer()
+brains = express.createServer()
+brains.use express.bodyDecoder()
 brains.get "/", (req, res)->
   res.send "<html><title>Tap, Tap</title></html>"
 brains.get "/jquery.js", (req, res)->

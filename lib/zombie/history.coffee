@@ -1,4 +1,5 @@
 jsdom = require("jsdom")
+http = require("http")
 URL = require("url")
 
 # Represents window.history.
@@ -63,23 +64,64 @@ class History
     # whenever we switch to a different page and need to load it.
     @_loadPage = (force)->
       if url = @_location
-        browser = jsdom.browserAugmentation(jsdom.dom.level3.html)
-        document = new browser.HTMLDocument(url: url.toString(), deferClose: true)
+        aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
+        document = new aug.HTMLDocument(url: url.toString(), deferClose: true)
         jsdom.applyDocumentFeatures(document)
-        loader = jsdom.dom.level3.core.resourceLoader
         window.document = document
         window.request (done)->
-          loader.download url, (err, data)=>
-            done()
+          jsdom.dom.level3.core.resourceLoader.download url, (err, data)=>
             if err
               evt = document.createEvent("HTMLEvents")
               evt.initEvent "error", true, false
               document.dispatchEvent evt
             else
               document.open()
-              document.write(data)
+              document.write data
               document.close()
-              window.enhance document
+            done()
+    # Form submission. Makes request and loads response in the background.
+    #
+    # url -- Same as form action, can be relative to current document
+    # method -- Method to use, defaults to GET
+    # data -- Form valuesa
+    # enctype -- Encoding type, or use default
+    @_submit = (url, method = "GET", data, enctype)=>
+      url = URL.resolve(URL.format(@_location), url)
+      url = URL.parse(url)
+
+      # Add location to stack.
+      stack = stack[0..index]
+      stack[++index] = { url: url }
+      # Create new document and associate it with current window.
+      aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
+      document = new aug.HTMLDocument(url: url.toString(), deferClose: true)
+      window.document = document
+
+      client = http.createClient(url.port || 80, url.hostname)
+      headers = { "host": url.hostname, "content-type": enctype || "application/x-www-form-urlencoded" }
+      if method == "GET"
+        url.search = URL.resolve(url, { query: data }).split("?")[1]
+      else
+        body = URL.format({ query: data }).substring(1)
+        headers["content-length"] = body.length
+      path = url.pathname + (url.search || "")
+      window.request (done)=>
+        request = client.request(method, path, headers)
+        request.on "response", (response)->
+          response.setEncoding "utf8"
+          data = ""
+          response.on "data", (chunk)-> data += chunk
+          response.on "end", ->
+            document.open()
+            document.write data
+            document.close()
+            unless document.documentElement
+              console.error "Could not parse document at #{URL.format(url)}"
+              event = document.createEvent("HTMLEvents")
+              event.initEvent "error", true, false
+              document.dispatchEvent event
+            done()
+        request.end body || "", "utf8"
 
     # Called when we switch to a new page with the URL of the old page.
     pageChanged = (old)=>
