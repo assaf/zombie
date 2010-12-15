@@ -1,108 +1,169 @@
+# Cookies.
+URL = require("url")
 core = require("jsdom").dom.level3.core
 
+# ## browser.cookies
+#
+# Maintains cookies for a Browser instance.
+#
+# See [RFC 2109](http://tools.ietf.org/html/rfc2109.html) and
+# [document.cookie](http://developer.mozilla.org/en/document.cookie)
+class Cookies
+  constructor: (browser)->
+    # Cookies are mapped by domain first, path second.
+    cookies = {}
 
-exports.cookies = (browser)->
-  cookies = []
-  # TODO
-  # name -- Cookie name
-  # options -- Further identify cookie by domain and path
-  # Returns value of cookie or null
-  @get = (name, options = {})->
-    name = name.toLowerCase()
-    domain = options.domain || browser.location.hostname
-    path = options.path || browser.location.pathname
-    for cookie in cookies
-      if match(cookie, name, domain, path)
-        return cookie.value
-    return
-  # TODO
-  # name -- Cookie name
-  # value -- Cookie value
-  # options -- Further specify domain, path and expires
-  @set = (name, value, options = {})->
-    name = name.toLowerCase()
-    value = value.toString()
-    domain = options.domain || browser.location.hostname
-    path = options.path || "/"
-    if options.expires
-      expires = options.expires.getTime()
-      if expires < browser.clock
-        @delete name, { domain: domain, path: path }
-        return
-    for cookie in cookies
-      if match(cookie, name, domain, path)
-        cookie.value = value
-        return
-    cookies.push { name: name, value: value, domain: domain, path: path, expires: expires }
-  # TODO
-  # name -- Cookie name
-  # options -- Further identify cookie by domain and path
-  # Returns value of cookie or null
-  @delete = (name, options = {})->
-    name = name.toLowerCase()
-    domain = options.domain || browser.location.hostname
-    path = options.path || "/"
-    for i in [0...cookies.length]
-      if match(cookie, name, domain, path)
-        cookies.splice i,1
-        return
+    # Serialize cookie object into RFC2109 representation.
+    serialize = (domain, path, name, cookie)->
+      str = "#{name}=#{cookie.value}; domain=#{domain}; path=#{path}"
+      str = str + "; max-age=#{cookie.expires - browser.time}" if cookie.expires
+      str = str + "; secure" if cookie.secure
+      str
 
-  # Return all cookies that match the given hostname and path.
-  #
-  # hostname -- Hostname of page
-  # path -- Path of page
-  # Returns array of cookies
-  select = (hostname, path)->
-    cookies.filter (cookie)->
-      return false if cookie.expires && cookie.expires < browser.clock
-      return false if cookie.path && path.indexOf(cookie.path) != 0
-      while hostname.length > 1
-        return true if hostname == cookie.domain
-        hostname = hostname.replace(/(^|\.)[^\.]\./, ".")
-      return false
+    # Return all the cookies that match the given hostname/path, from most
+    # specific to least specific. Returns array of arrays, each item is
+    # [domain, path, name, cookie].
+    filter = (url)->
+      matching = []
+      hostname = url.hostname
+      pathname = url.pathname
+      pathname = "/" if !pathname || pathname == ""
+      for domain, inDomain of cookies
+        # Ignore cookies that don't match the exact hostname, or .domain.
+        continue unless hostname == domain || (domain.charAt(0) == "." && hostname.lastIndexOf(domain) + domain.length == hostname.length)
+        # Ignore cookies that don't match the path.
+        for path, inPath of inDomain
+          continue unless pathname.indexOf(path) == 0
+          for name, cookie of inPath
+            # Delete expired cookies.
+            if inPath.expires && inPath.expires <= browser.time
+              delete inPath[name]
+            else
+              matching.push [domain, path, name, cookie]
+      # Sort from most specific to least specified. Only worry about path
+      # (longest is more specific)
+      matching.sort (a,b) -> a[1].length - b[1].length
 
-  # Return header cookies that match the given hostname and path.
-  #
-  # hostname -- Hostname of page
-  # path -- Path of page
-  # Returns array of cookie strings
-  headers = (hostname, path)->
-    select.map (cookie)->
-      str = "#{cookie.name}=#{cookie.value}; domain=#{cookie.domain}"
-      str = str + "; path=#{cookie.path}" if cookie.path
-      str = str + "; expires=#{new Date(cookie.expires).toGMTString()}" if cookie.expires
-      return str
+    # Cookie header values are (supposed to be) quoted. This function strips
+    # double quotes aroud value, if it finds both quotes.
+    dequote = (value)-> value.replace(/^"(.*)"$/, "$1")
 
-  # TODO
-  # hostname -- Hostname of page
-  # path -- Path of page
-  # cookie -- Cookie string
-  update = (hostname, path, cookie)->
-    parts = cookie.split(/\s*;\s*/)
-    [name, value] = parts[0].split(/=/)
-    options = parts[1...parts.length].reduce({}, (m, part)->
-      [k,v] = part.split(/=/)
-      m[k] = v
-      m
-    )
-    return if options.path && !path.indexOf(options.path) == 0
-    options.expires = Date.parse(options.expires) if options.expires
-    if options.domain
-      while hostname.length > 1
-        return unless hostname == cookie.domain
-        hostname = hostname.replace(/(^|\.)[^\.]\./, ".")
-    else
-      options.domain = hostname
-    @set name, value, options
 
-  @attach = (window)->
-    window.__defineGetter__ "cookies", ->
-      select @location.hostname, @location.pathname
-    window.__defineSetter__ "cookies", (cookie)->
-      update @location.hostname, @location.pathname, cookie
-  return this
+    #### cookies.get name, url? => String
+    #
+    # Returns the value of a cookie. Using cookie name alone, returns first
+    # cookie to match the current browser.location.
+    #
+    # name -- Cookie name
+    # url -- Uses hostname/pathname to filter cookies
+    # Returns cookie value if known
+    this.get = (name, url = browser.location)->
+      url = URL.parse(url)
+      for match in filter(url)
+        return match[3].value if match[2] == name
+    
+    #### cookies.set name, value, options?
+    #
+    # Sets a cookie (deletes if expires/max-age is in the past). You can specify
+    # the cookie domain and path as part of the options object, or have it
+    # default to the current browser.location.
+    #
+    # name -- Cookie name
+    # value -- Cookie value
+    # options -- Options domain, path, max-age/expires and secure
+    this.set = (name, value, options = {})->
+      name = name.toLowerCase()
+      value = value.toString()
+      options.domain ||= browser.location?.hostname
+      throw new Error("No location for cookie, please call with options.domain") unless options.domain
+      options.path ||= browser.location?.pathname
+      options.path = "/" if !options.path || options.path == ""
+      if options.expires
+        expires = options.expires.getTime()
+      else
+        maxage = options["max-age"]
+        expires = browser.time + maxage if typeof maxage is "number"
+      if expires && expires <= browser.time
+        inDomain = cookies[options.domain]
+        inPath = inDomain[options.path] if inDomain
+        delete inPath[name] if inPath
+      else
+        inDomain = cookies[options.domain] ||= {}
+        inPath = inDomain[options.path] ||= {}
+        inPath[name] = { value: value, expires: expires, secure: !!options.secure }
+   
+    #### cookies.delete name, options?
+    #
+    # Deletes a cookie. You can specify # the cookie domain and path as part of
+    # the options object, or have it # default to the current browser.location.
+    #
+    # name -- Cookie name
+    # options -- Optional domain and path
+    this.delete = (name, options = {})->
+      @set name, "", { expires: 0, domain: options.domain, path: options.path }
+ 
+    #### cookies.dump => String
+    #
+    # Returns all the cookies in serialized form, one on each line.
+    this.dump = ->
+      serialized = []
+      for domain, inDomain of cookies
+        for path, inPath of inDomain
+          for name, cookie of inPath
+            serialized.push serialize(domain, path, name, cookie)
+      serialized.join("\n")
 
-# TODO
-core.HTMLDocument.prototype.__defineGetter__ "cookie", ->
-  @parentWindow.cookies.map( (cookie)-> "#{cookie.name}=#{cookie.value}").join("; ")
-core.HTMLDocument.prototype.__defineSetter__ "cookie", (cookie)-> @parentWindow.cookies = cookie
+    # Returns key/value pairs of all cookies that match a given url.
+    this._pairs = (url)->
+      set = []
+      for match in filter(url)
+        set.push "#{match[2]}=#{match[3].value}"
+      set.join("; ")
+
+    # Update cookies from serialized form. This method works equally well for
+    # the Set-Cookie header and value passed to document.cookie setter.
+    #
+    # url -- Document location or request URL
+    # serialized -- Serialized form
+    this._update = (url, serialized)->
+      return unless serialized
+      for cookie in serialized.split(/,(?=[^;,]*=)|,$/)
+        fields = cookie.split(/;+/)
+        first = fields[0].trim()
+        [name, value] = first.split(/\=/, 2)
+
+        options = {}
+        for field in fields
+          [key, val] = field.trim().split(/\=/, 2)
+          # val = dequote(val.trim()) if val
+          switch key.toLowerCase()
+            when "domain"   then options.domain = dequote(val)
+            when "path"     then options.path   = dequote(val)
+            when "expires"  then options.expires = new Date(dequote(val))
+            when "max-age"  then options["max-age"] = parseInt(dequote(val), 10)
+            when "secure"   then options.secure = true
+        options.domain  ||= url.hostname
+        options.path    ||= url.pathname.replace(/%[^\/]*$/, "")
+        options.secure  ||= false
+        @set name, dequote(value), options
+
+    # Returns Cookie header suitable for sending to the server. Needs request
+    # URL to figure out which cookies to send.
+    this._header = (url)->
+      "$Version=\"1\";" + ("#{match[2]}=\"#{match[3].value}\";$Path=\"#{match[1]}\"" for match in filter(url)).join(";")
+
+
+# ### document.cookie => String
+#
+# Returns name=value; pairs
+core.HTMLDocument.prototype.__defineGetter__ "cookie", -> @parentWindow.cookies._pairs(@parentWindow.location)
+# ### document.cookie = String
+#
+# Accepts serialized form (same as Set-Cookie header) and updates cookie from
+# new values.
+core.HTMLDocument.prototype.__defineSetter__ "cookie", (cookie)-> @parentWindow.cookies._update cookie
+
+
+# Add cookies support to browser. Returns Cookies object.
+exports.use = (browser)->
+  new Cookies(browser)

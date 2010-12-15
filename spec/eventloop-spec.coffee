@@ -30,6 +30,7 @@ vows.describe("EventLoop").addBatch({
   "setTimeout":
     "no wait":
       zombie.wants "http://localhost:3003/timeout"
+        ready: (browser)-> @callback null, browser
         "should not fire any timeout events": (browser)-> assert.equal browser.document.title, "One"
         "should not change clock": (browser) -> assert.equal browser.clock, 0
     "wait for all":
@@ -51,6 +52,7 @@ vows.describe("EventLoop").addBatch({
   "setInterval":
     "no wait":
       zombie.wants "http://localhost:3003/interval"
+        ready: (browser)-> @callback null, browser
         "should not fire any timeout events": (browser)-> assert.equal browser.document.title, ""
         "should not change clock": (browser) -> assert.equal browser.clock, 0
     "wait once":

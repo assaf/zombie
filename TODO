@@ -1,0 +1,17 @@
+- Cookies: get, set, delete
+- XHR should send/receive cookies
+- Download should send/receive cookies
+- Implement document.cookies
+- Implement sessionStorage
+- Implement localStorage
+- brower.location set should evaluate javascript: links
+- Browser open should create new window
+- Browser close should close existing window
+- Send unload event when loading new page
+- Browser.clock should be set from current time
+- Date should use browser clock
+- Allow setting of timezone in browser
+- Allow setting of user agent in browser
+- Browser sends user agent on download/XHR
+- Handle confirm/alert
+- Mock resources

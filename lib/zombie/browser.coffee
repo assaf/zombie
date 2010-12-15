@@ -1,5 +1,3 @@
-require.paths.unshift(__dirname)
-fs = require("fs")
 jsdom = require("jsdom")
 require "./jsdom_patches"
 require "./sizzle"
@@ -10,17 +8,19 @@ require "./forms"
 # The browser maintains state for cookies and localStorage.
 class Browser
   constructor: ->
+    clock = new Date().getTime()
     # Start out with an empty window
     window = jsdom.createWindow(jsdom.dom.level3.html)
     window.browser = this
-    # Attach history/location objects to window/document.
-    require("./history").attach window
-    # All asynchronous processing handled by event loop.
-    require("./xhr").attach window
-    require("./eventloop").attach window
     # Cookies and storage.
-    cookies = new require("./cookies").cookies(this)
-    cookies.attach window
+    cookies = require("./cookies").use(this)
+    window.cookies = cookies
+    # Attach history/location objects to window/document.
+    require("./history").attach window, cookies
+    # All asynchronous processing handled by event loop.
+    require("./xhr").attach window, cookies
+    require("./eventloop").attach window
+
 
     # Events
     # ------
@@ -65,10 +65,20 @@ class Browser
       target.dispatchEvent event
       @wait callback if callback
 
+    # ### browser.now => Date
+    #
+    # Date object with current time, based on browser clock.
+    @__defineGetter__ "now", -> new Date(clock)
+    # ### browser.time => Number
+    #
+    # Returns the current time based on the browser clock (milliseconds since epoch).
+    @__defineGetter__ "time", -> clock
+
+
     # Accessors
     # ---------
 
-    # ### browser.find selector, context?
+    # ### browser.find selector, context? => [Elements]
     #
     # Returns elements that match the selector, either from the document or the #
     # specified context element. Uses Sizzle.js, see
@@ -76,42 +86,45 @@ class Browser
     #
     # selector -- CSS selector
     # context -- Context element (if missing, uses document)
+    # Returns an array of elements
     this.find = (selector, context)-> window.document?.find(selector, context)
 
-    # ### browser.text selector, context?
+    # ### browser.text selector, context? => String
     #
     # Returns the text contents of the selected elements. With no arguments,
     # returns the text contents of the document body.
     #
     # selector -- CSS selector
     # context -- Context element (if missing, uses document)
+    # Returns a string
     this.text = (selector, context)->
       elements = @find(selector || "body", context)
       window.Sizzle?.getText(elements)
 
-    # ### browser.html selector?, context?
+    # ### browser.html selector?, context? => String
     #
     # Returns the HTML contents of the selected elements. With no arguments,
     # returns the HTML contents of the document.
     #
     # selector -- CSS selector
     # context -- Context element (if missing, uses document)
+    # Returns a string
     this.html = (selector, context)->
       if selector
         @find(selector, context).map((elem)-> elem.outerHTML).join("")
       else
         return window.document.outerHTML
 
-    # ### browser.window
+    # ### browser.window => Window
     #
     # Returns the main window.
     @__defineGetter__ "window", -> window
-    # ### browser.document
+    # ### browser.document => Document
     #
     # Retursn the main window's document. Only valid after opening a document
     # (Browser.open).
     @__defineGetter__ "document", -> window.document
-    # ### browser.location
+    # ### browser.location => Location
     #
     # Return the location of the current document (same as window.location.href).
     @__defineGetter__ "location", -> window.location.href
@@ -120,11 +133,11 @@ class Browser
     # Changes document location, loads new document if necessary (same as
     # setting window.location).
     @__defineSetter__ "location", (url)-> window.location = url
-    # ### browser.body
+    # ### browser.body => Element
     #
     # Returns the body Element of the current document.
     @__defineGetter__ "body", -> window.document?.find("body")[0]
-    # ### browser.cookies
+    # ### browser.cookies => Cookies
     #
     # Returns all the cookies for this browser.
     @__defineGetter__ "cookies", -> cookies

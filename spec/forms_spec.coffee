@@ -53,7 +53,7 @@ brains.post "/submit", (req, res)-> res.send """
   </html>
   """
 
-vows.describe("Forms").addBatch({
+vows.describe("Forms").addBatch(
   "fill field":
     zombie.wants "http://localhost:3003/form"
       ready: (browser)->
@@ -226,4 +226,4 @@ vows.describe("Forms").addBatch({
           assert.equal browser.text("#name"), "ArmBiter"
           assert.equal browser.text("#likes"), "Arm Biting"
 
-}).export(module);
+).export(module);

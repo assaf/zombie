@@ -24,6 +24,18 @@ vows.console.result = (results)->
 # An Express server we use to test the browser.
 brains = express.createServer()
 brains.use express.bodyDecoder()
+
+
+# Patch Express to do the right thing when setting a cookie: create single
+# header with multiple cookie values separated by comma.
+require("http").ServerResponse.prototype.cookie = (name, val, options)->
+  cookie = require("connect/utils").serializeCookie(name, val, options)
+  if @headers['Set-Cookie']
+    @headers['Set-Cookie'] += ", #{cookie}"
+  else
+    @headers['Set-Cookie'] = cookie
+   
+
 brains.get "/", (req, res)->
   res.send "<html><title>Tap, Tap</title></html>"
 brains.get "/jquery.js", (req, res)->
@@ -61,9 +73,13 @@ zombie.wants = (url, context)->
         if ready
           ready.call this, browser, browser.window
         else
-          @callback err, browser
+          browser.wait @callback
     return
   return context
+
+zombie.Browser.prototype.wants = (url, callback)->
+  brains.ready => @open url, (err, browser)=> callback err, this
+
 
 vows.zombie = zombie
 vows.brains = brains

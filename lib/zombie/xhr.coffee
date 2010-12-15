@@ -9,7 +9,7 @@ core.SECURITY_ERR = 18
 core.NETWORK_ERR = 19
 core.ABORT_ERR = 20
 
-XMLHttpRequest = (window)->
+XMLHttpRequest = (window, cookies)->
   # Fire onreadystatechange event
   stateChanged = (state)=>
     @__defineGetter__ "readyState", -> state
@@ -84,6 +84,7 @@ XMLHttpRequest = (window)->
               return response.destroy() if aborted
               @__defineGetter__ "responseText", -> body
               @__defineGetter__ "responseXML", -> # not implemented
+              cookies._update url, response.headers["set-cookie"]
               stateChanged 4
               done()
 
@@ -114,6 +115,6 @@ XMLHttpRequest.STATUS = { 200: "OK", 404: "Not Found", 500: "Internal Server Err
 
 
 # Attach XHR support to window.
-exports.attach = (window)->
+exports.attach = (window, cookies)->
   # XHR constructor needs reference to window.
-  window.XMLHttpRequest = -> XMLHttpRequest.call this, window
+  window.XMLHttpRequest = -> XMLHttpRequest.call this, window, cookies

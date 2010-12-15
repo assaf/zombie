@@ -7,7 +7,7 @@ URL = require("url")
 #
 # Represents window.history.
 class History
-  constructor: (window)->
+  constructor: (window, cookies)->
     stack = []
     index = -1
     history = @
@@ -38,14 +38,14 @@ class History
     # Number of states/URLs in the history.
     @__defineGetter__ "length", -> stack.length
 
-    # ### window.history.pushState state, title, url
+    # ### history.pushState state, title, url
     #
     # Push new state to the stack, do not reload
     @pushState = (state, title, url)->
       entry = stack[index] if index >= 0
       url = URL.resolve(entry, url) if entry
       stack[++index] = { state: state, title: title, url: URL.parse(url.toString()), pop: true }
-    # ### window.history.replaceState state, title, url
+    # ### history.replaceState state, title, url
     #
     # Replace existing state in the stack, do not reload
     @replaceState = (state, title, url)->
@@ -110,15 +110,22 @@ class History
         body = URL.format({ query: data }).substring(1)
         headers["content-type"] = enctype || "application/x-www-form-urlencoded"
         headers["content-length"] = body.length
+      headers["cookie"] = cookies._header(url)
       path = url.pathname + (url.search || "")
       window.request (done)=>
         request = client.request(method, path, headers)
+        client.on "error", (err)->
+          console.error "Error requesting #{URL.format(url)}", error
+          event = document.createEvent("HTMLEvents")
+          event.initEvent "error", true, false
+          document.dispatchEvent event
         request.on "response", (response)->
           response.setEncoding "utf8"
           data = ""
           response.on "data", (chunk)-> data += chunk
           response.on "end", ->
             if response.statusCode == 200
+              cookies._update url, response.headers["set-cookie"]
               document.open()
               document.write data
               document.close()
@@ -153,18 +160,17 @@ class History
 # Represents window.location and document.location.
 class Location
   constructor: (history, @_url)->
-    # ### window.location.assign url
+    # ### location.assign url
     @assign = (url)-> history._assign url
-    # ### window.location.replace url
+    # ### location.replace url
     @replace = (url)-> history._replace url
-    # ### window.location.reload force?
+    # ### location.reload force?
     @reload = (force)-> history._loadPage(force)
-    # ### window.location.toString
+    # ### location.toString() => String
     @toString = -> URL.format(@_url)
-    # Getter/setter for full URL.
-    # ### window.location.href
+    # ### location.href => String
     @__defineGetter__ "href", -> @_url?.href
-    # ### window.location.href = url
+    # ### location.href = url
     @__defineSetter__ "href", (url)-> history._assign url
     # Getter/setter for location parts.
     for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search"]
@@ -174,14 +180,15 @@ class Location
         new_url[prop] = value
         history._assign URL.format(new_url)
 
+# ## document.location
 # document.location is same as window.location
 jsdom.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", => @ownerWindow.location
 
 
 # Attach Location/History to window: creates new history and adds
 # location/history accessors.
-exports.attach = (window)->
-  history = new History(window)
+exports.attach = (window, cookies)->
+  history = new History(window, cookies)
   window.__defineGetter__ "history", -> history
   window.__defineSetter__ "history", (history)-> # runInNewContext needs this
   window.__defineGetter__ "location", => history._location
