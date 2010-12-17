@@ -226,4 +226,4 @@ vows.describe("Forms").addBatch(
           assert.equal browser.text("#name"), "ArmBiter"
           assert.equal browser.text("#likes"), "Arm Biting"
 
-).export(module);
+).export(module)

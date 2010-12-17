@@ -1,8 +1,26 @@
 # Constructor for a new Browser. Takes no arguments.
 exports.Browser = require("zombie/browser").Browser
-# Creates and returns a new Browser. Opens a window to the specified URL and
-# calls the callback with null, browser if loaded, error otherwise. 
+
+
+# ### browse url, callback
+#
+# Creates a new Browser, opens window to the URL and calls the callback when
+# done processing all events.
+#
+# For example:
+#   zombie = require("zombie")
+#
+#   vows.describe("Brains").addBatch(
+#     "seek":
+#       topic: ->
+#         zombie.browse "http://localhost:3000/brains", @callback
+#     "should find": (browser)->
+#       assert.ok browser.html("#brains")[0]
+#   ).export(module);
+#
+# url -- URL of page to open
+# callback -- Called with error, browser
 exports.browse = (url, callback)->
   browser = new exports.Browser
   browser.open url, callback
-  browser
+  return

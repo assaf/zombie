@@ -149,14 +149,13 @@ class Browser
     # ### browser.open url, callback
     #
     # Loads document from the specified URL, and calls callback with null,
-    # browser when done loading (corresponds to DOMContentLoaded event).
+    # browser when done loading and processing events.
     #
     # If it fails to download, calls the callback with the error.
     this.open = (url, callback)->
       window.location = url
       window.addEventListener "error", (err)-> callback err
-      window.document.addEventListener "DOMContentLoaded", =>
-        process.nextTick => callback null, this
+      window.document.addEventListener "DOMContentLoaded", => @wait callback
       return
 
     # ### browser.clickLink selector, callback

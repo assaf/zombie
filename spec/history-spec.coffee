@@ -75,6 +75,8 @@ vows.describe("History").addBatch(
         "should add page to history": (browser)-> assert.length browser.window.history, 1
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/"
         "should load document": (browser)-> assert.match browser.html(), /Tap, Tap/
+        "should set window location": (browser)-> assert.equal browser.window.location.href, "http://localhost:3003/"
+        "should set document location": (browser)-> assert.equal browser.document.location.href, "http://localhost:3003/"
     "change location":
       zombie.wants "http://localhost:3003/"
         ready: (browser)->
@@ -125,4 +127,4 @@ vows.describe("History").addBatch(
         "should not add page to history": (browser)-> assert.length browser.window.history, 1
         "should not change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/"
         "should reload document": (browser)-> assert.match browser.html(), /Tap, Tap/
-).export(module);
+).export(module)

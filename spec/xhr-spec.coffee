@@ -30,4 +30,4 @@ vows.describe("XMLHttpRequest").addBatch(
   "receive cookies":
     zombie.wants "http://localhost:3003/xhr"
       "should process cookies in XHR response": (browser)-> assert.equal browser.cookies.get("xml"), "lol"
-).export(module);
+).export(module)

@@ -182,7 +182,7 @@ class Location
 
 # ## document.location
 # document.location is same as window.location
-jsdom.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", => @ownerWindow.location
+jsdom.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", -> @parentWindow.location
 
 
 # Attach Location/History to window: creates new history and adds

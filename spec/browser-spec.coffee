@@ -63,7 +63,7 @@ brains.get "/dead", (req, res)-> res.send """
   """
 
 
-vows.describe("Browser").addBatch({
+vows.describe("Browser").addBatch(
   "open page":
     zombie.wants "http://localhost:3003/scripted"
       "should create HTML document": (browser)-> assert.instanceOf browser.document, jsdom.dom.level3.html.HTMLDocument
@@ -91,4 +91,4 @@ vows.describe("Browser").addBatch({
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/dead"
       "should run all events": (browser)-> assert.equal browser.document.title, "The Dead"
 
-}).export(module);
+).export(module)
