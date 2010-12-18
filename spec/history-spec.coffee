@@ -5,6 +5,8 @@ jsdom = require("jsdom")
 
 brains.get "/boo", (req, res)->
   res.send "<html><title>Eeek!</title></html>"
+brains.get "/redirect", (req, res)->
+  res.redirect "/"
 
 
 vows.describe("History").addBatch(
@@ -127,4 +129,9 @@ vows.describe("History").addBatch(
         "should not add page to history": (browser)-> assert.length browser.window.history, 1
         "should not change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/"
         "should reload document": (browser)-> assert.match browser.html(), /Tap, Tap/
+
+  "redirect":
+    zombie.wants "http://localhost:3003/redirect"
+      "should redirect to final destination": (browser)-> assert.equal browser.location, "http://localhost:3003/"
+      "should not add location in history": (browser)-> assert.length browser.window.history, 1
 ).export(module)

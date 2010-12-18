@@ -94,57 +94,69 @@ class History
     # Make a request to external resource. We use this to fetch pages and
     # submit forms, see _loadPage and _submit.
     resource = (url, method = "GET", data, enctype)=>
-      # Create new DOM Level 3 document, add features (load external resources,
-      # etc) and associate it with current document. From this point on the
-      # browser sees a new document, client register event handlers for
-      # DOMContentLoaded/error.
-      aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
-      document = new aug.HTMLDocument(url: URL.format(url), deferClose: true)
-      jsdom.applyDocumentFeatures document
-      window.document = document
+      if window.document && window.document.readyState == "loading"
+        # Redirecting, so reuse existing window.
+        document = window.document
+      else
+        # Create new DOM Level 3 document, add features (load external
+        # resources, etc) and associate it with current document. From this
+        # point on the browser sees a new document, client register event
+        # handlers for DOMContentLoaded/error.
+        aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
+        document = new aug.HTMLDocument(url: URL.format(url), deferClose: true)
+        jsdom.applyDocumentFeatures document
+        window.document = document
       # HTTP request, nothing fancy.
-      client = http.createClient(url.port || 80, url.hostname)
       headers = { "host": url.hostname }
       if method == "GET"
         url.search = URL.resolve(url, { query: data }).split("?")[1]
       else
-        body = URL.format({ query: data }).substring(1)
+        data = URL.format({ query: data }).substring(1)
         headers["content-type"] = enctype || "application/x-www-form-urlencoded"
-        headers["content-length"] = body.length
+        headers["content-length"] = data.length
       headers["cookie"] = cookies._header(url)
-      path = url.pathname + (url.search || "")
-      window.request { url: URL.format(url), method: method, headers: headers, body: body }, (done)=>
-        request = client.request(method, path, headers)
-        client.on "error", (err)->
-          console.error "Error requesting #{URL.format(url)}", error
-          event = document.createEvent("HTMLEvents")
-          event.initEvent "error", true, false
-          document.dispatchEvent event
-        request.on "response", (response)->
-          response.setEncoding "utf8"
-          body = ""
-          response.on "data", (chunk)-> body += chunk
-          response.on "end", ->
-            browser.response = [response.statusCode, response.headers, body]
-            if response.statusCode == 200
-              cookies._update url, response.headers["set-cookie"]
-              document.open()
-              document.write body
-              document.close()
-              error = "Could not parse document at #{URL.format(url)}" unless document.documentElement
-            else
-              error = "Could not load document at #{URL.format(url)}, got #{response.statusCode}"
-            # onerror is the only reliable way we have to notify the
-            # application.
-            if error
-              console.error error
-              done error
-              event = document.createEvent("HTMLEvents")
-              event.initEvent "error", true, false
-              document.dispatchEvent event
-            else
+      makeRequest = (url, method, headers, data)=>
+        window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
+          client = http.createClient(url.port || 80, url.hostname)
+          path = url.pathname + (url.search || "")
+          request = client.request(method, path, headers)
+
+          request.on "response", (response)=>
+            response.setEncoding "utf8"
+            body = ""
+            response.on "data", (chunk)-> body += chunk
+            response.on "end", =>
+              browser.response = [response.statusCode, response.headers, body]
               done null, { status: response.statusCode, headers: response.headers, body: body }
-        request.end body, "utf8"
+              switch response.statusCode
+                when 200
+                  cookies._update url, response.headers["set-cookie"]
+                  document.open()
+                  document.write body
+                  document.close()
+                  error = "Could not parse document at #{URL.format(url)}" unless document.documentElement
+                when 301, 302, 303, 307
+                  redirect = URL.parse(URL.resolve(url, response.headers["location"]))
+                  stack[index] = { url: redirect }
+                  makeRequest redirect, "GET", headers
+                else
+                  error = "Could not load document at #{URL.format(url)}, got #{response.statusCode}"
+              # onerror is the only reliable way we have to notify the
+              # application.
+              if error
+                console.error error
+                event = document.createEvent("HTMLEvents")
+                event.initEvent "error", true, false
+                document.dispatchEvent event
+
+          client.on "error", (error)->
+            console.error "Error requesting #{URL.format(url)}", error
+            event = document.createEvent("HTMLEvents")
+            event.initEvent "error", true, false
+            document.dispatchEvent event
+            done error
+          request.end data, "utf8"
+      makeRequest url, method, headers, data
 
     # Called when we switch to a new page with the URL of the old page.
     pageChanged = (old)=>

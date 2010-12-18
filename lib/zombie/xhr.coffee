@@ -49,7 +49,7 @@ XMLHttpRequest = (browser, window)->
       headers = {}
       @setRequestHandler = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
       # Allow calling send method.
-      @send = (body)->
+      @send = (data)->
         # Aborting request in progress.
         @abort = ->
           aborted = true
@@ -57,44 +57,50 @@ XMLHttpRequest = (browser, window)->
           stateChanged 4
           reset()
         
-        client = http.createClient(url.port, url.hostname)
-        if body && method != "GET" && method != "HEAD"
+        if data && method != "GET" && method != "HEAD"
           headers["content-type"] ||= "text/plain;charset=UTF-8"
+          headers["content-length"] = data.length
         else
-          body = ""
+          data = ""
         headers["cookie"] = cookies._header(url)
-        window.request { url: URL.format(url), method: method, headers: headers, body: body }, (done)=>
-          request = client.request(method, url.pathname, headers)
-          request.end body, "utf8"
-          request.on "response", (response)=>
-            response.setEncoding "utf8"
-            # At this state, allow retrieving of headers and status code.
-            @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
-            @getAllResponseHeader = -> response.headers
-            @__defineGetter__ "status", -> response.statusCode
-            @__defineGetter__ "statusText", -> XMLHttpRequest.STATUS[response.statusCode]
-            stateChanged 2
-            body = ""
-            response.on "data", (chunk)=>
-              return response.destroy() if aborted
-              body += chunk
-              stateChanged 3
-            response.on "end", (chunk)=>
-              return response.destroy() if aborted
-              @__defineGetter__ "responseText", -> body
-              @__defineGetter__ "responseXML", -> # not implemented
-              browser.response = [response.statusCode, response.headers, body]
-              cookies._update url, response.headers["set-cookie"]
-              stateChanged 4
-              done null, { status: response.statusCode, headers: response.headers, body: body }
+        makeRequest = (url, method, headers, data)=>
+          window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
+            client = http.createClient(url.port, url.hostname)
+            request = client.request(method, url.pathname, headers)
+            request.end data, "utf8"
+            request.on "response", (response)=>
+              response.setEncoding "utf8"
+              # At this state, allow retrieving of headers and status code.
+              @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
+              @getAllResponseHeader = -> response.headers
+              @__defineGetter__ "status", -> response.statusCode
+              @__defineGetter__ "statusText", -> XMLHttpRequest.STATUS[response.statusCode]
+              stateChanged 2
+              body = ""
+              response.on "data", (chunk)=>
+                return response.destroy() if aborted
+                body += chunk
+                stateChanged 3
+              response.on "end", (chunk)=>
+                return response.destroy() if aborted
+                cookies._update url, response.headers["set-cookie"]
+                done null, { status: response.statusCode, headers: response.headers, body: body }
+                switch response.statusCode
+                  when 301, 302, 303, 307
+                    makeRequest URL.parse(URL.resolve(url, response.headers["location"])) , "GET", headers
+                  else
+                    @__defineGetter__ "responseText", -> body
+                    @__defineGetter__ "responseXML", -> # not implemented
+                    stateChanged 4
 
-          client.on "error", (err)=>
-             console.error "XHR error", err
-             done err
-             @_error = new core.DOMException(core.NETWORK_ERR, err.message)
-             stateChanged 4
-             reset()
-          
+            client.on "error", (err)=>
+              console.error "XHR error", err
+              done err
+              @_error = new core.DOMException(core.NETWORK_ERR, err.message)
+              stateChanged 4
+              reset()
+        makeRequest url, method, headers, data
+
       # Calling open at this point aborts the ongoing request, resets the
       # state and starts a new request going
       @open = (method, url, async, user, password)->

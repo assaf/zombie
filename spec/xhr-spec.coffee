@@ -15,7 +15,22 @@ brains.get "/xhr", (req, res)->
   """
 brains.get "/backend", (req, res)->
   res.cookie "xml", "lol", "Path": "/"
-  res.send req.cookies["xhr"]
+  res.send req.cookies["xhr"] || ""
+
+brains.get "/xhr/redirect", (req, res)->
+  res.cookie "xhr", "yes", "Path": "/"
+  res.send """
+  <html>
+    <head><script src="/jquery.js"></script></head>
+    <body>
+      <script>
+        $.get("/backend/redirect", function(response) { window.response = response });
+      </script>
+    </body>
+  </html>
+  """
+brains.get "/backend/redirect", (req, res)->
+  res.redirect "/backend"
 
 
 vows.describe("XMLHttpRequest").addBatch(
@@ -30,4 +45,8 @@ vows.describe("XMLHttpRequest").addBatch(
   "receive cookies":
     zombie.wants "http://localhost:3003/xhr"
       "should process cookies in XHR response": (browser)-> assert.equal browser.cookies.get("xml"), "lol"
+
+  "redirect":
+    zombie.wants "http://localhost:3003/xhr/redirect"
+      "should send cookies in XHR response": (browser)-> assert.equal browser.window.response, "yes"
 ).export(module)
