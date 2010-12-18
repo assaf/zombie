@@ -66,7 +66,9 @@ XMLHttpRequest = (browser, window)->
         makeRequest = (url, method, headers, data)=>
           window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
             client = http.createClient(url.port, url.hostname)
-            request = client.request(method, url.pathname, headers)
+            path = url.pathname + (url.search || "")
+            headers.host = url.host
+            request = client.request(method, path, headers)
             request.end data, "utf8"
             request.on "response", (response)=>
               response.setEncoding "utf8"

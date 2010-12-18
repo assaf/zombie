@@ -107,7 +107,7 @@ class History
         jsdom.applyDocumentFeatures document
         window.document = document
       # HTTP request, nothing fancy.
-      headers = { "host": url.hostname }
+      headers = {}
       if method == "GET"
         url.search = URL.resolve(url, { query: data }).split("?")[1]
       else
@@ -119,6 +119,7 @@ class History
         window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
           client = http.createClient(url.port || 80, url.hostname)
           path = url.pathname + (url.search || "")
+          headers.host = url.host
           request = client.request(method, path, headers)
 
           request.on "response", (response)=>
