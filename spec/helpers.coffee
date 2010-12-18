@@ -24,6 +24,7 @@ vows.console.result = (results)->
 # An Express server we use to test the browser.
 brains = express.createServer()
 brains.use express.bodyDecoder()
+brains.use express.cookieDecoder()
 
 
 # Patch Express to do the right thing when setting a cookie: create single

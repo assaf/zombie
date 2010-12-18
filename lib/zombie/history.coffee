@@ -7,10 +7,11 @@ URL = require("url")
 #
 # Represents window.history.
 class History
-  constructor: (window, cookies)->
+  constructor: (browser, window)->
     stack = []
     index = -1
     history = @
+    cookies = browser.cookies
     # ### history.forward amount
     @forward = -> @go(1)
     # ### history.back amount
@@ -121,13 +122,14 @@ class History
           document.dispatchEvent event
         request.on "response", (response)->
           response.setEncoding "utf8"
-          data = ""
-          response.on "data", (chunk)-> data += chunk
+          body = ""
+          response.on "data", (chunk)-> body += chunk
           response.on "end", ->
+            browser.response = [response.statusCode, response.headers, body]
             if response.statusCode == 200
               cookies._update url, response.headers["set-cookie"]
               document.open()
-              document.write data
+              document.write body
               document.close()
               error = "Could not parse document at #{URL.format(url)}" unless document.documentElement
             else
@@ -187,8 +189,8 @@ jsdom.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", -> @pa
 
 # Attach Location/History to window: creates new history and adds
 # location/history accessors.
-exports.attach = (window, cookies)->
-  history = new History(window, cookies)
+exports.attach = (browser, window)->
+  history = new History(browser, window)
   window.__defineGetter__ "history", -> history
   window.__defineSetter__ "history", (history)-> # runInNewContext needs this
   window.__defineGetter__ "location", => history._location

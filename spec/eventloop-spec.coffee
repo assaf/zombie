@@ -22,6 +22,7 @@ vows.describe("EventLoop").addBatch(
     "no wait":
       zombie.wants "http://localhost:3003/timeout"
         ready: (browser)->
+          browser.clock = 0
           browser.window.setTimeout (-> @document.title += " Two"), 1000
           @callback null, browser
         "should not fire any timeout events": (browser)-> assert.equal browser.document.title, "One"
@@ -29,6 +30,7 @@ vows.describe("EventLoop").addBatch(
     "wait for all":
       zombie.wants "http://localhost:3003/timeout"
         ready: (browser)->
+          browser.clock = 0
           browser.window.setTimeout (-> @document.title += " Two"), 3000
           browser.window.setTimeout (-> @document.title += " Three"), 5000
           browser.wait @callback
@@ -37,6 +39,7 @@ vows.describe("EventLoop").addBatch(
     "cancel timeout":
       zombie.wants "http://localhost:3003/timeout"
         ready: (browser)->
+          browser.clock = 0
           first = browser.window.setTimeout (-> @document.title += " Two"), 3000
           second = browser.window.setTimeout (-> @document.title += " Three"), 5000
           terminate = ->
@@ -51,6 +54,7 @@ vows.describe("EventLoop").addBatch(
     "no wait":
       zombie.wants "http://localhost:3003/interval"
         ready: (browser)->
+          browser.clock = 0
           browser.window.setInterval (-> @document.title += "."), 1000
           @callback null, browser
         "should not fire any timeout events": (browser)-> assert.equal browser.document.title, ""
@@ -58,6 +62,7 @@ vows.describe("EventLoop").addBatch(
     "wait once":
       zombie.wants "http://localhost:3003/interval"
         ready: (browser)->
+          browser.clock = 0
           browser.window.setInterval (-> @document.title += "."), 1000
           browser.wait @callback
         "should fire interval event once": (browser)->
@@ -66,6 +71,7 @@ vows.describe("EventLoop").addBatch(
     "wait three times":
       zombie.wants "http://localhost:3003/interval"
         ready: (browser)->
+          browser.clock = 0
           browser.window.setInterval (-> @document.title += "."), 1000
           browser.wait 5, =>
             browser.wait =>
@@ -75,6 +81,7 @@ vows.describe("EventLoop").addBatch(
     "cancel interval":
       zombie.wants "http://localhost:3003/interval"
         ready: (browser)->
+          browser.clock = 0
           interval = browser.window.setInterval (-> @document.title += "."), 1000
           browser.wait  =>
             browser.window.clearInterval interval

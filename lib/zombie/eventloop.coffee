@@ -1,7 +1,6 @@
 # Handles the Window event loop, timers and pending requests.
 class EventLoop
-  constructor: (window)->
-    window.browser.clock = 0
+  constructor: (browser, window)->
     timers = {}
     lastHandle = 0
 
@@ -10,7 +9,7 @@ class EventLoop
     # Implements window.setTimeout using event queue
     this.setTimeout = (fn, delay)->
       timer = 
-        when: window.browser.clock + delay
+        when: browser.clock + delay
         timeout: true
         fire: ->
           try
@@ -29,7 +28,7 @@ class EventLoop
     # Implements window.setInterval using event queue
     this.setInterval = (fn, delay)->
       timer = 
-        when: window.browser.clock + delay
+        when: browser.clock + delay
         interval: true
         fire: ->
           try
@@ -38,7 +37,7 @@ class EventLoop
             else
               eval fn
           finally
-            timer.when = window.browser.clock + delay
+            timer.when = browser.clock + delay
       handle = ++lastHandle
       timers[handle] = timer
       handle
@@ -96,7 +95,7 @@ class EventLoop
           if earliest
             intervals = false
             event = ->
-              window.browser.clock = earliest.when if window.browser.clock < earliest.when
+              browser.clock = earliest.when if browser.clock < earliest.when
               earliest.fire()
         if event
           try 
@@ -133,8 +132,8 @@ class EventLoop
 
 # Attach event loop to window: creates new event loop and adds
 # timeout/interval methods and XHR class.
-exports.attach = (window)->
-  eventLoop = new EventLoop(window)
+exports.attach = (browser, window)->
+  eventLoop = new EventLoop(browser, window)
   for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
     window[fn] = -> eventLoop[fn].apply(window, arguments)
   window.queue = eventLoop.queue

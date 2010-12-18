@@ -15,7 +15,8 @@ brains.get "/cookies", (req, res)->
   res.cookie "_domain3", "wrong", "Domain": "notlocalhost"
   res.send "<html></html>"
 brains.get "/cookies/echo", (req,res)->
-  res.send "<html>#{req.headers["cookie"]}</html>"
+  cookies = ("#{k}=#{v}" for k,v of req.cookies).join("; ")
+  res.send "<html>#{cookies}</html>"
 
 vows.describe("Cookies").addBatch(
   "get cookies":

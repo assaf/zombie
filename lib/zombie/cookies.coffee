@@ -16,7 +16,7 @@ class Cookies
     # Serialize cookie object into RFC2109 representation.
     serialize = (domain, path, name, cookie)->
       str = "#{name}=#{cookie.value}; domain=#{domain}; path=#{path}"
-      str = str + "; max-age=#{cookie.expires - browser.time}" if cookie.expires
+      str = str + "; max-age=#{cookie.expires - browser.clock}" if cookie.expires
       str = str + "; secure" if cookie.secure
       str
 
@@ -36,7 +36,7 @@ class Cookies
           continue unless pathname.indexOf(path) == 0
           for name, cookie of inPath
             # Delete expired cookies.
-            if inPath.expires && inPath.expires <= browser.time
+            if inPath.expires && inPath.expires <= browser.clock
               delete inPath[name]
             else
               matching.push [domain, path, name, cookie]
@@ -82,8 +82,8 @@ class Cookies
         expires = options.expires.getTime()
       else
         maxage = options["max-age"]
-        expires = browser.time + maxage if typeof maxage is "number"
-      if expires && expires <= browser.time
+        expires = browser.clock + maxage if typeof maxage is "number"
+      if expires && expires <= browser.clock
         inDomain = cookies[options.domain]
         inPath = inDomain[options.path] if inDomain
         delete inPath[name] if inPath

@@ -8,18 +8,65 @@ require "./forms"
 # The browser maintains state for cookies and localStorage.
 class Browser
   constructor: ->
-    clock = new Date().getTime()
     # Start out with an empty window
     window = jsdom.createWindow(jsdom.dom.level3.html)
     window.browser = this
+    # ### browser.window => Window
+    #
+    # Returns the main window.
+    @__defineGetter__ "window", -> window
+    # ### browser.document => Document
+    #
+    # Retursn the main window's document. Only valid after opening a document
+    # (Browser.open).
+    @__defineGetter__ "document", -> window.document
+
+
     # Cookies and storage.
     cookies = require("./cookies").use(this)
     window.cookies = cookies
+    # ### browser.cookies => Cookies
+    #
+    # Returns all the cookies for this browser.
+    @__defineGetter__ "cookies", -> cookies
+
+
     # Attach history/location objects to window/document.
-    require("./history").attach window, cookies
+    require("./history").attach this, window
+    # ### browser.location => Location
+    #
+    # Return the location of the current document (same as window.location.href).
+    @__defineGetter__ "location", -> window.location.href
+    # ### browser.location = url
+    #
+    # Changes document location, loads new document if necessary (same as
+    # setting window.location).
+    @__defineSetter__ "location", (url)-> window.location = url
+
+
+    # ### browser.clock
+    #
+    # The current clock time. Initialized to current system time when creating
+    # a new browser, but doesn't advance except by setting it explicitly or
+    # firing timeout/interval events.
+    @clock = new Date().getTime()
+    # ### browser.now => Date
+    #
+    # Date object with current time, based on browser clock.
+    @__defineGetter__ "now", -> new Date(clock)
+    require("./eventloop").attach this, window
+
+
     # All asynchronous processing handled by event loop.
-    require("./xhr").attach window, cookies
-    require("./eventloop").attach window
+    require("./xhr").attach this, window
+
+    # TODO: Fix
+    window.Image = ->
+
+    # TODO: Fix
+    responses = []
+    @__defineGetter__ "response", -> responses[responses.length - 1]
+    @__defineSetter__ "response", (response)-> responses.push response
 
 
     # Events
@@ -65,15 +112,6 @@ class Browser
       target.dispatchEvent event
       @wait callback if callback
 
-    # ### browser.now => Date
-    #
-    # Date object with current time, based on browser clock.
-    @__defineGetter__ "now", -> new Date(clock)
-    # ### browser.time => Number
-    #
-    # Returns the current time based on the browser clock (milliseconds since epoch).
-    @__defineGetter__ "time", -> clock
-
 
     # Accessors
     # ---------
@@ -115,32 +153,10 @@ class Browser
       else
         return window.document.outerHTML
 
-    # ### browser.window => Window
-    #
-    # Returns the main window.
-    @__defineGetter__ "window", -> window
-    # ### browser.document => Document
-    #
-    # Retursn the main window's document. Only valid after opening a document
-    # (Browser.open).
-    @__defineGetter__ "document", -> window.document
-    # ### browser.location => Location
-    #
-    # Return the location of the current document (same as window.location.href).
-    @__defineGetter__ "location", -> window.location.href
-    # ### browser.location = url
-    #
-    # Changes document location, loads new document if necessary (same as
-    # setting window.location).
-    @__defineSetter__ "location", (url)-> window.location = url
     # ### browser.body => Element
     #
     # Returns the body Element of the current document.
     @__defineGetter__ "body", -> window.document?.find("body")[0]
-    # ### browser.cookies => Cookies
-    #
-    # Returns all the cookies for this browser.
-    @__defineGetter__ "cookies", -> cookies
 
 
     # Actions

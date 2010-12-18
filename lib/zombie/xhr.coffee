@@ -9,7 +9,8 @@ core.SECURITY_ERR = 18
 core.NETWORK_ERR = 19
 core.ABORT_ERR = 20
 
-XMLHttpRequest = (window, cookies)->
+XMLHttpRequest = (browser, window)->
+  cookies = browser.cookies
   # Fire onreadystatechange event
   stateChanged = (state)=>
     @__defineGetter__ "readyState", -> state
@@ -47,7 +48,7 @@ XMLHttpRequest = (window, cookies)->
           reset()
 
         # Allow setting headers in this state.
-        headers = []
+        headers = {}
         @setRequestHandler = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
         # Allow calling send method.
         @send = (data)->
@@ -64,6 +65,7 @@ XMLHttpRequest = (window, cookies)->
             headers["content-type"] ||= "text/plain;charset=UTF-8"
           else
             data = ""
+          headers["cookie"] = cookies._header(url)
           request = client.request(method, url.pathname, headers)
           request.end data, "utf8"
           request.on "response", (response)=>
@@ -84,6 +86,7 @@ XMLHttpRequest = (window, cookies)->
               return response.destroy() if aborted
               @__defineGetter__ "responseText", -> body
               @__defineGetter__ "responseXML", -> # not implemented
+              browser.response = [response.statusCode, response.headers, body]
               cookies._update url, response.headers["set-cookie"]
               stateChanged 4
               done()
@@ -115,6 +118,6 @@ XMLHttpRequest.STATUS = { 200: "OK", 404: "Not Found", 500: "Internal Server Err
 
 
 # Attach XHR support to window.
-exports.attach = (window, cookies)->
+exports.attach = (browser, window)->
   # XHR constructor needs reference to window.
-  window.XMLHttpRequest = -> XMLHttpRequest.call this, window, cookies
+  window.XMLHttpRequest = -> XMLHttpRequest.call this, browser, window
