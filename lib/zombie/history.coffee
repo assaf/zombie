@@ -113,7 +113,7 @@ class History
         headers["content-length"] = body.length
       headers["cookie"] = cookies._header(url)
       path = url.pathname + (url.search || "")
-      window.request (done)=>
+      window.request { url: URL.format(url), method: method, headers: headers, body: body }, (done)=>
         request = client.request(method, path, headers)
         client.on "error", (err)->
           console.error "Error requesting #{URL.format(url)}", error
@@ -138,10 +138,12 @@ class History
             # application.
             if error
               console.error error
+              done error
               event = document.createEvent("HTMLEvents")
               event.initEvent "error", true, false
               document.dispatchEvent event
-            done()
+            else
+              done null, { status: response.statusCode, headers: response.headers, body: body }
         request.end body, "utf8"
 
     # Called when we switch to a new page with the URL of the old page.

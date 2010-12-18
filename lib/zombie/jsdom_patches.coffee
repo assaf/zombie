@@ -54,10 +54,10 @@ core.resourceLoader.load = (element, href, callback)->
   window = document.parentWindow
   ownerImplementation = document.implementation
   if ownerImplementation.hasFeature('FetchExternalResources', element.tagName.toLowerCase())
-    url = URL.parse(@resolve(document, href))
-    window.request (done)=>
+    window.request { url: href, method: "GET", headers: {} }, (done)=>
+      url = URL.parse(@resolve(document, href))
       loaded = (data, filename)->
-        done()
+        done null, { status: 200, headers: {}, body: data.slice(0,100) }
         callback.call this, data, filename
       if url.hostname
         @download url, @enqueue(element, loaded, url.pathname)

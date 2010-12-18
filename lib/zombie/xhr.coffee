@@ -29,47 +29,44 @@ XMLHttpRequest = (browser, window)->
     @getResponseHeader = @getAllResponseHeader = ->
     # Open method.
     @open = (method, url, async, user, password)->
-      window.request (done)=>
-        method = method.toUpperCase()
-        throw new core.DOMException(core.SECURITY_ERR, "Unsupported HTTP method") if /^(CONNECT|TRACE|TRACK)$/.test(method)
-        throw new core.DOMException(core.SYNTAX_ERR, "Unsupported HTTP method") unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
-        url = URL.parse(URL.resolve(window.location, url))
-        url.hash = null
-        throw new core.DOMException(core.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
-        throw new core.DOMException(core.NOT_SUPPORTED_ERR, "Only HTTP protocol supported") unless url.protocol == "http:"
-        [user, password] = url.auth.split(":") if url.auth
+      method = method.toUpperCase()
+      throw new core.DOMException(core.SECURITY_ERR, "Unsupported HTTP method") if /^(CONNECT|TRACE|TRACK)$/.test(method)
+      throw new core.DOMException(core.SYNTAX_ERR, "Unsupported HTTP method") unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
+      url = URL.parse(URL.resolve(window.location, url))
+      url.hash = null
+      throw new core.DOMException(core.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
+      throw new core.DOMException(core.NOT_SUPPORTED_ERR, "Only HTTP protocol supported") unless url.protocol == "http:"
+      [user, password] = url.auth.split(":") if url.auth
 
-        # Aborting open request.
-        @_error = null
-        aborted = false
+      # Aborting open request.
+      @_error = null
+      aborted = false
+      @abort = ->
+        aborted = true
+        reset()
+
+      # Allow setting headers in this state.
+      headers = {}
+      @setRequestHandler = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
+      # Allow calling send method.
+      @send = (body)->
+        # Aborting request in progress.
         @abort = ->
           aborted = true
-          done()
+          @_error = new core.DOMException(core.ABORT_ERR, "Request aborted")
+          stateChanged 4
           reset()
-
-        # Allow setting headers in this state.
-        headers = {}
-        @setRequestHandler = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
-        # Allow calling send method.
-        @send = (data)->
-          # Aborting request in progress.
-          @abort = ->
-            aborted = true
-            done()
-            @_error = new core.DOMException(core.ABORT_ERR, "Request aborted")
-            stateChanged 4
-            reset()
         
-          client = http.createClient(url.port, url.hostname)
-          if data && method != "GET" && method != "HEAD"
-            headers["content-type"] ||= "text/plain;charset=UTF-8"
-          else
-            data = ""
-          headers["cookie"] = cookies._header(url)
+        client = http.createClient(url.port, url.hostname)
+        if body && method != "GET" && method != "HEAD"
+          headers["content-type"] ||= "text/plain;charset=UTF-8"
+        else
+          body = ""
+        headers["cookie"] = cookies._header(url)
+        window.request { url: URL.format(url), method: method, headers: headers, body: body }, (done)=>
           request = client.request(method, url.pathname, headers)
-          request.end data, "utf8"
+          request.end body, "utf8"
           request.on "response", (response)=>
-            return request.destroy() if aborted
             response.setEncoding "utf8"
             # At this state, allow retrieving of headers and status code.
             @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
@@ -89,11 +86,11 @@ XMLHttpRequest = (browser, window)->
               browser.response = [response.statusCode, response.headers, body]
               cookies._update url, response.headers["set-cookie"]
               stateChanged 4
-              done()
+              done null, { status: response.statusCode, headers: response.headers, body: body }
 
           client.on "error", (err)=>
              console.error "XHR error", err
-             done()
+             done err
              @_error = new core.DOMException(core.NETWORK_ERR, err.message)
              stateChanged 4
              reset()

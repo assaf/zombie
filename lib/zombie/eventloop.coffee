@@ -1,3 +1,6 @@
+URL = require("url")
+
+
 # Handles the Window event loop, timers and pending requests.
 class EventLoop
   constructor: (browser, window)->
@@ -120,11 +123,20 @@ class EventLoop
     # Counts outstanding requests.
     requests = 0
     # Used internally for the duration of an internal request (loading
-    # resource, XHR). Function is invoked with single argument (done), a
-    # function to call when done processing the request.
-    this.request = (fn)->
+    # resource, XHR). Also collects request/response for debugging.
+    #
+    # Function is called with request object and the function to be called
+    # next. After storing the request, that function is called with a single
+    # argument, a done callback. It must call the done callback when it
+    # completes processing, passing error and response arguments.
+    this.request = (request, fn)->
       ++requests
-      fn ->
+      pending = browser.record request
+      fn (err, response)->
+        if err
+          pending.error = err
+        else
+          pending.response = response
         if --requests == 0
           wait() for wait in waiting
           waiting = []
