@@ -1,6 +1,7 @@
 # Select document elements using Sizzle.js.
 fs = require("fs")
-sizzle = fs.readFileSync(__dirname + "/../../dep/sizzle.js", "utf8")
+vm = process.binding("evals")
+sizzle = new vm.Script(fs.readFileSync(__dirname + "/../../dep/sizzle.js", "utf8"), "sizzle.js")
 core = require("jsdom").dom.level3.core
 
 close = core.HTMLDocument.prototype.close
@@ -9,9 +10,9 @@ core.HTMLDocument.prototype.close = ->
   window = @parentWindow
 
   # Load Sizzle and add window.find. This only works if we parsed a document.
-  if @documentElement
+  if window && @documentElement
     ctx = process.binding("evals").Script.createContext(window)
     ctx.window = window
     ctx.document = this
-    process.binding("evals").Script.runInContext sizzle, ctx
+    sizzle.runInContext ctx
     @find = (selector, context)-> new window.Sizzle(selector, context)
