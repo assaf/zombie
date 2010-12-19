@@ -1,7 +1,12 @@
-- Cookies: get, set, delete
-- XHR should send/receive cookies
-- Download should send/receive cookies
-- Implement document.cookies
+- Use HTML5 parser (see https://github.com/aredridel/html5)
+
+  HTML5 parser can deal with many more documents (e.g. missing html/body
+  elements) than html-parser, and obviously new HTML5 elements.
+
+  Unfortunately, it adds script elements to the DOM before adding their text
+  content; JSDOM listens to the DOMNodeInsertedIntoDocument event, which is
+  fired on empty script element.
+
 - Implement sessionStorage
 - Implement localStorage
 - brower.location set should evaluate javascript: links
