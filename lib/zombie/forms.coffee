@@ -4,7 +4,7 @@ core = require("jsdom").dom.level3.core
 # The Form
 # --------
 
-serializeFieldTypes = "email number password range search text url".split(" ")
+serializeFieldTypes = "email hidden number password range search text url".split(" ")
 core.HTMLFormElement.prototype.submit = -> @_submit()
 # Implement form.submit such that it actually submits a request to the server.
 # This method takes the submitting button so we can send the button name/value.
