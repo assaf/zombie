@@ -138,7 +138,8 @@ class EventLoop
         else
           pending.response = response
         if --requests == 0
-          wait() for wait in waiting
+          for wait in waiting
+            process.nextTick -> wait()
           waiting = []
 
 
