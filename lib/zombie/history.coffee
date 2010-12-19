@@ -2,6 +2,7 @@
 jsdom = require("jsdom")
 http = require("http")
 URL = require("url")
+qs = require("querystring")
 
 # ## window.history
 #
@@ -101,7 +102,7 @@ class History
         # Create new DOM Level 3 document, add features (load external
         # resources, etc) and associate it with current document. From this
         # point on the browser sees a new document, client register event
-        # handlers for DOMContentLoaded/error.
+        # handler for DOMContentLoaded/error.
         aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
         document = new aug.HTMLDocument(url: URL.format(url), deferClose: true)
         jsdom.applyDocumentFeatures document
@@ -111,7 +112,7 @@ class History
       if method == "GET"
         url.search = URL.resolve(url, { query: data }).split("?")[1]
       else
-        data = URL.format({ query: data }).substring(1)
+        data = qs.stringify(data)
         headers["content-type"] = enctype || "application/x-www-form-urlencoded"
         headers["content-length"] = data.length
       headers["cookie"] = cookies._header(url)
