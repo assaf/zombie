@@ -86,7 +86,7 @@ vows.describe("Browser").addBatch(
 
   "click link":
     zombie.wants "http://localhost:3003/living"
-      ready: (browser)->
+      topic: (browser)->
         browser.clickLink "Kill", @callback
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/dead"
       "should run all events": (browser)-> assert.equal browser.document.title, "The Dead"

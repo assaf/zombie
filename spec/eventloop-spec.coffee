@@ -21,7 +21,7 @@ vows.describe("EventLoop").addBatch(
   "setTimeout":
     "no wait":
       zombie.wants "http://localhost:3003/timeout"
-        ready: (browser)->
+        topic: (browser)->
           browser.clock = 0
           browser.window.setTimeout (-> @document.title += " Two"), 1000
           @callback null, browser
@@ -29,7 +29,7 @@ vows.describe("EventLoop").addBatch(
         "should not change clock": (browser) -> assert.equal browser.clock, 0
     "wait for all":
       zombie.wants "http://localhost:3003/timeout"
-        ready: (browser)->
+        topic: (browser)->
           browser.clock = 0
           browser.window.setTimeout (-> @document.title += " Two"), 3000
           browser.window.setTimeout (-> @document.title += " Three"), 5000
@@ -38,7 +38,7 @@ vows.describe("EventLoop").addBatch(
         "should move clock forward": (browser) -> assert.equal browser.clock, 5000
     "cancel timeout":
       zombie.wants "http://localhost:3003/timeout"
-        ready: (browser)->
+        topic: (browser)->
           browser.clock = 0
           first = browser.window.setTimeout (-> @document.title += " Two"), 3000
           second = browser.window.setTimeout (-> @document.title += " Three"), 5000
@@ -53,7 +53,7 @@ vows.describe("EventLoop").addBatch(
   "setInterval":
     "no wait":
       zombie.wants "http://localhost:3003/interval"
-        ready: (browser)->
+        topic: (browser)->
           browser.clock = 0
           browser.window.setInterval (-> @document.title += "."), 1000
           @callback null, browser
@@ -61,7 +61,7 @@ vows.describe("EventLoop").addBatch(
         "should not change clock": (browser) -> assert.equal browser.clock, 0
     "wait once":
       zombie.wants "http://localhost:3003/interval"
-        ready: (browser)->
+        topic: (browser)->
           browser.clock = 0
           browser.window.setInterval (-> @document.title += "."), 1000
           browser.wait @callback
@@ -70,7 +70,7 @@ vows.describe("EventLoop").addBatch(
           assert.equal browser.clock, 1000
     "wait three times":
       zombie.wants "http://localhost:3003/interval"
-        ready: (browser)->
+        topic: (browser)->
           browser.clock = 0
           browser.window.setInterval (-> @document.title += "."), 1000
           browser.wait 5, =>
@@ -80,7 +80,7 @@ vows.describe("EventLoop").addBatch(
         "should move clock forward": (browser) -> assert.equal browser.clock, 3000
     "cancel interval":
       zombie.wants "http://localhost:3003/interval"
-        ready: (browser)->
+        topic: (browser)->
           browser.clock = 0
           interval = browser.window.setInterval (-> @document.title += "."), 1000
           browser.wait  =>

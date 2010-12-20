@@ -45,7 +45,7 @@ vows.describe("Storage").addBatch(
         "should not change other values": (storage)-> assert.equal storage.getItem("wants"), "brains"
     "remove an item":
       withStorage
-        ready: (storage)->
+        topic: (storage)->
           storage.setItem "is", "hungry"
           storage.setItem "wants", "brains"
           storage.removeItem "is"
@@ -58,7 +58,7 @@ vows.describe("Storage").addBatch(
           assert.equal storage.getItem("wants"), "brains"
     "clean all items":
       withStorage
-        ready: (storage)->
+        topic: (storage)->
           storage.setItem "is", "hungry"
           storage.setItem "wants", "brains"
           storage.clear()
@@ -70,7 +70,7 @@ vows.describe("Storage").addBatch(
           assert.isUndefined storage.getItem("wants")
     "store null":
       withStorage
-        ready: (storage)->
+        topic: (storage)->
           storage.setItem "null", null
         "should store that item": (storage)-> assert.length storage, 1
         "should return null for key": (storage)-> assert.isNull storage.getItem("null")

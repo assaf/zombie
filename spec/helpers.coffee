@@ -65,16 +65,13 @@ brains.ready = (callback)->
 # However, you can (and often need to) supply a ready function that will be
 # called with err and window; the ready function can then call this.callback.
 zombie.wants = (url, context)->
-  context ||= {}
+  topic = context.topic
   context.topic = ->
-    ready = context.ready
-    delete context.ready
-    brains.ready =>
-      zombie.visit url, (err, browser)=>
-        if ready
-          ready.call this, browser, browser.window
-        else
-          browser.wait @callback
+    new zombie.Browser().wants url, (err, browser)=>
+      if topic
+        topic.call this, browser, browser.window
+      else
+        browser.wait @callback
     return
   return context
 

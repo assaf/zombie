@@ -56,7 +56,7 @@ brains.post "/submit", (req, res)-> res.send """
 vows.describe("Forms").addBatch(
   "fill field":
     zombie.wants "http://localhost:3003/form"
-      ready: (browser)->
+      topic: (browser)->
         for field in ["email", "likes", "name", "password"]
           browser.find("#field-#{field}")[0].addEventListener "change", -> browser["#{field}Changed"] = true
         @callback null, browser
@@ -83,7 +83,7 @@ vows.describe("Forms").addBatch(
 
   "check box":
     zombie.wants "http://localhost:3003/form"
-      ready: (browser)->
+      topic: (browser)->
         for field in ["hungry", "brains", "green"]
           browser.find("#field-#{field}")[0].addEventListener "click", -> browser["#{field}Clicked"] = true
           browser.find("#field-#{field}")[0].addEventListener "click", -> browser["#{field}Changed"] = true
@@ -109,7 +109,7 @@ vows.describe("Forms").addBatch(
 
   "radio buttons":
     zombie.wants "http://localhost:3003/form"
-      ready: (browser)->
+      topic: (browser)->
         for field in ["scary", "notscary"]
           browser.find("#field-#{field}")[0].addEventListener "click", -> browser["#{field}Clicked"] = true
           browser.find("#field-#{field}")[0].addEventListener "click", -> browser["#{field}Changed"] = true
@@ -130,7 +130,7 @@ vows.describe("Forms").addBatch(
 
   "select option":
     zombie.wants "http://localhost:3003/form"
-      ready: (browser)->
+      topic: (browser)->
         for field in ["looks", "state"]
           browser.find("#field-#{field}")[0].addEventListener "change", -> browser["#{field}Changed"] = true
         @callback null, browser
@@ -154,7 +154,7 @@ vows.describe("Forms").addBatch(
   "reset form":
     "by calling reset":
       zombie.wants "http://localhost:3003/form"
-        ready: (browser)->
+        topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
             check("Hungry").choose("Scary").select("state", "dead")
           browser.find("form")[0].reset()
@@ -168,13 +168,13 @@ vows.describe("Forms").addBatch(
         "should reset select to original option": (browser)-> assert.equal browser.find("#field-state")[0].value, "alive"
     "with event handler":
       zombie.wants "http://localhost:3003/form"
-        ready: (browser)->
+        topic: (browser)->
           browser.find("form :reset")[0].addEventListener "click", (event)=> @callback null, event
           browser.find("form :reset")[0].click()
         "should fire click event": (event)-> assert.equal event.type, "click"
     "with preventDefault":
       zombie.wants "http://localhost:3003/form"
-        ready: (browser)->
+        topic: (browser)->
           browser.fill("Name", "ArmBiter")
           browser.find("form :reset")[0].addEventListener "click", (event)-> event.preventDefault()
           browser.find("form :reset")[0].click()
@@ -182,7 +182,7 @@ vows.describe("Forms").addBatch(
         "should not reset input field": (browser)-> assert.equal browser.find("#field-name")[0].value, "ArmBiter"
     "by clicking reset input":
       zombie.wants "http://localhost:3003/form"
-        ready: (browser)->
+        topic: (browser)->
           browser.fill("Name", "ArmBiter")
           browser.find("form :reset")[0].click()
           @callback null, browser
@@ -191,7 +191,7 @@ vows.describe("Forms").addBatch(
   "submit form":
     "by calling submit":
       zombie.wants "http://localhost:3003/form"
-        ready: (browser)->
+        topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
             check("Hungry").choose("Scary").select("state", "dead")
           browser.find("form")[0].submit()
@@ -205,7 +205,7 @@ vows.describe("Forms").addBatch(
         "should send selected option to server": (browser)-> assert.equal browser.text("#state"), "dead"
     "by clicking button":
       zombie.wants "http://localhost:3003/form"
-        ready: (browser)->
+        topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
             pressButton "Hit Me", @callback
         "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
@@ -216,7 +216,7 @@ vows.describe("Forms").addBatch(
           assert.equal browser.text("#likes"), "Arm Biting"
     "by clicking input":
       zombie.wants "http://localhost:3003/form"
-        ready: (browser)->
+        topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
             pressButton "Submit", @callback
         "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"

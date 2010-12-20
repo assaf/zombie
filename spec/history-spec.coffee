@@ -33,7 +33,7 @@ vows.describe("History").addBatch(
   "history":
     "pushState":
       zombie.wants "http://localhost:3003/"
-        ready: (browser)->
+        topic: (browser)->
           browser.window.history.pushState { is: "start" }, null, "/start"
           browser.window.history.pushState { is: "end" }, null, "/end"
           @callback null, browser.window
@@ -47,7 +47,7 @@ vows.describe("History").addBatch(
           "should include state": (evt)-> assert.equal evt.state.is, "start"
         "go forwards":
           zombie.wants "http://localhost:3003/"
-            ready: (browser)->
+            topic: (browser)->
               browser.window.history.pushState { is: "start" }, null, "/start"
               browser.window.history.pushState { is: "end" }, null, "/end"
               browser.window.history.back()
@@ -57,7 +57,7 @@ vows.describe("History").addBatch(
             "should include state": (evt)-> assert.equal evt.state.is, "end"
     "replaceState":
       zombie.wants "http://localhost:3003/"
-        ready: (browser)->
+        topic: (browser)->
           browser.window.history.pushState { is: "start" }, null, "/start"
           browser.window.history.replaceState { is: "end" }, null, "/end"
           @callback null, browser.window
@@ -82,7 +82,7 @@ vows.describe("History").addBatch(
         "should set document location": (browser)-> assert.equal browser.document.location.href, "http://localhost:3003/"
     "change location":
       zombie.wants "http://localhost:3003/"
-        ready: (browser)->
+        topic: (browser)->
           browser.window.location = "http://localhost:3003/boo"
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
         "should add page to history": (browser)-> assert.length browser.window.history, 2
@@ -90,7 +90,7 @@ vows.describe("History").addBatch(
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "change pathname":
       zombie.wants "http://localhost:3003/"
-        ready: (browser)->
+        topic: (browser)->
           browser.window.location.pathname = "/boo"
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
         "should add page to history": (browser)-> assert.length browser.window.history, 2
@@ -98,7 +98,7 @@ vows.describe("History").addBatch(
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "change hash":
       zombie.wants "http://localhost:3003/"
-        ready: (browser)->
+        topic: (browser)->
           browser.window.document.innerHTML = "Wolf"
           browser.window.addEventListener "hashchange", => @callback null, browser
           browser.window.location.hash = "boo"
@@ -107,7 +107,7 @@ vows.describe("History").addBatch(
         "should not reload document": (browser)-> assert.match browser.document.innerHTML, /Wolf/
     "assign":
       zombie.wants "http://localhost:3003/"
-        ready: (browser)->
+        topic: (browser)->
           browser.window.location.assign "http://localhost:3003/boo"
           browser.document.addEventListener "DOMContentLoaded", => @callback null, browser
         "should add page to history": (browser)-> assert.length browser.window.history, 2
@@ -115,7 +115,7 @@ vows.describe("History").addBatch(
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "replace":
       zombie.wants "http://localhost:3003/"
-        ready: (browser)->
+        topic: (browser)->
           browser.window.location.replace "http://localhost:3003/boo"
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
         "should not add page to history": (browser)-> assert.length browser.window.history, 1
@@ -123,7 +123,7 @@ vows.describe("History").addBatch(
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "reload":
       zombie.wants "http://localhost:3003/"
-        ready: (browser)->
+        topic: (browser)->
           browser.window.document.innerHTML = "Wolf"
           browser.window.location.reload()
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
