@@ -147,10 +147,12 @@ class Cookies
         options.secure  ||= false
         @set name, dequote(value), options
 
-    # Returns Cookie header suitable for sending to the server. Needs request
+    # Adds Cookie header suitable for sending to the server. Needs request
     # URL to figure out which cookies to send.
-    this._header = (url)->
-      "$Version=\"1\";" + ("#{match[2]}=\"#{match[3].value}\";$Path=\"#{match[1]}\"" for match in filter(url)).join(";")
+    this._addHeader = (url, headers)->
+      header = ("#{match[2]}=\"#{match[3].value}\";$Path=\"#{match[1]}\"" for match in filter(url)).join("; ")
+      if header.length > 0
+        headers.cookie = "$Version=\"1\"; #{header}"
 
 
 # ### document.cookie => String

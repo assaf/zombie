@@ -15,7 +15,9 @@ brains.get "/xhr", (req, res)->
   """
 brains.get "/backend", (req, res)->
   res.cookie "xml", "lol", "Path": "/"
-  res.send req.cookies["xhr"] || ""
+  response = req.cookies["xhr"] || ""
+  response = "redirected: #{response}" if req.query.redirected
+  res.send response
 
 brains.get "/xhr/redirect", (req, res)->
   res.cookie "xhr", "yes", "Path": "/"
@@ -30,7 +32,7 @@ brains.get "/xhr/redirect", (req, res)->
   </html>
   """
 brains.get "/backend/redirect", (req, res)->
-  res.redirect "/backend"
+  res.redirect "/backend?redirected=true"
 
 
 vows.describe("XMLHttpRequest").addBatch(
@@ -48,5 +50,5 @@ vows.describe("XMLHttpRequest").addBatch(
 
   "redirect":
     zombie.wants "http://localhost:3003/xhr/redirect"
-      "should send cookies in XHR response": (browser)-> assert.equal browser.window.response, "yes"
+      "should send cookies in XHR response": (browser)-> assert.equal browser.window.response, "redirected: yes"
 ).export(module)

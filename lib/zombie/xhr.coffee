@@ -57,19 +57,22 @@ XMLHttpRequest = (browser, window)->
           stateChanged 4
           reset()
         
-        if data && method != "GET" && method != "HEAD"
-          headers["content-type"] ||= "text/plain;charset=UTF-8"
-          headers["content-length"] = data.length
-        else
-          data = ""
-        headers["cookie"] = cookies._header(url)
+        # Make the actual request: called again when dealing with a redirect.
         makeRequest = (url, method, headers, data)=>
+          if method == "GET" || method == "HEAD"
+            data = null
+          else
+            headers["content-type"] ||= "text/plain;charset=UTF-8"
+            headers["content-length"] = data.length
+          cookies._addHeader url, headers
+
           window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
             client = http.createClient(url.port, url.hostname)
             path = url.pathname + (url.search || "")
             headers.host = url.host
             request = client.request(method, path, headers)
             request.end data, "utf8"
+
             request.on "response", (response)=>
               response.setEncoding "utf8"
               # At this state, allow retrieving of headers and status code.
@@ -89,7 +92,7 @@ XMLHttpRequest = (browser, window)->
                 done null, { status: response.statusCode, headers: response.headers, body: body }
                 switch response.statusCode
                   when 301, 302, 303, 307
-                    makeRequest URL.parse(URL.resolve(url, response.headers["location"])) , "GET", headers
+                    makeRequest URL.parse(URL.resolve(url, response.headers["location"])) , "GET", {}
                   else
                     @__defineGetter__ "responseText", -> body
                     @__defineGetter__ "responseXML", -> # not implemented

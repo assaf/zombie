@@ -111,9 +111,10 @@ class History
       # Make the actual request: called again when dealing with a redirect.
       makeRequest = (url, method, data)=>
         headers = {}
-        headers.cookie = cookies._header(url)
-        if method == "GET"
+        cookies._addHeader url, headers
+        if method == "GET" || method == "HEAD"
           url.search = "?" + qs.stringify(data) if data
+          data = null
         else
           data = qs.stringify(data)
           headers["content-type"] = enctype || "application/x-www-form-urlencoded"

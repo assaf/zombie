@@ -4,9 +4,10 @@ jsdom = require("jsdom")
 
 
 brains.get "/boo", (req, res)->
-  res.send "<html><title>Eeek!</title></html>"
+  response = if req.query.redirected then "Redirected" else "Eeek!"
+  res.send "<html><title>#{response}</title></html>"
 brains.get "/redirect", (req, res)->
-  res.redirect "/"
+  res.redirect "/boo?redirected=true"
 
 
 vows.describe("History").addBatch(
@@ -132,6 +133,7 @@ vows.describe("History").addBatch(
 
   "redirect":
     zombie.wants "http://localhost:3003/redirect"
-      "should redirect to final destination": (browser)-> assert.equal browser.location, "http://localhost:3003/"
+      "should redirect to final destination": (browser)-> assert.equal browser.location, "http://localhost:3003/boo?redirected=true"
+      "should pass query parameter": (browser)-> assert.equal browser.text("title"), "Redirected"
       "should not add location in history": (browser)-> assert.length browser.window.history, 1
 ).export(module)
