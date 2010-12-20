@@ -107,19 +107,22 @@ class History
         document = new aug.HTMLDocument(url: URL.format(url), deferClose: true)
         jsdom.applyDocumentFeatures document
         window.document = document
-      # HTTP request, nothing fancy.
-      headers = {}
-      if method == "GET"
-        url.search = URL.resolve(url, { query: data }).split("?")[1]
-      else
-        data = qs.stringify(data)
-        headers["content-type"] = enctype || "application/x-www-form-urlencoded"
-        headers["content-length"] = data.length
-      headers["cookie"] = cookies._header(url)
-      makeRequest = (url, method, headers, data)=>
+
+      # Make the actual request: called again when dealing with a redirect.
+      makeRequest = (url, method, data)=>
+        headers = {}
+        headers.cookie = cookies._header(url)
+        if method == "GET"
+          url.search = "?" + qs.stringify(data) if data
+        else
+          data = qs.stringify(data)
+          headers["content-type"] = enctype || "application/x-www-form-urlencoded"
+          headers["content-length"] = data.length
+
         window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
           client = http.createClient(url.port || 80, url.hostname)
-          path = url.pathname + (url.search || "")
+          path = url.pathname
+          path = path + url.search if url.search
           headers.host = url.host
           request = client.request(method, path, headers)
 
@@ -140,13 +143,14 @@ class History
                 when 301, 302, 303, 307
                   redirect = URL.parse(URL.resolve(url, response.headers["location"]))
                   stack[index] = { url: redirect }
-                  makeRequest redirect, "GET", headers
+                  process.nextTick ->
+                    makeRequest redirect, "GET"
                 else
                   error = "Could not load document at #{URL.format(url)}, got #{response.statusCode}"
               # onerror is the only reliable way we have to notify the
               # application.
               if error
-                console.error error
+                console.error "Error requesting #{URL.format(url)}", error
                 event = document.createEvent("HTMLEvents")
                 event.initEvent "error", true, false
                 document.dispatchEvent event
@@ -158,7 +162,7 @@ class History
             document.dispatchEvent event
             done error
           request.end data, "utf8"
-      makeRequest url, method, headers, data
+      makeRequest url, method, data
 
     # Called when we switch to a new page with the URL of the old page.
     pageChanged = (old)=>
