@@ -7,8 +7,6 @@
   content; JSDOM listens to the DOMNodeInsertedIntoDocument event, which is
   fired on empty script element.
 
-- Implement sessionStorage
-- Implement localStorage
 - brower.location set should evaluate javascript: links
 - Browser open should create new window
 - Browser close should close existing window

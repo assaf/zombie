@@ -29,6 +29,7 @@ class Browser
     #
     # Returns all the cookies for this browser.
     @__defineGetter__ "cookies", -> cookies
+    require("./storage").attach this, window
 
 
     # Attach history/location objects to window/document.
