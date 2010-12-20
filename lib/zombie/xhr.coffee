@@ -25,7 +25,7 @@ XMLHttpRequest = (browser, window)->
     @__defineGetter__ "statusText", ->
     # These methods not applicable yet.
     @abort = -> # do nothing
-    @setRequestHandler = @send = -> throw new core.DOMException(core.INVALID_STATE_ERR,  "Invalid state")
+    @setRequestHeader = @send = -> throw new core.DOMException(core.INVALID_STATE_ERR,  "Invalid state")
     @getResponseHeader = @getAllResponseHeader = ->
     # Open method.
     @open = (method, url, async, user, password)->
@@ -47,7 +47,7 @@ XMLHttpRequest = (browser, window)->
 
       # Allow setting headers in this state.
       headers = {}
-      @setRequestHandler = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
+      @setRequestHeader = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
       # Allow calling send method.
       @send = (data)->
         # Aborting request in progress.
