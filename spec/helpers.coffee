@@ -70,7 +70,7 @@ zombie.wants = (url, context)->
     ready = context.ready
     delete context.ready
     brains.ready =>
-      zombie.browse url, (err, browser)=>
+      zombie.visit url, (err, browser)=>
         if ready
           ready.call this, browser, browser.window
         else
@@ -79,7 +79,7 @@ zombie.wants = (url, context)->
   return context
 
 zombie.Browser.prototype.wants = (url, callback)->
-  brains.ready => @open url, (err, browser)=> callback err, this
+  brains.ready => @visit url, (err, browser)=> callback err, this
 
 
 vows.zombie = zombie

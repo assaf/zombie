@@ -2,7 +2,7 @@
 exports.Browser = require("zombie/browser").Browser
 
 
-# ### browse url, callback
+# ### visit url, callback
 #
 # Creates a new Browser, opens window to the URL and calls the callback when
 # done processing all events.
@@ -20,7 +20,7 @@ exports.Browser = require("zombie/browser").Browser
 #
 # url -- URL of page to open
 # callback -- Called with error, browser
-exports.browse = (url, callback)->
+exports.visit = (url, callback)->
   browser = new exports.Browser
-  browser.open url, callback
+  browser.visit url, callback
   return
