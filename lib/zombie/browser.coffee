@@ -8,32 +8,40 @@ require "./forms"
 # The browser maintains state for cookies and localStorage.
 class Browser
   constructor: ->
-    # Start out with an empty window
-    window = jsdom.createWindow(jsdom.dom.level3.html)
-    window.browser = this
-    # ### browser.window => Window
-    #
-    # Returns the main window.
-    @__defineGetter__ "window", -> window
-    # ### browser.document => Document
-    #
-    # Retursn the main window's document. Only valid after opening a document
-    # (Browser.open).
-    @__defineGetter__ "document", -> window.document
-
-
     # Cookies and storage.
     cookies = require("./cookies").use(this)
-    window.cookies = cookies
-    # ### browser.cookies => Cookies
+    storage = require("./storage").use(this)
+    # ### browser.cookies(host, path) => Cookies
     #
-    # Returns all the cookies for this browser.
-    @__defineGetter__ "cookies", -> cookies
-    require("./storage").attach this, window
+    # Returns all the cookies for this host/path. Path defaults to "/".
+    this.cookies = (host, path)-> cookies.access(host, path)
+    # ### brower.localStorage(host) => Storage
+    #
+    # Returns local Storage based on the document origin (hostname/port). This
+    # is the same storage area you can access from any document of that origin.
+    this.localStorage = (host)-> storage.local(host)
+    # ### brower.sessionStorage(host) => Storage
+    #
+    # Returns session Storage based on the document origin (hostname/port). This
+    # is the same storage area you can access from any document of that origin.
+    this.sessionStorage = (host)-> storage.session(host)
 
+    # Event loop.
+    eventloop = require("./eventloop").use(this)
+    # ### browser.clock
+    #
+    # The current clock time. Initialized to current system time when creating
+    # a new browser, but doesn't advance except by setting it explicitly or
+    # firing timeout/interval events.
+    @clock = new Date().getTime()
+    # ### browser.now => Date
+    #
+    # Date object with current time, based on browser clock.
+    @__defineGetter__ "now", -> new Date(clock)
 
-    # Attach history/location objects to window/document.
-    require("./history").attach this, window
+    # History, page loading, XHR.
+    history = require("./history").use(this)
+    xhr = require("./xhr").use(this)
     # ### browser.location => Location
     #
     # Return the location of the current document (same as window.location.href).
@@ -45,21 +53,30 @@ class Browser
     @__defineSetter__ "location", (url)-> window.location = url
 
 
-    # ### browser.clock
+
+    # Window management.
+    createWindow = ->
+      window = jsdom.createWindow(jsdom.dom.level3.html)
+      window.__defineGetter__ "browser", => this
+      cookies.extend window
+      storage.extend window
+      eventloop.extend window
+      history.extend window
+      xhr.extend window
+      window
+
+    # ### browser.window => Window
     #
-    # The current clock time. Initialized to current system time when creating
-    # a new browser, but doesn't advance except by setting it explicitly or
-    # firing timeout/interval events.
-    @clock = new Date().getTime()
-    # ### browser.now => Date
+    # Returns the main window.
+    @__defineGetter__ "window", -> window
+    # ### browser.document => Document
     #
-    # Date object with current time, based on browser clock.
-    @__defineGetter__ "now", -> new Date(clock)
-    require("./eventloop").attach this, window
+    # Retursn the main window's document. Only valid after opening a document
+    # (Browser.open).
+    @__defineGetter__ "document", -> window.document
 
 
-    # All asynchronous processing handled by event loop.
-    require("./xhr").attach this, window
+    window = createWindow()
 
     # TODO: Fix
     window.Image = ->

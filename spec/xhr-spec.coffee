@@ -46,7 +46,7 @@ vows.describe("XMLHttpRequest").addBatch(
 
   "receive cookies":
     zombie.wants "http://localhost:3003/xhr"
-      "should process cookies in XHR response": (browser)-> assert.equal browser.cookies.get("xml"), "lol"
+      "should process cookies in XHR response": (browser)-> assert.equal browser.window.cookies.get("xml"), "lol"
 
   "redirect":
     zombie.wants "http://localhost:3003/xhr/redirect"

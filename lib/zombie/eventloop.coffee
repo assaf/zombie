@@ -143,12 +143,13 @@ class EventLoop
           waiting = []
 
 
-# Attach event loop to window: creates new event loop and adds
-# timeout/interval methods and XHR class.
-exports.attach = (browser, window)->
-  eventLoop = new EventLoop(browser, window)
-  for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
-    window[fn] = -> eventLoop[fn].apply(window, arguments)
-  window.queue = eventLoop.queue
-  window.wait = eventLoop.wait
-  window.request = eventLoop.request 
+exports.use = (browser)->
+  # Add event loop to window.
+  extend = (window)->
+    eventLoop = new EventLoop(browser, window)
+    for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
+      window[fn] = -> eventLoop[fn].apply(window, arguments)
+    window.queue = eventLoop.queue
+    window.wait = eventLoop.wait
+    window.request = eventLoop.request 
+  return extend: extend

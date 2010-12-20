@@ -61,7 +61,7 @@ class StorageArea
 # Implementation of the Storage interface, used by local and session storage.
 class Storage
   constructor: (area, window)->
-    area.associate this, window
+    area.associate this, window if window
     @__defineGetter__ "length", -> area.length
     this.key = (index)-> area.key(index)
     this.getItem = (key)-> area.get(key.toString())
@@ -86,23 +86,25 @@ Storage.prototype.__proto__ = events.Event.prototype
 core.SECURITY_ERR = 18
 
 
-# Attach local and session storage to a window.
-exports.attach = (browser, window)->
-  browser._sessionStorage ?= {}
-  window.__defineGetter__ "sessionStorage", ->
-    # Each document has a separate sessionStorage object.
-    return @document._sessionStorage if @document._sessionStorage
-    # Each document origin is a distinct storage area.
-    origin = @document.location
-    area = browser._sessionStorage[origin.host] ?= new StorageArea()
-    @document._sessionStorage = new Storage(area, window)
-
-  browser._localStorage ?= {}
-  window.__defineGetter__ "localStorage", ->
-    # Each document has a separate localStorage object.
-    return @document._localStorage if @document._localStorage
-    # Each document origin is a distinct storage area.
-    origin = @document.location
-    throw new core.DOMException(core.SECURITY_ERR, "No document origin for local stroage") unless origin && origin.protocol && origin.hostname && origin.port
-    area = browser._localStorage[origin.host] ?= new StorageArea()
-    @document._localStorage = new Storage(area, window)
+# Creates local/session storage and returns an object with three functions:
+# - local(host) to access local storage by host
+# - session(host) to access session storage by host
+# - extend(window) to add local/session storage support to window
+exports.use = (browser)->
+  localAreas = {}
+  sessionAreas = {}
+  # Return local Storage based on the document origin (hostname, port).
+  local = (host)->
+    area = localAreas[host] ?= new StorageArea()
+    new Storage(area)
+  # Return session Storage based on the document origin (hostname, port).
+  session = (host)->
+    area = sessionAreas[host] ?= new StorageArea()
+    new Storage(area)
+  # Extend window with local/session storage support.
+  extend = (window)->
+    window.__defineGetter__ "sessionStorage", ->
+      @document._sessionStorage ||= browser.sessionStorage(@location.host)
+    window.__defineGetter__ "localStorage", ->
+      @document._localStorage ||= browser.localStorage(@location.host)
+  return local: local, session: session, extend: extend

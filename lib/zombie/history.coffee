@@ -12,7 +12,6 @@ class History
     stack = []
     index = -1
     history = @
-    cookies = browser.cookies
     # ### history.forward amount
     @forward = -> @go(1)
     # ### history.back amount
@@ -111,7 +110,7 @@ class History
       # Make the actual request: called again when dealing with a redirect.
       makeRequest = (url, method, data)=>
         headers = {}
-        cookies._addHeader url, headers
+        browser.cookies(url.hostname, url.pathname).addHeader headers
         if method == "GET" || method == "HEAD"
           url.search = "?" + qs.stringify(data) if data
           data = null
@@ -136,7 +135,7 @@ class History
               done null, { status: response.statusCode, headers: response.headers, body: body }
               switch response.statusCode
                 when 200
-                  cookies._update url, response.headers["set-cookie"]
+                  browser.cookies(url.hostname, url.pathname).update response.headers["set-cookie"]
                   document.open()
                   document.write body
                   document.close()
@@ -208,11 +207,13 @@ class Location
 jsdom.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", -> @parentWindow.location
 
 
-# Attach Location/History to window: creates new history and adds
-# location/history accessors.
-exports.attach = (browser, window)->
-  history = new History(browser, window)
-  window.__defineGetter__ "history", -> history
-  window.__defineSetter__ "history", (history)-> # runInNewContext needs this
-  window.__defineGetter__ "location", => history._location
-  window.__defineSetter__ "location", (url)=> history._assign url
+exports.use = (browser)->
+  # Add Location/History to window: creates new history and adds
+  # location/history accessors.
+  extend = (window)->
+    history = new History(browser, window)
+    window.__defineGetter__ "history", -> history
+    window.__defineSetter__ "history", (history)-> # runInNewContext needs this
+    window.__defineGetter__ "location", => history._location
+    window.__defineSetter__ "location", (url)=> history._assign url
+  return extend: extend

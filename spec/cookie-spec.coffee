@@ -21,21 +21,27 @@ brains.get "/cookies/echo", (req,res)->
 vows.describe("Cookies").addBatch(
   "get cookies":
     zombie.wants "http://localhost:3003/cookies"
-     "should have access to session cookie": (browser)-> assert.equal browser.cookies.get("_name"), "value"
-     "should have access to persistent cookie": (browser)->
-       assert.equal browser.cookies.get("_expires1"), "3s"
-       assert.equal browser.cookies.get("_expires2"), "5s"
-     "should not have access to expired cookies": (browser)->
-       assert.isUndefined browser.cookies.get("_expires3")
-       assert.isUndefined browser.cookies.get("_expires4")
-     "should have access to path cookies": (browser)-> assert.equal browser.cookies.get("_path1"), "yummy"
-     "should not have access to other paths": (browser)->
-       assert.isUndefined browser.cookies.get("_path2")
-       assert.isUndefined browser.cookies.get("_path2")
-     "should not have access to .domain": (browser)-> assert.equal browser.cookies.get("_domain1"), "here"
-     "should not have access to other domains": (browser)->
-       assert.isUndefined browser.cookies.get("_domain2")
-       assert.isUndefined browser.cookies.get("_domain3")
+     "cookies":
+       topic: (browser)->
+         browser.cookies("localhost", "/cookies")
+       "should have access to session cookie": (cookies)->
+         assert.equal cookies.get("_name"), "value"
+       "should have access to persistent cookie": (cookies)->
+         assert.equal cookies.get("_expires1"), "3s"
+         assert.equal cookies.get("_expires2"), "5s"
+       "should not have access to expired cookies": (cookies)->
+         assert.isUndefined cookies.get("_expires3")
+         assert.isUndefined cookies.get("_expires4")
+       "should have access to path cookies": (cookies)->
+         assert.equal cookies.get("_path1"), "yummy"
+       "should not have access to other paths": (cookies)->
+         assert.isUndefined cookies.get("_path2")
+         assert.isUndefined cookies.get("_path2")
+       "should not have access to .domain": (cookies)->
+         assert.equal cookies.get("_domain1"), "here"
+       "should not have access to other domains": (cookies)->
+         assert.isUndefined cookies.get("_domain2")
+         assert.isUndefined cookies.get("_domain3")
      "document.cookie":
        topic: (browser)->
          browser.document.cookie
@@ -57,16 +63,16 @@ vows.describe("Cookies").addBatch(
   "send cookies":
     topic: ->
       browser = new zombie.Browser()
-      browser.cookies.set "_name", "value", domain: "localhost"
-      browser.cookies.set "_expires1", "3s", domain: "localhost", "max-age": 3000
-      browser.cookies.set "_expires2", "0s", domain: "localhost", "max-age": 0
-      browser.cookies.set "_path1", "here", domain: "localhost", path: "/cookies"
-      browser.cookies.set "_path2", "here", domain: "localhost", path: "/cookies/echo"
-      browser.cookies.set "_path3", "there", domain: "localhost", path: "/jars"
-      browser.cookies.set "_path4", "there", domain: "localhost", path: "/cookies/echo/"
-      browser.cookies.set "_domain1", "here", domain: ".localhost"
-      browser.cookies.set "_domain2", "there", domain: "not.localhost"
-      browser.cookies.set "_domain3", "there", domain: "notlocalhost"
+      browser.cookies("localhost").set "_name", "value"
+      browser.cookies("localhost").set "_expires1", "3s", "max-age": 3000
+      browser.cookies("localhost").set "_expires2", "0s", "max-age": 0
+      browser.cookies("localhost", "/cookies").set "_path1", "here"
+      browser.cookies("localhost", "/cookies/echo").set "_path2", "here"
+      browser.cookies("localhost", "/jars").set "_path3", "there"
+      browser.cookies("localhost", "/cookies/fido").set "_path4", "there"
+      browser.cookies(".localhost").set "_domain1", "here"
+      browser.cookies("not.localhost").set "_domain2", "there"
+      browser.cookies("notlocalhost").set "_domain3", "there"
       browser.wants "http://localhost:3003/cookies/echo", =>
         cookies = browser.text("html").split(/;\s*/).reduce (all, cookie)->
           [name, value] = cookie.split("=")
