@@ -27,6 +27,7 @@ class Browser
       xhr.extend window
       # TODO: Fix
       window.Image = ->
+      window.JSON = JSON
       return window
     # Always start with an open window.
     @open()

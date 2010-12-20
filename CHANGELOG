@@ -1,10 +1,12 @@
-Version 0.6.1  Pending
+Version 0.6.1  2010-12-20
 
 	Changed browser.cookies from getter to function that accepts cookie domain
 	(host and port) and path, and returns wrapper to access specific cookie
 	context.
 
 	Fixed: browser now creates new window for each new document.
+
+	Added window.JSON.
 
 	178 tests.
 	1.8 sec to complete.
