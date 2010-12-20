@@ -5,7 +5,7 @@ brains.get "/cookies", (req, res)->
   res.cookie "_name", "value"
   res.cookie "_expires1", "3s", "Expires": new Date(Date.now() + 3000)
   res.cookie "_expires2", "5s", "Max-Age": 5000
-  res.cookie "_expires3", "0s", "Expires": new Date()
+  res.cookie "_expires3", "0s", "Expires": new Date(Date.now() - 100)
   res.cookie "_expires4", "0s", "Max-Age": 0
   res.cookie "_path1", "yummy", "Path": "/cookies"
   res.cookie "_path2", "yummy", "Path": "/cookies/sub"

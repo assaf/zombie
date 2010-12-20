@@ -8,54 +8,16 @@ require "./forms"
 # The browser maintains state for cookies and localStorage.
 class Browser
   constructor: ->
-    # Cookies and storage.
     cookies = require("./cookies").use(this)
     storage = require("./storage").use(this)
-    # ### browser.cookies(host, path) => Cookies
-    #
-    # Returns all the cookies for this host/path. Path defaults to "/".
-    this.cookies = (host, path)-> cookies.access(host, path)
-    # ### brower.localStorage(host) => Storage
-    #
-    # Returns local Storage based on the document origin (hostname/port). This
-    # is the same storage area you can access from any document of that origin.
-    this.localStorage = (host)-> storage.local(host)
-    # ### brower.sessionStorage(host) => Storage
-    #
-    # Returns session Storage based on the document origin (hostname/port). This
-    # is the same storage area you can access from any document of that origin.
-    this.sessionStorage = (host)-> storage.session(host)
-
-    # Event loop.
     eventloop = require("./eventloop").use(this)
-    # ### browser.clock
-    #
-    # The current clock time. Initialized to current system time when creating
-    # a new browser, but doesn't advance except by setting it explicitly or
-    # firing timeout/interval events.
-    @clock = new Date().getTime()
-    # ### browser.now => Date
-    #
-    # Date object with current time, based on browser clock.
-    @__defineGetter__ "now", -> new Date(clock)
-
-    # History, page loading, XHR.
     history = require("./history").use(this)
     xhr = require("./xhr").use(this)
-    # ### browser.location => Location
-    #
-    # Return the location of the current document (same as window.location.href).
-    @__defineGetter__ "location", -> window.location.href
-    # ### browser.location = url
-    #
-    # Changes document location, loads new document if necessary (same as
-    # setting window.location).
-    @__defineSetter__ "location", (url)-> window.location = url
 
 
-
-    # Window management.
-    createWindow = ->
+    window = null
+    # Open new browser window.
+    this.open = ->
       window = jsdom.createWindow(jsdom.dom.level3.html)
       window.__defineGetter__ "browser", => this
       cookies.extend window
@@ -63,23 +25,11 @@ class Browser
       eventloop.extend window
       history.extend window
       xhr.extend window
-      window
-
-    # ### browser.window => Window
-    #
-    # Returns the main window.
-    @__defineGetter__ "window", -> window
-    # ### browser.document => Document
-    #
-    # Retursn the main window's document. Only valid after opening a document
-    # (Browser.open).
-    @__defineGetter__ "document", -> window.document
-
-
-    window = createWindow()
-
-    # TODO: Fix
-    window.Image = ->
+      # TODO: Fix
+      window.Image = ->
+      return window
+    # Always start with an open window.
+    @open()
 
 
     # Events
@@ -107,7 +57,7 @@ class Browser
       if !callback
         callback = terminate
         terminate = null
-      window.wait terminate, (err) => callback err, this
+      eventloop.wait window, terminate, (err) => callback err, this
       return
 
     # ### browser.fire name, target, calback?
@@ -124,6 +74,17 @@ class Browser
       event.initEvent name, true, true
       target.dispatchEvent event
       @wait callback if callback
+
+    # ### browser.clock
+    #
+    # The current clock time. Initialized to current system time when creating
+    # a new browser, but doesn't advance except by setting it explicitly or
+    # firing timeout/interval events.
+    @clock = new Date().getTime()
+    # ### browser.now => Date
+    #
+    # Date object with current time, based on browser clock.
+    @__defineGetter__ "now", -> new Date(clock)
 
 
     # Accessors
@@ -166,14 +127,23 @@ class Browser
       else
         return window.document.outerHTML
 
+    # ### browser.window => Window
+    #
+    # Returns the main window.
+    @__defineGetter__ "window", -> window
+    # ### browser.document => Document
+    #
+    # Retursn the main window's document. Only valid after opening a document
+    # (Browser.open).
+    @__defineGetter__ "document", -> window?.document
     # ### browser.body => Element
     #
     # Returns the body Element of the current document.
     @__defineGetter__ "body", -> window.document?.find("body")[0]
 
 
-    # Actions
-    # -------
+    # Navigation
+    # ----------
 
     # ### browser.visit url, callback
     #
@@ -182,10 +152,24 @@ class Browser
     #
     # If it fails to download, calls the callback with the error.
     this.visit = (url, callback)->
-      window.location = url
+      history._assign url
       window.addEventListener "error", (err)-> callback err
       window.document.addEventListener "DOMContentLoaded", => @wait callback
       return
+
+    # ### browser.location => Location
+    #
+    # Return the location of the current document (same as window.location.href).
+    @__defineGetter__ "location", -> window.location.href
+    # ### browser.location = url
+    #
+    # Changes document location, loads new document if necessary (same as
+    # setting window.location).
+    @__defineSetter__ "location", (url)-> window.location = url
+    
+
+    # Forms
+    # -----
 
     # ### browser.clickLink selector, callback
     #
@@ -351,6 +335,25 @@ class Browser
           input.click()
           return @wait(callback)
       throw new Error("No BUTTON '#{name}'")
+
+
+    # Cookies and storage
+    # -------------------
+
+    # ### browser.cookies(host, path) => Cookies
+    #
+    # Returns all the cookies for this host/path. Path defaults to "/".
+    this.cookies = (host, path)-> cookies.access(host, path)
+    # ### brower.localStorage(host) => Storage
+    #
+    # Returns local Storage based on the document origin (hostname/port). This
+    # is the same storage area you can access from any document of that origin.
+    this.localStorage = (host)-> storage.local(host)
+    # ### brower.sessionStorage(host) => Storage
+    #
+    # Returns session Storage based on the document origin (hostname/port). This
+    # is the same storage area you can access from any document of that origin.
+    this.sessionStorage = (host)-> storage.session(host)
 
 
     # Debugging

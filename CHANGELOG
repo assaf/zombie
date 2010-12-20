@@ -4,6 +4,11 @@ Version 0.6.1  Pending
 	(host and port) and path, and returns wrapper to access specific cookie
 	context.
 
+	Fixed: browser now creates new window for each new document.
+
+	178 tests.
+	1.8 sec to complete.
+
 
 Version 0.6.0  2010-12-20
 	First release that I could use to test an existing project.

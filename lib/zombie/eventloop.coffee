@@ -3,7 +3,7 @@ URL = require("url")
 
 # Handles the Window event loop, timers and pending requests.
 class EventLoop
-  constructor: (browser, window)->
+  constructor: (browser)->
     timers = {}
     lastHandle = 0
 
@@ -14,10 +14,10 @@ class EventLoop
       timer = 
         when: browser.clock + delay
         timeout: true
-        fire: ->
+        fire: =>
           try
             if typeof fn == "function"
-              fn.apply(window)
+              fn.apply this
             else
               eval fn
           finally
@@ -33,10 +33,10 @@ class EventLoop
       timer = 
         when: browser.clock + delay
         interval: true
-        fire: ->
+        fire: =>
           try
             if typeof fn == "function"
-              fn.apply(window)
+              fn.apply this
             else
               eval fn
           finally
@@ -82,7 +82,7 @@ class EventLoop
     #
     # Events include timeout, interval and XHR onreadystatechange. DOM events
     # are handled synchronously.
-    this.wait = (terminate, callback, intervals)->
+    this.wait = (window, terminate, callback, intervals)->
       if !callback
         intervals = callback
         callback = terminate
@@ -102,7 +102,7 @@ class EventLoop
               earliest.fire()
         if event
           try 
-            event.call(window)
+            event()
             if typeof terminate is "number"
               --terminate
               if terminate <= 0
@@ -112,11 +112,11 @@ class EventLoop
               if terminate.call(window) == false
                 process.nextTick -> callback null, window
                 return
-            @wait terminate, callback, intervals
+            @wait window, terminate, callback, intervals
           catch err
             callback err, window
         else if requests > 0
-          waiting.push => @wait terminate, callback, intervals
+          waiting.push => @wait window, terminate, callback, intervals
         else
           callback null, window
 
@@ -142,14 +142,12 @@ class EventLoop
             process.nextTick -> wait()
           waiting = []
 
+    this.extend = (window)=>
+      for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
+        window[fn] = this[fn]
+      window.queue = this.queue
+      window.wait = (terminate, callback)=> this.wait(window, terminate, callback)
+      window.request = this.request 
 
 exports.use = (browser)->
-  # Add event loop to window.
-  extend = (window)->
-    eventLoop = new EventLoop(browser, window)
-    for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
-      window[fn] = -> eventLoop[fn].apply(window, arguments)
-    window.queue = eventLoop.queue
-    window.wait = eventLoop.wait
-    window.request = eventLoop.request 
-  return extend: extend
+  return new EventLoop(browser)

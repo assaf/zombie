@@ -86,25 +86,26 @@ Storage.prototype.__proto__ = events.Event.prototype
 core.SECURITY_ERR = 18
 
 
-# Creates local/session storage and returns an object with three functions:
-# - local(host) to access local storage by host
-# - session(host) to access session storage by host
-# - extend(window) to add local/session storage support to window
+# Combined local/session storage.
+class Storages
+  constructor: (browser)->
+    localAreas = {}
+    sessionAreas = {}
+    # Return local Storage based on the document origin (hostname/port).
+    this.local = (host)->
+      area = localAreas[host] ?= new StorageArea()
+      new Storage(area)
+    # Return session Storage based on the document origin (hostname/port).
+    this.session = (host)->
+      area = sessionAreas[host] ?= new StorageArea()
+      new Storage(area)
+    # Extend window with local/session storage support.
+    this.extend = (window)->
+      window.__defineGetter__ "sessionStorage", ->
+        @document._sessionStorage ||= browser.sessionStorage(@location.host)
+      window.__defineGetter__ "localStorage", ->
+        @document._localStorage ||= browser.localStorage(@location.host)
+
+
 exports.use = (browser)->
-  localAreas = {}
-  sessionAreas = {}
-  # Return local Storage based on the document origin (hostname, port).
-  local = (host)->
-    area = localAreas[host] ?= new StorageArea()
-    new Storage(area)
-  # Return session Storage based on the document origin (hostname, port).
-  session = (host)->
-    area = sessionAreas[host] ?= new StorageArea()
-    new Storage(area)
-  # Extend window with local/session storage support.
-  extend = (window)->
-    window.__defineGetter__ "sessionStorage", ->
-      @document._sessionStorage ||= browser.sessionStorage(@location.host)
-    window.__defineGetter__ "localStorage", ->
-      @document._localStorage ||= browser.localStorage(@location.host)
-  return local: local, session: session, extend: extend
+  return new Storages(browser)

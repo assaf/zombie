@@ -8,7 +8,7 @@ qs = require("querystring")
 #
 # Represents window.history.
 class History
-  constructor: (browser, window)->
+  constructor: (browser)->
     stack = []
     index = -1
     history = @
@@ -25,14 +25,14 @@ class History
       if new_index != index && entry = stack[new_index]
         index = new_index
         if entry.pop
-          if window.document
+          if browser.document
             # Created with pushState/replaceState, send popstate event
-            evt = window.document.createEvent("HTMLEvents")
+            evt = browser.document.createEvent("HTMLEvents")
             evt.initEvent "popstate", false, false
             evt.state = entry.state
-            window.dispatchEvent evt
+            browser.window.dispatchEvent evt
           # Do not load different page unless we're on a different host
-          @_loadPage() if window.location.host != entry.host
+          @_loadPage() if @_location.host != entry.host
         else
           pageChanged old
       return
@@ -94,18 +94,16 @@ class History
     # Make a request to external resource. We use this to fetch pages and
     # submit forms, see _loadPage and _submit.
     resource = (url, method = "GET", data, enctype)=>
-      if window.document && window.document.readyState == "loading"
-        # Redirecting, so reuse existing window.
-        document = window.document
-      else
-        # Create new DOM Level 3 document, add features (load external
-        # resources, etc) and associate it with current document. From this
-        # point on the browser sees a new document, client register event
-        # handler for DOMContentLoaded/error.
-        aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
-        document = new aug.HTMLDocument(url: URL.format(url), deferClose: true)
-        jsdom.applyDocumentFeatures document
-        window.document = document
+      window = browser.window
+      window = browser.open() if browser.window.document
+      # Create new DOM Level 3 document, add features (load external
+      # resources, etc) and associate it with current document. From this
+      # point on the browser sees a new document, client register event
+      # handler for DOMContentLoaded/error.
+      aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
+      document = new aug.HTMLDocument(url: URL.format(url), deferClose: true)
+      jsdom.applyDocumentFeatures document
+      window.document = document
 
       # Make the actual request: called again when dealing with a redirect.
       makeRequest = (url, method, data)=>
@@ -172,9 +170,15 @@ class History
         @_loadPage()
       else if old.hash != url.hash
         # Hash changed. Do not reload page, but do send hashchange
-        evt = window.document.createEvent("HTMLEvents")
+        evt = browser.document.createEvent("HTMLEvents")
         evt.initEvent "hashchange", true, false
-        window.dispatchEvent evt
+        browser.window.dispatchEvent evt
+
+    # Add Location/History to window.
+    this.extend = (window)->
+      window.__defineGetter__ "history", => this
+      window.__defineGetter__ "location", => @_location
+      window.__defineSetter__ "location", (url)=> @_assign url
 
 
 # ## window.location
@@ -208,12 +212,4 @@ jsdom.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", -> @pa
 
 
 exports.use = (browser)->
-  # Add Location/History to window: creates new history and adds
-  # location/history accessors.
-  extend = (window)->
-    history = new History(browser, window)
-    window.__defineGetter__ "history", -> history
-    window.__defineSetter__ "history", (history)-> # runInNewContext needs this
-    window.__defineGetter__ "location", => history._location
-    window.__defineSetter__ "location", (url)=> history._assign url
-  return extend: extend
+  return new History(browser)
