@@ -1,6 +1,7 @@
 # Fix things that JSDOM doesn't do quite right.
 core = require("jsdom").dom.level3.core
 URL = require("url")
+vm = process.binding("evals")
 
 
 # Event Handling
@@ -27,10 +28,12 @@ core.languageProcessors =
   javascript: (element, code, filename)->
     document = element.ownerDocument
     window = document.parentWindow
-    document._jsContext = process.binding("evals").Script.createContext(window)
+    #document._jsContext = vm.Script.createContext(window)
     if window
+      ctx = vm.Script.createContext(window)
+      script = new vm.Script(code, filename)
       try
-        process.binding("evals").Script.runInContext code, document._jsContext, filename
+        script.runInContext ctx
       catch ex
         console.error "Loading #{filename}", ex.stack
 

@@ -11,7 +11,7 @@ core.HTMLDocument.prototype.close = ->
 
   # Load Sizzle and add window.find. This only works if we parsed a document.
   if window && @documentElement
-    ctx = process.binding("evals").Script.createContext(window)
+    ctx = vm.Script.createContext(window)
     ctx.window = window
     ctx.document = this
     sizzle.runInContext ctx
