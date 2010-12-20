@@ -14,21 +14,25 @@ log = (message, color, explanation) ->
 
 task "doc:source", "Builds source documentation", ->
   log "Documenting source files", green
-  exec "docco lib/**/*.coffee && mv -f docs/* html/ && rm -rf docs", (err) ->
-    throw err if err
+  exec "docco lib/**/*.coffee && mv -f docs/* html/ && rm -rf docs", (err) -> throw err if err
 
 task "doc:readme", "Build README file", ->
   markdown = require("node-markdown").Markdown
   fs.mkdir "html", 0777, ->
     fs.readFile "README.md", "utf8", (err, text)->
-      log "Writing html/index.html", green
-      fs.writeFile "html/index.html", markdown(text), "utf8"
+      log "Creating html/index.html", green
+      exec "ronn --html README.md", (err, stdout, stderr)->
+        throw err if err
+        fs.writeFile "html/index.html", stdout, "utf8"
 
 task "doc", "Generate documentation", ->
   invoke "doc:readme"
   invoke "doc:source"
 
-task "test", "Run all tests", -> exec "vows"
+task "test", "Run all tests", ->
+  exec "vows --spec", (err, stdout, stderr)->
+    console.log stdout
+    console.error stderr
 
 task "clean", "Remove temporary files and such", ->
   exec "rm -rf html"

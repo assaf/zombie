@@ -21,25 +21,43 @@ Using
 Coming.
 
 
-Selecting Elements
-------------------
+Feeding
+-------
 
-See the documentation for Sizzle.js:
-https://github.com/jeresig/sizzle/wiki
+See the documentation for [Sizzle.js](https://github.com/jeresig/sizzle/wiki).
+
+
+Bleeding Edge
+-------------
+
+For a full list of runtime dependencies, see [package.json](https://github.com/assaf/zombie/blob/master/package.json).
+
+The test suite requires [Vows 0.5.x](http://vowsjs.org/) and [Express 1.0.x](http://expressjs.com/):
+
+    $ npm install vows
+    $ npm install express
+    $ cake test
+
+For documentation you'll need [Ronn 0.3.x](https://github.com/kapouer/ronnjs) and [Docco 0.3](http://jashkenas.github.com/docco/):
+
+    $ npm install ronn
+    $ npm install docco
 
 
 Contributing
 ------------
 
-Fork the project.
-Add tests.
-Make your changes.
-Send me a pull request.
+* Fork the project.
+* Add tests.
+* Make your changes.
+* Send me a pull request.
 
 
 Brains
 ------
 
-Zombie.js is copyright of Assaf Arkin, released under the MIT License.
+Zombie.js is copyright of [Assaf Arkin](http://labnotes.org), released under the MIT License.
 
-Sizzle.js is copyright of John Resig, released under the MIT, BSD and GPL.
+Zombie.js is written in [CoffeeScript](http://jashkenas.github.com/coffee-script/).
+
+[Sizzle.js](http://sizzlejs.com/) is copyright of John Resig, released under the MIT, BSD and GPL.

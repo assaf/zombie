@@ -12,11 +12,9 @@
   ],
   "main": "./lib/zombie",
   "directories": {
-    "lib": "lib/zombie"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://assaf@github.com/assaf/zombie.git"
+    "doc": "./doc",
+    "lib": "./lib",
+    "man": "./man1"
   },
   "scripts": {
     "build": "cake",
@@ -28,8 +26,17 @@
   "dependencies": {
     "coffee-script": ">= 0.9.6",
     "htmlparser": ">= 1.7.3",
-    "jquery": ">= 1.4.3",
     "jsdom": ">= 0.1.21",
     "vows": ">= 0.5.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://assaf@github.com/assaf/zombie.git"
+  },
+  "licenses" : [
+    { "type" : "MIT",
+      "url" : "http://github.com/assaf/zombie/raw/master/MIT-LICENSE"
+    }
+  ]
+  
 }

@@ -1,0 +1,11 @@
+Version 0.6.0  2010-12-20
+	First release that I could use to test an existing project.
+
+	Supports for navigation, filling and submitting forms, and selecting document
+	content using Sizzle. Browser features include evaluating JavaScript (jQuery,
+	Sammy.js), timers, XHR, cookies, local and session storage.
+
+	Still very rough around the edges.
+
+	175 tests.
+	1.8 sec to complete.
