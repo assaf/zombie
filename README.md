@@ -20,37 +20,79 @@ Using
 
 Coming.
 
+See the documentation for [Sizzle.js](https://github.com/jeresig/sizzle/wiki).
+
+[Source code/API Documentation](source/browser.html)
+
+
+Guts
+----
+
+Zombie.js is written in
+[CoffeeScript](http://jashkenas.github.com/coffee-script/), a language
+that mixes the best parts of Python and Ruby and compiles one-to-one
+into JavaScript.
+
+To get started hacking on Zombie.js you'll need Node.js, NPM and
+CoffeeScript:
+
+    $ brew install node npm
+    $ npm install coffee-script
+
+Next, install all other development and runtime dependencies:
+
+    $ cake setup
+
+The DOM implementation is [JSDOM](http://jsdom.org/), which provides
+pretty decent emulation of DOM Level 3. There are some issues and some
+features Zombie.js needs but JSDOM doesn't care for (e.g default event
+handlers).  Those are patched onto JSDOM in
+`lib/zombie/jsdom_patches.coffee` and `lib/zombie/forms.coffee`.
+
+DOM selectors are provided by [Sizzle.js](http://sizzlejs.com/), and
+vendored in the `vendor` directory.
+
+Zombie.js is tested using [Vows](http://vowsjs.org/).  Since we're
+testing a Web browser, we also need a Web server, so it spins up an
+instance of [Express](http://expressjs.com/).  Spinning up Express and
+making sure it doesn't power down before all tests are done (Vows is
+asynchronous, like everything in Node) is the responsibility of
+`spec/helper.coffee`.
+
+To run the test suite:
+
+    $ vows
+
+To stress Zombie.js, we have test cases that use Sammy.js and jQuery.
+The scripts themselves are contained in the `spec/.scripts` directory.
+The dot is necessary to hide these JS files from Vows.
+
+Zombie.js documentation is written in
+[Markdown](http://daringfireball.net/projects/markdown/syntax#code).
+
+Everything you need to know to get started is covered by `README.md`, so
+it shows up when you visit the [Github
+page](http://github.com/assaf/zombie).
+
+Additional documentation lives in the `doc` directory.  Annotated source
+code generated using [Docco](http://jashkenas.github.com/docco/).
+
+To generate the documentation
+
+    $ cake doc
+    $ open html/index.html
+
 
 Feeding
 -------
 
-See the documentation for [Sizzle.js](https://github.com/jeresig/sizzle/wiki).
+* Find [assaf/zombie on Github](http://github.com/assaf/zombie)
+* Fork the project
+* Add tests
+* Make your changes
+* Send a pull request
 
-
-Bleeding Edge
--------------
-
-For a full list of runtime dependencies, see [package.json](https://github.com/assaf/zombie/blob/master/package.json).
-
-The test suite requires [Vows 0.5.x](http://vowsjs.org/) and [Express 1.0.x](http://expressjs.com/):
-
-    $ npm install vows
-    $ npm install express
-    $ cake test
-
-For documentation you'll need [Ronn 0.3.x](https://github.com/kapouer/ronnjs) and [Docco 0.3](http://jashkenas.github.com/docco/):
-
-    $ npm install ronn
-    $ npm install docco
-
-
-Contributing
-------------
-
-* Fork the project.
-* Add tests.
-* Make your changes.
-* Send me a pull request.
+Check out the outstanding [to-dos](todo.html).
 
 
 Brains
@@ -58,6 +100,8 @@ Brains
 
 Zombie.js is copyright of [Assaf Arkin](http://labnotes.org), released under the MIT License.
 
-Zombie.js is written in [CoffeeScript](http://jashkenas.github.com/coffee-script/).
+Zombie.js is written in
+[CoffeeScript](http://jashkenas.github.com/coffee-script/) for
+[Node.js](http://nodejs.org/).
 
 [Sizzle.js](http://sizzlejs.com/) is copyright of John Resig, released under the MIT, BSD and GPL.

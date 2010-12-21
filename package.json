@@ -1,8 +1,8 @@
 {
   "name": "zombie",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Superfast headless full stack testing framework using node.js",
-  "homepage": "https://github.com/assaf/zombie",
+  "homepage": "https://zombie.labnotes.org/",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
   "keywords": [
     "test",
@@ -26,8 +26,7 @@
   "dependencies": {
     "coffee-script": ">= 0.9.6",
     "htmlparser": ">= 1.7.3",
-    "jsdom": ">= 0.1.21",
-    "vows": ">= 0.5.2"
+    "jsdom": ">= 0.1.21"
   },
   "repository": {
     "type": "git",

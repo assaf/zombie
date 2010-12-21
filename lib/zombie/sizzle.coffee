@@ -1,7 +1,7 @@
 # Select document elements using Sizzle.js.
 fs = require("fs")
 vm = process.binding("evals")
-sizzle = new vm.Script(fs.readFileSync(__dirname + "/../../dep/sizzle.js", "utf8"), "sizzle.js")
+sizzle = new vm.Script(fs.readFileSync(__dirname + "/../../vendor/sizzle.js", "utf8"), "sizzle.js")
 core = require("jsdom").dom.level3.core
 
 close = core.HTMLDocument.prototype.close

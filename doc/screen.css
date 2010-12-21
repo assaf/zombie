@@ -1,0 +1,28 @@
+body {
+  font-family: Baskerville, Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 14pt;
+  width: 40em;
+  margin: 1em auto;
+}
+h1, h2, h3, h4 {
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
+  color: #660000;
+}
+h1 { font-size: 22pt; }
+h2 { font-size: 20pt; }
+h3 { font-size: 18pt; }
+h4 { font-size: 16pt; }
+
+.title {
+  text-align: right;
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
+  font-weight: bolder;
+  font-size: 24pt;
+}
+.title a {
+  text-decoration: none;
+  color: #660000;
+}
+
+#content {
+}
