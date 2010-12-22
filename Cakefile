@@ -72,14 +72,22 @@ documentSource = (callback)->
     exec "mkdir -p html && cp -rf docs/ html/source && rm -rf docs", (err)->
       callback err
 
+generateMan = (callback)->
+  log "Generating man files ...", green
+  exec "ronn --man README.md", (err, stdout, stderr)->
+    log stdout, green
+    log stderr, red
+    callback err
+
 generateDocs = (callback)->
   log "Generating documentation ...", green
   documentPages (err)->
     return callback(err) if err
     documentSource (err)->
       callback err
-task "doc:pages",  -> documentPages (err)-> throw err if err
+task "doc:pages",   -> documentPages (err)-> throw err if err
 task "doc:source",  -> documentSource (err)-> throw err if err
+task "doc:man",     -> generateMan (err)-> throw err if err
 task "doc", "Generate documentation", -> generateDocs (err)-> throw err if err
 
 
