@@ -16,6 +16,8 @@ class Browser
 
 
     window = null
+    # ### browser.open() => Window
+    #
     # Open new browser window.
     this.open = ->
       window = jsdom.createWindow(jsdom.dom.level3.html)
@@ -36,13 +38,13 @@ class Browser
     # Events
     # ------
 
-    # ### browser.wait callback
-    # ### browser.wait terminator, callback
+    # ### browser.wait(callback)
+    # ### browser.wait(terminator, callback)
     #
     # Process all events from the queue. This method returns immediately, events
     # are processed in the background. When all events are exhausted, it calls
-    # the callback with null, browser; if any event fails, it calls the callback
-    # with the exception.
+    # the callback with `null, browser`; if any event fails, it calls the
+    # callback with the exception.
     #
     # With one argument, that argument is the callback. With two arguments, the
     # first argument is a terminator and the last argument is the callback. The
@@ -52,7 +54,7 @@ class Browser
     # - function -- called after each event, stop processing when function
     #   returns false
     #
-    # Events include timeout, interval and XHR onreadystatechange. DOM events
+    # Events include timeout, interval and XHR `onreadystatechange`. DOM events
     # are handled synchronously.
     this.wait = (terminate, callback)->
       if !callback
@@ -61,13 +63,13 @@ class Browser
       eventloop.wait window, terminate, (err) => callback err, this
       return
 
-    # ### browser.fire name, target, calback?
+    # ### browser.fire(name, target, calback?)
     #
-    # Fire a DOM event. Some events are executed synchronously, but some incur
-    # more work (loading resources, using timers, etc), in which case you'll want
-    # to pass a callback.
+    # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a
+    # link.  These events will bubble up and can be cancelled.  With a callback, this
+    # function will call `wait`.
     #
-    # name -- Even name (e.g click)
+    # name -- Even name (e.g `click`)
     # target -- Target element (e.g a link)
     # callback -- Wait for events to be processed, then call me (optional)
     this.fire = (name, target, callback)->
@@ -76,36 +78,38 @@ class Browser
       target.dispatchEvent event
       @wait callback if callback
 
-    # ### browser.clock
+    # ### browser.clock => Number
     #
-    # The current clock time. Initialized to current system time when creating
-    # a new browser, but doesn't advance except by setting it explicitly or
-    # firing timeout/interval events.
+    # The current system time according to the browser (see also
+    # `browser.clock`).
+    #
+    # You can change this to advance the system clock during tests.  It will
+    # also advance when handling timeout/interval events.
     @clock = new Date().getTime()
     # ### browser.now => Date
     #
-    # Date object with current time, based on browser clock.
+    # The current system time according to the browser (see also
+    # `browser.clock`).
     @__defineGetter__ "now", -> new Date(clock)
 
 
     # Accessors
     # ---------
 
-    # ### browser.find selector, context? => [Elements]
+    # ### browser.find(selector, context?) => [Elements]
     #
-    # Returns elements that match the selector, either from the document or the #
-    # specified context element. Uses Sizzle.js, see
-    # https://github.com/jeresig/sizzle/wiki.
+    # Returns an array of all the elements that match the selector.  Without
+    # context, searches through the entire document.
     #
     # selector -- CSS selector
     # context -- Context element (if missing, uses document)
     # Returns an array of elements
     this.find = (selector, context)-> window.document?.find(selector, context)
 
-    # ### browser.text selector, context? => String
+    # ### browser.text(selector, context?) => String
     #
-    # Returns the text contents of the selected elements. With no arguments,
-    # returns the text contents of the document body.
+    # Returns the text contents of the selected elements (see also
+    # `browser.find`).
     #
     # selector -- CSS selector
     # context -- Context element (if missing, uses document)
@@ -114,10 +118,10 @@ class Browser
       elements = @find(selector || "body", context)
       window.Sizzle?.getText(elements)
 
-    # ### browser.html selector?, context? => String
+    # ### browser.html(selector?, context?) => String
     #
-    # Returns the HTML contents of the selected elements. With no arguments,
-    # returns the HTML contents of the document.
+    # Returns the HTML contents of the selected elements (see also
+    # `browser.find`).
     #
     # selector -- CSS selector
     # context -- Context element (if missing, uses document)
@@ -134,8 +138,8 @@ class Browser
     @__defineGetter__ "window", -> window
     # ### browser.document => Document
     #
-    # Retursn the main window's document. Only valid after opening a document
-    # (Browser.open).
+    # Returns the main window's document. Only valid after opening a document
+    # (see `browser.open`).
     @__defineGetter__ "document", -> window?.document
     # ### browser.body => Element
     #
@@ -146,10 +150,10 @@ class Browser
     # Navigation
     # ----------
 
-    # ### browser.visit url, callback
+    # ### browser.visit(url, callback)
     #
-    # Loads document from the specified URL, and calls callback with null,
-    # browser when done loading and processing events.
+    # Loads document from the specified URL, processes events and calls the
+    # callback.
     #
     # If it fails to download, calls the callback with the error.
     this.visit = (url, callback)->
@@ -160,22 +164,23 @@ class Browser
 
     # ### browser.location => Location
     #
-    # Return the location of the current document (same as window.location.href).
+    # Return the location of the current document (same as `window.location.href`).
     @__defineGetter__ "location", -> window.location.href
     # ### browser.location = url
     #
     # Changes document location, loads new document if necessary (same as
-    # setting window.location).
+    # setting `window.location`).
     @__defineSetter__ "location", (url)-> window.location = url
     
 
     # Forms
     # -----
 
-    # ### browser.clickLink selector, callback
+    # ### browser.clickLink(selector, callback)
     #
-    # Clicks on a link. Clicking on a link can trigger other events, load new #
-    # page, etc: use a callback to be notified of completion.
+    # Clicks on a link. Clicking on a link can trigger other events, load new
+    # page, etc: use a callback to be notified of completion.  Finds link by
+    # text content or selector.
     #
     # selector -- CSS selector or link text
     # callback -- Called with two arguments: error and browser
@@ -216,7 +221,7 @@ class Browser
             fields = @find("input, textarea, select", label)
           return fields[0] if fields[0] && match(fields[0])
 
-    # ### browser.fill field, value
+    # ### browser.fill(field, value) => this
     #
     # Fill in a field: input field or text area.
     #
@@ -245,7 +250,7 @@ class Browser
       else
         throw new Error("No checkbox INPUT matching '#{field}'")
 
-    # ### browser.check field
+    # ### browser.check(field) => this
     #
     # Checks a checkbox.
     #
@@ -253,7 +258,7 @@ class Browser
     # Returns this
     this.check = (field)-> setCheckbox field, true
 
-    # ### browser.check field
+    # ### browser.uncheck(field) => this
     #
     # Unchecks a checkbox.
     #
@@ -261,7 +266,7 @@ class Browser
     # Returns this
     this.uncheck = (field)-> setCheckbox field, false
 
-    # ### browser.choose field
+    # ### browser.choose(field) => this
     #
     # Selects a radio box option.
     #
@@ -283,7 +288,7 @@ class Browser
       else
         throw new Error("No radio INPUT matching '#{field}'")
 
-    # ### browser.select field, value
+    # ### browser.select(field, value) => this
     #
     # Selects an option.
     #
@@ -308,11 +313,11 @@ class Browser
       else
         throw new Error("No SELECT matching '#{field}'")
 
-    # ### browser.pressButton name, callback
+    # ### browser.pressButton(name, callback)
     #
-    # Press a button (button element of input type submit). Generally this will
-    # submit the form. Use the callback to wait for the from submission, page
-    # to load and all events run their course.
+    # Press a button (button element or input of type `submit`).  Typically
+    # this will submit the form.  Use the callback to wait for the from
+    # submission, page to load and all events run their course.
     #
     # name -- CSS selector, button name or text of BUTTON element
     # callback -- Called with two arguments: error and browser
@@ -341,10 +346,10 @@ class Browser
     # Cookies and storage
     # -------------------
 
-    # ### browser.cookies(host, path) => Cookies
+    # ### browser.cookies(domain, path) => Cookies
     #
-    # Returns all the cookies for this host/path. Path defaults to "/".
-    this.cookies = (host, path)-> cookies.access(host, path)
+    # Returns all the cookies for this domain/path. Path defaults to "/".
+    this.cookies = (domain, path)-> cookies.access(domain, path)
     # ### brower.localStorage(host) => Storage
     #
     # Returns local Storage based on the document origin (hostname/port). This

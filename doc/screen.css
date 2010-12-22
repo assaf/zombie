@@ -3,15 +3,25 @@ body {
   font-size: 14pt;
   width: 40em;
   margin: 1em auto;
+  color: #222;
 }
 h1, h2, h3, h4 {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
   color: #660000;
 }
+h1, h2, h3 { color: #600; }
 h1 { font-size: 22pt; }
 h2 { font-size: 20pt; }
 h3 { font-size: 18pt; }
-h4 { font-size: 16pt; }
+h4 {
+  font-size: 16pt;
+  color: #666;
+}
+pre, code {
+  font-family: "Menlo", "Consolas", "New Courier", Courier, monospace;
+  font-size: 12pt;
+  color: #060;
+}
 
 .title {
   text-align: right;

@@ -25,4 +25,4 @@ TODO
 
 * Enhance DOM with find/filter/html/text methods on elements and node lists.
 
-* Documentation.
+* More documentation.
