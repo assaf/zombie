@@ -1,27 +1,21 @@
 body {
   font-family: Baskerville, Palatino, "Palatino Linotype", Georgia, serif;
-  font-size: 14pt;
-  width: 40em;
-  margin: 1em auto;
-  color: #222;
+  font-size: 12pt;
+  margin: 2em 4em;
 }
 h1, h2, h3, h4, #header {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
-  color: #660000;
 }
-h1, h2, h3 { color: #600; }
-h1 { font-size: 22pt; }
-h2 { font-size: 20pt; }
-h3 { font-size: 18pt; }
-h4 {
-  font-size: 16pt;
-  color: #666;
-}
+h1 { font-size: 18pt; }
+h2 { font-size: 16pt; }
+h3 { font-size: 14pt; }
+h4 { font-size: 12pt; }
 pre, code {
   font-family: "Menlo", "Consolas", "New Courier", Courier, monospace;
-  font-size: 12pt;
+  font-size: 10pt;
   color: #060;
 }
+
 
 #header .title {
   text-align: right;
@@ -33,18 +27,9 @@ pre, code {
   color: #600;
 }
 #header .navigation {
-  display: inline;
-  padding: 0;
+  display: none;
 }
-#header .navigation li {
-  font-weight: bolder;
-  display: inline;
-  margin-right: 0.6em;
-}
-#header .navigation a {
-  text-decoration: none;
-  color: #22c;
-}
+
 
 #content {
   margin-top: 2em;
