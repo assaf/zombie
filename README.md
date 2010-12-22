@@ -250,6 +250,8 @@ Zombie.js is written in
 
 [Annotated Source Code](source/browser.html) for Zombie.js.
 
+[Changelog](changelog.html)
+
 [Sizzle.js](https://github.com/jeresig/sizzle/wiki) documentation.
 
 [Vows](http://vowsjs.org/) You don't have to, but I really recommend

@@ -1,5 +1,5 @@
 # Constructor for a new Browser. Takes no arguments.
-exports.Browser = require("zombie/browser").Browser
+exports.Browser = require("./zombie/browser").Browser
 
 
 # ### visit url, callback

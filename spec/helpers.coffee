@@ -1,4 +1,4 @@
-require.paths.push(__dirname + "/../lib")
+require.paths.push(__dirname + "/../src")
 fs = require("fs")
 express = require("express")
 zombie = require("zombie")

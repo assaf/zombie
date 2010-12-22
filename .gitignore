@@ -1,5 +1,6 @@
 .npm
-node_modules
-html
 clean
+html
+lib
 man1
+node_modules
