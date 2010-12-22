@@ -32,7 +32,7 @@ Let's try to sign up to a page and see what happens:
 Well, that was easy.
 
 
-## Walking And Waiting
+## Walking
 
 To start off we're going to need a browser.  A browser maintains state
 across requests: history, cookies, HTML 5 local and session stroage.  A
@@ -129,9 +129,9 @@ functions we're going to cover next.
 To click a link on the page, use `clickLink` with selector and callback.
 The first argument can be a CSS selector (see _Hunting_) or the text
 contents of the `A` element you want to click.  The second argument is a
-callback, which is passed on to `browser.wait` (see _Walking and
-Waiting_).  In other words, it gets fired after all events are
-processed, with error and browser as arguments.
+callback, which is passed on to `browser.wait` (see _Walking_).  In
+other words, it gets fired after all events are processed, with error
+and browser as arguments.
 
 Let's see that in action:
 
