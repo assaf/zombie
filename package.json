@@ -13,7 +13,7 @@
   "main": "./lib/zombie",
   "directories": {
     "doc": "./doc",
-    "lib": "./lib",
+    "lib": "./lib"
   },
   "man": "./man1/zombie.1",
   "scripts": {

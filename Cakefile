@@ -83,7 +83,7 @@ generateDocs = (callback)->
     return callback(err) if err
     documentSource (err)->
       return callback(err) if err
-      documentMan callback
+      generateMan callback
 task "doc:pages",   -> documentPages (err)-> throw err if err
 task "doc:source",  -> documentSource (err)-> throw err if err
 task "doc:man",     -> generateMan (err)-> throw err if err

@@ -1,3 +1,5 @@
 .npm
 node_modules
 html
+clean
+man1
