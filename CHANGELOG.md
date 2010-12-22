@@ -9,7 +9,10 @@ method.
 Browser is now an EventEmitter, you can listen to drain (event queue
 empty), error (loading page) and loaded (what is says).
 
-    184 tests
+You can now use `pressButton` with inputs of type button and reset
+(previously just submit).
+
+    187 tests
     2.0 sec to complete
 
 

@@ -331,12 +331,13 @@ class Browser extends require("events").EventEmitter
         if window.Sizzle.getText([button]).trim() == name
           @fire "click", button
           return @wait(callback)
-      for input in @querySelectorAll("form :submit")
+      inputs = @querySelectorAll("form :submit, form :reset, form :button")
+      for input in inputs
         continue if input.getAttribute("disabled")
         if input.name == name
           input.click()
           return @wait(callback)
-      for input in @querySelectorAll("form :submit")
+      for input in inputs
         continue if input.getAttribute("disabled")
         if input.value == name
           input.click()

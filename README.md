@@ -32,7 +32,7 @@ Let's try to sign up to a page and see what happens:
 Well, that was easy.
 
 
-### Walking And Waiting
+## Walking And Waiting
 
 To start off we're going to need a browser.  A browser maintains state
 across requests: history, cookies, HTML 5 local and session stroage.  A
@@ -70,7 +70,70 @@ Whenever you want to wait for all events to be processed, just call
 `browser.wait` with a callback.
 
 
-### Browser API
+## Hunting
+
+**Coming**
+
+See the [DOM Selector API](http://www.w3.org/TR/selectors-api/)
+
+
+## Feeding
+
+You're going to want to perform some actions, like clicking links,
+entering text, submitting forms.  You can certainly do that using the
+[DOM API](http://www.w3.org/DOM/DOMTR), or several of the convenience
+methods we're going to cover next.
+
+To click a link on the page, use `clickLink` with selector and callback.
+The first argument can be a CSS selector (see _Hunting_) or the text
+contents of the `A` element you want to click.  The second argument is a
+callback, which is passed on to `browser.wait` (see _Walking and
+Waiting_).  In other words, it gets fired after all events are
+processed, with error and browser as arguments.
+
+Let's see that in action:
+
+    // Now go to the shopping cart page and check that we have
+    // three bodies there.
+    browser.clickLink("View Cart", function(err, browser) {
+      assert.equal(browser.querySelectorAll("#cart .body"), 3);
+    });
+
+To submit a form, use `pressButton`.  The first argument can be a CSS
+selector, the button name (the value of the `name` argument) or the text
+that shows on the button.  You can press any `BUTTON` element or `INPUT`
+of type `submit`, `reset` or `button`.  The second argument is a
+callback, just like `clickLink`.
+
+Of course, before submitting a form, you'll need to fill it with values.
+For text fields, use the `fill` function, which takes two arguments:
+selector and the field value.  This time the selector can be a CSS
+selector, the field name (its `name` attribute), or the text that shows
+on the label associated with that field.
+
+Zombie.js supports text fields, password fields, text areas, and also
+the new HTML 5 fields types like email, search and url.
+
+The `fill` function returns a reference to the browser, so you can chain
+several functions together.  Its sibling functions `check` and `uncheck`
+(for check boxes), `choose` (for radio buttons) and `select` (for drop
+downs) work the same way.
+
+Let's combine all of that into one example:
+
+    // Fill in the form and submit.
+    browser.
+      fill("Your Name", "Arm Biter").
+      fill("Profession", "Living dead").
+      select("Born", "1968")
+      uncheck("Send me the newsletter").
+      pressButton("Sign me up", function(err, browser) {
+        // Make sure we got redirected to thank you page.
+        assert.equal(browser.location, "http://localhost:3003/thankyou");
+      });
+
+
+## Browser API
 
 #### Browser.visit(url, callback)
 
@@ -132,7 +195,7 @@ Returns the last request sent by this browser.
  
 Returns the last response received by this browser.
 
-#### brower.localStorage(host) => Storage
+#### browser.localStorage(host) => Storage
     
 Returns local Storage based on the document origin (hostname/port).
 
@@ -171,7 +234,7 @@ Select multiple elements and return a static node list.
  
 Selects an option.
 
-#### brower.sessionStorage(host) => Storage
+#### browser.sessionStorage(host) => Storage
 
 Returns session Storage based on the document origin (hostname/port).
 
@@ -214,9 +277,7 @@ Emitted whenever new page loaded.  This event is emitted before `DOMContentLoade
 Emitted if an error occurred loading a page or submitting a form.
 
 
-
-
-## Guts
+## The Guts
 
 Zombie.js is written in
 [CoffeeScript](http://jashkenas.github.com/coffee-script/), a language
@@ -273,7 +334,7 @@ To generate the documentation
     $ open html/index.html
 
 
-## Feeding
+## Giving Back
 
 * Find [assaf/zombie on Github](http://github.com/assaf/zombie)
 * Fork the project
@@ -297,12 +358,8 @@ Zombie.js is written in
 
 ## See Also
 
-[Annotated Source Code](source/browser.html) for Zombie.js.
-
+[Annotated Source Code](source/browser.html)
 [Changelog](changelog.html)
-
-[Sizzle.js](https://github.com/jeresig/sizzle/wiki) documentation.
-
-[Vows](http://vowsjs.org/) You don't have to, but I really recommend
-running Zombie.js with Vows, an outstanding BDD test framework for
-Node.js.
+[DOM API](http://www.w3.org/DOM/DOMTR)
+[Sizzle.js](https://github.com/jeresig/sizzle/wiki)
+[Vows](http://vowsjs.org/)
