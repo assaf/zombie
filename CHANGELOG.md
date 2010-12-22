@@ -1,5 +1,15 @@
 # CHANGELOG #
 
+### Version 0.7.0  2010-12-22
+
+Added `querySelector` and `querySelectorAll` based on the [DOM Selector
+API](http://www.w3.org/TR/selectors-api/).  Use this instead of `find`
+method.
+
+    184 tests
+    2.0 sec to complete
+
+
 ### Version 0.6.5  2010-12-21
 
 Fixed lack of JavaScript source code: CoffeeScript moved to src,
@@ -46,8 +56,8 @@ Fixed: browser now creates new window for each new document.
 
 Added window.JSON.
 
-    178 tests.
-    1.8 sec to complete.
+    178 tests
+    1.8 sec to complete
 
 
 ### Version 0.6.0  2010-12-20
@@ -60,5 +70,5 @@ Sammy.js), timers, XHR, cookies, local and session storage.
 
 Still very rough around the edges.
 
-    175 tests.
-    1.8 sec to complete.
+    175 tests
+    1.8 sec to complete

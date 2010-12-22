@@ -14,13 +14,13 @@ Let's try to sign up to a page and see what happens:
     var zombie = require("zombie");
 
     // Load the page from localhost
-    zombie.visit("http://localhost:3000/", function (browser) {
+    zombie.visit("http://localhost:3000/", function (err, browser) {
 
       // Fill email, password and submit form
       browser.
         fill("email", "zombie@underworld.dead").
         fill("password", "eat-the-living").
-        pressButton("Sign Me Up!", function(browser) {
+        pressButton("Sign Me Up!", function(err, browser) {
 
           // Form submitted, new page loaded.
           assert.equal(browser.text("title"), "Welcome To Brains Depot");
@@ -32,13 +32,45 @@ Let's try to sign up to a page and see what happens:
 Well, that was easy.
 
 
-### Getting Around
+### Walking And Waiting
 
-A browser has one window open, and typically one document open in that window.
-The `Browser` class adds many high-level functions on top of what you can already
-do with windows and documents.
+To start off we're going to need a browser.  A browser maintains state
+across requests: history, cookies, HTML 5 local and session stroage.  A
+browser has a main window, and typically a document loaded into that
+window.
 
-Callbacks are called either with an `Error` object or `null`, `Browser`.
+You can create a new `zombie.Browser` and point it at a document, either
+by setting the `location` property or calling its `visit` method.  As a
+shortcut, you can just call the `zombie.visit` method with a URL and
+callback.
+
+The browser will load the document and if the document includes any
+scripts, also load and execute these scripts.  It will then process some
+events, for example, anything your scripts do on page load.  All of
+that, just like a real browser, happens asynchronously.
+
+To wait for the page to fully load and all events to fire, you pass
+`visit` a callback function.  This function takes two arguments.  If
+everything is successful (page loaded, events run), the callback is
+called with `null` and a reference to the browser.  If anything went
+wrong (page not loaded, event errors), the callback is called with an
+error.
+
+If you worked with Node.js before you're familiar with this callback
+pattern.  Every time you see a callback in the Zombie.js API, it works
+that way: the first argument is an error, or null if there is no error,
+with interesting value in the second argument.
+
+Typically the second argument would be a reference to the browser or
+window object you called.  This may seem redudant, but works suprisingly
+well when composing with other asynchronous APIs, for example, when
+using Zombie.js with Vows.
+
+Whenever you want to wait for all events to be processed, just call
+`browser.wait` with a callback.
+
+
+### Browser API
 
 #### Browser.visit(url, callback)
 
@@ -74,11 +106,6 @@ Returns all the cookies for this domain/path. Path defaults to "/".
 
 Returns the main window's document. Only valid after opening a document (see `browser.open`).
 
-#### browser.find(selector, context?) => [Elements]
-
-Returns an array of all the elements that match the selector.  Without context,
-searches through the entire document.
-
 #### browser.fill(field, value) => this
 
 Fill in a field: input field or text area.
@@ -91,7 +118,7 @@ function will call `wait`.
 
 #### browser.html(selector?, context?) => String
 
-Returns the HTML contents of the selected elements (see also `browser.find`).
+Returns the HTML contents of the selected elements.
 
 #### browser.last_error => Object
 
@@ -132,6 +159,14 @@ Press a button (button element or input of type `submit`).  Typically this will
 submit the form.  Use the callback to wait for the from submission, page to
 load and all events run their course.
 
+#### browser.querySelector(selector) => Element
+
+Select a single element (first match) and return it.
+
+#### browser.querySelectorAll(selector) => NodeList
+
+Select multiple elements and return a static node list.
+
 #### browser.select(field, value) => this
  
 Selects an option.
@@ -142,7 +177,7 @@ Returns session Storage based on the document origin (hostname/port).
 
 #### browser.text(selector, context?) => String
 
-Returns the text contents of the selected elements (see also `browser.find`).
+Returns the text contents of the selected elements.
 
 #### browser.uncheck(field) => this
 
@@ -165,6 +200,7 @@ The terminator is optional and can be one of:
 #### browser.window => Window
 
 Returns the main window.
+
 
 
 ## Guts

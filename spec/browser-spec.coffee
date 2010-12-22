@@ -34,6 +34,7 @@ brains.get "/living", (req, res)-> res.send """
         <textarea name="likes" id="field-likes"></textarea>
         <input type="password" name="password" id="field-password">
       </form>
+      <div class="now">Walking Aimlessly</div>
     </body>
   </html>
   """
@@ -75,14 +76,29 @@ vows.describe("Browser").addBatch(
 
   "run app":
     zombie.wants "http://localhost:3003/living"
-      "should execute route": (browser)-> assert.equal browser.find("#main")[0].innerHTML, "The Living"
+      "should execute route": (browser)-> assert.equal browser.text("#main"), "The Living"
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
       "move around":
         topic: (browser)->
           browser.location = "#/dead"
           browser.wait @callback
-        "should execute route": (browser)-> assert.equal browser.find("#main")[0].innerHTML, "The Living Dead"
+        "should execute route": (browser)-> assert.equal browser.text("#main"), "The Living Dead"
         "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
+
+  "content selection":
+    zombie.wants "http://localhost:3003/living"
+      "query text":
+        topic: (browser)-> browser
+        "should query from document": (browser)-> assert.equal browser.text(".now"), "Walking Aimlessly"
+        "should query from context": (browser)-> assert.equal browser.text(".now", browser.body), "Walking Aimlessly"
+        "should query from context": (browser)-> assert.equal browser.text(".now", browser.querySelector("#main")), ""
+        "should combine multiple elements": (browser)-> assert.equal browser.text("form label"), "Name Email"
+      "query html":
+        topic: (browser)-> browser
+        "should query from document": (browser)-> assert.equal browser.html(".now"), "<div class=\"now\">Walking Aimlessly</div>"
+        "should query from context": (browser)-> assert.equal browser.html(".now", browser.body), "Walking Aimlessly"
+        "should query from context": (browser)-> assert.equal browser.html(".now", browser.querySelector("#main")), ""
+        "should combine multiple elements": (browser)-> assert.equal browser.html("#main, a"), "<div id=\"main\">The Living</div><a href=\"/dead\">Kill</a>"
 
   "click link":
     zombie.wants "http://localhost:3003/living"

@@ -58,52 +58,52 @@ vows.describe("Forms").addBatch(
     zombie.wants "http://localhost:3003/form"
       topic: (browser)->
         for field in ["email", "likes", "name", "password"]
-          browser.find("#field-#{field}")[0].addEventListener "change", -> browser["#{field}Changed"] = true
+          browser.querySelector("#field-#{field}").addEventListener "change", -> browser["#{field}Changed"] = true
         @callback null, browser
       "text input enclosed in label":
         topic: (browser)->
           browser.fill "Name", "ArmBiter"
-        "should set text field": (browser)-> assert.equal browser.find("#field-name")[0].value, "ArmBiter"
+        "should set text field": (browser)-> assert.equal browser.querySelector("#field-name").value, "ArmBiter"
         "should fire change event": (browser)-> assert.ok browser.nameChanged
       "email input referenced from label":
         topic: (browser)->
           browser.fill "Email", "armbiter@example.com"
-        "should set email field": (browser)-> assert.equal browser.find("#field-email")[0].value, "armbiter@example.com"
+        "should set email field": (browser)-> assert.equal browser.querySelector("#field-email").value, "armbiter@example.com"
         "should fire change event": (browser)-> assert.ok browser.emailChanged
       "textarea by field name":
         topic: (browser)->
           browser.fill "likes", "Arm Biting"
-        "should set textarea": (browser)-> assert.equal browser.find("#field-likes")[0].value, "Arm Biting"
+        "should set textarea": (browser)-> assert.equal browser.querySelector("#field-likes").value, "Arm Biting"
         "should fire change event": (browser)-> assert.ok browser.likesChanged
       "password input by selector":
         topic: (browser)->
           browser.fill ":password[name=password]", "b100d"
-        "should set password": (browser)-> assert.equal browser.find("#field-password")[0].value, "b100d"
+        "should set password": (browser)-> assert.equal browser.querySelector("#field-password").value, "b100d"
         "should fire change event": (browser)-> assert.ok browser.passwordChanged
 
   "check box":
     zombie.wants "http://localhost:3003/form"
       topic: (browser)->
         for field in ["hungry", "brains", "green"]
-          browser.find("#field-#{field}")[0].addEventListener "click", -> browser["#{field}Clicked"] = true
-          browser.find("#field-#{field}")[0].addEventListener "click", -> browser["#{field}Changed"] = true
+          browser.querySelector("#field-#{field}").addEventListener "click", -> browser["#{field}Clicked"] = true
+          browser.querySelector("#field-#{field}").addEventListener "click", -> browser["#{field}Changed"] = true
         @callback null, browser
       "checkbox enclosed in label":
         topic: (browser)->
           browser.check "Hungry"
-        "should check checkbox": (browser)-> assert.ok browser.find("#field-hungry")[0].checked
+        "should check checkbox": (browser)-> assert.ok browser.querySelector("#field-hungry").checked
         "should fire click event": (browser)-> assert.ok browser.hungryClicked
         "should fire change event": (browser)-> assert.ok browser.hungryChanged
       "checkbox referenced from label":
         topic: (browser)->
           browser.check "Brains?"
-        "should check checkbox": (browser)-> assert.ok browser.find("#field-brains")[0].checked
+        "should check checkbox": (browser)-> assert.ok browser.querySelector("#field-brains").checked
         "should fire click event": (browser)-> assert.ok browser.brainsClicked
         "should fire change event": (browser)-> assert.ok browser.brainsChanged
       "checkbox by name":
         topic: (browser)->
           browser.uncheck "green"
-        "should uncheck checkbox": (browser)-> assert.ok !browser.find("#field-green")[0].checked
+        "should uncheck checkbox": (browser)-> assert.ok !browser.querySelector("#field-green").checked
         "should fire click event": (browser)-> assert.ok browser.greenClicked
         "should fire change event": (browser)-> assert.ok browser.greenChanged
 
@@ -111,20 +111,20 @@ vows.describe("Forms").addBatch(
     zombie.wants "http://localhost:3003/form"
       topic: (browser)->
         for field in ["scary", "notscary"]
-          browser.find("#field-#{field}")[0].addEventListener "click", -> browser["#{field}Clicked"] = true
-          browser.find("#field-#{field}")[0].addEventListener "click", -> browser["#{field}Changed"] = true
+          browser.querySelector("#field-#{field}").addEventListener "click", -> browser["#{field}Clicked"] = true
+          browser.querySelector("#field-#{field}").addEventListener "click", -> browser["#{field}Changed"] = true
         @callback null, browser
       "radio button enclosed in label":
         topic: (browser)->
           browser.choose "Scary"
-        "should check radio": (browser)-> assert.ok browser.find("#field-scary")[0].checked
+        "should check radio": (browser)-> assert.ok browser.querySelector("#field-scary").checked
         "should fire click event": (browser)-> assert.ok browser.scaryClicked
         "should fire change event": (browser)-> assert.ok browser.scaryChanged
         "radio button by value":
           topic: (browser)->
             browser.choose "no"
-          "should check radio": (browser)-> assert.ok browser.find("#field-notscary")[0].checked
-          "should uncheck other radio": (browser)-> assert.ok !browser.find("#field-scary")[0].checked
+          "should check radio": (browser)-> assert.ok browser.querySelector("#field-notscary").checked
+          "should uncheck other radio": (browser)-> assert.ok !browser.querySelector("#field-scary").checked
           "should fire click event": (browser)-> assert.ok browser.notscaryClicked
           "should fire change event": (browser)-> assert.ok browser.notscaryChanged
 
@@ -132,22 +132,22 @@ vows.describe("Forms").addBatch(
     zombie.wants "http://localhost:3003/form"
       topic: (browser)->
         for field in ["looks", "state"]
-          browser.find("#field-#{field}")[0].addEventListener "change", -> browser["#{field}Changed"] = true
+          browser.querySelector("#field-#{field}").addEventListener "change", -> browser["#{field}Changed"] = true
         @callback null, browser
       "enclosed in label using option label":
         topic: (browser)->
           browser.select "Looks", "Bloody"
-        "should set value": (browser)-> assert.equal browser.find("#field-looks")[0].value, "blood"
+        "should set value": (browser)-> assert.equal browser.querySelector("#field-looks").value, "blood"
         "should select first option": (browser)->
-          selected = (option.selected for option in browser.find("#field-looks")[0].options)
+          selected = (option.selected for option in browser.querySelector("#field-looks").options)
           assert.deepEqual selected, [true, false]
         "should fire change event": (browser)-> assert.ok browser.looksChanged
       "select name using option value":
         topic: (browser)->
           browser.select "state", "dead"
-        "should set value": (browser)-> assert.equal browser.find("#field-state")[0].value, "dead"
+        "should set value": (browser)-> assert.equal browser.querySelector("#field-state").value, "dead"
         "should select second option": (browser)->
-          selected = (option.selected for option in browser.find("#field-state")[0].options)
+          selected = (option.selected for option in browser.querySelector("#field-state").options)
           assert.deepEqual selected, [false, true]
         "should fire change event": (browser)-> assert.ok browser.stateChanged
 
@@ -157,36 +157,36 @@ vows.describe("Forms").addBatch(
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
             check("Hungry").choose("Scary").select("state", "dead")
-          browser.find("form")[0].reset()
+          browser.querySelector("form").reset()
           @callback null, browser
-        "should reset input field to original value": (browser)-> assert.equal browser.find("#field-name")[0].value, ""
-        "should reset textarea to original value": (browser)-> assert.equal browser.find("#field-likes")[0].value, "Warm brains"
-        "should reset checkbox to original value": (browser)-> assert.ok !browser.find("#field-hungry")[0].value
+        "should reset input field to original value": (browser)-> assert.equal browser.querySelector("#field-name").value, ""
+        "should reset textarea to original value": (browser)-> assert.equal browser.querySelector("#field-likes").value, "Warm brains"
+        "should reset checkbox to original value": (browser)-> assert.ok !browser.querySelector("#field-hungry").value
         "should reset radio to original value": (browser)->
-          assert.ok !browser.find("#field-scary")[0].checked
-          assert.ok browser.find("#field-notscary")[0].checked
-        "should reset select to original option": (browser)-> assert.equal browser.find("#field-state")[0].value, "alive"
+          assert.ok !browser.querySelector("#field-scary").checked
+          assert.ok browser.querySelector("#field-notscary").checked
+        "should reset select to original option": (browser)-> assert.equal browser.querySelector("#field-state").value, "alive"
     "with event handler":
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->
-          browser.find("form :reset")[0].addEventListener "click", (event)=> @callback null, event
-          browser.find("form :reset")[0].click()
+          browser.querySelector("form :reset").addEventListener "click", (event)=> @callback null, event
+          browser.querySelector("form :reset").click()
         "should fire click event": (event)-> assert.equal event.type, "click"
     "with preventDefault":
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter")
-          browser.find("form :reset")[0].addEventListener "click", (event)-> event.preventDefault()
-          browser.find("form :reset")[0].click()
+          browser.querySelector("form :reset").addEventListener "click", (event)-> event.preventDefault()
+          browser.querySelector("form :reset").click()
           @callback null, browser
-        "should not reset input field": (browser)-> assert.equal browser.find("#field-name")[0].value, "ArmBiter"
+        "should not reset input field": (browser)-> assert.equal browser.querySelector("#field-name").value, "ArmBiter"
     "by clicking reset input":
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter")
-          browser.find("form :reset")[0].click()
+          browser.querySelector("form :reset").click()
           @callback null, browser
-        "should reset input field to original value": (browser)-> assert.equal browser.find("#field-name")[0].value, ""
+        "should reset input field to original value": (browser)-> assert.equal browser.querySelector("#field-name").value, ""
 
   "submit form":
     "by calling submit":
@@ -194,7 +194,7 @@ vows.describe("Forms").addBatch(
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
             check("Hungry").choose("Scary").select("state", "dead")
-          browser.find("form")[0].submit()
+          browser.querySelector("form").submit()
           browser.wait @callback
         "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
         "should add location to history": (browser)-> assert.length browser.window.history, 2

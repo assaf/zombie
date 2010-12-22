@@ -96,41 +96,43 @@ class Browser
     # Accessors
     # ---------
 
-    # ### browser.find(selector, context?) => [Elements]
+    # ### browser.querySelector(selector) => Element
     #
-    # Returns an array of all the elements that match the selector.  Without
-    # context, searches through the entire document.
+    # Select a single element (first match) and return it.
     #
     # selector -- CSS selector
-    # context -- Context element (if missing, uses document)
-    # Returns an array of elements
-    this.find = (selector, context)-> window.document?.find(selector, context)
+    # Returns an Element or null
+    this.querySelector = (selector)-> window.document?.querySelector(selector)
+
+    # ### browser.querySelectorAll(selector) => NodeList
+    #
+    # Select multiple elements and return a static node list.
+    #
+    # selector -- CSS selector
+    # Returns a NodeList or null
+    this.querySelectorAll = (selector)-> window.document?.querySelectorAll(selector)
 
     # ### browser.text(selector, context?) => String
     #
-    # Returns the text contents of the selected elements (see also
-    # `browser.find`).
+    # Returns the text contents of the selected elements.
     #
-    # selector -- CSS selector
+    # selector -- CSS selector (if missing, entire document)
     # context -- Context element (if missing, uses document)
     # Returns a string
     this.text = (selector, context)->
-      elements = @find(selector || "body", context)
-      window.Sizzle?.getText(elements)
+      elements = if selector then (context || @document).querySelectorAll(selector).toArray() else [@document]
+      elements.map((e)-> e.textContent).join("")
 
     # ### browser.html(selector?, context?) => String
     #
-    # Returns the HTML contents of the selected elements (see also
-    # `browser.find`).
+    # Returns the HTML contents of the selected elements.
     #
-    # selector -- CSS selector
+    # selector -- CSS selector (if missing, entire document)
     # context -- Context element (if missing, uses document)
     # Returns a string
     this.html = (selector, context)->
-      if selector
-        @find(selector, context).map((elem)-> elem.outerHTML).join("")
-      else
-        return window.document.outerHTML
+      elements = if selector then (context || @document).querySelectorAll(selector).toArray() else [@document]
+      elements.map((e)-> e.outerHTML.trim()).join("")
 
     # ### browser.window => Window
     #
@@ -144,7 +146,7 @@ class Browser
     # ### browser.body => Element
     #
     # Returns the body Element of the current document.
-    @__defineGetter__ "body", -> window.document?.find("body")[0]
+    @__defineGetter__ "body", -> window.document?.querySelector("body")
 
 
     # Navigation
@@ -185,10 +187,10 @@ class Browser
     # selector -- CSS selector or link text
     # callback -- Called with two arguments: error and browser
     this.clickLink = (selector, callback)->
-      if link = @find(selector)[0]
+      if link = @querySelector(selector)
         @fire "click", link, callback if link
         return
-      for link in @find("body a")
+      for link in @querySelectorAll("body a")
         if window.Sizzle.getText([link]).trim() == selector
           @fire "click", link, callback
           return
@@ -203,23 +205,20 @@ class Browser
     # Find input field from selector, name or label.
     findInput = (selector, match)=>
       # Try more specific selector first.
-      fields = @find(selector)
-      return fields[0] if fields[0] && match(fields[0])
+      field = @querySelector(selector)
+      return field if field && match(field)
       # Use field name (case sensitive).
-      fields = @find("[name='#{selector}']")
-      return fields[0] if fields[0] && match(fields[0])
+      field = @querySelector("[name='#{selector}']")
+      return field if field && match(field)
       # Try finding field from label.
-      for label in @find("label")
-        text = ""
-        for c in label.children
-          text = text + c.nodeValue if c.nodeType == 3
-        if text.trim() == selector
+      for label in @querySelectorAll("label")
+        if label.textContent.trim() == selector
           # Label can either reference field or enclose it
           if for_attr = label.getAttribute("for")
-            fields = @find("#" + for_attr)
+            field = @querySelector("#" + for_attr)
           else
-            fields = @find("input, textarea, select", label)
-          return fields[0] if fields[0] && match(fields[0])
+            field = label.querySelector("input, textarea, select")
+          return field if field && match(field)
 
     # ### browser.fill(field, value) => this
     #
@@ -274,9 +273,9 @@ class Browser
     # Returns this
     this.choose = (field)->
       match = (elem)-> elem.nodeName == "INPUT" && elem.type?.toLowerCase() == "radio"
-      input = findInput(field, match) || @find(":radio[value='#{field}']")[0]
+      input = findInput(field, match) || @querySelector(":radio[value='#{field}']")
       if input
-        radios = @find(":radio[name='#{input.getAttribute("name")}']", input.form)
+        radios = @querySelectorAll(":radio[name='#{input.getAttribute("name")}']", input.form)
         for radio in radios
           throw new Error("This INPUT field is disabled") if radio.getAttribute("input")
           throw new Error("This INPUT field is readonly") if radio.getAttribute("readonly")
@@ -322,20 +321,20 @@ class Browser
     # name -- CSS selector, button name or text of BUTTON element
     # callback -- Called with two arguments: error and browser
     this.pressButton = (name, callback)->
-      if button = @find(name).first
+      if button = @querySelector(name)
         button.click()
         return @wait(callback)
-      for button in @find("form button")
+      for button in @querySelectorAll("form button")
         continue if button.getAttribute("disabled")
         if window.Sizzle.getText([button]).trim() == name
           @fire "click", button
           return @wait(callback)
-      for input in @find("form :submit")
+      for input in @querySelectorAll("form :submit")
         continue if input.getAttribute("disabled")
         if input.name == name
           input.click()
           return @wait(callback)
-      for input in @find("form :submit")
+      for input in @querySelectorAll("form :submit")
         continue if input.getAttribute("disabled")
         if input.value == name
           input.click()

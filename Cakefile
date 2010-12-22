@@ -40,8 +40,14 @@ task "setup", "Install development dependencies", ->
 
 build = (callback)->
   log "Compiling CoffeeScript to JavaScript ...", green
-  exec "rm -rf lib && coffee -c -l -o lib src", callback
-task "build", -> build onerror
+  exec "rm -rf lib && coffee -c -l -b -o lib src", callback
+task "build", "Compile CoffeeScript to JavaScript", -> build onerror
+
+task "watch", "Continously compile CoffeeScript to JavaScript", ->
+  cmd = spawn("coffee", ["-cw", "-o", "lib", "src"])
+  cmd.stdout.on "data", (data)-> log data, green
+  cmd.stderr.on "data", (data)-> log data, red
+  
 
 task "clean", "Remove temporary files and such", ->
   exec "rm -rf html lib man1", onerror
@@ -110,10 +116,10 @@ generateDocs = (callback)->
     documentSource (err)->
       onerror err
       generateMan callback
-task "doc:pages",   -> documentPages onerror
-task "doc:source",  -> documentSource onerror
-task "doc:man",     -> generateMan onerror
-task "doc", "Generate documentation", -> generateDocs onerror
+task "doc:pages",  "Generate documentation for main pages",    -> documentPages onerror
+task "doc:source", "Generate documentation from source files", -> documentSource onerror
+task "doc:man",    "Generate man pages",                       -> generateMan onerror
+task "doc",        "Generate all documentation",               -> generateDocs onerror
 
 
 ## Publishing ##
@@ -124,7 +130,7 @@ publishDocs = (callback)->
     onerror err
     log "Uploading documentation ...", green
     exec "rsync -cr --del --progress html/ labnotes.org:/var/www/zombie/", callback
-task "doc:publish", -> publishDocs onerror
+task "doc:publish", "Publish documentation to site", -> publishDocs onerror
 
 task "publish", "Publish new version (Git, NPM, site)", ->
   runTests (err)->
