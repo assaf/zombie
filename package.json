@@ -14,8 +14,8 @@
   "directories": {
     "doc": "./doc",
     "lib": "./lib",
-    "man": "./man1"
   },
+  "man": "./man1/zombie.1",
   "scripts": {
     "build": "cake",
     "test": "vows"

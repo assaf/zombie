@@ -14,7 +14,7 @@ log = (message, color, explanation) ->
   console.log color + message + reset + ' ' + (explanation or '')
 
 task "clean", "Remove temporary files and such", ->
-  exec "rm -rf html clean"
+  exec "rm -rf html clean man1"
 
 
 # Setup
@@ -38,9 +38,8 @@ task "setup", "Install development dependencies", ->
 # -------------
 
 # Markdown to HTML.
-toHTML = (source, callback)->
+toHTML = (source, title, callback)->
   target = "html/#{path.basename(source, ".md").toLowerCase()}.html"
-  title = path.basename(source, ".md").replace("_", " ")
   fs.mkdir "html", 0777, ->
     fs.readFile "doc/_layout.html", "utf8", (err, layout)->
       return callback(err) if err
@@ -49,42 +48,42 @@ toHTML = (source, callback)->
         log "Creating #{target} ...", green
         exec "ronn --html #{source}", (err, stdout, stderr)->
           return callback(err) if err
-          title = stdout.match(/<h1>(.*)<\/h1>/)[1]
-          html = layout.replace("{{body}}", stdout).replace(/{{title}}/g, title).replace(/<h1>.*<\/h1>/, "")
+          title ||= stdout.match(/<h1>(.*)<\/h1>/)[1]
+          body = stdout.replace(/<h1>.*<\/h1>/, "")
+          html = layout.replace("{{body}}", body).replace(/{{title}}/g, title)
           fs.writeFile target, html, "utf8", (err)->
             callback err, target
 
 documentPages = (callback)->
-  toHTML "README.md", (err)->
+  toHTML "README.md", "Zombie.js", (err)->
     return callback(err) if err
     exec "mv html/readme.html html/index.html", (err)->
       return callback(err) if err
-      toHTML "TODO.md", (err)->
+      toHTML "TODO.md", null, (err)->
         return callback(err) if err
-        exec "cp -f doc/*.css html/", (err)->
-          callback err
+        exec "cp -f doc/*.css html/", callback
 
 documentSource = (callback)->
   log "Documenting source files ...", green
   exec "docco lib/**/*.coffee", (err)->
     return callback(err) if err
     log "Copying to html/source ...", green
-    exec "mkdir -p html && cp -rf docs/ html/source && rm -rf docs", (err)->
-      callback err
+    exec "mkdir -p html && cp -rf docs/ html/source && rm -rf docs", callback
 
 generateMan = (callback)->
-  log "Generating man files ...", green
-  exec "ronn --man README.md", (err, stdout, stderr)->
-    log stdout, green
-    log stderr, red
-    callback err
+  log "Generating man file ...", green
+  fs.mkdir "man1", 0777, ->
+    exec "ronn --roff README.md", (err, stdout, stderr)->
+      return callback(err) if err
+      fs.writeFile "man1/zombie.1", stdout, "utf8", callback
 
 generateDocs = (callback)->
   log "Generating documentation ...", green
   documentPages (err)->
     return callback(err) if err
     documentSource (err)->
-      callback err
+      return callback(err) if err
+      documentMan callback
 task "doc:pages",   -> documentPages (err)-> throw err if err
 task "doc:source",  -> documentSource (err)-> throw err if err
 task "doc:man",     -> generateMan (err)-> throw err if err
@@ -124,7 +123,7 @@ task "publish", "Publish new version (Git, NPM, site)", ->
         exec "git push --tags origin master"
 
       log "Publishing to NPM ...", green
-      exec "rm -rf clean && git checkout-index -a -f --prefix clean/", (err)->
+      exec "rm -rf clean && git checkout-index -a -f --prefix clean/ && cp -rf man1 clean/", (err)->
         throw err if err
         exec "npm publish clean", (err)->
           throw err if err
