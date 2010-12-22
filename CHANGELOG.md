@@ -12,6 +12,8 @@ empty), error (loading page) and loaded (what is says).
 You can now use `pressButton` with inputs of type button and reset
 (previously just submit).
 
+More, better, documentation.
+
     187 tests
     2.0 sec to complete
 

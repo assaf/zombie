@@ -40,8 +40,8 @@ browser has a main window, and typically a document loaded into that
 window.
 
 You can create a new `zombie.Browser` and point it at a document, either
-by setting the `location` property or calling its `visit` method.  As a
-shortcut, you can just call the `zombie.visit` method with a URL and
+by setting the `location` property or calling its `visit` function.  As
+a shortcut, you can just call the `zombie.visit` function with a URL and
 callback.
 
 The browser will load the document and if the document includes any
@@ -72,9 +72,51 @@ Whenever you want to wait for all events to be processed, just call
 
 ## Hunting
 
-**Coming**
+There are several ways you can inspect the contents of a document.  For
+starters, there's the [DOM API](http://www.w3.org/DOM/DOMTR), which you
+can use to find elements and traverse the document tree.
 
-See the [DOM Selector API](http://www.w3.org/TR/selectors-api/)
+You can also use CSS selectors to pick a specific element or node list.
+Zombie.js implements the [DOM Selector
+API](http://www.w3.org/TR/selectors-api/).  These functions are
+available from every element, the document, and the `Browser` object
+itself.
+
+To get the HTML contents of an element, read its `innerHTML` property.
+If you want to include the element itself with its attributes, read the
+element's `outerHTML` property instead.  Alternatively, you can call the
+`browser.html` function with a CSS selector and optional context
+element.  If the function selects multiple elements, it will return the
+combined HTML of them all.
+
+To see the textual contents of an element, read its `textContent`
+property.  Alternatively, you can call the `browser.text` function with
+a CSS selector and optional context element.  If the function selects
+multiple elements, it will return the combined text contents of them
+all.
+
+Here are a few examples for checking the contents of a document:
+
+    // Make sure we have an element with the ID brains.
+    assert.ok(browser.querySelector("#brains"));
+
+    // Make sure body has two elements with the class hand.
+    assert.equal(browser.body.querySelectorAll(".hand").length, 2);
+
+    // Check the document title.
+    assert.equal(browser.text("title"), "The Living Dead");
+
+    // Show me the document contents.
+    console.log(browser.html());
+
+    // Show me the contents of the parts table:
+    console.log(browser.html("table.parts"));
+
+CSS selectors are implemented by Sizzle.js.  In addition to CSS 3
+selectors you get additional and quite useful extensions, such as
+`:not(selector)`, `[NAME!=VALUE]`, `:contains(TEXT)`, `:first/:last` and
+so forth.  Check out the [Sizzle.js
+documentation](https://github.com/jeresig/sizzle/wiki) for more details.
 
 
 ## Feeding
@@ -82,7 +124,7 @@ See the [DOM Selector API](http://www.w3.org/TR/selectors-api/)
 You're going to want to perform some actions, like clicking links,
 entering text, submitting forms.  You can certainly do that using the
 [DOM API](http://www.w3.org/DOM/DOMTR), or several of the convenience
-methods we're going to cover next.
+functions we're going to cover next.
 
 To click a link on the page, use `clickLink` with selector and callback.
 The first argument can be a CSS selector (see _Hunting_) or the text
@@ -361,5 +403,5 @@ Zombie.js is written in
 [Annotated Source Code](source/browser.html)
 [Changelog](changelog.html)
 [DOM API](http://www.w3.org/DOM/DOMTR)
-[Sizzle.js](https://github.com/jeresig/sizzle/wiki)
+[Sizzle.js](http://sizzlejs.com/)
 [Vows](http://vowsjs.org/)
