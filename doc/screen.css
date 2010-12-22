@@ -49,6 +49,10 @@ pre, code {
 #content {
   margin-top: 2em;
 }
+#content .subtitle {
+  margin: 1em 0;
+  font-weight: 600;
+}
 
 #footer {
   margin: 2em 0;

@@ -1,6 +1,7 @@
-# CHANGELOG #
+Changes
+=======
 
-### Version 0.7.0  2010-12-22
+## Version 0.7.0  2010-12-22
 
 Added `querySelector` and `querySelectorAll` based on the [DOM Selector
 API](http://www.w3.org/TR/selectors-api/).  Use this instead of `find`
@@ -18,7 +19,7 @@ More, better, documentation.
     2.0 sec to complete
 
 
-### Version 0.6.5  2010-12-21
+## Version 0.6.5  2010-12-21
 
 Fixed lack of JavaScript source code: CoffeeScript moved to src,
 JavaScript compiled into lib, life is grand again.
@@ -26,19 +27,19 @@ JavaScript compiled into lib, life is grand again.
 Changelog is now Markdown file and part of the documentation.
 
 
-### Version 0.6.4  2010-12-21
+## Version 0.6.4  2010-12-21
 
 First documentation you can actually use.
 
 
-### Version 0.6.3  2010-12-21
+## Version 0.6.3  2010-12-21
 
 Fixed documentation link.
 
 `man zombie`
 
 
-### Version 0.6.2  2010-12-21
+## Version 0.6.2  2010-12-21
 
 First NPM release.
 
@@ -54,7 +55,7 @@ spec/.scripts.
     1.8 sec to complete
 
 
-### Version 0.6.1  2010-12-20
+## Version 0.6.1  2010-12-20
 
 Changed browser.cookies from getter to function that accepts cookie domain
 (host and port) and path, and returns wrapper to access specific cookie
@@ -68,7 +69,7 @@ Added window.JSON.
     1.8 sec to complete
 
 
-### Version 0.6.0  2010-12-20
+## Version 0.6.0  2010-12-20
 
 First release that I could use to test an existing project.
 

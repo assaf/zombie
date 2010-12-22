@@ -70,7 +70,7 @@ task "test", "Run all tests", -> runTests onerror
 ## Documentation ##
 
 # Markdown to HTML.
-toHTML = (source, title, callback)->
+toHTML = (source, callback)->
   target = "html/#{path.basename(source, ".md").toLowerCase()}.html"
   fs.mkdir "html", 0777, ->
     fs.readFile "doc/_layout.html", "utf8", (err, layout)->
@@ -80,20 +80,21 @@ toHTML = (source, title, callback)->
         log "Creating #{target}", green
         exec "ronn --html #{source}", (err, stdout, stderr)->
           onerror err
-          title ||= stdout.match(/<h1>(.*)<\/h1>/)[1]
+          [title, subtitle] = stdout.match(/<h1>(.*)<\/h1>/)[1].split(" -- ")
+          title = title.replace(/\(\d\)/, "")
           body = stdout.replace(/<h1>.*<\/h1>/, "")
-          html = layout.replace("{{body}}", body).replace(/{{title}}/g, title)
+          html = layout.replace("{{body}}", body).replace(/{{title}}/g, title).replace(/{{subtitle}}/g, subtitle || "")
           fs.writeFile target, html, "utf8", (err)->
             callback err, target
 
 documentPages = (callback)->
-  toHTML "README.md", "Zombie.js", (err)->
+  toHTML "README.md", (err)->
     onerror err
     exec "mv html/readme.html html/index.html", (err)->
       onerror err
-      toHTML "TODO.md", null, (err)->
+      toHTML "TODO.md", (err)->
         onerror err
-        toHTML "CHANGELOG.md", null, (err)->
+        toHTML "CHANGELOG.md", (err)->
           onerror err
           sys.puts ""
           exec "cp -f doc/*.css html/", callback

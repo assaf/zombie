@@ -1,5 +1,5 @@
-zombie.js(1) -- Superfast headless full stack testing framework using Node.js
-==========================================================================
+Zombie.js(1) -- Insanely fast, headless full-stack testing using node.js
+========================================================================
 
 ## The Bite
 
