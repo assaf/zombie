@@ -2,6 +2,7 @@ fs            = require("fs")
 path          = require("path")
 {spawn, exec} = require("child_process")
 markdown      = require("node-markdown").Markdown
+sys           = require("sys")
 
 # ANSI Terminal Colors.
 bold  = "\033[0;1m"
@@ -16,8 +17,8 @@ log = (message, color, explanation) ->
 # Handle error, do nothing if null
 onerror = (err)->
   if err
-    log err.stack, red
-    process.exit -1
+    sys.puts "#{red}#{err.stack}#{reset}"
+    process.stdout.on "drain", -> process.exit -1
 
 
 ## Setup ##
@@ -40,13 +41,15 @@ task "setup", "Install development dependencies", ->
 
 build = (callback)->
   log "Compiling CoffeeScript to JavaScript ...", green
-  exec "rm -rf lib && coffee -c -l -b -o lib src", callback
+  exec "rm -rf lib && coffee -c -l -b -o lib src", (err, stdout)->
+    log stdout + "Done", green
+    callback err
 task "build", "Compile CoffeeScript to JavaScript", -> build onerror
 
 task "watch", "Continously compile CoffeeScript to JavaScript", ->
   cmd = spawn("coffee", ["-cw", "-o", "lib", "src"])
-  cmd.stdout.on "data", (data)-> log data, green
-  cmd.stderr.on "data", (data)-> log data, red
+  cmd.stdout.on "data", (data)-> sys.print green + data + reset
+  cmd.on "error", onerror
   
 
 task "clean", "Remove temporary files and such", ->
@@ -57,9 +60,8 @@ task "clean", "Remove temporary files and such", ->
 
 runTests = (callback)->
   log "Running test suite ...", green
-  exec "vows --spec", (err, stdout, stderr)->
-    log stdout, green
-    log stderr, red
+  exec "vows --spec", (err, stdout)->
+    sys.puts stdout
     callback err
 task "test", "Run all tests", -> runTests onerror
 
@@ -75,7 +77,7 @@ toHTML = (source, title, callback)->
       onerror err
       fs.readFile source, "utf8", (err, text)->
         onerror err
-        log "Creating #{target} ...", green
+        log "Creating #{target}", green
         exec "ronn --html #{source}", (err, stdout, stderr)->
           onerror err
           title ||= stdout.match(/<h1>(.*)<\/h1>/)[1]
@@ -93,13 +95,15 @@ documentPages = (callback)->
         onerror err
         toHTML "CHANGELOG.md", null, (err)->
           onerror err
+          sys.puts ""
           exec "cp -f doc/*.css html/", callback
 
 documentSource = (callback)->
   log "Documenting source files ...", green
-  exec "docco src/*.coffee src/**/*.coffee", (err)->
+  exec "docco src/*.coffee src/**/*.coffee", (err, stdout, stderr)->
+    log stdout, green
     onerror err
-    log "Copying to html/source ...", green
+    log "Copying to html/source", green
     exec "mkdir -p html && cp -rf docs/ html/source && rm -rf docs", callback
 
 generateMan = (callback)->
@@ -107,6 +111,7 @@ generateMan = (callback)->
   fs.mkdir "man1", 0777, ->
     exec "ronn --roff README.md", (err, stdout, stderr)->
       onerror err
+      log "Done", green
       fs.writeFile "man1/zombie.1", stdout, "utf8", callback
 
 generateDocs = (callback)->
@@ -129,7 +134,9 @@ publishDocs = (callback)->
   generateDocs (err)->
     onerror err
     log "Uploading documentation ...", green
-    exec "rsync -cr --del --progress html/ labnotes.org:/var/www/zombie/", callback
+    exec "rsync -cr --del --progress html/ labnotes.org:/var/www/zombie/", (err, stdout, stderr)->
+      log stdout, green
+      callback err
 task "doc:publish", "Publish documentation to site", -> publishDocs onerror
 
 task "publish", "Publish new version (Git, NPM, site)", ->
@@ -138,13 +145,17 @@ task "publish", "Publish new version (Git, NPM, site)", ->
     fs.readFile "package.json", "utf8", (err, package)->
       version = JSON.parse(package).version
       log "Tagging v#{version} ...", green
-      exec "git tag v#{version}", ->
-        exec "git push --tags origin master"
+      exec "git tag v#{version}", (err, stdout, stderr)->
+        log stdout, green
+        exec "git push --tags origin master", (err, stdout, stderr)->
+          log stdout, green
 
       log "Publishing to NPM ...", green
       build (err)->
         onerror err
-        exec "npm publish ./", onerror
+        exec "npm publish ./", (err, stdout, stderr)->
+          log stdout, green
+          onerror err
 
     # Publish documentation
     publishDocs onerror
