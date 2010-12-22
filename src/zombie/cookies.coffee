@@ -145,7 +145,7 @@ class Cookies
     # The default separator is a line break, useful to output when
     # debugging.  If you need to save/load, use comma as the line
     # separator and then call `cookies.update`.
-    this.dump(separator = "\n") = ->
+    this.dump = (separator = "\n")->
       (serialize.apply this, match for match in selected()).join(separator)
 
 

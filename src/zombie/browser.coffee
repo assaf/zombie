@@ -1,8 +1,8 @@
 jsdom = require("jsdom")
-
 require "./jsdom_patches"
 require "./sizzle"
 require "./forms"
+
 
 # Use the browser to open up new windows and load documents.
 #

@@ -1,5 +1,5 @@
-TODO
-====
+Wishlist
+========
 
 * Use HTML5 parser (see https://github.com/aredridel/html5)
 
@@ -22,7 +22,3 @@ TODO
   requests (pages, forms and XHR).
 
 * Prompts: handle window.confirm and window.alert.
-
-* Enhance DOM with find/filter/html/text methods on elements and node lists.
-
-* More documentation.
