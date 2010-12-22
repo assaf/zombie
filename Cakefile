@@ -1,7 +1,6 @@
 fs            = require("fs")
 path          = require("path")
 {spawn, exec} = require("child_process")
-markdown      = require("node-markdown").Markdown
 sys           = require("sys")
 
 # ANSI Terminal Colors.

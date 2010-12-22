@@ -7,15 +7,13 @@ body {
 }
 h1, h2, h3, h4, #header {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
-  color: #660000;
+  color: #600;
 }
-h1, h2, h3 { color: #600; }
 h1 { font-size: 22pt; }
 h2 { font-size: 20pt; }
-h3 { font-size: 18pt; }
-h4 {
+h3 {
   font-size: 16pt;
-  color: #666;
+  color: #444;
 }
 pre, code {
   font-family: "Menlo", "Consolas", "New Courier", Courier, monospace;

@@ -177,122 +177,122 @@ Let's combine all of that into one example:
 
 ## Browser API
 
-#### Browser.visit(url, callback)
+### Browser.visit(url, callback)
 
 Shortcut for creating new browser and calling `browser.visit` on it.
 
-#### browser.body => Element
+### browser.body : Element
 
 Returns the body Element of the current document.
 
-#### browser.check(field) => this
+### browser.check(field) : this
  
 Checks a checkbox.
 
-#### browser.choose(field) => this
+### browser.choose(field) : this
 
 Selects a radio box option.
 
-#### browser.clickLink(selector, callback)
+### browser.clickLink(selector, callback)
  
 Clicks on a link. Clicking on a link can trigger other events, load new page,
 etc: use a callback to be notified of completion.  Finds link by text content
 or selector.
 
-#### browser.clock
+### browser.clock
 
 The current system clock according to the browser (see also `browser.now`).
 
-#### browser.cookies(domain, path?) => Cookies
+### browser.cookies(domain, path?) : Cookies
 
 Returns all the cookies for this domain/path. Path defaults to "/".
 
-#### browser.document => Document
+### browser.document : Document
 
 Returns the main window's document. Only valid after opening a document (see `browser.open`).
 
-#### browser.fill(field, value) => this
+### browser.fill(field, value) : this
 
 Fill in a field: input field or text area.
 
-#### browser.fire(name, target, calback?)
+### browser.fire(name, target, calback?)
 
 Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a
 link.  These events will bubble up and can be cancelled.  With a callback, this
 function will call `wait`.
 
-#### browser.html(selector?, context?) => String
+### browser.html(selector?, context?) : String
 
 Returns the HTML contents of the selected elements.
 
-#### browser.last_error => Object
+### browser.last_error : Object
 
 Returns the last error received by this browser in lieu of response.
 
-#### browser.last_request => Object
+### browser.last_request : Object
 
 Returns the last request sent by this browser.
 
-#### browser.last_response => Object
+### browser.last_response : Object
  
 Returns the last response received by this browser.
 
-#### browser.localStorage(host) => Storage
+### browser.localStorage(host) : Storage
     
 Returns local Storage based on the document origin (hostname/port).
 
-#### browser.location => Location
+### browser.location : Location
 
 Return the location of the current document (same as `window.location.href`).
 
-#### browser.location = url
+### browser.location = url
 
 Changes document location, loads new document if necessary (same as setting
 `window.location`).
 
-#### browser.now => Date
+### browser.now : Date
 
 The current system time according to the browser (see also `browser.clock`).
 
-#### browser.open() => Window
+### browser.open() : Window
  
 Open new browser window.
 
-#### browser.pressButton(name, callback)
+### browser.pressButton(name, callback)
  
 Press a button (button element or input of type `submit`).  Typically this will
 submit the form.  Use the callback to wait for the from submission, page to
 load and all events run their course.
 
-#### browser.querySelector(selector) => Element
+### browser.querySelector(selector) : Element
 
 Select a single element (first match) and return it.
 
-#### browser.querySelectorAll(selector) => NodeList
+### browser.querySelectorAll(selector) : NodeList
 
 Select multiple elements and return a static node list.
 
-#### browser.select(field, value) => this
+### browser.select(field, value) : this
  
 Selects an option.
 
-#### browser.sessionStorage(host) => Storage
+### browser.sessionStorage(host) : Storage
 
 Returns session Storage based on the document origin (hostname/port).
 
-#### browser.text(selector, context?) => String
+### browser.text(selector, context?) : String
 
 Returns the text contents of the selected elements.
 
-#### browser.uncheck(field) => this
+### browser.uncheck(field) : this
 
 Unchecks a checkbox.
 
-#### browser.visit(url, callback)
+### browser.visit(url, callback)
 
 Loads document from the specified URL, processes events and calls the callback.
 
-#### browser.wait(terminator, callback)
+### browser.wait(terminator, callback)
 
 Process all events from the queue.  This includes resource loading, XHR
 requests, timeout and interval timers.  Calls the callback when done.
@@ -302,19 +302,22 @@ The terminator is optional and can be one of:
 * Number -- process that number of events
 * Function -- called after each event, returns false to stop processing
 
-#### browser.window => Window
+### browser.window : Window
 
 Returns the main window.
 
-#### Event: "drain"
+### Event: 'drain'
+`function (browser) { }`
 
 Emitted whenever the event queue goes back to empty.
 
-#### Event: "loaded"
+### Event: 'loaded'
+`function (browser) { }`
 
 Emitted whenever new page loaded.  This event is emitted before `DOMContentLoaded`.
 
-#### Event: "error"
+### Event: 'error'
+`function (error) { }`
 
 Emitted if an error occurred loading a page or submitting a form.
 
@@ -401,7 +404,11 @@ Zombie.js is written in
 ## See Also
 
 [Annotated Source Code](source/browser.html)
+
 [Changelog](changelog.html)
+
 [DOM API](http://www.w3.org/DOM/DOMTR)
+
 [Sizzle.js](http://sizzlejs.com/)
+
 [Vows](http://vowsjs.org/)
