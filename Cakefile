@@ -113,7 +113,7 @@ task "publish", "Publish new version (Git, NPM, site)", ->
       version = JSON.parse(package).version
       log "Tagging v#{version} ...", green
       exec "git tag v#{version}", ->
-        exec "git push"
+        exec "git push --tags origin master"
 
       log "Publishing to NPM ...", green
       exec "rm -rf clean && git checkout-index -a -f --prefix clean/", (err)->
