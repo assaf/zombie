@@ -1,0 +1,4 @@
+.git*
+.npm
+html
+node_modules

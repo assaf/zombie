@@ -39,11 +39,12 @@ task "setup", "Install development dependencies", ->
 ## Building ##
 
 build = (callback)->
-  exec "rm -rf lib && coffee -c -o lib src", callback
+  log "Compiling CoffeeScript to JavaScript ...", green
+  exec "rm -rf lib && coffee -c -l -o lib src", callback
 task "build", -> build onerror
 
 task "clean", "Remove temporary files and such", ->
-  exec "rm -rf clean html lib man1", onerror
+  exec "rm -rf html lib man1", onerror
 
 
 ## Testing ##
@@ -135,11 +136,9 @@ task "publish", "Publish new version (Git, NPM, site)", ->
         exec "git push --tags origin master"
 
       log "Publishing to NPM ...", green
-      exec "rm -rf clean && git checkout-index -a -f --prefix clean/ ; cp -rf man1 clean/", (err)->
+      build (err)->
         onerror err
-        exec "coffee -c -o clean/lib clean/src", (err)->
-          onerror err
-          exec "npm publish clean", onerror
+        exec "npm publish ./", onerror
 
     # Publish documentation
     publishDocs onerror
