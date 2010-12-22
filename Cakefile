@@ -97,7 +97,7 @@ documentPages = (callback)->
 
 documentSource = (callback)->
   log "Documenting source files ...", green
-  exec "docco src/**/*.coffee", (err)->
+  exec "docco src/*.coffee src/**/*.coffee", (err)->
     onerror err
     log "Copying to html/source ...", green
     exec "mkdir -p html && cp -rf docs/ html/source && rm -rf docs", callback

@@ -5,8 +5,20 @@
     <link href="screen.css" media="screen,projection" rel="stylesheet" type="text/css">
   </head>
   <body>
-    <div class="title"><a href="/">Zombie.js</a></div>
-    <h1>{{title}}</h1>
-    <div id="content">{{body}}</div>
+    <div id="header">
+      <div class="title"><a href="/">Zombie.js</a></div>
+      <ul class="navigation">
+        <li><a href="/">Documentation</a></li>
+        <li><a href="/changelog.html">Changelog</a></li>
+        <li><a href="/todo.html">Todo</a></li>
+        <li><a href="/source/">Annotated</a></li>
+        <li><a href="https://github.com/assaf/zombie/issues">Issues</a></li>
+        <li><a href="https://github.com/assaf/zombie">Fork Me</a></li>
+      </ul>
+    </div>
+    <div id="content">
+      <h1>{{title}}</h1>
+      {{body}}
+    </div>
   </body>
 </html>

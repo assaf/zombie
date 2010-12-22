@@ -12,11 +12,11 @@ class History
     stack = []
     index = -1
     history = @
-    # ### history.forward amount
+    # ### history.forward()
     @forward = -> @go(1)
-    # ### history.back amount
+    # ### history.back()
     @back = -> @go(-1)
-    # ### history.go amount
+    # ### history.go(amount)
     @go = (amount)->
       new_index = index + amount
       new_index = 0 if new_index < 0
@@ -36,17 +36,19 @@ class History
         else
           pageChanged old
       return
+    # ### history.length => Number
+    #
     # Number of states/URLs in the history.
     @__defineGetter__ "length", -> stack.length
 
-    # ### history.pushState state, title, url
+    # ### history.pushState(state, title, url)
     #
     # Push new state to the stack, do not reload
     @pushState = (state, title, url)->
       entry = stack[index] if index >= 0
       url = URL.resolve(entry, url) if entry
       stack[++index] = { state: state, title: title, url: URL.parse(url.toString()), pop: true }
-    # ### history.replaceState state, title, url
+    # ### history.replaceState(state, title, url)
     #
     # Replace existing state in the stack, do not reload
     @replaceState = (state, title, url)->
@@ -79,10 +81,10 @@ class History
       resource @_location
     # Form submission. Makes request and loads response in the background.
     #
-    # url -- Same as form action, can be relative to current document
-    # method -- Method to use, defaults to GET
-    # data -- Form valuesa
-    # enctype -- Encoding type, or use default
+    # * url -- Same as form action, can be relative to current document
+    # * method -- Method to use, defaults to GET
+    # * data -- Form valuesa
+    # * enctype -- Encoding type, or use default
     @_submit = (url, method, data, enctype)->
       url = URL.resolve(URL.format(@_location), url)
       url = URL.parse(url)
@@ -191,11 +193,11 @@ class History
 # Represents window.location and document.location.
 class Location
   constructor: (history, @_url)->
-    # ### location.assign url
+    # ### location.assign(url)
     @assign = (url)-> history._assign url
-    # ### location.replace url
+    # ### location.replace(url)
     @replace = (url)-> history._replace url
-    # ### location.reload force?
+    # ### location.reload(force?)
     @reload = (force)-> history._loadPage(force)
     # ### location.toString() => String
     @toString = -> URL.format(@_url)
@@ -211,7 +213,8 @@ class Location
         new_url[prop] = value
         history._assign URL.format(new_url)
 
-# ## document.location
+# ## document.location => Location
+#
 # document.location is same as window.location
 jsdom.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", -> @parentWindow.location
 

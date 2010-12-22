@@ -5,7 +5,7 @@ body {
   margin: 1em auto;
   color: #222;
 }
-h1, h2, h3, h4 {
+h1, h2, h3, h4, #header {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
   color: #660000;
 }
@@ -23,16 +23,29 @@ pre, code {
   color: #060;
 }
 
-.title {
+#header .title {
   text-align: right;
-  font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
   font-weight: bolder;
-  font-size: 24pt;
+  font-size: 28pt;
 }
 .title a {
   text-decoration: none;
-  color: #660000;
+  color: #600;
+}
+#header .navigation {
+  display: inline;
+  padding: 0;
+}
+#header .navigation li {
+  font-weight: bolder;
+  display: inline;
+  margin-right: 0.6em;
+}
+#header .navigation a {
+  text-decoration: none;
+  color: #22c;
 }
 
 #content {
+  margin-top: 2em;
 }

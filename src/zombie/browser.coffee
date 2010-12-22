@@ -50,9 +50,10 @@ class Browser extends require("events").EventEmitter
     # With one argument, that argument is the callback. With two arguments, the
     # first argument is a terminator and the last argument is the callback. The
     # terminator is one of:
-    # - null -- process all events
-    # - number -- process that number of events
-    # - function -- called after each event, stop processing when function
+    #
+    # * null -- process all events
+    # * number -- process that number of events
+    # * function -- called after each event, stop processing when function
     #   returns false
     #
     # Events include timeout, interval and XHR `onreadystatechange`. DOM events
@@ -71,9 +72,9 @@ class Browser extends require("events").EventEmitter
     # link.  These events will bubble up and can be cancelled.  With a callback, this
     # function will call `wait`.
     #
-    # name -- Even name (e.g `click`)
-    # target -- Target element (e.g a link)
-    # callback -- Wait for events to be processed, then call me (optional)
+    # * name -- Even name (e.g `click`)
+    # * target -- Target element (e.g a link)
+    # * callback -- Wait for events to be processed, then call me (optional)
     this.fire = (name, target, callback)->
       event = window.document.createEvent("HTMLEvents")
       event.initEvent name, true, true
@@ -102,7 +103,8 @@ class Browser extends require("events").EventEmitter
     #
     # Select a single element (first match) and return it.
     #
-    # selector -- CSS selector
+    # * selector -- CSS selector
+    #
     # Returns an Element or null
     this.querySelector = (selector)-> window.document?.querySelector(selector)
 
@@ -110,7 +112,8 @@ class Browser extends require("events").EventEmitter
     #
     # Select multiple elements and return a static node list.
     #
-    # selector -- CSS selector
+    # * selector -- CSS selector
+    #
     # Returns a NodeList or null
     this.querySelectorAll = (selector)-> window.document?.querySelectorAll(selector)
 
@@ -118,8 +121,9 @@ class Browser extends require("events").EventEmitter
     #
     # Returns the text contents of the selected elements.
     #
-    # selector -- CSS selector (if missing, entire document)
-    # context -- Context element (if missing, uses document)
+    # * selector -- CSS selector (if missing, entire document)
+    # * context -- Context element (if missing, uses document)
+    #
     # Returns a string
     this.text = (selector, context)->
       elements = if selector then (context || @document).querySelectorAll(selector).toArray() else [@document]
@@ -129,8 +133,9 @@ class Browser extends require("events").EventEmitter
     #
     # Returns the HTML contents of the selected elements.
     #
-    # selector -- CSS selector (if missing, entire document)
-    # context -- Context element (if missing, uses document)
+    # * selector -- CSS selector (if missing, entire document)
+    # * context -- Context element (if missing, uses document)
+    #
     # Returns a string
     this.html = (selector, context)->
       elements = if selector then (context || @document).querySelectorAll(selector).toArray() else [@document]
@@ -186,8 +191,8 @@ class Browser extends require("events").EventEmitter
     # page, etc: use a callback to be notified of completion.  Finds link by
     # text content or selector.
     #
-    # selector -- CSS selector or link text
-    # callback -- Called with two arguments: error and browser
+    # * selector -- CSS selector or link text
+    # * callback -- Called with two arguments: error and browser
     this.clickLink = (selector, callback)->
       if link = @querySelector(selector)
         @fire "click", link, callback if link
@@ -226,8 +231,9 @@ class Browser extends require("events").EventEmitter
     #
     # Fill in a field: input field or text area.
     #
-    # field -- CSS selector, field name or text of the field label
-    # value -- Field value
+    # * field -- CSS selector, field name or text of the field label
+    # * value -- Field value
+    #
     # Returns this
     this.fill = (field, value)->
       match = (elem)-> elem.nodeName == "TEXTAREA" || textTypes.indexOf(elem.type?.toLowerCase()) >= 0
@@ -255,7 +261,8 @@ class Browser extends require("events").EventEmitter
     #
     # Checks a checkbox.
     #
-    # field -- CSS selector, field name or text of the field label
+    # * field -- CSS selector, field name or text of the field label
+    #
     # Returns this
     this.check = (field)-> setCheckbox field, true
 
@@ -263,7 +270,8 @@ class Browser extends require("events").EventEmitter
     #
     # Unchecks a checkbox.
     #
-    # field -- CSS selector, field name or text of the field label
+    # * field -- CSS selector, field name or text of the field label
+    #
     # Returns this
     this.uncheck = (field)-> setCheckbox field, false
 
@@ -271,7 +279,8 @@ class Browser extends require("events").EventEmitter
     #
     # Selects a radio box option.
     #
-    # field -- CSS selector, field value or text of the field label
+    # * field -- CSS selector, field value or text of the field label
+    #
     # Returns this
     this.choose = (field)->
       match = (elem)-> elem.nodeName == "INPUT" && elem.type?.toLowerCase() == "radio"
@@ -293,8 +302,9 @@ class Browser extends require("events").EventEmitter
     #
     # Selects an option.
     #
-    # field -- CSS selector, field name or text of the field label
-    # value -- Value (or label) or option to select
+    # * field -- CSS selector, field name or text of the field label
+    # * value -- Value (or label) or option to select
+    #
     # Returns this
     this.select = (field, value)->
       match = (elem)-> elem.nodeName == "SELECT"
@@ -320,8 +330,8 @@ class Browser extends require("events").EventEmitter
     # this will submit the form.  Use the callback to wait for the from
     # submission, page to load and all events run their course.
     #
-    # name -- CSS selector, button name or text of BUTTON element
-    # callback -- Called with two arguments: error and browser
+    # * name -- CSS selector, button name or text of BUTTON element
+    # * callback -- Called with two arguments: error and browser
     this.pressButton = (name, callback)->
       if button = @querySelector(name)
         button.click()

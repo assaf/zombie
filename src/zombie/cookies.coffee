@@ -1,13 +1,11 @@
-# Cookies.
+# See [RFC 2109](http://tools.ietf.org/html/rfc2109.html) and
+# [document.cookie](http://developer.mozilla.org/en/document.cookie)
 URL = require("url")
 core = require("jsdom").dom.level3.core
 
 
 # Maintains cookies for a Browser instance. This is actually a domain/path
 # specific scope around the global cookies collection.
-#
-# See [RFC 2109](http://tools.ietf.org/html/rfc2109.html) and
-# [document.cookie](http://developer.mozilla.org/en/document.cookie)
 class Cookies
   constructor: (browser, cookies, hostname, pathname)->
     pathname = "/" if !pathname || pathname == ""
@@ -48,23 +46,23 @@ class Cookies
       str = str + "; secure" if cookie.secure
       str
 
-    #### cookies(host, path).get name => String
+    #### cookies(host, path).get(name) => String
     #
     # Returns the value of a cookie.
     #
-    # name -- Cookie name
-    # Returns cookie value if known
+    # * name -- Cookie name
+    # * Returns cookie value if known
     this.get = (name)->
       for match in selected()
         return match[3].value if match[2] == name
 
-    #### cookies(host, path).set name, value, options?
+    #### cookies(host, path).set(name, value, options?)
     #
     # Sets a cookie (deletes if expires/max-age is in the past).
     #
-    # name -- Cookie name
-    # value -- Cookie value
-    # options -- Options max-age, expires, secure
+    # * name -- Cookie name
+    # * value -- Cookie value
+    # * options -- Options max-age, expires, secure
     this.set = (name, value, options = {})->
       name = name.toLowerCase()
       state = { value: value.toString() }
@@ -83,20 +81,22 @@ class Cookies
         in_path = in_domain[pathname] ||= {}
         in_path[name] = state
 
-    #### cookies(host, path).remove name
+    #### cookies(host, path).remove(name)
     #
     # Deletes a cookie.
     #
-    # name -- Cookie name
+    # * name -- Cookie name
     this.remove = (name, options = {})->
       if in_domain = cookies[hostname]
         if in_path = in_domain[pathname]
           delete in_path[name.toLowerCase()]
 
+    #### cookies(host, path).update(serialized)
+    #
     # Update cookies from serialized form. This method works equally well for
     # the Set-Cookie header and value passed to document.cookie setter.
     #
-    # serialized -- Serialized form
+    # * serialized -- Serialized form
     this.update = (serialized)->
       return unless serialized
       for cookie in serialized.split(/,(?=[^;,]*=)|,$/)
@@ -126,23 +126,32 @@ class Cookies
           in_path = in_domain[path || pathname] ||= {}
           in_path[name] = options
 
+    #### cookies(host, path).addHeader(headers)
+    #
     # Adds Cookie header suitable for sending to the server.
     this.addHeader = (headers)->
       header = ("#{match[2]}=\"#{match[3].value}\";$Path=\"#{match[1]}\"" for match in selected()).join("; ")
       if header.length > 0
         headers.cookie = "$Version=\"1\"; #{header}"
 
+    #### cookies(host, path).pairs => String
+    #
     # Returns key/value pairs of all cookies in this domain/path.
     @__defineGetter__ "pairs", ->
       ("#{match[2]}=#{match[3].value}" for match in selected()).join("; ")
 
-    this.dump = ->
-      (serialize.apply this, match for match in selected()).join("\n")
+    #### cookies(host, path).dump(separator?) => String
+    #
+    # The default separator is a line break, useful to output when
+    # debugging.  If you need to save/load, use comma as the line
+    # separator and then call `cookies.update`.
+    this.dump(separator = "\n") = ->
+      (serialize.apply this, match for match in selected()).join(separator)
 
 
 # ### document.cookie => String
 #
-# Returns name=value; pairs
+# Returns name=value pairs
 core.HTMLDocument.prototype.__defineGetter__ "cookie", -> @parentWindow.cookies.pairs
 # ### document.cookie = String
 #

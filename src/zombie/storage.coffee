@@ -1,4 +1,4 @@
-# Web Storage, see http://dev.w3.org/html5/webstorage/
+# See [Web Storage](http://dev.w3.org/html5/webstorage/)
 core = require("jsdom").dom.level3.core
 events = require("jsdom").dom.level3.events
 
@@ -62,12 +62,31 @@ class StorageArea
 class Storage
   constructor: (area, window)->
     area.associate this, window if window
+    # ### storage.length => Number
+    #
+    # Returns the number of key/value pairs in this storage.
     @__defineGetter__ "length", -> area.length
+    # ### storage.key(index) => String
+    #
+    # Returns the key at this position.
     this.key = (index)-> area.key(index)
+    # ### storage.getItem(key) => Object
+    #
+    # Returns item by key.
     this.getItem = (key)-> area.get(key.toString())
+    # ### storage.setItem(key, Object)
+    #
+    # Add item or change value of existing item.
     this.setItem = (key, value)-> area.set this, key.toString(), value
+    # ### storage.removeItem(key)
+    #
+    # Remove item.
     this.removeItem = (key)-> area.remove this, key.toString()
+    # ### storage.clear()
+    #
+    # Remove all items.
     this.clear = -> area.clear this
+    # Dump to a string, useful for debugging.
     this.dump = -> area.dump()
 
 

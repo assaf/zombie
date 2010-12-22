@@ -7,7 +7,7 @@ class EventLoop
     timers = {}
     lastHandle = 0
 
-    # ### window.setTimeout fn, delay
+    # ### window.setTimeout(fn, delay) => Number
     #
     # Implements window.setTimeout using event queue
     this.setTimeout = (fn, delay)->
@@ -26,7 +26,7 @@ class EventLoop
       timers[handle] = timer
       handle
 
-    # ### window.setInterval fn, delay
+    # ### window.setInterval(fn, delay) => Number
     #
     # Implements window.setInterval using event queue
     this.setInterval = (fn, delay)->
@@ -45,11 +45,11 @@ class EventLoop
       timers[handle] = timer
       handle
 
-    # ### window.clearTimeout timeout
+    # ### window.clearTimeout(timeout)
     #
     # Implements window.clearTimeout using event queue
     this.clearTimeout = (handle)-> delete timers[handle] if timers[handle]?.timeout
-    # ### window.clearInterval interval
+    # ### window.clearInterval(interval)
     #
     # Implements window.clearInterval using event queue
     this.clearInterval = (handle)-> delete timers[handle] if timers[handle]?.interval
@@ -60,6 +60,8 @@ class EventLoop
     # Queue of events.
     queue = []
 
+    # ### queue(event)
+    #
     # Queue an event to be processed by wait(). Event is a function call in the
     # context of the window.
     this.queue = (event)->
@@ -67,6 +69,8 @@ class EventLoop
       wait() for wait in waiting
       waiting = []
 
+    # ### wait(window, terminate, callback, intervals)
+    #
     # Process all events from the queue. This method returns immediately, events
     # are processed in the background. When all events are exhausted, it calls
     # the callback with null, window; if any event fails, it calls the callback
@@ -75,9 +79,10 @@ class EventLoop
     # With one argument, that argument is the callback. With two arguments, the
     # first argument is a terminator and the last argument is the callback. The
     # terminator is one of:
-    # - null -- process all events
-    # - number -- process that number of events
-    # - function -- called after each event, stop processing when function
+    #
+    # * null -- process all events
+    # * number -- process that number of events
+    # * function -- called after each event, stop processing when function
     #   returns false
     #
     # Events include timeout, interval and XHR onreadystatechange. DOM events
