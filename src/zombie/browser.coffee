@@ -1,4 +1,5 @@
 jsdom = require("jsdom")
+
 require "./jsdom_patches"
 require "./sizzle"
 require "./forms"
@@ -6,7 +7,7 @@ require "./forms"
 # Use the browser to open up new windows and load documents.
 #
 # The browser maintains state for cookies and localStorage.
-class Browser
+class Browser extends require("events").EventEmitter
   constructor: ->
     cookies = require("./cookies").use(this)
     storage = require("./storage").use(this)
@@ -60,7 +61,8 @@ class Browser
       if !callback
         callback = terminate
         terminate = null
-      eventloop.wait window, terminate, (err) => callback err, this
+      eventloop.wait window, terminate, (error) =>
+        callback error, this if callback
       return
 
     # ### browser.fire(name, target, calback?)

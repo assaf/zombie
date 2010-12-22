@@ -137,10 +137,14 @@ class History
                   document.open()
                   document.write body
                   document.close()
-                  error = "Could not parse document at #{URL.format(url)}" unless document.documentElement
+                  if document.documentElement
+                    browser.emit "loaded", browser
+                  else
+                    error = "Could not parse document at #{URL.format(url)}"
                 when 301, 302, 303, 307
                   redirect = URL.parse(URL.resolve(url, response.headers["location"]))
                   stack[index] = { url: redirect }
+                  browser.emit "redirected", redirect
                   process.nextTick ->
                     makeRequest redirect, "GET"
                 else
@@ -148,16 +152,17 @@ class History
               # onerror is the only reliable way we have to notify the
               # application.
               if error
-                console.error "Error requesting #{URL.format(url)}", error
                 event = document.createEvent("HTMLEvents")
                 event.initEvent "error", true, false
                 document.dispatchEvent event
+                browser.emit "error", new Error(error)
 
           client.on "error", (error)->
             console.error "Error requesting #{URL.format(url)}", error
             event = document.createEvent("HTMLEvents")
             event.initEvent "error", true, false
             document.dispatchEvent event
+            browser.emit "error", new Error(error)
             done error
           request.end data, "utf8"
       makeRequest url, method, data

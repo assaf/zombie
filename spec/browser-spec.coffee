@@ -85,6 +85,29 @@ vows.describe("Browser").addBatch(
         "should execute route": (browser)-> assert.equal browser.text("#main"), "The Living Dead"
         "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
 
+  "event emitter":
+    "successful":
+      topic: ->
+        browser = new zombie.Browser
+        browser.on "loaded", (browser)=> @callback null, browser
+        browser.wants "http://localhost:3003/"
+      "should fire load event": (browser)-> assert.ok browser.visit
+    "error":
+      topic: ->
+        browser = new zombie.Browser
+        browser.on "error", (err)=> @callback null, err
+        browser.wants "http://localhost:3003/deadend"
+      "should fire onerror event": (err)->
+        assert.ok err.message && err.stack
+        assert.equal err.message, "Could not load document at http://localhost:3003/deadend, got 404"
+    "wait over":
+      topic: ->
+        browser = new zombie.Browser
+        browser.on "drain", (browser)=> @callback null, browser
+        browser.wants "http://localhost:3003/"
+      "should fire done event": (browser)-> assert.ok browser.visit
+     
+
   "content selection":
     zombie.wants "http://localhost:3003/living"
       "query text":

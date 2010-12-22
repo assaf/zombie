@@ -6,6 +6,9 @@ Added `querySelector` and `querySelectorAll` based on the [DOM Selector
 API](http://www.w3.org/TR/selectors-api/).  Use this instead of `find`
 method.
 
+Browser is now an EventEmitter, you can listen to drain (event queue
+empty), error (loading page) and loaded (what is says).
+
     184 tests
     2.0 sec to complete
 

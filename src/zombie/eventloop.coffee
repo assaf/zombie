@@ -114,10 +114,12 @@ class EventLoop
                 return
             @wait window, terminate, callback, intervals
           catch err
+            browser.emit "error", err
             callback err, window
         else if requests > 0
           waiting.push => @wait window, terminate, callback, intervals
         else
+          browser.emit "drain", browser
           callback null, window
 
     # Counts outstanding requests.

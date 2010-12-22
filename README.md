@@ -201,6 +201,19 @@ The terminator is optional and can be one of:
 
 Returns the main window.
 
+#### Event: "drain"
+
+Emitted whenever the event queue goes back to empty.
+
+#### Event: "loaded"
+
+Emitted whenever new page loaded.  This event is emitted before `DOMContentLoaded`.
+
+#### Event: "error"
+
+Emitted if an error occurred loading a page or submitting a form.
+
+
 
 
 ## Guts
