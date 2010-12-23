@@ -1,7 +1,7 @@
 fs            = require("fs")
 path          = require("path")
 {spawn, exec} = require("child_process")
-sys           = require("sys")
+stdout        = process.stdout
 
 # ANSI Terminal Colors.
 bold  = "\033[0;1m"
@@ -16,7 +16,7 @@ log = (message, color, explanation) ->
 # Handle error, do nothing if null
 onerror = (err)->
   if err
-    sys.puts "#{red}#{err.stack}#{reset}"
+    process.stdout.write "#{red}#{err.stack}#{reset}\n"
     process.stdout.on "drain", -> process.exit -1
 
 
@@ -47,7 +47,7 @@ task "build", "Compile CoffeeScript to JavaScript", -> build onerror
 
 task "watch", "Continously compile CoffeeScript to JavaScript", ->
   cmd = spawn("coffee", ["-cw", "-o", "lib", "src"])
-  cmd.stdout.on "data", (data)-> sys.print green + data + reset
+  cmd.stdout.on "data", (data)-> process.stdout.write green + data + reset
   cmd.on "error", onerror
   
 
@@ -60,7 +60,7 @@ task "clean", "Remove temporary files and such", ->
 runTests = (callback)->
   log "Running test suite ...", green
   exec "vows --spec", (err, stdout)->
-    sys.puts stdout
+    process.stdout.write stdout
     callback err
 task "test", "Run all tests", -> runTests onerror
 
@@ -95,7 +95,7 @@ documentPages = (callback)->
         onerror err
         toHTML "CHANGELOG.md", (err)->
           onerror err
-          sys.puts ""
+          process.stdout.write "\n"
           exec "cp -f doc/*.css html/", callback
 
 documentSource = (callback)->

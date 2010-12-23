@@ -1,6 +1,11 @@
 Changes
 =======
 
+## Version 0.7.1  2010-12-22
+
+Removed CoffeeScript from runtime dependency list.
+
+
 ## Version 0.7.0  2010-12-22
 
 Added `querySelector` and `querySelectorAll` based on the [DOM Selector

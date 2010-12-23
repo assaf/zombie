@@ -23,7 +23,6 @@
     "node": "*"
   },
   "dependencies": {
-    "coffee-script": ">= 0.9.6",
     "htmlparser": ">= 1.7.3",
     "jsdom": ">= 0.1.21"
   },
