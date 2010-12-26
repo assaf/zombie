@@ -25,11 +25,11 @@ onerror = (err)->
 # Setup development dependencies, not part of runtime dependencies.
 task "setup", "Install development dependencies", ->
   log "Need Vows and Express to run test suite, installing ...", green
-  exec "npm install \"vows@>=0.\"5", onerror
-  exec "npm install \"express@>=1.0\"", onerror
+  exec "npm install \"vows@>=0.5.0\"", onerror
+  exec "npm install \"express@>=1.0.0\"", onerror
   log "Need Ronn and Docco to generate documentation, installing ...", green
-  exec "npm install \"ronn@>=0.3\"", onerror
-  exec "npm install \"docco@>=0.3\"", onerror
+  exec "npm install \"ronn@>=0.3.0\"", onerror
+  exec "npm install \"docco@>=0.3.0\"", onerror
   log "Need runtime dependencies, installing ...", green
   fs.readFile "package.json", "utf8", (err, package)->
     for name, version of JSON.parse(package).dependencies
