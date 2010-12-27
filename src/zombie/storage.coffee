@@ -7,55 +7,50 @@ events = require("jsdom").dom.level3.events
 # origin. For session storage, they must also share the same browsing context.
 class StorageArea
   constructor: ->
-    @length =  0
-    @items = []
-    @storages = []
-  # Get key by ordinal position.
-  key: (index)->
-    i = 0
-    for k of @items
-      return k if i == index
-      ++i
-    return
-  # Get value from key
-  get: (key)->
-    entry = @items[key]
-    entry[0] if entry
-  # Set the value of a key. We also need the source storage (so we don't send
-  # it a storage event).
-  set: (source, key, value)->
-    if entry = @items[key]
-      oldValue = entry[0]
-      entry[0] = value
-    else
-      ++@length
-      @items[key] = [value]
-    @fire source, key, oldValue, value
-  # Remove the value at the key. We also need source storage (see set above).
-  remove: (source, key)->
-    if entry = @items[key]
-      oldValue = entry[0]
-      --@length
-      delete @items[key]
-    @fire source, key, oldValue
-  # Remove all values. We also need source storage (see set above).
-  clear: (source)->
-    if @length > 0
-      @length = 0
-      @items = []
-      @fire source
-  # Fire a storage event. Fire in all documents that share this storage area,
-  # except for the source document.
-  fire: (source, key, oldValue, newValue)->
-    for [storage, window] in @storages
-      continue if storage == source
-      event = new StorageEvent(storage, window.location.href, key, oldValue, newValue)
-      #process.nextTick -> window.dispatchEvent event, false, false
-  # Associate local/sessionStorage and window with this storage area. Used when firing events.
-  associate: (storage, window)->
-    @storages.push [storage, window]
-  dump: ->
-    ("#{k} = #{v[0]}" for k,v of @items).join("\n")
+    items = []
+    storages = []
+    # Fire a storage event. Fire in all documents that share this storage area,
+    # except for the source document.
+    fire = (source, key, oldValue, newValue)->
+      for [storage, window] in storages
+        continue if storage == source
+        event = new StorageEvent(storage, window.location.href, key, oldValue, newValue)
+        #process.nextTick -> window.dispatchEvent event, false, false
+
+    # Return number of key/value pairs.
+    @__defineGetter__ "length", ->
+      i = 0
+      ++i for k of items
+      return i
+    # Get key by ordinal position.
+    this.key = (index)->
+      i = 0
+      for k of items
+        return k if i == index
+        ++i
+      return
+    # Get value from key
+    this.get = (key)-> items[key]
+    # Set the value of a key. We also need the source storage (so we don't send
+    # it a storage event).
+    this.set = (source, key, value)->
+      oldValue = items[key]
+      items[key] = value
+      fire source, key, oldValue, value
+    # Remove the value at the key. We also need source storage (see set above).
+    this.remove = (source, key)->
+      oldValue = items[key]
+      delete items[key]
+      fire source, key, oldValue
+    # Remove all values. We also need source storage (see set above).
+    this.clear = (source)->
+      items = []
+      fire source
+    # Associate local/sessionStorage and window with this storage area. Used when firing events.
+    this.associate = (storage, window)->
+      storages.push [storage, window]
+    this.toString = ->
+      ("#{k} = #{v}" for k,v of items).join("\n")
         
 
 # Implementation of the Storage interface, used by local and session storage.
