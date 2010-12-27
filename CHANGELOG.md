@@ -1,6 +1,20 @@
 Changes
 =======
 
+## Version 0.7.2  2010-12-26
+
+In CoffeeScript 1.0 loops no longer try preserve block scope when
+functions are being generated within the loop body.  Unfortunately, this
+broke a bunch of stuff when running Zombie from CoffeeScript source.  It
+had effect when running the compiled JavaScript.
+
+Changed: window.location now returns the same Location object until you
+navigate to a different page.
+
+    183 Tests
+    1.8 sec to complete
+
+
 ## Version 0.7.1  2010-12-22
 
 Removed CoffeeScript from runtime dependency list.
