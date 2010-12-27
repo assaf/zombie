@@ -1,7 +1,7 @@
 Changes
 =======
 
-## Version 0.7.2  2010-12-26
+## Version 0.7.2  2010-12-27
 
 In CoffeeScript 1.0 loops no longer try preserve block scope when
 functions are being generated within the loop body.  Unfortunately, this
