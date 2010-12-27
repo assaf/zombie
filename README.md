@@ -322,6 +322,20 @@ Emitted whenever new page loaded.  This event is emitted before `DOMContentLoade
 Emitted if an error occurred loading a page or submitting a form.
 
 
+## Readiness
+
+Zombie.js supports the following:
+
+- HTML parsing (documents must be valid, though)
+- [DOM Level 3](http://www.w3.org/DOM/DOMTR) implementation
+- HTML5 form fields (`search`, `url`, etc)
+- C33 Selectors with [some extensions](http://sizzlejs.com/)
+- Cookies and [Web Storage](http://dev.w3.org/html5/webstorage/)
+- `XMLHttpRequest`
+- `setTimeout`/`setInterval` and messing with the system clock
+- `pushState` and the `popstate` event
+
+
 ## The Guts
 
 Zombie.js is written in
