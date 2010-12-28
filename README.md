@@ -345,14 +345,15 @@ Emitted if an error occurred loading a page or submitting a form.
 
 Zombie.js supports the following:
 
-- HTML parsing (documents must be valid, though)
+- HTML5 parsing and dealing with tag soups
 - [DOM Level 3](http://www.w3.org/DOM/DOMTR) implementation
 - HTML5 form fields (`search`, `url`, etc)
 - C33 Selectors with [some extensions](http://sizzlejs.com/)
 - Cookies and [Web Storage](http://dev.w3.org/html5/webstorage/)
-- `XMLHttpRequest`
+- `XMLHttpRequest` in all its glory
 - `setTimeout`/`setInterval` and messing with the system clock
-- `pushState` and the `popstate` event
+- `pushState`, `popstate` and `hashchange` events
+- Scripts that use `document.write`
 
 
 ## The Guts
@@ -377,6 +378,8 @@ pretty decent emulation of DOM Level 3. There are some issues and some
 features Zombie.js needs but JSDOM doesn't care for (e.g default event
 handlers).  Those are patched onto JSDOM in
 `lib/zombie/jsdom_patches.coffee` and `lib/zombie/forms.coffee`.
+
+HTML5 parsing is handled by [HTML5](https://github.com/aredridel/html5).
 
 DOM selectors are provided by [Sizzle.js](http://sizzlejs.com/), and
 vendored in the `vendor` directory.
