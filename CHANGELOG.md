@@ -1,5 +1,15 @@
-zombie.js changelog(1) -- Changelog
+zombie.js-changelog(1) -- Changelog
 ===================================
+
+## Version 0.7.5  2010-12-28
+
+Added documentation page for CSS selectors.
+    
+Man pages now moved to section 7.
+    
+Added zombie.version.
+
+
 
 ## Version 0.7.5  2010-12-28
 

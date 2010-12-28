@@ -52,7 +52,7 @@ task "watch", "Continously compile CoffeeScript to JavaScript", ->
   
 
 task "clean", "Remove temporary files and such", ->
-  exec "rm -rf html lib man1", onerror
+  exec "rm -rf html lib man7", onerror
 
 
 ## Testing ##
@@ -71,34 +71,37 @@ task "test", "Run all tests", -> runTests onerror
 # Markdown to HTML.
 toHTML = (source, callback)->
   target = "html/#{path.basename(source, ".md").toLowerCase()}.html"
-  fs.mkdir "html", 0777, ->
-    fs.readFile "doc/_layout.html", "utf8", (err, layout)->
+  fs.readFile "doc/_layout.html", "utf8", (err, layout)->
+    onerror err
+    fs.readFile source, "utf8", (err, text)->
       onerror err
-      fs.readFile source, "utf8", (err, text)->
+      log "Creating #{target}", green
+      exec "ronn --html #{source}", (err, stdout, stderr)->
         onerror err
-        log "Creating #{target}", green
-        exec "ronn --html #{source}", (err, stdout, stderr)->
-          onerror err
-          [name, title] = stdout.match(/<h1>(.*)<\/h1>/)[1].split(" -- ")
-          name = name.replace(/\(\d\)/, "")
-          body = stdout.replace(/<h1>.*<\/h1>/, "")
-          html = layout.replace("{{body}}", body).replace(/{{title}}/g, title)
-          fs.writeFile target, html, "utf8", (err)->
-            callback err, target
+        [name, title] = stdout.match(/<h1>(.*)<\/h1>/)[1].split(" -- ")
+        name = name.replace(/\(\d\)/, "")
+        body = stdout.replace(/<h1>.*<\/h1>/, "")
+        html = layout.replace("{{body}}", body).replace(/{{title}}/g, title)
+        fs.writeFile target, html, "utf8", (err)->
+          callback err, target
 
 documentPages = (callback)->
   files = fs.readdirSync(".").filter((file)-> path.extname(file) == ".md").
     concat(fs.readdirSync("doc").filter((file)-> path.extname(file) == ".md").map((file)-> "doc/#{file}"))
-  convert = ->
-    if file = files.pop()
-      toHTML file, (err)->
-        onerror err
-        convert()
-    else
-      process.stdout.write "\n"
-      exec "mv html/readme.html html/index.html", onerror
-      exec "cp -f doc/*.css html/", callback
-  convert()
+  fs.mkdir "html", 0777, ->
+    convert = ->
+      if file = files.pop()
+        toHTML file, (err)->
+          onerror err
+          convert()
+      else
+        process.stdout.write "\n"
+        fs.readFile "html/readme.html", "utf8", (err, html)->
+          html = html.replace(/<h1>(.*)<\/h1>/, "<h1>Zombie.js</h1><b>$1</b>")
+          fs.writeFile "html/index.html", html, "utf8", onerror
+          fs.unlink "html/readme.html", onerror
+          exec "cp -f doc/*.css html/", callback
+    convert()
 
 documentSource = (callback)->
   log "Documenting source files ...", green
@@ -111,19 +114,18 @@ documentSource = (callback)->
 generateMan = (callback)->
   files = fs.readdirSync(".").filter((file)-> path.extname(file) == ".md").
     concat(fs.readdirSync("doc").filter((file)-> path.extname(file) == ".md").map((file)-> "doc/#{file}"))
-  fs.mkdir "man1", 0777, (err)->
-    onerror err
+  fs.mkdir "man7", 0777, (err)->
     log "Generating man file ...", green
     convert = ->
       if file = files.pop()
-        target = "man1/#{path.basename(file, ".md").toLowerCase()}.1"
+        target = "man7/#{path.basename(file, ".md").toLowerCase()}.7"
         exec "ronn --roff #{file}", (err, stdout, stderr)->
           onerror err
           log "Creating #{target}", green
           fs.writeFile target, stdout, "utf8", callback
           convert()
       else
-        exec "mv man1/readme.1 man1/zombie.1", onerror
+        exec "mv man7/readme.7 man7/zombie.7", onerror
         process.stdout.write "\n"
     convert()
 

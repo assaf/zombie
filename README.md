@@ -1,7 +1,6 @@
-zombie.js(1) -- Zombie.js
-=========================
+zombie.js(1) -- Insanely fast, headless full-stack testing using Node.js
+========================================================================
 
-**Insanely fast, headless full-stack testing using Node.js**
 
 ## The Bite
 
@@ -439,14 +438,4 @@ Zombie.js is written in
 
 ## See Also
 
-zombie-troubleshoot
-
-[Troubleshooting](troubleshoot.html)
-
-[Changelog](changelog.html)
-
-[DOM API](http://www.w3.org/DOM/DOMTR)
-
-[Sizzle.js](http://sizzlejs.com/)
-
-[Vows](http://vowsjs.org/)
+**zombie-troublshooting**(7), **zombie-selectors**(7), **zombie-changelog**(7), **zombie-todo**(7)

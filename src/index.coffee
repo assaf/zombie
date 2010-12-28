@@ -24,3 +24,10 @@ exports.visit = (url, callback)->
   browser = new exports.Browser
   browser.visit url, callback
   return
+
+# ### zombie.version : String
+try
+  exports.package = JSON.parse(require("fs").readFileSync("package.json"))
+  exports.version = exports.package.version
+catch err
+  console.log err

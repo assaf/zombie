@@ -1,5 +1,5 @@
-zombie.js troubleshoot(1) -- Troubleshooting
-============================================
+zombie.js-troubleshoot(1) -- Troubleshooting guide
+==================================================
 
 
 ## The Dump

@@ -13,7 +13,7 @@
   "directories": {
     "doc": "./doc",
     "lib": "./lib",
-    "man": "./man1"
+    "man": "./man7"
   },
   "scripts": {
     "build": "cake",

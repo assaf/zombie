@@ -2,5 +2,5 @@
 clean
 html
 lib
-man1
+man7
 node_modules

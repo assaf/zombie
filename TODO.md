@@ -1,4 +1,4 @@
-zombie.js todo(1) -- Wishlist
+zombie.js-todo(1) -- Wishlist
 =============================
 
 * Navigation: Browser.open/close should work as a pair; look into supporting
