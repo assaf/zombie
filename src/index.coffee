@@ -1,6 +1,9 @@
-# Constructor for a new Browser. Takes no arguments.
-exports.Browser = require("./zombie/browser").Browser
+browser = require("./zombie/browser")
 
+# Constructor for a new Browser. Takes no arguments.
+exports.Browser = browser.Browser
+exports.package = browser.package
+exports.version = browser.version
 
 # ### zombie.visit(url, callback)
 #
@@ -24,10 +27,3 @@ exports.visit = (url, callback)->
   browser = new exports.Browser
   browser.visit url, callback
   return
-
-# ### zombie.version : String
-try
-  exports.package = JSON.parse(require("fs").readFileSync("package.json"))
-  exports.version = exports.package.version
-catch err
-  console.log err

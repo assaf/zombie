@@ -121,14 +121,14 @@ class EventLoop
           catch err
             browser.emit "error", err
             callback err, window
-        else if requests > 0
+        else if requests.length > 0
           waiting.push => @wait window, terminate, callback, intervals
         else
           browser.emit "drain", browser
           callback null, window
 
     # Counts outstanding requests.
-    requests = 0
+    requests = []
     # Used internally for the duration of an internal request (loading
     # resource, XHR). Also collects request/response for debugging.
     #
@@ -137,17 +137,20 @@ class EventLoop
     # argument, a done callback. It must call the done callback when it
     # completes processing, passing error and response arguments.
     this.request = (request, fn)->
-      ++requests
-      browser.debug -> "#{request.method} #{request.url}"
+      browser.debug -> "#{request.method} #{url}"
+      url = request.url.toString()
+      requests.push url
       pending = browser.record request
       fn (err, response)->
         if err
-          browser.debug -> "Error loading #{request.url}: #{err}"
+          browser.debug -> "Error loading #{url}: #{err}"
           pending.error = err
         else
-          browser.debug -> "#{request.method} #{request.url} => #{response.status}"
+          browser.debug -> "#{request.method} #{url} => #{response.status}"
           pending.response = response
-        if --requests == 0
+        index = requests.indexOf(url)
+        requests.splice index, 1
+        if requests.length == 0
           for wait in waiting
             process.nextTick -> wait()
           waiting = []
@@ -158,6 +161,15 @@ class EventLoop
       window.queue = this.queue
       window.wait = (terminate, callback)=> this.wait(window, terminate, callback)
       window.request = this.request 
+
+    this.dump = ()->
+      dump = [ "The time: #{browser.clock}",
+               "Timers:   #{timers.length}",
+               "Queue:    #{queue.length}",
+               "Waiting:  #{waiting.length}",
+               "Requests:"]
+      dump.push "  #{request}" for request in requests
+      dump
 
 exports.use = (browser)->
   return new EventLoop(browser)

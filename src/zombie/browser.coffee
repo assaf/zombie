@@ -446,10 +446,12 @@ class Browser extends require("events").EventEmitter
 
     this.dump = ->
       indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
+      console.log "Zombie: #{exports.version}\n"
       console.log "URL: #{@window.location.href}"
       console.log "History:\n#{indent history.dump()}"
       console.log "Cookies:\n#{indent cookies.dump()}"
       console.log "Storage:\n#{indent storage.dump()}"
+      console.log "Eventloop:\n#{indent eventloop.dump()}"
       if @document
         html = @document.outerHTML
         html = html.slice(0, 497) + "..." if html.length > 497
@@ -459,3 +461,11 @@ class Browser extends require("events").EventEmitter
 
 
 exports.Browser = Browser
+
+
+# ### zombie.version : String
+try
+  exports.package = JSON.parse(require("fs").readFileSync("package.json"))
+  exports.version = exports.package.version
+catch err
+  console.log err
