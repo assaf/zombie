@@ -65,14 +65,31 @@ brains.get "/dead", (req, res)-> res.send """
   </html>
   """
 
-brains.get "/write", (req, res)-> res.send """
+brains.get "/script/write", (req, res)-> res.send """
   <html>
     <head>
       <script>document.write(unescape(\'%3Cscript src="/jquery.js"%3E%3C/script%3E\')</script>
     </head>
     <body>
       <script>
-        $(function() { document.title = "Script write" });
+        $(function() { document.title = "Script document.write" });
+      </script>
+    </body>
+  </html>
+  """
+
+brains.get "/script/append", (req, res)-> res.send """
+  <html>
+    <head>
+      <script>
+        var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
+        s.src = '/jquery.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);
+      </script>
+    </head>
+    <body>
+      <script>
+        $(function() { document.title = "Script appendChild" });
       </script>
     </body>
   </html>
@@ -154,8 +171,11 @@ vows.describe("Browser").addBatch(
       "should process event": (browser)-> assert.equal browser.document.title, "Signed up"
 
 
-  "script write":
-    zombie.wants "http://localhost:3003/write"
-      "should run script": (browser)-> assert.equal browser.document.title, "Script write"
+  "adding script using document.write":
+    zombie.wants "http://localhost:3003/script/write"
+      "should run script": (browser)-> assert.equal browser.document.title, "Script document.write"
+  "adding script using appendChild":
+    zombie.wants "http://localhost:3003/script/append"
+      "should run script": (browser)-> assert.equal browser.document.title, "Script appendChild"
 
 ).export(module)
