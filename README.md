@@ -238,15 +238,15 @@ function will call `wait`.
 
 Returns the HTML contents of the selected elements.
 
-### browser.last_error : Object
+### browser.lastError : Object
 
 Returns the last error received by this browser in lieu of response.
 
-### browser.last_request : Object
+### browser.lastRequest : Object
 
 Returns the last request sent by this browser.
 
-### browser.last_response : Object
+### browser.lastResponse : Object
  
 Returns the last response received by this browser.
 

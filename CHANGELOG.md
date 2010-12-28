@@ -1,6 +1,12 @@
 Changes
 =======
 
+## Version 0.7.4  2010-12-27
+
+Fixed naming issue: browser.last_request is now lastRequest, same for
+lastResponse and lastError.
+
+
 ## Version 0.7.3  2010-12-27
 
 Fixed non-sensical error message when selector fails matching a node

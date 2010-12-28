@@ -21,44 +21,44 @@ brains.get "/cookies/echo", (req,res)->
 vows.describe("Cookies").addBatch(
   "get cookies":
     zombie.wants "http://localhost:3003/cookies"
-     "cookies":
-       topic: (browser)->
-         browser.cookies("localhost", "/cookies")
-       "should have access to session cookie": (cookies)->
-         assert.equal cookies.get("_name"), "value"
-       "should have access to persistent cookie": (cookies)->
-         assert.equal cookies.get("_expires1"), "3s"
-         assert.equal cookies.get("_expires2"), "5s"
-       "should not have access to expired cookies": (cookies)->
-         assert.isUndefined cookies.get("_expires3")
-         assert.isUndefined cookies.get("_expires4")
-       "should have access to path cookies": (cookies)->
-         assert.equal cookies.get("_path1"), "yummy"
-       "should not have access to other paths": (cookies)->
-         assert.isUndefined cookies.get("_path2")
-         assert.isUndefined cookies.get("_path2")
-       "should not have access to .domain": (cookies)->
-         assert.equal cookies.get("_domain1"), "here"
-       "should not have access to other domains": (cookies)->
-         assert.isUndefined cookies.get("_domain2")
-         assert.isUndefined cookies.get("_domain3")
-     "document.cookie":
-       topic: (browser)->
-         browser.document.cookie
-       "should return name/value pairs": (cookie)-> assert.match cookie, /^(\w+=\w+; )+\w+=\w+$/
-       "pairs":
-         topic: (serialized)->
-           pairs = serialized.split("; ").reduce (map, pair)->
-             [name, value] = pair.split("=")
-             map[name] = value
-             map
-           , {}
-         "should include only visibile cookies": (pairs)->
-           keys = (key for key, value of pairs).sort()
-           assert.deepEqual keys, "_domain1 _expires1 _expires2 _name _path1".split(" ")
-         "should match name to value": (pairs)->
-          assert.equal pairs._name, "value"
-          assert.equal pairs._path1, "yummy"
+      "cookies":
+        topic: (browser)->
+          browser.cookies("localhost", "/cookies")
+        "should have access to session cookie": (cookies)->
+          assert.equal cookies.get("_name"), "value"
+        "should have access to persistent cookie": (cookies)->
+          assert.equal cookies.get("_expires1"), "3s"
+          assert.equal cookies.get("_expires2"), "5s"
+        "should not have access to expired cookies": (cookies)->
+          assert.isUndefined cookies.get("_expires3")
+          assert.isUndefined cookies.get("_expires4")
+        "should have access to path cookies": (cookies)->
+          assert.equal cookies.get("_path1"), "yummy"
+        "should not have access to other paths": (cookies)->
+          assert.isUndefined cookies.get("_path2")
+          assert.isUndefined cookies.get("_path2")
+        "should not have access to .domain": (cookies)->
+          assert.equal cookies.get("_domain1"), "here"
+        "should not have access to other domains": (cookies)->
+          assert.isUndefined cookies.get("_domain2")
+          assert.isUndefined cookies.get("_domain3")
+      "document.cookie":
+        topic: (browser)->
+          browser.document.cookie
+        "should return name/value pairs": (cookie)-> assert.match cookie, /^(\w+=\w+; )+\w+=\w+$/
+        "pairs":
+          topic: (serialized)->
+            pairs = serialized.split("; ").reduce (map, pair)->
+              [name, value] = pair.split("=")
+              map[name] = value
+              map
+            , {}
+          "should include only visibile cookies": (pairs)->
+            keys = (key for key, value of pairs).sort()
+            assert.deepEqual keys, "_domain1 _expires1 _expires2 _name _path1".split(" ")
+          "should match name to value": (pairs)->
+           assert.equal pairs._name, "value"
+           assert.equal pairs._path1, "yummy"
 
   "send cookies":
     topic: ->

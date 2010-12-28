@@ -388,16 +388,16 @@ class Browser extends require("events").EventEmitter
     #
     # Returns the last request sent by this browser. The object will have the
     # properties url, method, headers, and if applicable, body.
-    @__defineGetter__ "last_request", -> trail[trail.length - 1]?.request
+    @__defineGetter__ "lastRequest", -> trail[trail.length - 1]?.request
     # ### browser.last_response => Object
     #
     # Returns the last response received by this browser. The object will have the
     # properties status, headers and body. Long bodies may be truncated.
-    @__defineGetter__ "last_response", -> trail[trail.length - 1]?.response
+    @__defineGetter__ "lastResponse", -> trail[trail.length - 1]?.response
     # ### browser.last_error => Object
     #
     # Returns the last error received by this browser in lieu of response.
-    @__defineGetter__ "last_error", -> trail[trail.length - 1]?.error
+    @__defineGetter__ "lastError", -> trail[trail.length - 1]?.error
 
     debug = false
     # Zombie can spit out messages to help you figure out what's going
@@ -422,6 +422,8 @@ class Browser extends require("events").EventEmitter
     # For example:
     #     browser.debug("Opening page:", url);
     #     browser.debug(function() { return "Opening page: " + url });
+    #
+    # With no arguments returns the current debug state.
     this.debug = ->
       return debug if arguments.length == 0
       if typeof arguments[0] == "boolean"
