@@ -170,7 +170,9 @@ class Browser extends require("events").EventEmitter
         @removeListener "error", arguments.callee
         callback error
       history._assign url
-      window.document.addEventListener "DOMContentLoaded", => @wait callback
+      window.document.addEventListener "DOMContentLoaded", =>
+        @removeListener "error", arguments.callee
+        @wait callback
       return
 
     # ### browser.location => Location

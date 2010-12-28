@@ -1,6 +1,6 @@
 {
   "name": "zombie",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "Insanely fast, full-stack, headless testing using node.js",
   "homepage": "http://zombie.labnotes.org/",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
@@ -23,6 +23,7 @@
     "node": "*"
   },
   "dependencies": {
+    "htmlparser": ">= 1.7.3",
     "html5": ">= 0.2.5",
     "jsdom": ">= 0.1.21"
   },

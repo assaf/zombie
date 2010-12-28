@@ -1,7 +1,10 @@
 zombie.js-changelog(1) -- Changelog
 ===================================
 
-## Version 0.7.5  2010-12-28
+## Version 0.7.6  2010-12-28
+
+HTML5 doesn't play nice with JSDOM, bringing back html-parser to handle
+innerHTML (full document parsing still handled by HTML5).
 
 Added documentation page for CSS selectors.
     
@@ -9,6 +12,8 @@ Man pages now moved to section 7.
     
 Added zombie.version.
 
+    189 Tests
+    2.3 sec to complete
 
 
 ## Version 0.7.5  2010-12-28

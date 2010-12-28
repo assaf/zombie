@@ -164,7 +164,7 @@ core.HTMLDocument.prototype._write = (html)->
     # During page loading, document.write appends to the current element
     open = @_parser.tree.open_elements.last()
     parser = new html5.Parser(document: this)
-    node = parser.parse_fragment(html, open.parentNode)
+    parser.parse_fragment(html, open.parentNode)
   else
     # When loading page, parse from scratch.
     # After page loading, empty document and parse from scratch.

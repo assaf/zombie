@@ -99,7 +99,7 @@ vows.describe("History").addBatch(
     "change hash":
       zombie.wants "http://localhost:3003/"
         topic: (browser)->
-          browser.window.document.innerHTML = "Wolf"
+          browser.document.innerHTML = "Wolf"
           browser.window.addEventListener "hashchange", => @callback null, browser
           browser.window.location.hash = "boo"
         "should add page to history": (browser)-> assert.length browser.window.history, 2
