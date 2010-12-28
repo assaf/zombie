@@ -79,24 +79,26 @@ toHTML = (source, callback)->
         log "Creating #{target}", green
         exec "ronn --html #{source}", (err, stdout, stderr)->
           onerror err
-          [title, subtitle] = stdout.match(/<h1>(.*)<\/h1>/)[1].split(" -- ")
-          title = title.replace(/\(\d\)/, "")
+          [name, title] = stdout.match(/<h1>(.*)<\/h1>/)[1].split(" -- ")
+          name = name.replace(/\(\d\)/, "")
           body = stdout.replace(/<h1>.*<\/h1>/, "")
-          html = layout.replace("{{body}}", body).replace(/{{title}}/g, title).replace(/{{subtitle}}/g, subtitle || "")
+          html = layout.replace("{{body}}", body).replace(/{{title}}/g, title)
           fs.writeFile target, html, "utf8", (err)->
             callback err, target
 
 documentPages = (callback)->
-  toHTML "README.md", (err)->
-    onerror err
-    exec "mv html/readme.html html/index.html", (err)->
-      onerror err
-      toHTML "TODO.md", (err)->
+  files = fs.readdirSync(".").filter((file)-> path.extname(file) == ".md").
+    concat(fs.readdirSync("doc").filter((file)-> path.extname(file) == ".md").map((file)-> "doc/#{file}"))
+  convert = ->
+    if file = files.pop()
+      toHTML file, (err)->
         onerror err
-        toHTML "CHANGELOG.md", (err)->
-          onerror err
-          process.stdout.write "\n"
-          exec "cp -f doc/*.css html/", callback
+        convert()
+    else
+      process.stdout.write "\n"
+      exec "mv html/readme.html html/index.html", onerror
+      exec "cp -f doc/*.css html/", callback
+  convert()
 
 documentSource = (callback)->
   log "Documenting source files ...", green
@@ -107,12 +109,23 @@ documentSource = (callback)->
     exec "mkdir -p html && cp -rf docs/ html/source && rm -rf docs", callback
 
 generateMan = (callback)->
-  log "Generating man file ...", green
-  fs.mkdir "man1", 0777, ->
-    exec "ronn --roff README.md", (err, stdout, stderr)->
-      onerror err
-      log "Done", green
-      fs.writeFile "man1/zombie.1", stdout, "utf8", callback
+  files = fs.readdirSync(".").filter((file)-> path.extname(file) == ".md").
+    concat(fs.readdirSync("doc").filter((file)-> path.extname(file) == ".md").map((file)-> "doc/#{file}"))
+  fs.mkdir "man1", 0777, (err)->
+    onerror err
+    log "Generating man file ...", green
+    convert = ->
+      if file = files.pop()
+        target = "man1/#{path.basename(file, ".md").toLowerCase()}.1"
+        exec "ronn --roff #{file}", (err, stdout, stderr)->
+          onerror err
+          log "Creating #{target}", green
+          fs.writeFile target, stdout, "utf8", callback
+          convert()
+      else
+        exec "mv man1/readme.1 man1/zombie.1", onerror
+        process.stdout.write "\n"
+    convert()
 
 generateDocs = (callback)->
   log "Generating documentation ...", green

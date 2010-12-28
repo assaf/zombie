@@ -1,7 +1,9 @@
-Changes
-=======
+zombie.js changelog(1) -- Changelog
+===================================
 
 ## Version 0.7.4  2010-12-27
+
+Added troublehsooting guide.
 
 Fixed naming issue: browser.last_request is now lastRequest, same for
 lastResponse and lastError.

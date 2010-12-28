@@ -1,5 +1,5 @@
-Wishlist
-========
+zombie.js todo(1) -- Wishlist
+=============================
 
 * Use HTML5 parser (see https://github.com/aredridel/html5)
 

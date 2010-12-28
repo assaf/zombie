@@ -33,11 +33,13 @@ pre, code {
 #header .navigation {
   display: inline;
   padding: 0;
+  float: right;
+  width: 10em;
+  margin-right: -12em;
 }
 #header .navigation li {
-  font-weight: bolder;
-  display: inline;
-  margin-right: 0.6em;
+  margin: 0 0 0.6em 0;
+  list-style: none;
 }
 #header .navigation a {
   text-decoration: none;

@@ -1,5 +1,7 @@
-Zombie.js(1) -- Insanely fast, headless full-stack testing using node.js
-========================================================================
+zombie.js(1) -- Zombie.js
+=========================
+
+**Insanely fast, headless full-stack testing using Node.js**
 
 ## The Bite
 
@@ -224,6 +226,10 @@ out the result of that function call when debugging enabled.
 
 Returns the main window's document. Only valid after opening a document (see `browser.open`).
 
+### browser.dump
+
+Dump a lot of information about the browser state to the console.
+
 ### browser.fill(field, value) : this
 
 Fill in a field: input field or text area.
@@ -430,7 +436,9 @@ Zombie.js is written in
 
 ## See Also
 
-[Annotated Source Code](source/browser.html)
+zombie-troubleshoot
+
+[Troubleshooting](troubleshoot.html)
 
 [Changelog](changelog.html)
 
