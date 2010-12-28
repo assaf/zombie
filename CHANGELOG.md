@@ -5,13 +5,15 @@ zombie.js changelog(1) -- Changelog
 
 Now parsing documents using HTML5, which can deal better with tag soup.
 
+Added support for scripts that use document.write.
+
 Added troublehsooting guide.
 
 Fixed naming issue: browser.last_request is now lastRequest, same for
 lastResponse and lastError.
 
     189 Tests
-    2.3 sec to complete
+    2.5 sec to complete
 
 
 ## Version 0.7.3  2010-12-27

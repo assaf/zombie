@@ -190,8 +190,6 @@ vows.describe("Browser").addBatch(
       "should run script": (browser)-> assert.equal browser.document.title, "Script document.write"
   "adding script using appendChild":
     zombie.wants "http://localhost:3003/script/append"
-      "should change html": (browser)->
-        console.log browser.html()
       "should run script": (browser)-> assert.equal browser.document.title, "Script appendChild"
 
 ).export(module)

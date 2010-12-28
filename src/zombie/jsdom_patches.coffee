@@ -94,8 +94,9 @@ core.resourceLoader.download = (url, callback)->
 # - JSDOM assumes a SCRIPT element would have one text node, it may have
 #   more, and in the second case, it has none.
 # - HTML5 creates the SCRIPT element first, then adds the script
-#   contents to the element.  We handle that by catching the
-#   DOMCharacterDataModified event.
+#   contents to the element.  We handle that by catching appendChild
+#   with a text node and  DOMCharacterDataModified event on the text
+#   node.
 # - Scripts can be added using document.write, so we need to patch
 #   document.write so it adds the script instead of erasing the
 #   document.
@@ -111,21 +112,33 @@ advise = (clazz, method, advice)->
     ret = impl.apply(this, arguments)
     args.unshift ret
     return advice.apply(this, args) || ret
+
+# JSDOM had advise for appendChild, but doesn't seem to do much if the
+# child is a text node.
+advise core.Node, "appendChild", (ret, newChild, refChild)->
+  if this.ownerDocument && newChild.nodeType == this.TEXT_NODE
+    ev = this.ownerDocument.createEvent("MutationEvents")
+    ev.initMutationEvent("DOMNodeInsertedIntoDocument", true, false, this, null, null, null, null)
+    newChild.parentNode.dispatchEvent(ev)
+
 # DOMCharacterDataModified event fired when text is added to a
 # TextNode.  This is a crappy implementation, a good one would old and
 # new values in the event.
-advise core.Text, "appendData", (value)->
-  doc = this.ownerDocument
-  ev = doc.createEvent("MutationEvents")
-  ev.initMutationEvent("DOMCharacterDataModified", true, false, this, this.nodeValue.replace(value, ""), this.nodeValue, null, null)
-  this.dispatchEvent ev
+core.CharacterData.prototype.__defineSetter__ "_nodeValue", (newValue)->
+  oldValue = @_text || ""
+  @_text = newValue
+  if @ownerDocument && @parentNode
+    ev = @ownerDocument.createEvent("MutationEvents")
+    ev.initMutationEvent("DOMCharacterDataModified", true, false, this, oldValue, newValue, null, null)
+    @dispatchEvent ev
+core.CharacterData.prototype.__defineGetter__ "_nodeValue", -> @_text
 
 # Add support for DOMCharacterDataModified, so we can execute a script
 # when its text contents is changed.  Safari and Firefox support that.
 core.Document.prototype._elementBuilders["script"] = (doc, s)->
   script = new core.HTMLScriptElement(doc, s)
   script.addEventListener "DOMCharacterDataModified", (event)->
-    code = event.newValue.trim()
+    code = event.target.nodeValue.trim()
     if code.length > 0
       src = this.sourceLocation || {}
       filename = src.file || this.ownerDocument.URL
@@ -140,12 +153,14 @@ core.Document.prototype._elementBuilders["script"] = (doc, s)->
     (item.value for item in this.children).join("") + " "
   return script
 
+# Fix document.write so it can handle calling document.write from a
+# script while loading the document.
 core.HTMLDocument.prototype._write = (html)->
   if @readyState == "loading" && @_parser
     # During page loading, document.write appends to the current element
     open = @_parser.tree.open_elements.last()
     parser = new html5.Parser(document: this)
-    parser.parse_fragment(html, open)
+    node = parser.parse_fragment(html, open.parentNode)
   else
     # When loading page, parse from scratch.
     # After page loading, empty document and parse from scratch.
