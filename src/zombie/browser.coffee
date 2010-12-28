@@ -397,5 +397,46 @@ class Browser extends require("events").EventEmitter
     # Returns the last error received by this browser in lieu of response.
     @__defineGetter__ "last_error", -> trail[trail.length - 1]?.error
 
+    debug = false 
+    # Zombie can spit out messages to help you figure out what's going
+    # on as your code executes.
+    #
+    # To turn debugging on, call this method with true; to turn it off,
+    # call with false.  You can also call with a setting and a function,
+    # in which case it will turn debugging on or off, execute the function
+    # and then switch it back to its current settings.
+    #
+    # For example:
+    #     browser.debug(true, function() {
+    #       // Need to you be verbose here
+    #       ...
+    #     });
+    #
+    # To spit a message to the console when running in debug mode, call
+    # this method with one or more values (same as `console.log`).  You
+    # can also call it with a function that will be evaluated only when
+    # running in debug mode.
+    #
+    # For example:
+    #     browser.debug("Opening page:", url);
+    #     browser.debug(function() { return "Opening page: " + url });
+    this.debug = ->
+      return debug if arguments.length == 0
+      if typeof arguments[0] == "boolean"
+        old = debug
+        debug = arguments[0]
+        if typeof arguments[1] == "function"
+          try
+            arguments[1]()
+          finally
+            debug = old
+      else if debug
+        fields = ["Zombie:"]
+        if typeof arguments[0] == "function"
+          fields.push arguments[0]()
+        else if debug
+          fields.push arg for arg in arguments
+        console.log.apply null, fields
+
 
 exports.Browser = Browser

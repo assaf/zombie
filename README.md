@@ -207,6 +207,19 @@ The current system clock according to the browser (see also `browser.now`).
 
 Returns all the cookies for this domain/path. Path defaults to "/".
 
+### browser.debug(boolean, function?)
+
+Call with `true`/`false` to turn debugging on/off.  Call with flag and
+function to turn debugging on/off only for duration of that function
+call.
+
+### browser.debug(arguments)
+### browser.debug(function)
+
+Call with multiple arguments to spit them out to the console when
+debugging enabled (same as `console.log`).  Call with function to spit
+out the result of that function call when debugging enabled.
+
 ### browser.document : Document
 
 Returns the main window's document. Only valid after opening a document (see `browser.open`).

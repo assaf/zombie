@@ -44,7 +44,7 @@ brains.get "/sammy.js", (req, res)->
   fs.readFile "#{__dirname}/.scripts/sammy.js", (err, data)->
     # Prevent sammy from polluting the output. Comment this if you need its
     # messages for debugging.
-    data = "console.log = function() { };" + data
+    data = data + ";window.Sammy.log = function() {}"
     res.send data
 brains.ready = (callback)->
   if @active

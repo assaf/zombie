@@ -6,6 +6,15 @@ Changes
 Fixed non-sensical error message when selector fails matching a node
 (`fill`, `check`, `select`, etc).
 
+Added debugging to help you figure out what's happening when tests run:
+- Call `browser.debug` with a boolean to turn debugging on/off.
+- Call `browser.debug` with a boolean and function to turn debugging
+  on/off only while calling that function.
+- Call `browser.debug` with multiple arguments to print them (same as
+  `console.log`).
+- Call `browser.debug` with a function to print the result of that
+  function call.
+
 
 ## Version 0.7.2  2010-12-27
 
