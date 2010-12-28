@@ -166,8 +166,10 @@ class Browser extends require("events").EventEmitter
     #
     # If it fails to download, calls the callback with the error.
     this.visit = (url, callback)->
+      @on "error", (error)->
+        @removeListener "error", arguments.callee
+        callback error
       history._assign url
-      window.addEventListener "error", (err)-> callback err
       window.document.addEventListener "DOMContentLoaded", => @wait callback
       return
 
