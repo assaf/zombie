@@ -3,6 +3,7 @@ jsdom = require("jsdom")
 http = require("http")
 URL = require("url")
 qs = require("querystring")
+util = require("util")
 
 
 # History entry. Consists of:
@@ -45,7 +46,7 @@ class History
     # submit forms, see _loadPage and _submit.
     resource = (url, method, data, enctype)=>
       method = (method || "GET").toUpperCase()
-      browser.debug "#{method} #{URL.format(url)}"
+      browser.debug -> "#{method} #{URL.format(url)}"
       throw new Error("Cannot load resource: #{URL.format(url)}") unless url.protocol && url.hostname
       window = browser.window
       window = browser.open() if browser.window.document
@@ -96,21 +97,23 @@ class History
                     error = "Could not parse document at #{URL.format(url)}"
                 when 301, 302, 303, 307
                   redirect = URL.parse(URL.resolve(url, response.headers["location"]))
+                  browser.debug -> "Redirected to #{URL.format(redirect)}"
                   stack[index] = new Entry(this, redirect)
                   browser.emit "redirected", redirect
-                  process.nextTick ->
-                    makeRequest redirect, "GET"
+                  process.nextTick -> makeRequest redirect, "GET"
                 else
                   error = "Could not load document at #{URL.format(url)}, got #{response.statusCode}"
               # onerror is the only reliable way we have to notify the
               # application.
               if error
+                browser.debug error
                 event = document.createEvent("HTMLEvents")
                 event.initEvent "error", true, false
                 document.dispatchEvent event
                 browser.emit "error", new Error(error)
 
           client.on "error", (error)->
+            browser.debug error
             event = document.createEvent("HTMLEvents")
             event.initEvent "error", true, false
             document.dispatchEvent event
@@ -194,6 +197,16 @@ class History
       window.__defineGetter__ "location", => stack[index]?.location || new Location(this, {})
       window.__defineSetter__ "location", (url)=>
         @_assign URL.resolve(stack[index]?.url, url)
+
+    this.dump = ->
+      dump = []
+      for i, entry of stack
+        i = Number(i)
+        line = if i == index then "#{i + 1}: " else "#{i + 1}. "
+        line += URL.format(entry.url)
+        line += " state: " + util.inspect(entry.state) if entry.state
+        dump.push line
+      dump
 
 
 # ## window.location

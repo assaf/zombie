@@ -4,6 +4,13 @@ URL = require("url")
 core = require("jsdom").dom.level3.core
 
 
+# Serialize cookie object into RFC2109 representation.
+serialize = (browser, domain, path, name, cookie)->
+  str = "#{name}=#{cookie.value}; domain=#{domain}; path=#{path}"
+  str = str + "; max-age=#{cookie.expires - browser.clock}" if cookie.expires
+  str = str + "; secure" if cookie.secure
+  str
+
 # Maintains cookies for a Browser instance. This is actually a domain/path
 # specific scope around the global cookies collection.
 class Cookies
@@ -38,13 +45,6 @@ class Cookies
       # Sort from most specific to least specified. Only worry about path
       # (longest is more specific)
       matching.sort (a,b) -> a[1].length - b[1].length
-
-    # Serialize cookie object into RFC2109 representation.
-    serialize = (domain, path, name, cookie)->
-      str = "#{name}=#{cookie.value}; domain=#{domain}; path=#{path}"
-      str = str + "; max-age=#{cookie.expires - browser.clock}" if cookie.expires
-      str = str + "; secure" if cookie.secure
-      str
 
     #### cookies(host, path).get(name) => String
     #
@@ -146,7 +146,7 @@ class Cookies
     # debugging.  If you need to save/load, use comma as the line
     # separator and then call `cookies.update`.
     this.dump = (separator = "\n")->
-      (serialize.apply this, match for match in selected()).join(separator)
+      (@serialize(browser, match[0], match[1], match[2], match[3]) for match in selected()).join(separator)
 
 
 # ### document.cookie => String
@@ -168,4 +168,12 @@ exports.use = (browser)->
   # Add cookies accessor to window: documents need this.
   extend = (window)->
     window.__defineGetter__ "cookies", -> access(@location.hostname, @location.pathname)
-  return access: access, extend: extend
+  dump = ->
+    dump = []
+    for domain, in_domain of cookies
+      for path, in_path of in_domain
+        for name, cookie of in_path
+          dump.push serialize(browser, domain, path, name, cookie)
+    dump
+
+  return access: access, extend: extend, dump: dump

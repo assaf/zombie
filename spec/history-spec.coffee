@@ -40,9 +40,9 @@ vows.describe("History").addBatch(
         "should add state to history": (window)-> assert.length window.history, 3
         "should change location URL": (window)-> assert.equal window.location.href, "/end"
         "go backwards":
-          topic: (browser)->
-            browser.window.addEventListener "popstate", (evt)=> @callback(null, evt)
-            browser.window.history.back()
+          topic: (window)->
+            window.addEventListener "popstate", (evt)=> @callback(null, evt)
+            window.history.back()
           "should fire popstate event": (evt)-> assert.instanceOf evt, jsdom.dom.level3.events.Event
           "should include state": (evt)-> assert.equal evt.state.is, "start"
         "go forwards":

@@ -49,6 +49,7 @@ class StorageArea
     # Associate local/sessionStorage and window with this storage area. Used when firing events.
     this.associate = (storage, window)->
       storages.push [storage, window]
+    this.__defineGetter__ "pairs", -> [k,v] for k,v of items
     this.toString = ->
       ("#{k} = #{v}" for k,v of items).join("\n")
         
@@ -119,7 +120,21 @@ class Storages
         @document._sessionStorage ||= browser.sessionStorage(@location.host)
       window.__defineGetter__ "localStorage", ->
         @document._localStorage ||= browser.localStorage(@location.host)
-
+    this.dump = ->
+      dump = []
+      for domain, area of localAreas
+        pairs = area.pairs
+        if pairs.length > 0
+          dump.push "#{domain} local:"
+          for pair in pairs
+            dump.push "  #{pair[0]} = #{pair[1]}"
+      for domain, area of sessionAreas
+        pairs = area.pairs
+        if pairs.length > 0
+          dump.push "#{domain} session:"
+          for pair in pairs
+            dump.push "  #{pair[0]} = #{pair[1]}"
+      dump
 
 exports.use = (browser)->
   return new Storages(browser)

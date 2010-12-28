@@ -397,7 +397,7 @@ class Browser extends require("events").EventEmitter
     # Returns the last error received by this browser in lieu of response.
     @__defineGetter__ "last_error", -> trail[trail.length - 1]?.error
 
-    debug = false 
+    debug = false
     # Zombie can spit out messages to help you figure out what's going
     # on as your code executes.
     #
@@ -437,6 +437,19 @@ class Browser extends require("events").EventEmitter
         else if debug
           fields.push arg for arg in arguments
         console.log.apply null, fields
+
+    this.dump = ->
+      indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
+      console.log "URL: #{@window.location.href}"
+      console.log "History:\n#{indent history.dump()}"
+      console.log "Cookies:\n#{indent cookies.dump()}"
+      console.log "Storage:\n#{indent storage.dump()}"
+      if @document
+        html = @document.outerHTML
+        html = html.slice(0, 497) + "..." if html.length > 497
+        console.log "Document:\n#{indent html.split("\n")}"
+      else
+        console.log "No document" unless @document
 
 
 exports.Browser = Browser
