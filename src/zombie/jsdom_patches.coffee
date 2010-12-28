@@ -66,6 +66,7 @@ core.resourceLoader.load = (element, href, callback)->
         file = @resolve(document, url.pathname)
         @readFile file, @enqueue(element, loaded, file)
 
+# Adds redirect support when loading resources (JavaScript).
 core.resourceLoader.download = (url, callback)->
   path = url.pathname + (url.search || "")
   client = http.createClient(url.port || 80, url.hostname)

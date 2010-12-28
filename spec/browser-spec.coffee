@@ -65,6 +65,19 @@ brains.get "/dead", (req, res)-> res.send """
   </html>
   """
 
+brains.get "/write", (req, res)-> res.send """
+  <html>
+    <head>
+      <script>document.write(unescape(\'%3Cscript src="/jquery.js"%3E%3C/script%3E\')</script>
+    </head>
+    <body>
+      <script>
+        $(function() { document.title = "Script write" });
+      </script>
+    </body>
+  </html>
+  """
+
 
 vows.describe("Browser").addBatch(
   "open page":
@@ -139,5 +152,10 @@ vows.describe("Browser").addBatch(
           pressButton "Sign Me Up", @callback
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
       "should process event": (browser)-> assert.equal browser.document.title, "Signed up"
+
+
+  "script write":
+    zombie.wants "http://localhost:3003/write"
+      "should run script": (browser)-> assert.equal browser.document.title, "Script write"
 
 ).export(module)
