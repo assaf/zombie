@@ -15,6 +15,12 @@ Added debugging to help you figure out what's happening when tests run:
 - Call `browser.debug` with a function to print the result of that
   function call.
 
+Testing that Zombie.js can handle jQuery live form submit event.  Yes it
+can!
+
+    185 Tests
+    1.8 sec to complete
+
 
 ## Version 0.7.2  2010-12-27
 

@@ -43,7 +43,9 @@ class History
     
     # Make a request to external resource. We use this to fetch pages and
     # submit forms, see _loadPage and _submit.
-    resource = (url, method = "GET", data, enctype)=>
+    resource = (url, method, data, enctype)=>
+      method = (method || "GET").toUpperCase()
+      browser.debug "#{method} #{URL.format(url)}"
       throw new Error("Cannot load resource: #{URL.format(url)}") unless url.protocol && url.hostname
       window = browser.window
       window = browser.open() if browser.window.document

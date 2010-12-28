@@ -48,6 +48,13 @@ core.HTMLFormElement.prototype._eventDefault = (event)->
 # Buttons
 # -------
 
+# Default type for buttons is submit.
+core.Document.prototype._elementBuilders["button"] = (doc, s)->
+  button = new core.HTMLButtonElement(doc, s)
+  button.type ||= "submit"
+  return button
+
+
 # Default behavior for clicking on reset/submit buttons.
 core.HTMLInputElement.prototype._eventDefault = (event)->
   return if @getAttribute("disabled")

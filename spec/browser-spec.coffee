@@ -25,15 +25,14 @@ brains.get "/living", (req, res)-> res.send """
       <script src="/app.js"></script>
     </head>
     <body>
-      <div id="main"></div>
-      <a href="/dead">Kill</a>
-      <form>
-        <label>Name <input type="text" name="name" id="field-name"></label>
-        <label for="field-email">Email</label>
-        <input type="text" name="email" id="field-email"></label>
-        <textarea name="likes" id="field-likes"></textarea>
-        <input type="password" name="password" id="field-password">
-      </form>
+      <div id="main">
+        <a href="/dead">Kill</a>
+        <form action="#/dead" method="post">
+          <label>Email <input type="text" name="email"></label>
+          <label>Password <input type="password" name="password"></label>
+          <button>Sign Me Up</button>
+        </form>
+      </div>
       <div class="now">Walking Aimlessly</div>
     </body>
   </html>
@@ -41,10 +40,13 @@ brains.get "/living", (req, res)-> res.send """
 brains.get "/app.js", (req, res)-> res.send """
   Sammy("#main", function(app) {
     app.get("#/", function(context) {
-      context.swap("The Living");
+      document.title = "The Living";
     });
     app.get("#/dead", function(context) {
       context.swap("The Living Dead");
+    });
+    app.post("#/dead", function(context) {
+      document.title = "Signed up";
     });
   });
   $(function() { Sammy("#main").run("#/") });
@@ -76,7 +78,7 @@ vows.describe("Browser").addBatch(
 
   "run app":
     zombie.wants "http://localhost:3003/living"
-      "should execute route": (browser)-> assert.equal browser.text("#main"), "The Living"
+      "should execute route": (browser)-> assert.equal browser.document.title, "The Living"
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
       "move around":
         topic: (browser)->
@@ -115,13 +117,13 @@ vows.describe("Browser").addBatch(
         "should query from document": (browser)-> assert.equal browser.text(".now"), "Walking Aimlessly"
         "should query from context": (browser)-> assert.equal browser.text(".now", browser.body), "Walking Aimlessly"
         "should query from context": (browser)-> assert.equal browser.text(".now", browser.querySelector("#main")), ""
-        "should combine multiple elements": (browser)-> assert.equal browser.text("form label"), "Name Email"
+        "should combine multiple elements": (browser)-> assert.equal browser.text("form label"), "Email Password "
       "query html":
         topic: (browser)-> browser
         "should query from document": (browser)-> assert.equal browser.html(".now"), "<div class=\"now\">Walking Aimlessly</div>"
         "should query from context": (browser)-> assert.equal browser.html(".now", browser.body), "Walking Aimlessly"
         "should query from context": (browser)-> assert.equal browser.html(".now", browser.querySelector("#main")), ""
-        "should combine multiple elements": (browser)-> assert.equal browser.html("#main, a"), "<div id=\"main\">The Living</div><a href=\"/dead\">Kill</a>"
+        "should combine multiple elements": (browser)-> assert.equal browser.html("title, #main a"), "<title>The Living</title><a href=\"/dead\">Kill</a>"
 
   "click link":
     zombie.wants "http://localhost:3003/living"
@@ -129,5 +131,13 @@ vows.describe("Browser").addBatch(
         browser.clickLink "Kill", @callback
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/dead"
       "should run all events": (browser)-> assert.equal browser.document.title, "The Dead"
+
+  "live events":
+    zombie.wants "http://localhost:3003/living"
+      topic: (browser)->
+        browser.fill("Email", "armbiter@zombies").fill("Password", "br41nz").
+          pressButton "Sign Me Up", @callback
+      "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
+      "should process event": (browser)-> assert.equal browser.document.title, "Signed up"
 
 ).export(module)
