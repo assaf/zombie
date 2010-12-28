@@ -1,6 +1,14 @@
 zombie.js changelog(1) -- Changelog
 ===================================
 
+## Version 0.7.5  2010-12-28
+
+Previous fix for document.write was incomplete, this one works better.
+
+    189 Tests
+    2.5 sec to complete
+
+
 ## Version 0.7.4  2010-12-28
 
 Now parsing documents using HTML5, which can deal better with tag soup.

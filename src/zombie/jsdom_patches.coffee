@@ -138,14 +138,18 @@ core.CharacterData.prototype.__defineGetter__ "_nodeValue", -> @_text
 core.Document.prototype._elementBuilders["script"] = (doc, s)->
   script = new core.HTMLScriptElement(doc, s)
   script.addEventListener "DOMCharacterDataModified", (event)->
-    code = event.target.nodeValue.trim()
-    if code.length > 0
+    code = event.target.nodeValue
+    if code.trim().length > 0
       src = this.sourceLocation || {}
       filename = src.file || this.ownerDocument.URL
       if src
         filename += ':' + src.line + ':' + src.col
       filename += '<script>'
-      core.resourceLoader.enqueue(this, this._eval, filename)(null, code)
+      eval = (text, filename)->
+        if text + " " == this.text
+          core.languageProcessors[this.language](this, text, filename)
+      process.nextTick =>
+        core.resourceLoader.enqueue(this, eval, filename)(null, code)
   # Fix text property so it doesn't fail on empty contents
   script.__defineGetter__ "text", ->
     # Handle script with no child elements, but also force script
