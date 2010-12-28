@@ -1,6 +1,12 @@
 Changes
 =======
 
+## Version 0.7.3  2010-12-27
+
+Fixed non-sensical error message when selector fails matching a node
+(`fill`, `check`, `select`, etc).
+
+
 ## Version 0.7.2  2010-12-27
 
 In CoffeeScript 1.0 loops no longer try preserve block scope when

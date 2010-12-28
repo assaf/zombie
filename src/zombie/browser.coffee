@@ -226,6 +226,7 @@ class Browser extends require("events").EventEmitter
           else
             field = label.querySelector("input, textarea, select")
           return field if field && match(field)
+      return
 
     # ### browser.fill(field, value) => this
     #
