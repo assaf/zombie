@@ -65,10 +65,16 @@ brains.get "/dead", (req, res)-> res.send """
   </html>
   """
 
+brains.get "/soup", (req, res)-> res.send """
+  <h1>Tag soup</h1>
+  <p>One paragraph
+  <p>And another
+  """
+
 brains.get "/script/write", (req, res)-> res.send """
   <html>
     <head>
-      <script>document.write(unescape(\'%3Cscript src="/jquery.js"%3E%3C/script%3E\')</script>
+      <script>document.write(unescape(\'%3Cscript src="/jquery.js"%3E%3C/script%3E\'));</script>
     </head>
     <body>
       <script>
@@ -100,7 +106,7 @@ vows.describe("Browser").addBatch(
   "open page":
     zombie.wants "http://localhost:3003/scripted"
       "should create HTML document": (browser)-> assert.instanceOf browser.document, jsdom.dom.level3.html.HTMLDocument
-      "should load document from server": (browser)-> assert.match browser.html(), /<body>Hello World<\/body>/
+      "should load document from server": (browser)-> assert.match browser.html(), /<body>Hello World/
       "should load external scripts": (browser)->
         assert.ok jQuery = browser.window.jQuery, "window.jQuery not available"
         assert.typeOf jQuery.ajax, "function"
@@ -139,7 +145,6 @@ vows.describe("Browser").addBatch(
         browser.wants "http://localhost:3003/"
       "should fire done event": (browser)-> assert.ok browser.visit
      
-
   "content selection":
     zombie.wants "http://localhost:3003/living"
       "query text":
@@ -170,12 +175,23 @@ vows.describe("Browser").addBatch(
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
       "should process event": (browser)-> assert.equal browser.document.title, "Signed up"
 
+  "tag soup":
+    zombie.wants "http://localhost:3003/soup"
+      "should parse to complete HTML": (browser)->
+        assert.ok browser.querySelector("html head")
+        assert.equal browser.text("html body h1"), "Tag soup"
+      "should close tags": (browser)->
+        paras = browser.querySelectorAll("body p").toArray().map((e)-> e.textContent.trim())
+        assert.deepEqual paras, ["One paragraph", "And another"]
+
 
   "adding script using document.write":
     zombie.wants "http://localhost:3003/script/write"
       "should run script": (browser)-> assert.equal browser.document.title, "Script document.write"
   "adding script using appendChild":
     zombie.wants "http://localhost:3003/script/append"
+      "should change html": (browser)->
+        console.log browser.html()
       "should run script": (browser)-> assert.equal browser.document.title, "Script appendChild"
 
 ).export(module)

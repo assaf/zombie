@@ -1,5 +1,6 @@
 # Window history and location.
 jsdom = require("jsdom")
+html = jsdom.dom.level3.html
 http = require("http")
 URL = require("url")
 qs = require("querystring")
@@ -20,6 +21,7 @@ class Entry
       @state = options.state
       @title = options.title
       @pop = !!options.pop
+
 
 # ## window.history
 #
@@ -53,9 +55,10 @@ class History
       # resources, etc) and associate it with current document. From this
       # point on the browser sees a new document, client register event
       # handler for DOMContentLoaded/error.
-      aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
+      aug = jsdom.browserAugmentation(html)
       document = new aug.HTMLDocument(url: URL.format(url), deferClose: false)
       jsdom.applyDocumentFeatures document
+      document.write = html.HTMLDocument.prototype._write
       window.document = document
 
       # Make the actual request: called again when dealing with a redirect.
@@ -101,6 +104,9 @@ class History
                   process.nextTick -> makeRequest redirect, "GET"
                 else
                   error = "Could not load document at #{URL.format(url)}, got #{response.statusCode}"
+                  document.open()
+                  document.write error
+                  document.close()
               # onerror is the only reliable way we have to notify the
               # application.
               if error
@@ -234,7 +240,7 @@ class Location
 # ## document.location => Location
 #
 # document.location is same as window.location
-jsdom.dom.level3.core.HTMLDocument.prototype.__defineGetter__ "location", -> @parentWindow.location
+html.HTMLDocument.prototype.__defineGetter__ "location", -> @parentWindow.location
 
 
 exports.use = (browser)->

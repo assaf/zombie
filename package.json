@@ -23,7 +23,7 @@
     "node": "*"
   },
   "dependencies": {
-    "htmlparser": ">= 1.7.3",
+    "html5": ">= 0.2.5",
     "jsdom": ">= 0.1.21"
   },
   "repository": {

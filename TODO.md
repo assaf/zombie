@@ -1,15 +1,6 @@
 zombie.js todo(1) -- Wishlist
 =============================
 
-* Use HTML5 parser (see https://github.com/aredridel/html5)
-
-  HTML5 parser can deal with many more documents (e.g. missing html/body
-  elements) than html-parser, and obviously new HTML5 elements.
-
-  Unfortunately, it adds script elements to the DOM before adding their text
-  content; JSDOM listens to the DOMNodeInsertedIntoDocument event, which is
-  fired on empty script element.
-
 * Navigation: Browser.open/close should work as a pair; look into supporting
   window.open; fire unload event when navigating away from page.
 

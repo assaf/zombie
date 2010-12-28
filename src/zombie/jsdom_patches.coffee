@@ -3,6 +3,7 @@ core = require("jsdom").dom.level3.core
 URL = require("url")
 vm = process.binding("evals")
 http = require("http")
+html5 = require("html5").HTML5
 
 
 # Event Handling
@@ -84,3 +85,72 @@ core.resourceLoader.download = (url, callback)->
           callback null, data
   request.on "error", (error)-> callback error
   request.end()
+
+
+# Scripts
+# -------
+
+# Here we deal with four JSDOM issues:
+# - JSDOM assumes a SCRIPT element would have one text node, it may have
+#   more, and in the second case, it has none.
+# - HTML5 creates the SCRIPT element first, then adds the script
+#   contents to the element.  We handle that by catching the
+#   DOMCharacterDataModified event.
+# - Scripts can be added using document.write, so we need to patch
+#   document.write so it adds the script instead of erasing the
+#   document.
+# - ResourceQueue checks whether this.data is something, if this.data is
+#   an empty string it does nothing when check() is called, and so never
+#   completes loading when there are empty scripts.
+
+advise = (clazz, method, advice)->
+  proto = clazz.prototype
+  impl = proto[method]
+  proto[method] = ()->
+    args = Array.prototype.slice.call(arguments)
+    ret = impl.apply(this, arguments)
+    args.unshift ret
+    return advice.apply(this, args) || ret
+# DOMCharacterDataModified event fired when text is added to a
+# TextNode.  This is a crappy implementation, a good one would old and
+# new values in the event.
+advise core.Text, "appendData", (value)->
+  doc = this.ownerDocument
+  ev = doc.createEvent("MutationEvents")
+  ev.initMutationEvent("DOMCharacterDataModified", true, false, this, this.nodeValue.replace(value, ""), this.nodeValue, null, null)
+  this.dispatchEvent ev
+
+# Add support for DOMCharacterDataModified, so we can execute a script
+# when its text contents is changed.  Safari and Firefox support that.
+core.Document.prototype._elementBuilders["script"] = (doc, s)->
+  script = new core.HTMLScriptElement(doc, s)
+  script.addEventListener "DOMCharacterDataModified", (event)->
+    code = event.newValue.trim()
+    if code.length > 0
+      src = this.sourceLocation || {}
+      filename = src.file || this.ownerDocument.URL
+      if src
+        filename += ':' + src.line + ':' + src.col
+      filename += '<script>'
+      core.resourceLoader.enqueue(this, this._eval, filename)(null, code)
+  # Fix text property so it doesn't fail on empty contents
+  script.__defineGetter__ "text", ->
+    # Handle script with no child elements, but also force script
+    # content to never be empty (see bug in ResourceQueue)
+    (item.value for item in this.children).join("") + " "
+  return script
+
+core.HTMLDocument.prototype._write = (html)->
+  if @readyState == "loading" && @_parser
+    # During page loading, document.write appends to the current element
+    open = @_parser.tree.open_elements.last()
+    parser = new html5.Parser(document: this)
+    parser.parse_fragment(html, open)
+  else
+    # When loading page, parse from scratch.
+    # After page loading, empty document and parse from scratch.
+    @removeChild child for child in @children
+    @_parser = new html5.Parser(document: this)
+    @_parser.parse(html)
+  html
+core.HTMLDocument.prototype.writeln = (html)-> @write html + "\n"

@@ -24,7 +24,7 @@ brains.get "/form", (req, res)-> res.send """
           </select>
         </label>
         <label>Scary <input name="scary" type="radio" value="yes" id="field-scary"></label>
-        <label>Not scary <input name="scary" type="radio" value="no" id="field-notscary" checked></label>
+        <label>Not scary <input name="scary" type="radio" value="no" id="field-notscary" checked="checked"></label>
 
         <select name="state" id="field-state">
           <option>alive</option>
