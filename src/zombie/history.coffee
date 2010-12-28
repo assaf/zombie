@@ -46,7 +46,6 @@ class History
     # submit forms, see _loadPage and _submit.
     resource = (url, method, data, enctype)=>
       method = (method || "GET").toUpperCase()
-      browser.debug -> "#{method} #{URL.format(url)}"
       throw new Error("Cannot load resource: #{URL.format(url)}") unless url.protocol && url.hostname
       window = browser.window
       window = browser.open() if browser.window.document
@@ -55,7 +54,7 @@ class History
       # point on the browser sees a new document, client register event
       # handler for DOMContentLoaded/error.
       aug = jsdom.browserAugmentation(jsdom.dom.level3.html)
-      document = new aug.HTMLDocument(url: URL.format(url), deferClose: true)
+      document = new aug.HTMLDocument(url: URL.format(url), deferClose: false)
       jsdom.applyDocumentFeatures document
       window.document = document
 
@@ -97,7 +96,6 @@ class History
                     error = "Could not parse document at #{URL.format(url)}"
                 when 301, 302, 303, 307
                   redirect = URL.parse(URL.resolve(url, response.headers["location"]))
-                  browser.debug -> "Redirected to #{URL.format(redirect)}"
                   stack[index] = new Entry(this, redirect)
                   browser.emit "redirected", redirect
                   process.nextTick -> makeRequest redirect, "GET"
@@ -106,14 +104,12 @@ class History
               # onerror is the only reliable way we have to notify the
               # application.
               if error
-                browser.debug error
                 event = document.createEvent("HTMLEvents")
                 event.initEvent "error", true, false
                 document.dispatchEvent event
                 browser.emit "error", new Error(error)
 
           client.on "error", (error)->
-            browser.debug error
             event = document.createEvent("HTMLEvents")
             event.initEvent "error", true, false
             document.dispatchEvent event

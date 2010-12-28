@@ -49,7 +49,6 @@ XMLHttpRequest = (browser, window)->
       @setRequestHeader = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
       # Allow calling send method.
       @send = (data)->
-        browser.debug -> "XHR #{method} #{URL.format(url)}"
         # Aborting request in progress.
         @abort = ->
           aborted = true
@@ -93,16 +92,13 @@ XMLHttpRequest = (browser, window)->
                 switch response.statusCode
                   when 301, 302, 303, 307
                     redirect = URL.parse(URL.resolve(url, response.headers["location"]))
-                    browser.debug -> "XHR redirect to #{URL.format(redirect)}"
                     makeRequest redirect, "GET", {}
                   else
-                    browser.debug -> "XHR #{URL.format(url)} => #{response.statusCode}"
                     @__defineGetter__ "responseText", -> body
                     @__defineGetter__ "responseXML", -> # not implemented
                     stateChanged 4
 
             client.on "error", (error)=>
-              browser.debug -> error
               console.error "XHR error", error
               done error
               @_error = new core.DOMException(core.NETWORK_ERR, error.message)

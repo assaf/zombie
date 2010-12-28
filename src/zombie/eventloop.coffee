@@ -137,12 +137,15 @@ class EventLoop
     # argument, a done callback. It must call the done callback when it
     # completes processing, passing error and response arguments.
     this.request = (request, fn)->
+      browser.debug -> "#{request.method} #{request.url}"
       ++requests
       pending = browser.record request
       fn (err, response)->
         if err
+          browser.debug -> "Error loading #{request.url}: #{err}"
           pending.error = err
         else
+          browser.debug -> "#{request.method} #{request.url} => #{response.status}"
           pending.response = response
         if --requests == 0
           for wait in waiting

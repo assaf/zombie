@@ -2,6 +2,7 @@
 core = require("jsdom").dom.level3.core
 URL = require("url")
 vm = process.binding("evals")
+http = require("http")
 
 
 # Event Handling
@@ -28,14 +29,11 @@ core.languageProcessors =
   javascript: (element, code, filename)->
     document = element.ownerDocument
     window = document.parentWindow
-    #document._jsContext = vm.Script.createContext(window)
+    window.browser.debug -> "Running script from #{filename}" if filename
     if window
       ctx = vm.Script.createContext(window)
       script = new vm.Script(code, filename)
-      try
-        script.runInContext ctx
-      catch ex
-        console.error "Loading #{filename}", ex.stack
+      script.runInContext ctx
 
 
 # Links/Resources
@@ -67,3 +65,21 @@ core.resourceLoader.load = (element, href, callback)->
       else
         file = @resolve(document, url.pathname)
         @readFile file, @enqueue(element, loaded, file)
+
+core.resourceLoader.download = (url, callback)->
+  path = url.pathname + (url.search || "")
+  client = http.createClient(url.port || 80, url.hostname)
+  request = client.request("GET", path, "host": url.hostname)
+  request.on "response", (response)->
+    response.setEncoding "utf8"
+    data = ""
+    response.on "data", (chunk)-> data += chunk.toString()
+    response.on "end", ()->
+      switch response.statusCode
+        when 301, 302, 303, 307
+          redirect = URL.resolve(url, response.headers["location"])
+          download redirect, callback
+        else
+          callback null, data
+  request.on "error", (error)-> callback error
+  request.end()
