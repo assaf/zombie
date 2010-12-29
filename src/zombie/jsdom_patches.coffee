@@ -101,22 +101,6 @@ core.Document.prototype._elementBuilders["script"] = (doc, s)->
         core.resourceLoader.enqueue(this, eval, filename)(null, code)
   return script
 
-# Fix document.write so it can handle calling document.write from a
-# script while loading the document.
-core.HTMLDocument.prototype.write = (html)->
-  if @readyState == "loading" && @_parser
-    # During page loading, document.write appends to the current element
-    open = @_parser.tree.open_elements.last()
-    parser = new html5.Parser(document: this)
-    parser.parse_fragment(html, open.parentNode)
-  else
-    # When loading page, parse from scratch.
-    # After page loading, empty document and parse from scratch.
-    @removeChild child for child in @children
-    @_parser = new html5.Parser(document: this)
-    @_parser.parse(html)
-  html
-
 
 # Queue
 # -----

@@ -58,6 +58,7 @@ class History
       options =
         url: URL.format(url)
         deferClose: false
+        parser: require("html5").HTML5
         features:
           QuerySelector: true
           FetchExternalResources: ["script"]
