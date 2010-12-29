@@ -1,6 +1,15 @@
 zombie.js-changelog(1) -- Changelog
 ===================================
 
+
+## Version 0.7.7  2010-12-28
+
+Fix JSDOM queue and with it issue #6. 
+
+    189 Tests
+    2.3 sec to complete
+
+
 ## Version 0.7.6  2010-12-28
 
 HTML5 doesn't play nice with JSDOM, bringing back html-parser to handle

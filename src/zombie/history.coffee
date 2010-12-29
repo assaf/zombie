@@ -59,6 +59,7 @@ class History
       document = new aug.HTMLDocument(url: URL.format(url), deferClose: false)
       jsdom.applyDocumentFeatures document
       document.write = html.HTMLDocument.prototype._write
+      document.fixQueue()
       window.document = document
 
       # Make the actual request: called again when dealing with a redirect.

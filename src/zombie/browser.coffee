@@ -126,6 +126,7 @@ class Browser extends require("events").EventEmitter
     #
     # Returns a string
     this.text = (selector, context)->
+      return "" unless @document.documentElement
       elements = if selector then (context || @document).querySelectorAll(selector).toArray() else [@document]
       elements.map((e)-> e.textContent).join("")
 
@@ -138,6 +139,7 @@ class Browser extends require("events").EventEmitter
     #
     # Returns a string
     this.html = (selector, context)->
+      return "" unless @document.documentElement
       elements = if selector then (context || @document).querySelectorAll(selector).toArray() else [@document]
       elements.map((e)-> e.outerHTML.trim()).join("")
 

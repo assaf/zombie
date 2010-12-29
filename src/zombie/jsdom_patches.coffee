@@ -21,22 +21,6 @@ core.HTMLElement.prototype.dispatchEvent = (event)->
 core.HTMLElement.prototype._eventDefault = (event)->
 
 
-# Scripts
-# -------
-
-# Need to use the same context for all the scripts we load in the same document,
-# otherwise simple things won't work (e.g $.xhr)
-core.languageProcessors =
-  javascript: (element, code, filename)->
-    document = element.ownerDocument
-    window = document.parentWindow
-    window.browser.debug -> "Running script from #{filename}" if filename
-    if window
-      ctx = vm.Script.createContext(window)
-      script = new vm.Script(code, filename)
-      script.runInContext ctx
-
-
 # Links/Resources
 # ---------------
 
@@ -75,7 +59,7 @@ core.resourceLoader.download = (url, callback)->
   request.on "response", (response)->
     response.setEncoding "utf8"
     data = ""
-    response.on "data", (chunk)-> data += chunk.toString()
+    response.on "data", (chunk)-> data += chunk
     response.on "end", ()->
       switch response.statusCode
         when 301, 302, 303, 307
@@ -89,6 +73,18 @@ core.resourceLoader.download = (url, callback)->
 
 # Scripts
 # -------
+
+# Need to use the same context for all the scripts we load in the same document,
+# otherwise simple things won't work (e.g $.xhr)
+core.languageProcessors =
+  javascript: (element, code, filename)->
+    document = element.ownerDocument
+    window = document.parentWindow
+    window.browser.debug -> "Running script from #{filename}" if filename
+    if window
+      ctx = vm.Script.createContext(window)
+      script = new vm.Script(code, filename)
+      script.runInContext ctx
 
 # Here we deal with four JSDOM issues:
 # - JSDOM assumes a SCRIPT element would have one text node, it may have
@@ -173,3 +169,32 @@ core.HTMLDocument.prototype._write = (html)->
     @_parser.parse(html)
   html
 core.HTMLDocument.prototype.writeln = (html)-> @write html + "\n"
+
+
+# Queue
+# -----
+
+# Fixes two bugs in ResourceQueue:
+# - Queue doesn't process items that have empty data (this.data == "")
+# - Should change tail to null if current item is tail, but should not
+#   change tail to next, since item.next may be few items before tail
+core.HTMLDocument.prototype.fixQueue = ->
+  @_queue.push = (callback)->
+    q = this
+    item =
+      prev: q.tail
+      check: ()->
+        if !q.paused && (this.data != undefined || this.err) && !this.prev # fix #1
+          callback(this.err, this.data)
+          if q.tail == this # fix #2
+            q.tail = null
+          if this.next
+            this.next.prev = null
+            this.next.check()
+    if q.tail
+      q.tail.next = item
+    q.tail = item
+    return (err, data)->
+      item.err = err
+      item.data = data
+      item.check()
