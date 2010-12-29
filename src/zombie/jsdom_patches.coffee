@@ -6,27 +6,14 @@ http = require("http")
 html5 = require("html5").HTML5
 
 
-# Event Handling
-# --------------
-
-# Add default event behavior (click link to navigate, click button to submit
-# form, etc). We start by wrapping dispatchEvent so we can forward events to
-# the element's _eventDefault function (only events that did not incur
-# preventDefault).
-dispatchEvent = core.HTMLElement.prototype.dispatchEvent
-core.HTMLElement.prototype.dispatchEvent = (event)->
-  outcome = dispatchEvent.call(this, event)
-  event.target._eventDefault event unless event._preventDefault
-  return outcome
-core.HTMLElement.prototype._eventDefault = (event)->
-
-
 # Links/Resources
 # ---------------
 
 # Default behavior for clicking on links: navigate to new URL is specified.
-core.HTMLAnchorElement.prototype._eventDefault = (event)->
-  @ownerDocument.parentWindow.location = @href if event.type == "click" && @href
+core.HTMLAnchorElement.prototype._eventDefaults = 
+  click: (event)->
+    anchor = event.target
+    anchor.ownerDocument.parentWindow.location = anchor.href if event.type == "click" && anchor.href
 
 # Fix resource loading to keep track of in-progress requests. Need this to wait
 # for all resources (mainly JavaScript) to complete loading before terminating

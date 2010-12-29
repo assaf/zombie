@@ -41,8 +41,8 @@ core.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
 
 # Default behavior for submit events is to call the form's submit method, but we
 # also pass the submitting button.
-core.HTMLFormElement.prototype._eventDefault = (event)->
-  @_submit event._button if event.type == "submit"
+core.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
+  event.target._submit event._button if event.type == "submit"
 
 
 # Buttons
@@ -56,12 +56,14 @@ core.Document.prototype._elementBuilders["button"] = (doc, s)->
 
 
 # Default behavior for clicking on reset/submit buttons.
-core.HTMLInputElement.prototype._eventDefault = (event)->
-  return if @getAttribute("disabled")
-  if event.type == "click" && form = @form
-    switch @type
-      when "reset" then form.reset()
-      when "submit" then form._dispatchSubmitEvent this
+core.HTMLInputElement.prototype._eventDefaults = 
+  click: (event)->
+    button = event.target
+    return if button.getAttribute("disabled")
+    if event.type == "click" && form = button.form
+      switch button.type
+        when "reset" then form.reset()
+        when "submit" then form._dispatchSubmitEvent button
 
 # Current INPUT behavior on click is to capture sumbit and handle it, but
 # ignore all other clicks. We need those other clicks to occur, so we're going
@@ -75,7 +77,9 @@ core.HTMLInputElement.prototype.click = ->
   @dispatchEvent event
 
 # Default behavior for form BUTTON: submit form.
-core.HTMLButtonElement.prototype._eventDefault = (event)->
-  return if @getAttribute("disabled")
-  if event.type == "click" && form = @form
-    form._dispatchSubmitEvent this
+core.HTMLButtonElement.prototype._eventDefaults =
+  click: (event)->
+    button = event.target
+    return if button.getAttribute("disabled")
+    if event.type == "click" && form = button.form
+      form._dispatchSubmitEvent button

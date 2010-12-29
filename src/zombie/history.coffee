@@ -55,10 +55,10 @@ class History
       # resources, etc) and associate it with current document. From this
       # point on the browser sees a new document, client register event
       # handler for DOMContentLoaded/error.
-      options = 
+      options =
         url: URL.format(url)
         deferClose: false
-        features: 
+        features:
           QuerySelector: true
           FetchExternalResources: ["script"]
           ProcessExternalResources: ["script"]

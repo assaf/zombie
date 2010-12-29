@@ -105,7 +105,12 @@ class Browser extends require("events").EventEmitter
     # * selector -- CSS selector
     #
     # Returns an Element or null
-    this.querySelector = (selector)-> window.document?.querySelector(selector)
+    this.querySelector = (selector)->
+      if selector == "#field-brains" && !@document.getElementById("field-brains")
+        console.log "looking for:", selector.slice(1)
+        console.log "  " + id for id,elem of @document._ids
+        console.log "document:", @html()
+      window.document?.querySelector(selector)
 
     # ### browser.querySelectorAll(selector) => NodeList
     #
@@ -227,7 +232,7 @@ class Browser extends require("events").EventEmitter
         if label.textContent.trim() == selector
           # Label can either reference field or enclose it
           if for_attr = label.getAttribute("for")
-            field = @querySelector("#" + for_attr)
+            field = @document.getElementById(for_attr)
           else
             field = label.querySelector("input, textarea, select")
           return field if field && match(field)
