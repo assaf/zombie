@@ -55,8 +55,14 @@ class History
       # resources, etc) and associate it with current document. From this
       # point on the browser sees a new document, client register event
       # handler for DOMContentLoaded/error.
-      aug = jsdom.browserAugmentation(html)
-      document = new aug.HTMLDocument(url: URL.format(url), deferClose: false)
+      options = 
+        url: URL.format(url)
+        deferClose: false
+        features: 
+          QuerySelector: true
+          FetchExternalResources: ["script"]
+          ProcessExternalResources: ["script"]
+      document = jsdom.jsdom(false, jsdom.level3, options)
       jsdom.applyDocumentFeatures document
       document.write = html.HTMLDocument.prototype._write
       document.fixQueue()

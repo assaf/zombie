@@ -1,6 +1,5 @@
 jsdom = require("jsdom")
 require "./jsdom_patches"
-require "./sizzle"
 require "./forms"
 
 
@@ -204,7 +203,7 @@ class Browser extends require("events").EventEmitter
         @fire "click", link, callback if link
         return
       for link in @querySelectorAll("body a")
-        if window.Sizzle.getText([link]).trim() == selector
+        if link.textContent.trim() == selector
           @fire "click", link, callback
           return
       return
@@ -345,7 +344,7 @@ class Browser extends require("events").EventEmitter
         return @wait(callback)
       for button in @querySelectorAll("form button")
         continue if button.getAttribute("disabled")
-        if window.Sizzle.getText([button]).trim() == name
+        if button.textContent.trim() == name
           @fire "click", button
           return @wait(callback)
       inputs = @querySelectorAll("form :submit, form :reset, form :button")
