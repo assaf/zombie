@@ -6,6 +6,11 @@ zombie.js-changelog(1) -- Changelog
 
 Fixed issue 8, wrong location of package.json.
 
+Upgraded to JSDOM 0.1.22 and using HTML5 parser throughout.
+
+    189 Tests
+    2.6 sec to complete
+
 
 ## Version 0.7.7  2010-12-28
 
