@@ -28,10 +28,6 @@ core.HTMLElement.prototype._eventDefault = (event)->
 core.HTMLAnchorElement.prototype._eventDefault = (event)->
   @ownerDocument.parentWindow.location = @href if event.type == "click" && @href
 
-# Fix not-too-smart URL resolving in JSDOM.
-core.resourceLoader.resolve = (document, path)->
-  path = URL.resolve(document.URL, path)
-  path.replace(/^file:/, '').replace(/^([\/]+)/, "/")
 # Fix resource loading to keep track of in-progress requests. Need this to wait
 # for all resources (mainly JavaScript) to complete loading before terminating
 # browser.wait.
@@ -67,6 +63,7 @@ core.resourceLoader.download = (url, callback)->
           download redirect, callback
         else
           callback null, data
+  # TODO: add to JSDOM
   request.on "error", (error)-> callback error
   request.end()
 
@@ -85,37 +82,6 @@ core.languageProcessors =
       ctx = vm.Script.createContext(window)
       script = new vm.Script(code, filename)
       script.runInContext ctx
-
-# Here we deal with four JSDOM issues:
-# - JSDOM assumes a SCRIPT element would have one text node, it may have
-#   more, and in the second case, it has none.
-# - HTML5 creates the SCRIPT element first, then adds the script
-#   contents to the element.  We handle that by catching appendChild
-#   with a text node and  DOMCharacterDataModified event on the text
-#   node.
-# - Scripts can be added using document.write, so we need to patch
-#   document.write so it adds the script instead of erasing the
-#   document.
-# - ResourceQueue checks whether this.data is something, if this.data is
-#   an empty string it does nothing when check() is called, and so never
-#   completes loading when there are empty scripts.
-
-advise = (clazz, method, advice)->
-  proto = clazz.prototype
-  impl = proto[method]
-  proto[method] = ()->
-    args = Array.prototype.slice.call(arguments)
-    ret = impl.apply(this, arguments)
-    args.unshift ret
-    return advice.apply(this, args) || ret
-
-# JSDOM had advise for appendChild, but doesn't seem to do much if the
-# child is a text node.
-advise core.Node, "appendChild", (ret, newChild, refChild)->
-  if this.ownerDocument && newChild.nodeType == this.TEXT_NODE
-    ev = this.ownerDocument.createEvent("MutationEvents")
-    ev.initMutationEvent("DOMNodeInsertedIntoDocument", true, false, this, null, null, null, null)
-    newChild.parentNode.dispatchEvent(ev)
 
 # DOMCharacterDataModified event fired when text is added to a
 # TextNode.  This is a crappy implementation, a good one would old and
@@ -142,20 +108,15 @@ core.Document.prototype._elementBuilders["script"] = (doc, s)->
         filename += ':' + src.line + ':' + src.col
       filename += '<script>'
       eval = (text, filename)->
-        if text + " " == this.text
+        if text == this.text
           core.languageProcessors[this.language](this, text, filename)
       process.nextTick =>
         core.resourceLoader.enqueue(this, eval, filename)(null, code)
-  # Fix text property so it doesn't fail on empty contents
-  script.__defineGetter__ "text", ->
-    # Handle script with no child elements, but also force script
-    # content to never be empty (see bug in ResourceQueue)
-    (item.value for item in this.children).join("") + " "
   return script
 
 # Fix document.write so it can handle calling document.write from a
 # script while loading the document.
-core.HTMLDocument.prototype._write = (html)->
+core.HTMLDocument.prototype.write = (html)->
   if @readyState == "loading" && @_parser
     # During page loading, document.write appends to the current element
     open = @_parser.tree.open_elements.last()
@@ -168,7 +129,6 @@ core.HTMLDocument.prototype._write = (html)->
     @_parser = new html5.Parser(document: this)
     @_parser.parse(html)
   html
-core.HTMLDocument.prototype.writeln = (html)-> @write html + "\n"
 
 
 # Queue

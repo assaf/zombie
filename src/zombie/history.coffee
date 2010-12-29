@@ -64,7 +64,6 @@ class History
           ProcessExternalResources: ["script"]
       document = jsdom.jsdom(false, jsdom.level3, options)
       jsdom.applyDocumentFeatures document
-      document.write = html.HTMLDocument.prototype._write
       document.fixQueue()
       window.document = document
 
