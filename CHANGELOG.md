@@ -2,6 +2,11 @@ zombie.js-changelog(1) -- Changelog
 ===================================
 
 
+## Version 0.7.8  2010-12-29
+
+Fixed wrong location of package.json.
+
+
 ## Version 0.7.7  2010-12-28
 
 Fix JSDOM queue and with it issue #6. 
