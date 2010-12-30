@@ -49,6 +49,21 @@ class Browser extends require("events").EventEmitter
     # True to have Zombie report what it's doing.
     @debug = false
 
+    # ### withOptions(options, fn)
+    #
+    # Changes the browser options, and calls the function with a
+    # callback (reset).  When you're done processing, call the reset
+    # function to bring options back to their previous values.
+    #
+    # See `visit` if you want to see this method in action.
+    @withOptions = (options, fn)->
+      if options
+        restore = {}
+        [restore[k], @[k]] = [@[k], v] for k,v of options
+      fn =>
+        @[k] = v for k,v of restore if restore
+
+    # Sets the browser options.
     if options
       for k,v of options
         @[k] = v if @OPTIONS.indexOf(k) >= 0
@@ -88,7 +103,7 @@ class Browser extends require("events").EventEmitter
     #
     # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a
     # link.  These events will bubble up and can be cancelled.  With a callback, this
-    # function will call `wait`.
+    # method will call `wait`.
     #
     # * name -- Even name (e.g `click`)
     # * target -- Target element (e.g a link)
@@ -195,18 +210,16 @@ class Browser extends require("events").EventEmitter
     this.visit = (url, options, callback)->
       if typeof options is "function"
         [callback, options] = [options, null]
-      else if options
-        restore = {}
-        [restore[k], @[k]] = [@[k], v] for k,v of options
-      @on "error", (error)->
-        @removeListener "error", arguments.callee
-        @[k] = v for k,v of restore if restore
-        callback error
-      history._assign url
-      window.document.addEventListener "DOMContentLoaded", =>
-        @removeListener "error", arguments.callee
-        @[k] = v for k,v of restore if restore
-        @wait callback
+      @withOptions options, (reset)=>
+        @on "error", (error)->
+          @removeListener "error", arguments.callee
+          reset()
+          callback error
+        history._assign url
+        window.document.addEventListener "DOMContentLoaded", =>
+          @removeListener "error", arguments.callee
+          reset()
+          @wait callback
       return
 
     # ### browser.location => Location
