@@ -100,8 +100,7 @@ class Browser extends require("events").EventEmitter
     # are handled synchronously.
     this.wait = (terminate, callback)->
       if !callback
-        callback = terminate
-        terminate = null
+        [callback, terminate] = [terminate, null]
       eventloop.wait window, terminate, (error) =>
         callback error, this if callback
       return

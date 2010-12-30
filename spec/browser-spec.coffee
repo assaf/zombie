@@ -129,23 +129,27 @@ vows.describe("Browser").addBatch(
   "event emitter":
     "successful":
       topic: ->
-        browser = new zombie.Browser
-        browser.on "loaded", (browser)=> @callback null, browser
-        browser.wants "http://localhost:3003/"
+        brains.ready =>
+          browser = new zombie.Browser
+          browser.on "loaded", (browser)=> @callback null, browser
+          browser.window.location = "http://localhost:3003/"
       "should fire load event": (browser)-> assert.ok browser.visit
     "error":
       topic: ->
-        browser = new zombie.Browser
-        browser.on "error", (err)=> @callback null, err
-        browser.wants "http://localhost:3003/deadend"
+        brains.ready =>
+          browser = new zombie.Browser
+          browser.on "error", (err)=> @callback null, err
+          browser.window.location = "http://localhost:3003/deadend"
       "should fire onerror event": (err)->
         assert.ok err.message && err.stack
         assert.equal err.message, "Could not load document at http://localhost:3003/deadend, got 404"
     "wait over":
       topic: ->
-        browser = new zombie.Browser
-        browser.on "drain", (browser)=> @callback null, browser
-        browser.wants "http://localhost:3003/"
+        brains.ready =>
+          browser = new zombie.Browser
+          browser.on "drain", (browser)=> @callback null, browser
+          browser.window.location = "http://localhost:3003/"
+          browser.wait()
       "should fire done event": (browser)-> assert.ok browser.visit
      
   "content selection":
