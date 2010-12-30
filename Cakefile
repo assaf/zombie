@@ -149,7 +149,7 @@ publishDocs = (callback)->
   generateDocs (err)->
     onerror err
     log "Uploading documentation ...", green
-    exec "rsync -cr --del --progress html/ labnotes.org:/var/www/zombie/", (err, stdout, stderr)->
+    exec "rsync -cr --del --stats -h html/ labnotes.org:/var/www/zombie/", (err, stdout, stderr)->
       log stdout, green
       callback err
 task "doc:publish", "Publish documentation to site", -> publishDocs onerror
@@ -171,6 +171,5 @@ task "publish", "Publish new version (Git, NPM, site)", ->
         exec "npm publish ./", (err, stdout, stderr)->
           log stdout, green
           onerror err
-
-    # Publish documentation
-    publishDocs onerror
+          # Publish documentation
+          publishDocs onerror
