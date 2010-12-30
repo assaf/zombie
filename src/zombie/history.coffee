@@ -52,6 +52,9 @@ class History
     resource = (url, method, data, enctype)=>
       method = (method || "GET").toUpperCase()
       throw new Error("Cannot load resource: #{URL.format(url)}") unless url.protocol && url.hostname
+      # If the browser has a new window, use it. If a document was already
+      # loaded into that window it would have state information we don't want
+      # (e.g. window.$) so open a new window.
       window = browser.window
       window = browser.open() if browser.window.document
       # Create new DOM Level 3 document, add features (load external

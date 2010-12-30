@@ -104,6 +104,12 @@ brains.get "/script/append", (req, res)-> res.send """
 
 brains.get "/useragent", (req, res)-> res.send "<body>#{req.headers["user-agent"]}</body>"
 
+brains.get "/context", (req, res)-> res.send """
+  <script>var foo = 1;</script>
+  <script>foo = foo + 1;</script>
+  <script>document.title = foo;</script>
+  """
+
 
 vows.describe("Browser").addBatch(
   "open page":
@@ -227,5 +233,11 @@ vows.describe("Browser").addBatch(
     zombie.wants "http://localhost:3003"
       "should resolve URL": (browser)-> assert.equal browser.location.href, "http://localhost:3003"
       "should load page": (browser)-> assert.equal browser.text("title"), "Tap, Tap"
+
+
+  "script context":
+    zombie.wants "http://localhost:3003/context"
+      "should be shared by all scripts": (browser)-> assert.equal browser.text("title"), "2"
+
 
 ).export(module)

@@ -1,6 +1,13 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+### Version 0.8.3  2010-12-30
+
+Zombie now shares global variables between scripts.
+
+    199 Tests
+    2.4 sec to complete
+
 
 ### Version 0.8.2  2010-12-30
 
