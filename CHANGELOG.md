@@ -2,7 +2,7 @@ zombie.js-changelog(1) -- Changelog
 ===================================
 
 
-## Version 0.7.8  2010-12-29
+## Version 0.8.0  2010-12-29
 
 Fixed issue 8, wrong location of package.json.
 
@@ -14,6 +14,10 @@ browser to execute scripts.
 You can now set browser options when initializing a new browser, on
 existing `Browser` object or for the duration of a request by passing
 them as second argument to `visit`.
+
+Browser now has a property called `debug` that you can set to true/false
+(was a function), and separately a method called `log` that logs
+messages when debugging is enabled.
 
     194 Tests
     2.5 sec to complete

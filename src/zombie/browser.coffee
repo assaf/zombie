@@ -38,17 +38,20 @@ class Browser extends require("events").EventEmitter
     # Options
     # -------
 
-    @OPTIONS = ["runScripts"]
+    @OPTIONS = ["debug", "runScripts"]
 
     # ### runScripts
     #
     # Run scripts included in or loaded from the page. Defaults to true.
     @runScripts = true
+    # ### debug
+    #
+    # True to have Zombie report what it's doing.
+    @debug = false
 
     if options
       for k,v of options
         @[k] = v if @OPTIONS.indexOf(k) >= 0
-      debug options.debug unless options.debug == undefined
 
 
     # Events
@@ -432,20 +435,8 @@ class Browser extends require("events").EventEmitter
     # Returns the last error received by this browser in lieu of response.
     @__defineGetter__ "lastError", -> trail[trail.length - 1]?.error
 
-    debug = false
     # Zombie can spit out messages to help you figure out what's going
     # on as your code executes.
-    #
-    # To turn debugging on, call this method with true; to turn it off,
-    # call with false.  You can also call with a setting and a function,
-    # in which case it will turn debugging on or off, execute the function
-    # and then switch it back to its current settings.
-    #
-    # For example:
-    #     browser.debug(true, function() {
-    #       // Need to you be verbose here
-    #       ...
-    #     });
     #
     # To spit a message to the console when running in debug mode, call
     # this method with one or more values (same as `console.log`).  You
@@ -453,28 +444,23 @@ class Browser extends require("events").EventEmitter
     # running in debug mode.
     #
     # For example:
-    #     browser.debug("Opening page:", url);
-    #     browser.debug(function() { return "Opening page: " + url });
-    #
-    # With no arguments returns the current debug state.
-    this.debug = ->
-      return debug if arguments.length == 0
-      if typeof arguments[0] == "boolean"
-        old = debug
-        debug = arguments[0]
-        if typeof arguments[1] == "function"
-          try
-            arguments[1]()
-          finally
-            debug = old
-      else if debug
-        fields = ["Zombie:"]
+    #     browser.log("Opening page:", url);
+    #     browser.log(function() { return "Opening page: " + url });
+    this.log = ->
+      if @debug
+        values = ["Zombie:"]
         if typeof arguments[0] == "function"
-          fields.push arguments[0]()
-        else if debug
-          fields.push arg for arg in arguments
-        console.log.apply null, fields
+          try
+            values.push arguments[0]()
+          catch ex
+            values.push ex
+        else
+          values.push arg for arg in arguments
+        console.log.apply null, values
 
+    # Dump information to the consolt: Zombie version, current URL,
+    # history, cookies, event loop, etc.  Useful for debugging and
+    # submitting error reports.
     this.dump = ->
       indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
       console.log "Zombie: #{exports.version}\n"

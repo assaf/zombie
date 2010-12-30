@@ -138,15 +138,15 @@ class EventLoop
     # completes processing, passing error and response arguments.
     this.request = (request, fn)->
       url = request.url.toString()
-      browser.debug -> "#{request.method} #{url}"
+      browser.log -> "#{request.method} #{url}"
       requests.push url
       pending = browser.record request
       fn (err, response)->
         if err
-          browser.debug -> "Error loading #{url}: #{err}"
+          browser.log -> "Error loading #{url}: #{err}"
           pending.error = err
         else
-          browser.debug -> "#{request.method} #{url} => #{response.status}"
+          browser.log -> "#{request.method} #{url} => #{response.status}"
           pending.response = response
         index = requests.indexOf(url)
         requests.splice index, 1

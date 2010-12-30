@@ -221,14 +221,8 @@ The current system clock according to the browser (see also `browser.now`).
 
 Returns all the cookies for this domain/path. Path defaults to "/".
 
-### browser.debug(boolean, function?)
-
-Call with `true`/`false` to turn debugging on/off.  Call with flag and
-function to turn debugging on/off only for duration of that function
-call.
-
-### browser.debug(arguments)
-### browser.debug(function)
+### browser.log(arguments)
+### browser.log(function)
 
 Call with multiple arguments to spit them out to the console when
 debugging enabled (same as `console.log`).  Call with function to spit
@@ -240,7 +234,9 @@ Returns the main window's document. Only valid after opening a document (see `br
 
 ### browser.dump
 
-Dump a lot of information about the browser state to the console.
+Dump information to the consolt: Zombie version, current URL, history,
+cookies, event loop, etc.  Useful for debugging and submitting error
+reports.
 
 ### browser.fill(field, value) : this
 
@@ -370,6 +366,28 @@ Zombie.js supports the following:
 - `setTimeout`/`setInterval` and messing with the system clock
 - `pushState`, `popstate` and `hashchange` events
 - Scripts that use `document.write`
+
+
+## Reporting Glitches
+
+**Step 1:** Run Zombie with debugging turned on, the trace will help
+figure out what it's doing. For example:
+
+    var browser = new zombie.Browser({ debug: true });
+    browser.visit("http://thedead", function(err, browser) {
+      if (err)
+        throw(err.message);
+      ... 
+    });
+
+**Step 2:** Wait for it to finish processing, then dump the current
+browser state:
+
+   brower.dump();
+
+**Step 3:** If publicly available, include the URL of the page you're
+trying to access.  Even better, provide a test script I can run from the
+Node.js console (similar to step 1 above).
 
 
 ## The Guts

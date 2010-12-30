@@ -64,7 +64,7 @@ core.languageProcessors =
   javascript: (element, code, filename)->
     document = element.ownerDocument
     window = document.parentWindow
-    window.browser.debug -> "Running script from #{filename}" if filename
+    window.browser.log -> "Running script from #{filename}" if filename
     if window
       ctx = vm.Script.createContext(window)
       script = new vm.Script(code, filename)

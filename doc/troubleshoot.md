@@ -33,6 +33,8 @@ portion of the current page:
         <body>
         ...
 
+The actual report will have much more information.
+
 
 ## Debugging
 
@@ -41,35 +43,32 @@ console.  These could help you see what's going on as your tests
 execute, especially useful around stuff that happens in the background,
 like XHR requests.
 
-To turn debugging on/off call `browser.debug` with a boolean.  You can
-also call it with a boolean and a function, it will change the debug
-status, call the function, and then revent the debug status to its
-previous setting.
+To turn debugging on/off set `browser.debug` to true/false.  You can
+also set this option when creating a new `Browser` object (the
+constructor takes an options argument), or for the duration of a single
+call to `visit` (the second argument being the options).
 
 For example:
 
-    browser.debug(true);
-    // Everything that follows shows debug statements
-    browser.debug(false, function() {
-      // Except here, where debug is turned off
-      ...
+    zombie.visit("http://thedead", { debug: true}, function(err, browser) {
+      if (err)
+        throw(err.message);
+      ... 
     });
 
+
 If you're working on the code and you want to add more debug statements,
-call `browser.debug` with any sequence of arguments (same as
+call `browser.log` with any sequence of arguments (same as
 `console.log`), or with a function.  In the later case, it will call the
 function only when debugging is turned on, and spit the value returned
 from the console.
 
 For example:
 
-    browser.debug("Currently visiting", browser.location);
-    browser.debug(function() {
+    browser.log("Currently visiting", browser.location);
+    browser.log(function() {
       return "Currently visiting " + browser.location;
     });
-
-To figure out if debugging is on, call `browser.debug` with no
-arguments.
 
 
 ## Request/response
