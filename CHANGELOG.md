@@ -1,4 +1,4 @@
-zombie.js-changelog(1) -- Changelog
+zombie.js-changelog(7) -- Changelog
 ===================================
 
 
@@ -18,6 +18,8 @@ them as second argument to `visit`.
 Browser now has a property called `debug` that you can set to true/false
 (was a function), and separately a method called `log` that logs
 messages when debugging is enabled.
+
+Added new page covering the browser API.
 
     194 Tests
     2.5 sec to complete

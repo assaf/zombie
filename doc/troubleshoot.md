@@ -1,4 +1,4 @@
-zombie.js-troubleshoot(1) -- Troubleshooting guide
+zombie.js-troubleshoot(7) -- Troubleshooting guide
 ==================================================
 
 

@@ -66,7 +66,10 @@ class Browser extends require("events").EventEmitter
     # Sets the browser options.
     if options
       for k,v of options
-        @[k] = v if @OPTIONS.indexOf(k) >= 0
+        if @OPTIONS.indexOf(k) >= 0
+          @[k] = v
+        else
+          throw "I don't recognize the option #{k}"
 
 
     # Events
