@@ -70,6 +70,8 @@ using Zombie.js with Vows.
 Whenever you want to wait for all events to be processed, just call
 `browser.wait` with a callback.
 
+Read more [on the Browser API](api.html)
+
 
 ## Hunting
 
@@ -118,6 +120,10 @@ selectors you get additional and quite useful extensions, such as
 `:not(selector)`, `[NAME!=VALUE]`, `:contains(TEXT)`, `:first/:last` and
 so forth.  Check out the [Sizzle.js
 documentation](https://github.com/jeresig/sizzle/wiki) for more details.
+
+Read more [on the Browser API](api.html) and [CSS
+selectors](selectors.html)
+
 
 
 ## Feeding
@@ -175,6 +181,8 @@ Let's combine all of that into one example:
         assert.equal(browser.location, "http://localhost:3003/thankyou");
       });
 
+Read more [on the Browser API](api.html)
+
 
 ## Readiness
 
@@ -212,64 +220,7 @@ browser state:
 trying to access.  Even better, provide a test script I can run from the
 Node.js console (similar to step 1 above).
 
-
-## The Guts
-
-Zombie.js is written in
-[CoffeeScript](http://jashkenas.github.com/coffee-script/), a language
-that mixes the best parts of Python and Ruby and compiles one-to-one
-into JavaScript.
-
-To get started hacking on Zombie.js you'll need Node.js, NPM and
-CoffeeScript:
-
-    $ brew install node npm
-    $ npm install coffee-script
-
-Next, install all other development and runtime dependencies:
-
-    $ cake setup
-
-The DOM implementation is [JSDOM](http://jsdom.org/), which provides
-pretty decent emulation of DOM Level 3. There are some issues and some
-features Zombie.js needs but JSDOM doesn't care for (e.g default event
-handlers).  Those are patched onto JSDOM in
-`lib/zombie/jsdom_patches.coffee` and `lib/zombie/forms.coffee`.
-
-HTML5 parsing is handled by [HTML5](https://github.com/aredridel/html5).
-
-DOM selectors are provided by [Sizzle.js](http://sizzlejs.com/), and
-vendored in the `vendor` directory.
-
-Zombie.js is tested using [Vows](http://vowsjs.org/).  Since we're
-testing a Web browser, we also need a Web server, so it spins up an
-instance of [Express](http://expressjs.com/).  Spinning up Express and
-making sure it doesn't power down before all tests are done (Vows is
-asynchronous, like everything in Node) is the responsibility of
-`spec/helper.coffee`.
-
-To run the test suite:
-
-    $ vows
-
-To stress Zombie.js, we have test cases that use Sammy.js and jQuery.
-The scripts themselves are contained in the `spec/.scripts` directory.
-The dot is necessary to hide these JS files from Vows.
-
-Zombie.js documentation is written in
-[Markdown](http://daringfireball.net/projects/markdown/syntax#code).
-
-Everything you need to know to get started is covered by `README.md`, so
-it shows up when you visit the [Github
-page](http://github.com/assaf/zombie).
-
-Additional documentation lives in the `doc` directory.  Annotated source
-code generated using [Docco](http://jashkenas.github.com/docco/).
-
-To generate the documentation
-
-    $ cake doc
-    $ open html/index.html
+Read more [about troubleshooting](troubleshoot.html)
 
 
 ## Giving Back
@@ -280,20 +231,26 @@ To generate the documentation
 * Make your changes
 * Send a pull request
 
-Check out the outstanding [to-dos](todo.html).
+Read more [about the guts of Zombie.js](guts.html) and check out the
+outstanding [to-dos](todo.html).
 
 
 ## Brains
 
-Zombie.js is copyright of [Assaf Arkin](http://labnotes.org), released under the MIT License.
+Zombie.js is copyright of [Assaf Arkin](http://labnotes.org), released
+under the MIT License.
 
 Zombie.js is written in
 [CoffeeScript](http://jashkenas.github.com/coffee-script/) for
 [Node.js](http://nodejs.org/).
 
-[Sizzle.js](http://sizzlejs.com/) is copyright of John Resig, released under the MIT, BSD and GPL.
+DOM emulation by Elijah Insua's [JSDOM](http://jsdom.org/).
+
+HTML5 parsing by Aria Stewart's [HTML5](https://github.com/aredridel/html5).
+
+CSS selectors by John Resig's [Sizzle.js](http://sizzlejs.com/).
 
 
 ## See Also
 
-**zombie-troublshooting**(7), **zombie-selectors**(7), **zombie-changelog**(7), **zombie-todo**(7)
+**zombie-api**(7), **zombie-troublshooting**(7), **zombie-selectors**(7), **zombie-changelog**(7), **zombie-todo**(7)
