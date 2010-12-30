@@ -129,16 +129,27 @@ generateMan = (callback)->
         process.stdout.write "\n"
     convert()
 
+generatePDF = (callback)->
+  log "Generating PDF documentation ...", green
+  files = "index api selectors troubleshoot".split(" ").map((f)-> "html/#{f}.html")
+  options = "--book --disable-javascript --outline --print-media-type --title Zombie.js --header-html doc/_header.html --cover doc/cover.html"
+  margins = "--margin-left 20 --margin-right 20 --margin-top 20 --margin-bottom 20 --header-spacing 5"
+  exec "wkhtmltopdf #{options} #{margins} #{files.join(" ")} html/zombie.pdf", callback
+
 generateDocs = (callback)->
   log "Generating documentation ...", green
   documentPages (err)->
     onerror err
     documentSource (err)->
       onerror err
-      generateMan callback
+      generatePDF (err)->
+        onerror err
+        generateMan callback
+
 task "doc:pages",  "Generate documentation for main pages",    -> documentPages onerror
 task "doc:source", "Generate documentation from source files", -> documentSource onerror
 task "doc:man",    "Generate man pages",                       -> generateMan onerror
+task "doc:pdf",    "Generate PDF documentation",               -> generatePDF onerror
 task "doc",        "Generate all documentation",               -> generateDocs onerror
 
 

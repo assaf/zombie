@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 0.8.2  2010-12-30
+### Version 0.8.2  2010-12-30
 
 Fixed bug whereby Zombie hangs when making requests to a URL that has no
 path (e.g. `http://localhost`).
@@ -11,7 +11,7 @@ path (e.g. `http://localhost`).
     2.5 sec to complete
 
 
-## Version 0.8.1  2010-12-29
+### Version 0.8.1  2010-12-29
 
 Added User-Agent string.  You can change it by setting the browser
 option `userAgent`.
@@ -28,7 +28,7 @@ in the browser.  Changed it to load the page (add caching later on).
     2.6 sec to complete
 
 
-## Version 0.8.0  2010-12-29
+### Version 0.8.0  2010-12-29
 
 Fixed issue 8, wrong location of package.json.
 
@@ -51,7 +51,7 @@ Added new page covering the browser API.
     2.5 sec to complete
 
 
-## Version 0.7.7  2010-12-28
+### Version 0.7.7  2010-12-28
 
 Fix JSDOM queue and with it issue #6. 
 
@@ -59,7 +59,7 @@ Fix JSDOM queue and with it issue #6.
     2.3 sec to complete
 
 
-## Version 0.7.6  2010-12-28
+### Version 0.7.6  2010-12-28
 
 HTML5 doesn't play nice with JSDOM, bringing back html-parser to handle
 innerHTML (full document parsing still handled by HTML5).
@@ -74,7 +74,7 @@ Added zombie.version.
     2.3 sec to complete
 
 
-## Version 0.7.5  2010-12-28
+### Version 0.7.5  2010-12-28
 
 Previous fix for document.write was incomplete, this one works better.
 
@@ -82,7 +82,7 @@ Previous fix for document.write was incomplete, this one works better.
     2.5 sec to complete
 
 
-## Version 0.7.4  2010-12-28
+### Version 0.7.4  2010-12-28
 
 Now parsing documents using HTML5, which can deal better with tag soup.
 
@@ -97,7 +97,7 @@ lastResponse and lastError.
     2.5 sec to complete
 
 
-## Version 0.7.3  2010-12-27
+### Version 0.7.3  2010-12-27
 
 Fixed non-sensical error message when selector fails matching a node
 (`fill`, `check`, `select`, etc).
@@ -122,7 +122,7 @@ can!
     1.8 sec to complete
 
 
-## Version 0.7.2  2010-12-27
+### Version 0.7.2  2010-12-27
 
 In CoffeeScript 1.0 loops no longer try preserve block scope when
 functions are being generated within the loop body.  Unfortunately, this
@@ -136,12 +136,12 @@ navigate to a different page.
     1.8 sec to complete
 
 
-## Version 0.7.1  2010-12-22
+### Version 0.7.1  2010-12-22
 
 Removed CoffeeScript from runtime dependency list.
 
 
-## Version 0.7.0  2010-12-22
+### Version 0.7.0  2010-12-22
 
 Added `querySelector` and `querySelectorAll` based on the [DOM Selector
 API](http://www.w3.org/TR/selectors-api/).  Use this instead of `find`
@@ -159,7 +159,7 @@ More, better, documentation.
     2.0 sec to complete
 
 
-## Version 0.6.5  2010-12-21
+### Version 0.6.5  2010-12-21
 
 Fixed lack of JavaScript source code: CoffeeScript moved to src,
 JavaScript compiled into lib, life is grand again.
@@ -167,19 +167,19 @@ JavaScript compiled into lib, life is grand again.
 Changelog is now Markdown file and part of the documentation.
 
 
-## Version 0.6.4  2010-12-21
+### Version 0.6.4  2010-12-21
 
 First documentation you can actually use.
 
 
-## Version 0.6.3  2010-12-21
+### Version 0.6.3  2010-12-21
 
 Fixed documentation link.
 
 `man zombie`
 
 
-## Version 0.6.2  2010-12-21
+### Version 0.6.2  2010-12-21
 
 First NPM release.
 
@@ -195,7 +195,7 @@ spec/.scripts.
     1.8 sec to complete
 
 
-## Version 0.6.1  2010-12-20
+### Version 0.6.1  2010-12-20
 
 Changed browser.cookies from getter to function that accepts cookie domain
 (host and port) and path, and returns wrapper to access specific cookie
@@ -209,7 +209,7 @@ Added window.JSON.
     1.8 sec to complete
 
 
-## Version 0.6.0  2010-12-20
+### Version 0.6.0  2010-12-20
 
 First release that I could use to test an existing project.
 

@@ -238,17 +238,19 @@ outstanding [to-dos](todo.html).
 ## Brains
 
 Zombie.js is copyright of [Assaf Arkin](http://labnotes.org), released
-under the MIT License.
+under the MIT License
 
 Zombie.js is written in
 [CoffeeScript](http://jashkenas.github.com/coffee-script/) for
-[Node.js](http://nodejs.org/).
+[Node.js](http://nodejs.org/)
 
-DOM emulation by Elijah Insua's [JSDOM](http://jsdom.org/).
+DOM emulation by Elijah Insua's [JSDOM](http://jsdom.org/)
 
-HTML5 parsing by Aria Stewart's [HTML5](https://github.com/aredridel/html5).
+HTML5 parsing by Aria Stewart's [HTML5](https://github.com/aredridel/html5)
 
-CSS selectors by John Resig's [Sizzle.js](http://sizzlejs.com/).
+CSS selectors by John Resig's [Sizzle.js](http://sizzlejs.com/)
+
+Magical Zombie Girl by [Toho Scope](http://www.flickr.com/people/tohoscope/)
 
 
 ## See Also
