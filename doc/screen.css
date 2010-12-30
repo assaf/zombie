@@ -5,7 +5,7 @@ body {
   margin: 1em auto;
   color: #222;
 }
-h1, h2, h3, h4, #header {
+h1, h2, h3, h4, #header, #sidebar {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
   color: #600;
 }
@@ -30,18 +30,22 @@ pre, code {
   text-decoration: none;
   color: #600;
 }
-#header .navigation {
+#sidebar {
   display: inline;
   padding: 0;
   float: right;
   width: 10em;
-  margin-right: -12em;
+  margin: 0 -12em 0 0;
 }
-#header .navigation li {
+#sidebar .navigation {
+  margin: 3em 0;
+  padding: 0;
+}
+#sidebar .navigation li {
   margin: 0 0 0.6em 0;
   list-style: none;
 }
-#header .navigation a {
+#sidebar .navigation a {
   text-decoration: none;
   color: #22c;
 }
