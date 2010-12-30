@@ -4,7 +4,7 @@ zombie.js-changelog(7) -- Changelog
 
 ## Version 0.8.2  2010-12-30
 
-Fixed bug where Zombie hangs when making requests to URL that have no
+Fixed bug whereby Zombie hangs when making requests to a URL that has no
 path (e.g. `http://localhost`).
 
     198 Tests
