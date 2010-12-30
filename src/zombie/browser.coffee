@@ -38,16 +38,20 @@ class Browser extends require("events").EventEmitter
     # Options
     # -------
 
-    @OPTIONS = ["debug", "runScripts"]
+    @OPTIONS = ["debug", "runScripts", "userAgent"]
 
-    # ### runScripts
-    #
-    # Run scripts included in or loaded from the page. Defaults to true.
-    @runScripts = true
     # ### debug
     #
     # True to have Zombie report what it's doing.
     @debug = false
+    # ### runScripts
+    #
+    # Run scripts included in or loaded from the page. Defaults to true.
+    @runScripts = true
+    # ### userAgent
+    #
+    # User agent string sent to server.
+    @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{exports.version}"
 
     # ### withOptions(options, fn)
     #
@@ -227,8 +231,8 @@ class Browser extends require("events").EventEmitter
 
     # ### browser.location => Location
     #
-    # Return the location of the current document (same as `window.location.href`).
-    @__defineGetter__ "location", -> window.location.href
+    # Return the location of the current document (same as `window.location`).
+    @__defineGetter__ "location", -> window.location
     # ### browser.location = url
     #
     # Changes document location, loads new document if necessary (same as
@@ -494,7 +498,6 @@ class Browser extends require("events").EventEmitter
 
 
 exports.Browser = Browser
-
 
 # ### zombie.version : String
 try

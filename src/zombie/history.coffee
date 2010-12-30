@@ -43,6 +43,9 @@ class History
         evt = browser.document.createEvent("HTMLEvents")
         evt.initEvent "hashchange", true, false
         browser.window.dispatchEvent evt
+      else
+        # Load new page for now (but later on use caching).
+        resource url
     
     # Make a request to external resource. We use this to fetch pages and
     # submit forms, see _loadPage and _submit.
@@ -72,7 +75,7 @@ class History
 
       # Make the actual request: called again when dealing with a redirect.
       makeRequest = (url, method, data)=>
-        headers = {}
+        headers = { "User-Agent": browser.userAgent }
         browser.cookies(url.hostname, url.pathname).addHeader headers
         if method == "GET" || method == "HEAD"
           url.search = "?" + qs.stringify(data) if data

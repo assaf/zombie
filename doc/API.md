@@ -24,6 +24,7 @@ You can use the following options:
   false.
 - `runScripts` -- Run scripts included in or loaded from the page.
   Defaults to true.
+- `userAgent` -- The User-Agent string to send to the server.
     
 ### Browser.visit(url, callback)
 ### Browser.visit(url, options, callback)
@@ -144,7 +145,7 @@ For example:
 
 ### browser.location : Location
 
-Return the location of the current document (same as `window.location.href`).
+Return the location of the current document (same as `window.location`).
 
 ### browser.location = url
 

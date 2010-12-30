@@ -102,6 +102,8 @@ brains.get "/script/append", (req, res)-> res.send """
   </html>
   """
 
+brains.get "/useragent", (req, res)-> res.send "<body>#{req.headers["user-agent"]}</body>"
+
 
 vows.describe("Browser").addBatch(
   "open page":
@@ -206,5 +208,15 @@ vows.describe("Browser").addBatch(
       browser.wants "http://localhost:3003/scripted", { runScripts: false }, @callback
     "should set options for the duration of the request": (browser)-> assert.equal browser.document.title, "Whatever"
     "should reset options following the request": (browser)-> assert.isTrue browser.runScripts
+
+  "user agent":
+    topic: ->
+      browser = new zombie.Browser
+      browser.wants "http://localhost:3003/useragent", @callback
+    "should send own version": (browser)-> assert.match browser.text("body"), /Zombie.js\/\d\.\d/
+    "specified":
+      topic: (browser)->
+        browser.visit "http://localhost:3003/useragent", { userAgent: "imposter" }, @callback
+      "should send user agent to browser": (browser)-> assert.equal browser.text("body"), "imposter"
 
 ).export(module)

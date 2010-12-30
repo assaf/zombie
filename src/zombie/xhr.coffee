@@ -45,7 +45,7 @@ XMLHttpRequest = (browser, window)->
         reset()
 
       # Allow setting headers in this state.
-      headers = {}
+      headers = { "User-Agent": browser.userAgent }
       @setRequestHeader = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
       # Allow calling send method.
       @send = (data)->

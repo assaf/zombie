@@ -2,6 +2,23 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.8.1  2010-12-29
+
+Added User-Agent string.  You can change it by setting the browser
+option `userAgent`.
+
+There was an error with `browser.location`: documentation said it
+returns a `Location` object but also just a URL.  Since `Location`
+object is more consistent with `window.location`, accepted that
+interpretation.
+
+`Location.assign` did not load a page if the page was already loaded
+in the browser.  Changed it to load the page (add caching later on). 
+
+    196 Tests
+    2.6 sec to complete
+
+
 ## Version 0.8.0  2010-12-29
 
 Fixed issue 8, wrong location of package.json.
