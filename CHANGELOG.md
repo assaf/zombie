@@ -2,6 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.8.2  2010-12-30
+
+Fixed bug where Zombie hangs when making requests to URL that have no
+path (e.g. `http://localhost`).
+
+    198 Tests
+    2.5 sec to complete
+
+
 ## Version 0.8.1  2010-12-29
 
 Added User-Agent string.  You can change it by setting the browser

@@ -87,8 +87,8 @@ class History
 
         window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
           client = http.createClient(url.port || 80, url.hostname)
-          path = url.pathname
-          path = path + url.search if url.search
+          path = "#{url.pathname || ""}#{url.search || ""}"
+          path = "/#{path}" unless path[0] == "/"
           headers.host = url.host
           request = client.request(method, path, headers)
 

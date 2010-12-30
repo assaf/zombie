@@ -223,4 +223,9 @@ vows.describe("Browser").addBatch(
         browser.visit "http://localhost:3003/useragent", { userAgent: "imposter" }, @callback
       "should send user agent to browser": (browser)-> assert.equal browser.text("body"), "imposter"
 
+  "URL without path":
+    zombie.wants "http://localhost:3003"
+      "should resolve URL": (browser)-> assert.equal browser.location.href, "http://localhost:3003"
+      "should load page": (browser)-> assert.equal browser.text("title"), "Tap, Tap"
+
 ).export(module)

@@ -67,7 +67,8 @@ XMLHttpRequest = (browser, window)->
 
           window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
             client = http.createClient(url.port, url.hostname)
-            path = url.pathname + (url.search || "")
+            path = "#{url.pathname || ""}#{url.search || ""}"
+            path = "/#{path}" unless path[0] == "/"
             headers.host = url.host
             request = client.request(method, path, headers)
             request.end data, "utf8"
