@@ -1,6 +1,7 @@
+require.paths.unshift __dirname + "/../src"
 fs = require("fs")
 express = require("express")
-zombie = require("../src/index")
+zombie = require("index")
 
 
 # When you run the vows command, it picks all the files in the spec directory

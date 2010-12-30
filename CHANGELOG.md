@@ -8,6 +8,9 @@ Fixed issue 8, wrong location of package.json.
 
 Upgraded to JSDOM 0.1.22 and using HTML5 parser throughout.
 
+Added browser.runScript option.  Set to false if you don't want the
+browser to execute scripts.
+
     189 Tests
     2.6 sec to complete
 

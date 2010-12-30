@@ -89,14 +89,14 @@ core.Document.prototype._elementBuilders["script"] = (doc, s)->
   script.addEventListener "DOMCharacterDataModified", (event)->
     code = event.target.nodeValue
     if code.trim().length > 0
-      src = this.sourceLocation || {}
-      filename = src.file || this.ownerDocument.URL
+      src = @sourceLocation || {}
+      filename = src.file || @ownerDocument.URL
       if src
         filename += ':' + src.line + ':' + src.col
       filename += '<script>'
       eval = (text, filename)->
-        if text == this.text
-          core.languageProcessors[this.language](this, text, filename)
+        if text == @text && @ownerDocument.implementation.hasFeature("ProcessExternalResources", "script")
+          core.languageProcessors[@language](this, text, filename)
       process.nextTick =>
         core.resourceLoader.enqueue(this, eval, filename)(null, code)
   return script

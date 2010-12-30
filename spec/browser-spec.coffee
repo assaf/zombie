@@ -1,4 +1,4 @@
-require("./helpers")
+require "./helpers"
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 jsdom = require("jsdom")
 fs = require("fs")
@@ -12,6 +12,7 @@ brains.get "/scripted", (req, res)-> res.send """
     </head>
     <body>Hello World</body>
     <script>
+      document.title = "Nice";
       $(function() { $("title").text("Awesome") })
     </script>
   </html>
@@ -184,12 +185,20 @@ vows.describe("Browser").addBatch(
         paras = browser.querySelectorAll("body p").toArray().map((e)-> e.textContent.trim())
         assert.deepEqual paras, ["One paragraph", "And another"]
 
-
   "adding script using document.write":
     zombie.wants "http://localhost:3003/script/write"
       "should run script": (browser)-> assert.equal browser.document.title, "Script document.write"
   "adding script using appendChild":
     zombie.wants "http://localhost:3003/script/append"
       "should run script": (browser)-> assert.equal browser.document.title, "Script appendChild"
+
+  "run without scripts":
+    topic: ->
+      browser = new zombie.Browser
+      browser.runScripts = false
+      browser.wants "http://localhost:3003/scripted", @callback
+    "should load document from server": (browser)-> assert.match browser.html(), /<body>Hello World/
+    "should not load external scripts": (browser)-> assert.isUndefined browser.window.jQuery
+    "should not run scripts": (browser)-> assert.equal browser.document.title, "Whatever"
 
 ).export(module)

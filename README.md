@@ -178,6 +178,12 @@ Let's combine all of that into one example:
 
 ## Browser API
 
+
+### Options
+
+**runScripts*** -- Run scripts included in or loaded from the page.
+Defaults to true.
+
 ### Browser.visit(url, callback)
 
 Shortcut for creating new browser and calling `browser.visit` on it.

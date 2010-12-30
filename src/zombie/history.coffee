@@ -61,10 +61,12 @@ class History
         parser: require("html5").HTML5
         features:
           QuerySelector: true
-          FetchExternalResources: ["script"]
-          ProcessExternalResources: ["script"]
+          ProcessExternalResources: []
+          FetchExternalResources: []
+      if browser.runScripts
+        options.features.ProcessExternalResources.push "script"
+        options.features.FetchExternalResources.push "script"
       document = jsdom.jsdom(false, jsdom.level3, options)
-      jsdom.applyDocumentFeatures document
       document.fixQueue()
       window.document = document
 

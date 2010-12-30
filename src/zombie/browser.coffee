@@ -35,6 +35,15 @@ class Browser extends require("events").EventEmitter
     @open()
 
 
+    # Options
+    # -------
+
+    # ### runScripts
+    #
+    # Run scripts included in or loaded from the page. Defaults to true.
+    @runScripts = true
+
+
     # Events
     # ------
 
