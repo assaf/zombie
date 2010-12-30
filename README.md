@@ -181,12 +181,19 @@ Let's combine all of that into one example:
 
 ### Options
 
+You can pass options when creating a new browser (`new
+Browser(options)`), or set them on existing browser instance.
+
+**debug** -- True to have Zombie report what it's doing.
 **runScripts*** -- Run scripts included in or loaded from the page.
 Defaults to true.
 
 ### Browser.visit(url, callback)
+### Browser.visit(url, options, callback)
 
-Shortcut for creating new browser and calling `browser.visit` on it.
+Shortcut for creating new browser and calling `browser.visit` on it.  If
+the second argument are options, initializes the browser with these
+options.
 
 ### browser.body : Element
 
@@ -313,8 +320,12 @@ Returns the text contents of the selected elements.
 Unchecks a checkbox.
 
 ### browser.visit(url, callback)
+### browser.visit(url, options, callback)
 
 Loads document from the specified URL, processes events and calls the callback.
+
+If the second argument are options, uses these options for the duration
+of the request and resets the options afterwards.
 
 ### browser.wait(terminator, callback)
 

@@ -194,11 +194,17 @@ vows.describe("Browser").addBatch(
 
   "run without scripts":
     topic: ->
-      browser = new zombie.Browser
-      browser.runScripts = false
+      browser = new zombie.Browser(runScripts: false)
       browser.wants "http://localhost:3003/scripted", @callback
     "should load document from server": (browser)-> assert.match browser.html(), /<body>Hello World/
     "should not load external scripts": (browser)-> assert.isUndefined browser.window.jQuery
     "should not run scripts": (browser)-> assert.equal browser.document.title, "Whatever"
+
+  "with options":
+    topic: ->
+      browser = new zombie.Browser
+      browser.wants "http://localhost:3003/scripted", { runScripts: false }, @callback
+    "should set options for the duration of the request": (browser)-> assert.equal browser.document.title, "Whatever"
+    "should reset options following the request": (browser)-> assert.isTrue browser.runScripts
 
 ).export(module)

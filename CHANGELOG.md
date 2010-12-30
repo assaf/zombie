@@ -11,8 +11,12 @@ Upgraded to JSDOM 0.1.22 and using HTML5 parser throughout.
 Added browser.runScript option.  Set to false if you don't want the
 browser to execute scripts.
 
-    189 Tests
-    2.6 sec to complete
+You can now set browser options when initializing a new browser, on
+existing `Browser` object or for the duration of a request by passing
+them as second argument to `visit`.
+
+    194 Tests
+    2.5 sec to complete
 
 
 ## Version 0.7.7  2010-12-28

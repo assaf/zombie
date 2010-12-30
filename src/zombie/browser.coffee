@@ -7,7 +7,7 @@ require "./forms"
 #
 # The browser maintains state for cookies and localStorage.
 class Browser extends require("events").EventEmitter
-  constructor: ->
+  constructor: (options) ->
     cookies = require("./cookies").use(this)
     storage = require("./storage").use(this)
     eventloop = require("./eventloop").use(this)
@@ -38,10 +38,17 @@ class Browser extends require("events").EventEmitter
     # Options
     # -------
 
+    @OPTIONS = ["runScripts"]
+
     # ### runScripts
     #
     # Run scripts included in or loaded from the page. Defaults to true.
     @runScripts = true
+
+    if options
+      for k,v of options
+        @[k] = v if @OPTIONS.indexOf(k) >= 0
+      debug options.debug unless options.debug == undefined
 
 
     # Events
@@ -175,18 +182,27 @@ class Browser extends require("events").EventEmitter
     # ----------
 
     # ### browser.visit(url, callback)
+    # ### browser.visit(url, options, callback)
     #
     # Loads document from the specified URL, processes events and calls the
-    # callback.
+    # callback.  If the second argument are options, uses these options
+    # for the duration of the request and resets the options afterwards.
     #
     # If it fails to download, calls the callback with the error.
-    this.visit = (url, callback)->
+    this.visit = (url, options, callback)->
+      if typeof options is "function"
+        [callback, options] = [options, null]
+      else if options
+        restore = {}
+        [restore[k], @[k]] = [@[k], v] for k,v of options
       @on "error", (error)->
         @removeListener "error", arguments.callee
+        @[k] = v for k,v of restore if restore
         callback error
       history._assign url
       window.document.addEventListener "DOMContentLoaded", =>
         @removeListener "error", arguments.callee
+        @[k] = v for k,v of restore if restore
         @wait callback
       return
 
