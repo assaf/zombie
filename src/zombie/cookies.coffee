@@ -99,6 +99,8 @@ class Cookies
     # * serialized -- Serialized form
     this.update = (serialized)->
       return unless serialized
+      # Handle case where we get array of headers.
+      serialized = serialized.join(",") if serialized.constructor == Array
       for cookie in serialized.split(/,(?=[^;,]*=)|,$/)
         fields = cookie.split(/;+/)
         first = fields[0].trim()

@@ -2,6 +2,17 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+### Version 0.8.6  2010-12-31
+
+Now supports cookies on redirect (thanks [Łukasz
+Piestrzeniewicz](https://github.com/bragi)).
+
+Handle server returning multiple `Set-Cookie` headers.
+
+    198 Tests
+    2.6 sec to complete
+
+
 ### Version 0.8.5  2010-12-31
 
 Re-implemented bcat in JavaScript, so no need to install bcat to use
