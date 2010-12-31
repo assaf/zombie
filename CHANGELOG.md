@@ -9,6 +9,9 @@ Piestrzeniewicz](https://github.com/bragi)).
 
 Handle server returning multiple `Set-Cookie` headers.
 
+The `clickLink` and `pressButton` methods should always pass to callback
+and not throw error directly.
+
     198 Tests
     2.6 sec to complete
 

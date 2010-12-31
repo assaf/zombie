@@ -266,7 +266,7 @@ class Browser extends require("events").EventEmitter
       if link = @link(selector)
         @fire "click", link, callback
       else
-        throw new Error("No link matching '#{selector}'")
+        callback new Error("No link matching '#{selector}'")
 
 
     # Forms
@@ -442,10 +442,12 @@ class Browser extends require("events").EventEmitter
     # * callback -- Called with two arguments: error and browser
     this.pressButton = (selector, callback)->
       if button = @button(selector)
-        throw new Error("This button is disabled") if button.getAttribute("disabled")
-        @fire "click", button, callback
+        if button.getAttribute("disabled")
+          callback new Error("This button is disabled")
+        else
+          @fire "click", button, callback
       else
-        throw new Error("No BUTTON '#{selector}'")
+        callback new Error("No BUTTON '#{selector}'")
 
 
     # Cookies and storage
