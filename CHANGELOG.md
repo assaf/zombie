@@ -2,6 +2,9 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+### Version 0.8.7  2010-12-31
+
+
 ### Version 0.8.6  2010-12-31
 
 Now supports cookies on redirect (thanks [Łukasz
@@ -11,6 +14,8 @@ Handle server returning multiple `Set-Cookie` headers.
 
 The `clickLink` and `pressButton` methods should always pass to callback
 and not throw error directly.
+
+Now supports HTTPS.
 
     198 Tests
     2.6 sec to complete

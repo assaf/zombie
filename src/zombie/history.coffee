@@ -78,18 +78,21 @@ class History
 
       # Make the actual request: called again when dealing with a redirect.
       makeRequest = (url, method, data)=>
-        headers = { "User-Agent": browser.userAgent }
+        headers = { "user-agent": browser.userAgent }
         browser.cookies(url.hostname, url.pathname).addHeader headers
         if method == "GET" || method == "HEAD"
           url.search = "?" + qs.stringify(data) if data
           data = null
+          headers["content-length"] = 0
         else
           data = qs.stringify(data)
           headers["content-type"] = enctype || "application/x-www-form-urlencoded"
           headers["content-length"] = data.length
 
         window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
-          client = http.createClient(url.port || 80, url.hostname)
+          secure = url.protocol == "https:"
+          port = url.port || (if secure then 443 else 80)
+          client = http.createClient(port, url.hostname, secure)
           path = "#{url.pathname || ""}#{url.search || ""}"
           path = "/#{path}" unless path[0] == "/"
           headers.host = url.host

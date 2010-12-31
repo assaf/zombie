@@ -45,7 +45,7 @@ XMLHttpRequest = (browser, window)->
         reset()
 
       # Allow setting headers in this state.
-      headers = { "User-Agent": browser.userAgent }
+      headers = { "user-agent": browser.userAgent }
       @setRequestHeader = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
       # Allow calling send method.
       @send = (data)->
@@ -60,13 +60,16 @@ XMLHttpRequest = (browser, window)->
         makeRequest = (url, method, headers, data)=>
           if method == "GET" || method == "HEAD"
             data = null
+            headers["content-length"] = 0
           else
             headers["content-type"] ||= "text/plain;charset=UTF-8"
             headers["content-length"] = data.length
           browser.cookies(url.hostname, url.pathname).addHeader headers
 
           window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
-            client = http.createClient(url.port, url.hostname)
+            secure = url.protocol == "https:"
+            port = url.port || (if secure then 443 else 80)
+            client = http.createClient(port, url.hostname, secure)
             path = "#{url.pathname || ""}#{url.search || ""}"
             path = "/#{path}" unless path[0] == "/"
             headers.host = url.host
