@@ -2,13 +2,20 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-### Version 0.8.3  2010-12-30
+### Version 0.8.4  2010-12-30
 
-Added the `field` (find an input field, textarea, etc), `link` (find a
-link) and `button` (find a button) methods.
+Added `browser.field` (find an input field, textarea, etc),
+`browser.link` (find a link) and `browser.button` (find a button)
+methods.
 
-    196 Tests
-    2.5 sec to complete
+Added `browser.evaluate` to evaluate any arbitrary JavaScript in the
+window context and return the result.
+
+Added `browser.viewInBrowser` which uses `bcat` to view page in your
+browser of choice.
+
+    197 Tests
+    2.6 sec to complete
 
 
 ### Version 0.8.3  2010-12-30

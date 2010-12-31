@@ -140,4 +140,10 @@ vows.describe("Scripts").addBatch(
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
       "should process event": (browser)-> assert.equal browser.document.title, "Signed up"
 
+  "evaluate":
+    zombie.wants "http://localhost:3003/living"
+      topic: (browser)->
+        browser.evaluate "document.title"
+      "should evaluate in context and return value": (title)-> assert.equal title, "The Living"
+
 ).export(module)

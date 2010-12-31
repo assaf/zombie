@@ -43,6 +43,7 @@ vows.describe("History").addBatch(
           topic: (window)->
             window.addEventListener "popstate", (evt)=> @callback(null, evt)
             window.history.back()
+            return
           "should fire popstate event": (evt)-> assert.instanceOf evt, jsdom.dom.level3.events.Event
           "should include state": (evt)-> assert.equal evt.state.is, "start"
         "go forwards":
@@ -53,6 +54,7 @@ vows.describe("History").addBatch(
               browser.window.history.back()
               browser.window.addEventListener "popstate", (evt)=> @callback(null, evt)
               browser.window.history.forward()
+              return
             "should fire popstate event": (evt)-> assert.instanceOf evt, jsdom.dom.level3.events.Event
             "should include state": (evt)-> assert.equal evt.state.is, "end"
     "replaceState":
@@ -85,6 +87,7 @@ vows.describe("History").addBatch(
         topic: (browser)->
           browser.window.location = "http://localhost:3003/boo"
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
+          return
         "should add page to history": (browser)-> assert.length browser.window.history, 2
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
@@ -93,6 +96,7 @@ vows.describe("History").addBatch(
         topic: (browser)->
           browser.window.location.pathname = "/boo"
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
+          return
         "should add page to history": (browser)-> assert.length browser.window.history, 2
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
@@ -102,6 +106,7 @@ vows.describe("History").addBatch(
           browser.document.innerHTML = "Wolf"
           browser.window.addEventListener "hashchange", => @callback null, browser
           browser.window.location.hash = "boo"
+          return
         "should add page to history": (browser)-> assert.length browser.window.history, 2
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/#boo"
         "should not reload document": (browser)-> assert.match browser.document.innerHTML, /Wolf/
@@ -111,6 +116,7 @@ vows.describe("History").addBatch(
           @window = browser.window
           browser.window.location.assign "http://localhost:3003/boo"
           browser.document.addEventListener "DOMContentLoaded", => @callback null, browser
+          return
         "should add page to history": (browser)-> assert.length browser.window.history, 2
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
@@ -121,6 +127,7 @@ vows.describe("History").addBatch(
           @window = browser.window
           browser.window.location.replace "http://localhost:3003/boo"
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
+          return
         "should not add page to history": (browser)-> assert.length browser.window.history, 1
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
@@ -132,6 +139,7 @@ vows.describe("History").addBatch(
           browser.window.document.innerHTML = "Wolf"
           browser.window.location.reload()
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
+          return
         "should not add page to history": (browser)-> assert.length browser.window.history, 1
         "should not change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/"
         "should reload document": (browser)-> assert.match browser.html(), /Tap, Tap/

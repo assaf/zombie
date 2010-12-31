@@ -25,7 +25,7 @@ You can use the following options:
 - `runScripts` -- Run scripts included in or loaded from the page.
   Defaults to true.
 - `userAgent` -- The User-Agent string to send to the server.
-    
+
 ### Browser.visit(url, callback)
 ### Browser.visit(url, options, callback)
 
@@ -74,6 +74,13 @@ Returns the body element of the current document.
 
 Returns the main window's document.  Only valid after opening a document
 (see `browser.visit`).
+
+### browser.evaluate(expr) : Object
+
+Evaluates a JavaScript expression in the context of the current window
+and returns the result.  For example:
+
+    browser.evaluate("document.title");
 
 ### browser.html(selector?, context?) : String
 
@@ -278,16 +285,6 @@ Unchecks a checkbox.  The argument can be the field name, label text or
 a CSS selector.
 
 
-## Notes
-
-#### Callbacks
-
-By convention most callback functions take two arguments.  If an error
-occurred, the first argument is the error and the second argument is
-`null`.  If everything went smoothly, the first argument is `null` and
-the second argument is the relevant value (e.g. the brower, a window).
-
-
 ## State Management
 
 The browser maintains state as you navigate from one page to another.
@@ -413,3 +410,23 @@ Returns the last response received by this browser.
 Call with multiple arguments to spit them out to the console when
 debugging enabled (same as `console.log`).  Call with function to spit
 out the result of that function call when debugging enabled.
+
+### browser.viewInBrowser(name?)
+
+Views the current document in a real Web browser.  Uses the default
+browser, or you can specify the browser by name (e.g
+`viewInBrowser("chrome")`).  This feature uses
+[bcat](https://github.com/rtomayko/bcat/tree/master/lib); you need Ruby
+and `gem install bcat`.
+
+
+## Notes
+
+#### Callbacks
+
+By convention most callback functions take two arguments.  If an error
+occurred, the first argument is the error and the second argument is
+`null`.  If everything went smoothly, the first argument is `null` and
+the second argument is the relevant value (e.g. the brower, a window).
+
+

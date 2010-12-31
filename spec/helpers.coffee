@@ -69,7 +69,11 @@ zombie.wants = (url, context)->
   context.topic = ->
     new zombie.Browser().wants url, (err, browser)=>
       if topic
-        topic.call this, browser
+        try
+          value = topic.call this, browser
+          @callback null, value if value
+        catch err
+          @callback err
       else
         browser.wait @callback
     return

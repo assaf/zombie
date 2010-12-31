@@ -1,6 +1,8 @@
 jsdom = require("jsdom")
+vm = process.binding("evals")
 require "./jsdom_patches"
 require "./forms"
+
 
 
 # Use the browser to open up new windows and load documents.
@@ -33,7 +35,6 @@ class Browser extends require("events").EventEmitter
       return window
     # Always start with an open window.
     @open()
-
 
     # Options
     # -------
@@ -466,8 +467,45 @@ class Browser extends require("events").EventEmitter
     this.sessionStorage = (host)-> storage.session(host)
 
 
+    # Scripts
+    # -------
+
+    # ### browser.evaluate(code, filename) : Object
+    #
+    # Evaluates a JavaScript expression in the context of the current window
+    # and returns the result.  When evaluating external script, also include
+    # filename.
+    this.evaluate = (code, filename)->
+      # Unfortunately, using the same context in multiple scripts
+      # doesn't agree with jQuery, Sammy and other scripts I tested,
+      # so each script gets a new context.
+      context = vm.Script.createContext(window)
+      # But we need to carry global variables from one script to the
+      # next, so we're going to store them in window._vars and add them
+      # back to the new context.
+      if window._vars
+        context[v[0]] = v[1] for v in @window._vars
+      script = new vm.Script(code, filename || "eval")
+      result = script.runInContext context
+      window._vars = ([n,v] for n, v of context).filter((v)-> !window[v[0]])
+      result
+
+
     # Debugging
     # ---------
+
+    # ### browser.viewInBrowser(name?)
+    #
+    # Views the current document in a real Web browser.  Uses the default
+    # browser, or you can specify by name (e.g `viewInBrowser("chrome")`).
+    # Uses [bcat](https://github.com/rtomayko/bcat/tree/master/lib).
+    this.viewInBrowser = (browser)->
+      args = ["--html"]
+      args.push "--browser=#{browser}" if browser
+      bcat = require("child_process").spawn("bcat", args)
+      bcat.stderr.on "data", (data)-> console.log data.toString()
+      bcat.stdin.write @html()
+      bcat.stdin.end()
 
     trail = []
     this.record = (request)->
