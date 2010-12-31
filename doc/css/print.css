@@ -3,7 +3,7 @@ body {
   font-size: 12pt;
   margin: 2em 4em;
 }
-h1, h2, h3, h4, #header {
+h1, h2, h3, h4, #header, .header {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
 }
 h1 { font-size: 18pt; }

@@ -71,7 +71,7 @@ task "test", "Run all tests", -> runTests onerror
 # Markdown to HTML.
 toHTML = (source, callback)->
   target = "html/#{path.basename(source, ".md").toLowerCase()}.html"
-  fs.readFile "doc/_layout.html", "utf8", (err, layout)->
+  fs.readFile "doc/layout/main.html", "utf8", (err, layout)->
     onerror err
     fs.readFile source, "utf8", (err, text)->
       onerror err
@@ -100,7 +100,7 @@ documentPages = (callback)->
           html = html.replace(/<h1>(.*)<\/h1>/, "<h1>Zombie.js</h1><b>$1</b>")
           fs.writeFile "html/index.html", html, "utf8", onerror
           fs.unlink "html/readme.html", onerror
-          exec "cp -f doc/*.css html/", callback
+          exec "cp -fr doc/css doc/images html/", callback
     convert()
 
 documentSource = (callback)->
@@ -132,9 +132,10 @@ generateMan = (callback)->
 generatePDF = (callback)->
   log "Generating PDF documentation ...", green
   files = "index api selectors troubleshoot".split(" ").map((f)-> "html/#{f}.html")
-  options = "--book --disable-javascript --outline --print-media-type --title Zombie.js --header-html doc/_header.html --cover doc/cover.html"
+  options = "--disable-javascript --outline --print-media-type --title Zombie.js --header-html doc/layout/header.html"
+  toc = "--toc --toc-depth 2 --toc-no-dots --cover doc/layout/cover.html --allow doc/images --outline"
   margins = "--margin-left 20 --margin-right 20 --margin-top 20 --margin-bottom 20 --header-spacing 5"
-  exec "wkhtmltopdf #{options} #{margins} #{files.join(" ")} html/zombie.pdf", callback
+  exec "wkhtmltopdf #{options} #{margins} #{toc} #{files.join(" ")} html/zombie.pdf", callback
 
 generateDocs = (callback)->
   log "Generating documentation ...", green

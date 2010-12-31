@@ -13,6 +13,7 @@ a simulated environment.  No browser required.
 Let's try to sign up to a page and see what happens:
 
     var zombie = require("zombie");
+    var assert = require("assert");
 
     // Load the page from localhost
     zombie.visit("http://localhost:3000/", function (err, browser) {
