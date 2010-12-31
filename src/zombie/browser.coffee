@@ -497,15 +497,9 @@ class Browser extends require("events").EventEmitter
     # ### browser.viewInBrowser(name?)
     #
     # Views the current document in a real Web browser.  Uses the default
-    # browser, or you can specify by name (e.g `viewInBrowser("chrome")`).
-    # Uses [bcat](https://github.com/rtomayko/bcat/tree/master/lib).
+    # system browser on OS X, BSD and Linux.  Probably errors on Windows.
     this.viewInBrowser = (browser)->
-      args = ["--html"]
-      args.push "--browser=#{browser}" if browser
-      bcat = require("child_process").spawn("bcat", args)
-      bcat.stderr.on "data", (data)-> console.log data.toString()
-      bcat.stdin.write @html()
-      bcat.stdin.end()
+      require("./bcat").bcat @html()
 
     trail = []
     this.record = (request)->

@@ -414,10 +414,7 @@ out the result of that function call when debugging enabled.
 ### browser.viewInBrowser(name?)
 
 Views the current document in a real Web browser.  Uses the default
-browser, or you can specify the browser by name (e.g
-`viewInBrowser("chrome")`).  This feature uses
-[bcat](https://github.com/rtomayko/bcat/tree/master/lib); you need Ruby
-and `gem install bcat`.
+system browser on OS X, BSD and Linux.  Probably errors on Windows.
 
 
 ## Notes

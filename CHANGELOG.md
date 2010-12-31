@@ -2,6 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+### Version 0.8.5  2010-12-31
+
+Re-implemented bcat in JavaScript, so no need to install bcat to use
+Zombie.
+
+    197 Tests
+    2.6 sec to complete
+
+
 ### Version 0.8.4  2010-12-30
 
 Added `browser.field` (find an input field, textarea, etc),
