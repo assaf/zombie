@@ -1,7 +1,6 @@
 require "./helpers"
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 jsdom = require("jsdom")
-fs = require("fs")
 
 
 brains.get "/scripted", (req, res)-> res.send """
@@ -72,43 +71,8 @@ brains.get "/soup", (req, res)-> res.send """
   <p>And another
   """
 
-brains.get "/script/write", (req, res)-> res.send """
-  <html>
-    <head>
-      <script>document.write(unescape(\'%3Cscript src="/jquery.js"%3E%3C/script%3E\'));</script>
-    </head>
-    <body>
-      <script>
-        $(function() { document.title = "Script document.write" });
-      </script>
-    </body>
-  </html>
-  """
-
-brains.get "/script/append", (req, res)-> res.send """
-  <html>
-    <head>
-      <script>
-        var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
-        s.src = '/jquery.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);
-      </script>
-    </head>
-    <body>
-      <script>
-        $(function() { document.title = "Script appendChild" });
-      </script>
-    </body>
-  </html>
-  """
-
 brains.get "/useragent", (req, res)-> res.send "<body>#{req.headers["user-agent"]}</body>"
 
-brains.get "/context", (req, res)-> res.send """
-  <script>var foo = 1;</script>
-  <script>foo = foo + 1;</script>
-  <script>document.title = foo;</script>
-  """
 
 
 vows.describe("Browser").addBatch(
@@ -120,17 +84,6 @@ vows.describe("Browser").addBatch(
         assert.ok jQuery = browser.window.jQuery, "window.jQuery not available"
         assert.typeOf jQuery.ajax, "function"
       "should run jQuery.onready": (browser)-> assert.equal browser.document.title, "Awesome"
-
-  "run app":
-    zombie.wants "http://localhost:3003/living"
-      "should execute route": (browser)-> assert.equal browser.document.title, "The Living"
-      "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
-      "move around":
-        topic: (browser)->
-          browser.window.location.hash = "/dead"
-          browser.wait @callback
-        "should execute route": (browser)-> assert.equal browser.text("#main"), "The Living Dead"
-        "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
 
   "event emitter":
     "successful":
@@ -180,14 +133,6 @@ vows.describe("Browser").addBatch(
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/dead"
       "should run all events": (browser)-> assert.equal browser.document.title, "The Dead"
 
-  "live events":
-    zombie.wants "http://localhost:3003/living"
-      topic: (browser)->
-        browser.fill("Email", "armbiter@zombies").fill("Password", "br41nz").
-          pressButton "Sign Me Up", @callback
-      "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
-      "should process event": (browser)-> assert.equal browser.document.title, "Signed up"
-
   "tag soup":
     zombie.wants "http://localhost:3003/soup"
       "should parse to complete HTML": (browser)->
@@ -196,21 +141,6 @@ vows.describe("Browser").addBatch(
       "should close tags": (browser)->
         paras = browser.querySelectorAll("body p").toArray().map((e)-> e.textContent.trim())
         assert.deepEqual paras, ["One paragraph", "And another"]
-
-  "adding script using document.write":
-    zombie.wants "http://localhost:3003/script/write"
-      "should run script": (browser)-> assert.equal browser.document.title, "Script document.write"
-  "adding script using appendChild":
-    zombie.wants "http://localhost:3003/script/append"
-      "should run script": (browser)-> assert.equal browser.document.title, "Script appendChild"
-
-  "run without scripts":
-    topic: ->
-      browser = new zombie.Browser(runScripts: false)
-      browser.wants "http://localhost:3003/scripted", @callback
-    "should load document from server": (browser)-> assert.match browser.html(), /<body>Hello World/
-    "should not load external scripts": (browser)-> assert.isUndefined browser.window.jQuery
-    "should not run scripts": (browser)-> assert.equal browser.document.title, "Whatever"
 
   "with options":
     topic: ->
@@ -233,11 +163,4 @@ vows.describe("Browser").addBatch(
     zombie.wants "http://localhost:3003"
       "should resolve URL": (browser)-> assert.equal browser.location.href, "http://localhost:3003"
       "should load page": (browser)-> assert.equal browser.text("title"), "Tap, Tap"
-
-
-  "script context":
-    zombie.wants "http://localhost:3003/context"
-      "should be shared by all scripts": (browser)-> assert.equal browser.text("title"), "2"
-
-
 ).export(module)

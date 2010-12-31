@@ -1,6 +1,16 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+
+### Version 0.8.3  2010-12-30
+
+Added the `field` (find an input field, textarea, etc), `link` (find a
+link) and `button` (find a button) methods.
+
+    196 Tests
+    2.5 sec to complete
+
+
 ### Version 0.8.3  2010-12-30
 
 Zombie now shares global variables between scripts.

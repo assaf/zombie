@@ -128,7 +128,7 @@ callback to methods like `visit` and `clickLink.`
 ### browser.clickLink(selector, callback)
  
 Clicks on a link.  The first argument is the link text or CSS selector.
-Secont argument is a callback, invoked after all events are allowed to
+Second argument is a callback, invoked after all events are allowed to
 run their course.
 
 Zombie.js fires a `click` event and has a default event handler that
@@ -142,6 +142,12 @@ For example:
       assert.equal(browser.querySelectorAll("#cart .body"), 3);
     });
 
+
+### browser.link(selector) : Element
+
+Finds and returns a link (`A`) element.  You can use a CSS selector or
+find a link by its text contents (case sensitive, but ignores
+leading/trailing spaces). 
 
 ### browser.location : Location
 
@@ -212,6 +218,13 @@ text or a CSS selector.
 
 Returns itself.
 
+### browser.field(selector) : Element
+
+Find and return an input field (`INPUT`, `TEXTAREA` or `SELECT`) based
+on a CSS selector, field name (its `name` attribute) or the text value
+of a label associated with that field (case sensitive, but ignores
+leading/trailing spaces).
+
 ### browser.fill(field, value) : this
 
 Fill in a field: input field or text area.  The first argument can be
@@ -224,14 +237,18 @@ For example:
 
 Returns itself.
 
-### browser.pressButton(name, callback)
+### browser.button(selector) : Element
+
+Finds a button using CSS selector, button name or button text (`BUTTON`
+or `INPUT` element).
+
+### browser.pressButton(selector, callback)
  
-Press a button (`button` element or `input` element).  Typically this will
-submit the form, but may also reset the form or simulate a click,
-depending on the button type.
+Press a button.  Typically this will submit the form, but may also reset
+the form or simulate a click, depending on the button type.
 
 The first argument is either the button name, text value or CSS
-select.  Secont argument is a callback, invoked after the button is
+selector.  Second argument is a callback, invoked after the button is
 pressed, form submitted and all events allowed to run their course.
 
 For example:

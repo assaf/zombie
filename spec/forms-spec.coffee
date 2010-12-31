@@ -88,25 +88,25 @@ vows.describe("Forms").addBatch(
         for field in ["hungry", "brains", "green"]
           do (field)->
             browser.querySelector("#field-#{field}").addEventListener "click", -> browser["#{field}Clicked"] = true
-            browser.querySelector("#field-#{field}").addEventListener "click", -> browser["#{field}Changed"] = true
+            browser.querySelector("#field-#{field}").addEventListener "change", -> browser["#{field}Changed"] = true
         @callback null, browser
       "checkbox enclosed in label":
         topic: (browser)->
           browser.check "Hungry"
+          browser.wait @callback
         "should check checkbox": (browser)-> assert.ok browser.querySelector("#field-hungry").checked
-        "should fire click event": (browser)-> assert.ok browser.hungryClicked
         "should fire change event": (browser)-> assert.ok browser.hungryChanged
       "checkbox referenced from label":
         topic: (browser)->
           browser.check "Brains?"
+          browser.wait @callback
         "should check checkbox": (browser)-> assert.ok browser.querySelector("#field-brains").checked
-        "should fire click event": (browser)-> assert.ok browser.brainsClicked
         "should fire change event": (browser)-> assert.ok browser.brainsChanged
       "checkbox by name":
         topic: (browser)->
           browser.uncheck "green"
+          browser.wait @callback
         "should uncheck checkbox": (browser)-> assert.ok !browser.querySelector("#field-green").checked
-        "should fire click event": (browser)-> assert.ok browser.greenClicked
         "should fire change event": (browser)-> assert.ok browser.greenChanged
 
   "radio buttons":
@@ -115,7 +115,7 @@ vows.describe("Forms").addBatch(
         for field in ["scary", "notscary"]
           do (field)->
             browser.querySelector("#field-#{field}").addEventListener "click", -> browser["#{field}Clicked"] = true
-            browser.querySelector("#field-#{field}").addEventListener "click", -> browser["#{field}Changed"] = true
+            browser.querySelector("#field-#{field}").addEventListener "change", -> browser["#{field}Changed"] = true
         @callback null, browser
       "radio button enclosed in label":
         topic: (browser)->

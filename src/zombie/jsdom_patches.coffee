@@ -13,7 +13,7 @@ html5 = require("html5").HTML5
 core.HTMLAnchorElement.prototype._eventDefaults = 
   click: (event)->
     anchor = event.target
-    anchor.ownerDocument.parentWindow.location = anchor.href if event.type == "click" && anchor.href
+    anchor.ownerDocument.parentWindow.location = anchor.href if anchor.href
 
 # Fix resource loading to keep track of in-progress requests. Need this to wait
 # for all resources (mainly JavaScript) to complete loading before terminating

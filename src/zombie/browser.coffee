@@ -242,6 +242,17 @@ class Browser extends require("events").EventEmitter
     # Forms
     # -----
 
+    # ### browser.link(selector) : Element
+    #
+    # Finds and returns a link by its text content or selector.
+    this.link = (selector)->
+      if link = @querySelector(selector)
+        return link if link.tagName == "A"
+      for link in @querySelectorAll("body a")
+        if link.textContent.trim() == selector
+          return link
+      return
+
     # ### browser.clickLink(selector, callback)
     #
     # Clicks on a link. Clicking on a link can trigger other events, load new
@@ -251,21 +262,15 @@ class Browser extends require("events").EventEmitter
     # * selector -- CSS selector or link text
     # * callback -- Called with two arguments: error and browser
     this.clickLink = (selector, callback)->
-      if link = @querySelector(selector)
-        @fire "click", link, callback if link
-        return
-      for link in @querySelectorAll("body a")
-        if link.textContent.trim() == selector
-          @fire "click", link, callback
-          return
-      return
+      if link = @link(selector)
+        @fire "click", link, callback
+      else
+        throw new Error("No link matching '#{selector}'")
 
 
     # Forms
     # -----
 
-    # HTML5 field types that you can "fill in".
-    textTypes = "email number password range search text url".split(" ")
     # Find input field from selector, name or label.
     findInput = (selector, match)=>
       # Try more specific selector first.
@@ -285,132 +290,161 @@ class Browser extends require("events").EventEmitter
           return field if field && match(field)
       return
 
-    # ### browser.fill(field, value) => this
+    # ### browser.field(selector) : Element
+    #
+    # Find and return an input field (`INPUT`, `TEXTAREA` or `SELECT`) based on
+    # a CSS selector, field name (its `name` attribute) or the text value of a
+    # label associated with that field (case sensitive, but ignores
+    # leading/trailing spaces).
+    this.field = (selector)->
+      # Try more specific selector first.
+      if field = @querySelector(selector)
+        return field if field.tagName == "INPUT" || field.tagName == "TEXTAREA" || field.tagName == "SELECT"
+      # Use field name (case sensitive).
+      if field = @querySelector(":input[name='#{selector}']")
+        return field
+      # Try finding field from label.
+      for label in @querySelectorAll("label")
+        if label.textContent.trim() == selector
+          # Label can either reference field or enclose it
+          if for_attr = label.getAttribute("for")
+            return @document.getElementById(for_attr)
+          else
+            return label.querySelector(":input")
+      return
+
+
+    # HTML5 field types that you can "fill in".
+    TEXT_TYPES = "email number password range search text url".split(" ")
+
+    # ### browser.fill(selector, value) => this
     #
     # Fill in a field: input field or text area.
     #
-    # * field -- CSS selector, field name or text of the field label
+    # * selector -- CSS selector, field name or text of the field label
     # * value -- Field value
     #
     # Returns this
-    this.fill = (field, value)->
-      match = (elem)-> elem.nodeName == "TEXTAREA" || textTypes.indexOf(elem.type?.toLowerCase()) >= 0
-      if input = findInput(field, match)
-        throw new Error("This INPUT field is disabled") if input.getAttribute("input")
-        throw new Error("This INPUT field is readonly") if input.getAttribute("readonly")
-        input.value = value
-        @fire "change", input
+    this.fill = (selector, value)->
+      field = @field(selector)
+      if field.tagName == "TEXTAREA" || (field.tagName == "INPUT" && TEXT_TYPES.indexOf(field.type) >= 0)
+        throw new Error("This INPUT field is disabled") if field.getAttribute("input")
+        throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
+        field.value = value
+        @fire "change", field
         return this
-      throw new Error("No INPUT matching '#{field}'")
+      throw new Error("No INPUT matching '#{selector}'")
 
-    setCheckbox = (field, state)=>
-      match = (elem)-> elem.nodeName == "INPUT" && elem.type == "checkbox"
-      if input = findInput(field, match)
-        throw new Error("This INPUT field is disabled") if input.getAttribute("input")
-        throw new Error("This INPUT field is readonly") if input.getAttribute("readonly")
-        input.checked = state
-        @fire "change", input
-        @fire "click", input
+    setCheckbox = (selector, state)=>
+      field = @field(selector)
+      if field.tagName == "INPUT" && field.type == "checkbox"
+        throw new Error("This INPUT field is disabled") if field.getAttribute("input")
+        throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
+        field.checked = state
+        @fire "change", field
         return this
       else
-        throw new Error("No checkbox INPUT matching '#{field}'")
+        throw new Error("No checkbox INPUT matching '#{selector}'")
 
-    # ### browser.check(field) => this
+    # ### browser.check(selector) => this
     #
     # Checks a checkbox.
     #
-    # * field -- CSS selector, field name or text of the field label
+    # * selector -- CSS selector, field name or text of the field label
     #
     # Returns this
-    this.check = (field)-> setCheckbox field, true
+    this.check = (selector)-> setCheckbox selector, true
 
-    # ### browser.uncheck(field) => this
+    # ### browser.uncheck(selector) => this
     #
     # Unchecks a checkbox.
     #
-    # * field -- CSS selector, field name or text of the field label
+    # * selector -- CSS selector, field name or text of the field label
     #
     # Returns this
-    this.uncheck = (field)-> setCheckbox field, false
+    this.uncheck = (selector)-> setCheckbox selector, false
 
-    # ### browser.choose(field) => this
+    # ### browser.choose(selector) => this
     #
     # Selects a radio box option.
     #
-    # * field -- CSS selector, field value or text of the field label
+    # * selector -- CSS selector, field value or text of the field label
     #
     # Returns this
-    this.choose = (field)->
-      match = (elem)-> elem.nodeName == "INPUT" && elem.type?.toLowerCase() == "radio"
-      input = findInput(field, match) || @querySelector(":radio[value='#{field}']")
-      if input
-        radios = @querySelectorAll(":radio[name='#{input.getAttribute("name")}']", input.form)
+    this.choose = (selector)->
+      field = @field(selector)
+      if field.tagName == "INPUT" && field.type == "radio" && field.form
+        radios = @querySelectorAll(":radio[name='#{field.getAttribute("name")}']", field.form)
         for radio in radios
           throw new Error("This INPUT field is disabled") if radio.getAttribute("input")
           throw new Error("This INPUT field is readonly") if radio.getAttribute("readonly")
         radio.checked = false for radio in radios
-        input.checked = true
-        @fire "change", input
-        @fire "click", input
+        field.checked = true
+        @fire "change", field
+        @fire "click", field
         return this
       else
-        throw new Error("No radio INPUT matching '#{field}'")
+        throw new Error("No radio INPUT matching '#{selector}'")
 
-    # ### browser.select(field, value) => this
+    # ### browser.select(selector, value) => this
     #
     # Selects an option.
     #
-    # * field -- CSS selector, field name or text of the field label
+    # * selector -- CSS selector, field name or text of the field label
     # * value -- Value (or label) or option to select
     #
     # Returns this
-    this.select = (field, value)->
-      match = (elem)-> elem.nodeName == "SELECT"
-      if select = findInput(field, match)
-        throw new Error("This SELECT field is disabled") if select.getAttribute("disabled")
-        for option in select.options
+    this.select = (selector, value)->
+      field = @field(selector)
+      if field.tagName == "SELECT"
+        throw new Error("This SELECT field is disabled") if field.getAttribute("disabled")
+        throw new Error("This SELECT field is readonly") if field.getAttribute("readonly")
+        for option in field.options
           if option.value == value
-            select.value = option.value
-            @fire "change", select
+            field.value = option.value
+            @fire "change", field
             return this
-        for option in select.options
+        for option in field.options
           if option.label == value
-            select.value = option.value
-            @fire "change", select
+            field.value = option.value
+            @fire "change", field
             return this
         throw new Error("No OPTION '#{value}'")
       else
-        throw new Error("No SELECT matching '#{field}'")
+        throw new Error("No SELECT matching '#{selector}'")
 
-    # ### browser.pressButton(name, callback)
+    # ### browser.button(selector) : Element
+    #
+    # Finds a button using CSS selector, button name or button text (`BUTTON` or
+    # `INPUT` element).
+    #
+    # * selector -- CSS selector, button name or text of BUTTON element
+    this.button = (selector)->
+      if button = @querySelector(selector)
+        return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
+      for button in @querySelectorAll("form button")
+        return button if button.textContent.trim() == selector
+      inputs = @querySelectorAll("form :submit, form :reset, form :button")
+      for input in inputs
+        return input if input.name == selector
+      for input in inputs
+        return input if input.value == selector
+      return
+
+    # ### browser.pressButton(selector, callback)
     #
     # Press a button (button element or input of type `submit`).  Typically
     # this will submit the form.  Use the callback to wait for the from
     # submission, page to load and all events run their course.
     #
-    # * name -- CSS selector, button name or text of BUTTON element
+    # * selector -- CSS selector, button name or text of BUTTON element
     # * callback -- Called with two arguments: error and browser
-    this.pressButton = (name, callback)->
-      if button = @querySelector(name)
-        button.click()
-        return @wait(callback)
-      for button in @querySelectorAll("form button")
-        continue if button.getAttribute("disabled")
-        if button.textContent.trim() == name
-          @fire "click", button
-          return @wait(callback)
-      inputs = @querySelectorAll("form :submit, form :reset, form :button")
-      for input in inputs
-        continue if input.getAttribute("disabled")
-        if input.name == name
-          input.click()
-          return @wait(callback)
-      for input in inputs
-        continue if input.getAttribute("disabled")
-        if input.value == name
-          input.click()
-          return @wait(callback)
-      throw new Error("No BUTTON '#{name}'")
+    this.pressButton = (selector, callback)->
+      if button = @button(selector)
+        throw new Error("This button is disabled") if button.getAttribute("disabled")
+        @fire "click", button, callback
+      else
+        throw new Error("No BUTTON '#{selector}'")
 
 
     # Cookies and storage

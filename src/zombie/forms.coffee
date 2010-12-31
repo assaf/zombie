@@ -5,10 +5,9 @@ core = require("jsdom").dom.level3.core
 # --------
 
 serializeFieldTypes = "email hidden number password range search text url".split(" ")
-core.HTMLFormElement.prototype.submit = -> @_submit()
 # Implement form.submit such that it actually submits a request to the server.
 # This method takes the submitting button so we can send the button name/value.
-core.HTMLFormElement.prototype._submit = (button)->
+core.HTMLFormElement.prototype.submit = (button)->
   document = @ownerDocument
   params = {}
   for field in @elements
@@ -42,36 +41,40 @@ core.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
 # Default behavior for submit events is to call the form's submit method, but we
 # also pass the submitting button.
 core.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
-  event.target._submit event._button if event.type == "submit"
+  event.target.submit event._button
 
 
 # Buttons
 # -------
 
-# Default type for buttons is submit.
-core.Document.prototype._elementBuilders["button"] = (doc, s)->
-  button = new core.HTMLButtonElement(doc, s)
-  button.type ||= "submit"
-  return button
-
-
-# Default behavior for clicking on reset/submit buttons.
-core.HTMLInputElement.prototype._eventDefaults = 
+# Default behavior for clicking on inputs.
+core.HTMLInputElement.prototype._eventDefaults =
   click: (event)->
-    button = event.target
-    return if button.getAttribute("disabled")
-    if event.type == "click" && form = button.form
-      switch button.type
-        when "reset" then form.reset()
-        when "submit" then form._dispatchSubmitEvent button
+    input = event.target
+    change = ->
+      event = input.ownerDocument.createEvent("HTMLEvents")
+      event.initEvent "change", true, true
+      input.ownerDocument.dispatchEvent event
+    switch input.type
+      when "reset"
+        if form = input.form
+          form.reset()
+      when "submit"
+        if form = input.form
+          form._dispatchSubmitEvent input
+      when "checkbox"
+        unless input.getAttribute("readonly")
+          input.checked = !input.checked
+          change()
+      when "radio"
+        unless input.getAttribute("readonly")
+          input.checked = true
+          change()
 
 # Current INPUT behavior on click is to capture sumbit and handle it, but
 # ignore all other clicks. We need those other clicks to occur, so we're going
 # to dispatch them all.
 core.HTMLInputElement.prototype.click = ->
-  if @type == "checkbox" || @type == "radio"
-    @checked = !@checked
-  # Instead of handling event directly we bubble it and let the default behavior kick in.
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "click", true, true
   @dispatchEvent event
@@ -81,5 +84,12 @@ core.HTMLButtonElement.prototype._eventDefaults =
   click: (event)->
     button = event.target
     return if button.getAttribute("disabled")
-    if event.type == "click" && form = button.form
+    if form = button.form
       form._dispatchSubmitEvent button
+
+# Default type for button is submit. jQuery live submit handler looks
+# for the type attribute, so we've got to make sure it's there.
+core.Document.prototype._elementBuilders["button"] = (doc, s)->
+  button = new core.HTMLButtonElement(doc, s)
+  button.type ||= "submit"
+  return button
