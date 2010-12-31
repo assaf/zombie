@@ -17,6 +17,9 @@ brains.get "/cookies", (req, res)->
 brains.get "/cookies/echo", (req,res)->
   cookies = ("#{k}=#{v}" for k,v of req.cookies).join("; ")
   res.send "<html>#{cookies}</html>"
+brains.get "/cookies_redirect", (req, res)->
+  res.cookie "_expires5", "3s", "Expires": new Date(Date.now() + 3000), "Path": "/"
+  res.redirect "/"
 
 vows.describe("Cookies").addBatch(
   "get cookies":
@@ -59,6 +62,14 @@ vows.describe("Cookies").addBatch(
           "should match name to value": (pairs)->
            assert.equal pairs._name, "value"
            assert.equal pairs._path1, "yummy"
+
+  "get cookies and redirect":
+    zombie.wants "http://localhost:3003/cookies_redirect"
+      "cookies":
+        topic: (browser)->
+          browser.cookies("localhost", "/")
+        "should have access to persistent cookie": (cookies)->
+          assert.equal cookies.get("_expires5"), "3s"
 
   "send cookies":
     topic: ->

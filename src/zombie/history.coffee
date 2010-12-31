@@ -113,6 +113,7 @@ class History
                   else
                     error = "Could not parse document at #{URL.format(url)}"
                 when 301, 302, 303, 307
+                  browser.cookies(url.hostname, url.pathname).update response.headers["set-cookie"]
                   redirect = URL.parse(URL.resolve(url, response.headers["location"]))
                   stack[index] = new Entry(this, redirect)
                   browser.emit "redirected", redirect
