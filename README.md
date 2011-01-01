@@ -7,7 +7,7 @@ zombie.js(1) -- Insanely fast, headless full-stack testing using Node.js
 If you're going to write an insanely fast, headless browser, how can you not
 call it Zombie?  Zombie it is.
 
-Zombie.js is a lightweight framefork for testing client-side JavaScript code in
+Zombie.js is a lightweight framework for testing client-side JavaScript code in
 a simulated environment.  No browser required.
 
 Let's try to sign up to a page and see what happens:
