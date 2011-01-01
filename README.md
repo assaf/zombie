@@ -251,6 +251,8 @@ HTML5 parsing by Aria Stewart's [HTML5](https://github.com/aredridel/html5)
 
 CSS selectors by John Resig's [Sizzle.js](http://sizzlejs.com/)
 
+XPath support using Google's [AJAXSLT](http://code.google.com/p/ajaxslt/)
+
 Magical Zombie Girl by [Toho Scope](http://www.flickr.com/people/tohoscope/)
 
 
