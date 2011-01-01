@@ -6,6 +6,8 @@ zombie.js-changelog(7) -- Changelog
 
 Adds DOM Level 3 XPath support.
 
+Support Node 0.3.3 (thanks [Pete Bevin](http://www.petebevin.com/))
+
     208 Tests
     2.7 sec to complete
 
