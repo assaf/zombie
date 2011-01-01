@@ -1,3 +1,4 @@
+require.paths.unshift __dirname + "/../node_modules"
 require.paths.unshift __dirname + "/../src"
 fs = require("fs")
 express = require("express")

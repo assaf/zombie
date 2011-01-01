@@ -2,11 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-### Version 0.8.7  2010-12-31
+### Version 0.8.7  2011-01-01
 
 Adds DOM Level 3 XPath support.
 
 Support Node 0.3.3 (thanks [Pete Bevin](http://www.petebevin.com/))
+
+For the brave enough to hack a Zombie, we now support (and `cake setup`
+assumes) `npm bundle`.
 
     208 Tests
     2.7 sec to complete

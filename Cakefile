@@ -3,6 +3,9 @@ path          = require("path")
 {spawn, exec} = require("child_process")
 stdout        = process.stdout
 
+# Use executables installed with npm bundle.
+process.env["PATH"] = "node_modules/.bin:#{process.env["PATH"]}"
+
 # ANSI Terminal Colors.
 bold  = "\033[0;1m"
 red   = "\033[0;31m"
@@ -17,23 +20,21 @@ log = (message, color, explanation) ->
 onerror = (err)->
   if err
     process.stdout.write "#{red}#{err.stack}#{reset}\n"
-    process.stdout.on "drain", -> process.exit -1
+    process.exit -1
 
 
 ## Setup ##
 
 # Setup development dependencies, not part of runtime dependencies.
 task "setup", "Install development dependencies", ->
-  log "Need Vows and Express to run test suite, installing ...", green
-  exec "npm install \"vows@0.5.2\"", onerror
-  exec "npm install \"express@1.0.0\"", onerror
-  log "Need Ronn and Docco to generate documentation, installing ...", green
-  exec "npm install \"ronn@0.3.5\"", onerror
-  exec "npm install \"docco@0.3.0\"", onerror
-  log "Need runtime dependencies, installing ...", green
   fs.readFile "package.json", "utf8", (err, package)->
-    for name, version of JSON.parse(package).dependencies
-      exec "npm install \"#{name}@#{version}\"", onerror
+    log "Need runtime dependencies, installing into node_modules ...", green
+    exec "npm bundle", onerror
+
+    log "Need development dependencies, installing ...", green
+    for name, version of JSON.parse(package).devDependencies
+      log "Installing #{name} #{version}", green
+      exec "npm bundle install \"#{name}@#{version}\"", onerror
 
 
 ## Building ##
@@ -51,8 +52,9 @@ task "watch", "Continously compile CoffeeScript to JavaScript", ->
   cmd.on "error", onerror
   
 
-task "clean", "Remove temporary files and such", ->
-  exec "rm -rf html lib man7", onerror
+clean = (callback)->
+  exec "rm -rf html lib man7", callback
+task "clean", "Remove temporary files and such", -> clean onerror
 
 
 ## Testing ##
@@ -169,19 +171,21 @@ task "doc:publish", "Publish documentation to site", -> publishDocs onerror
 task "publish", "Publish new version (Git, NPM, site)", ->
   runTests (err)->
     onerror err
-    fs.readFile "package.json", "utf8", (err, package)->
-      version = JSON.parse(package).version
-      log "Tagging v#{version} ...", green
-      exec "git tag v#{version}", (err, stdout, stderr)->
-        log stdout, green
-        exec "git push --tags origin master", (err, stdout, stderr)->
+    clean (err)->
+      onerror err
+      fs.readFile "package.json", "utf8", (err, package)->
+        version = JSON.parse(package).version
+        log "Tagging v#{version} ...", green
+        exec "git tag v#{version}", (err, stdout, stderr)->
           log stdout, green
+          exec "git push --tags origin master", (err, stdout, stderr)->
+            log stdout, green
 
-      log "Publishing to NPM ...", green
-      build (err)->
-        onerror err
-        exec "npm publish ./", (err, stdout, stderr)->
-          log stdout, green
+        log "Publishing to NPM ...", green
+        build (err)->
           onerror err
-          # Publish documentation
-          publishDocs onerror
+          exec "npm publish ./", (err, stdout, stderr)->
+            log stdout, green
+            onerror err
+            # Publish documentation
+            publishDocs onerror

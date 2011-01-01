@@ -10,17 +10,28 @@ CoffeeScript:
     $ brew install node npm
     $ npm install coffee-script
 
-Next, install all other development and runtime dependencies:
+If you're installing Zombie as an NPM module and want both runtime and
+development dependencies, run `npm install zombie --dev`.
 
+If you prefer to work from the source directory, you can use `cake
+setup`:
+
+    $ git clone git@github.com:assaf/zombie.git
+    $ cd zombie
     $ cake setup
+
+To help isolate your development environment, `cake setup` installs all
+runtime and development dependencies into the directory `node_modules`
+by running `npm bundle`.  To see which dependencies are installed, run
+`npm bundle list installed` (not `npm list installed`).
 
 To run the test suite:
 
-    $ vows
+    $ cake test
 
-To generate the documentation
+To generate the documentation:
 
-    $ cake doc
+    $ cake doc:pages
     $ open html/index.html
 
 
