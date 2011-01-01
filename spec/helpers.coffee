@@ -35,7 +35,7 @@ require("http").ServerResponse.prototype.cookie = (name, val, options)->
     @headers['Set-Cookie'] += ", #{cookie}"
   else
     @headers['Set-Cookie'] = cookie
-   
+
 
 brains.get "/", (req, res)->
   res.send "<html><title>Tap, Tap</title></html>"
@@ -51,8 +51,8 @@ brains.ready = (callback)->
   if @active
     process.nextTick callback
   else
+    @active = true
     brains.listen 3003, ->
-      @active = true
       process.nextTick callback
   return # nothing
 
@@ -60,7 +60,7 @@ brains.ready = (callback)->
 # then create a new Browser, visit the specified page (url), run all the tests
 # and shutdown the HTTP server.
 #
-# The second argument is the context with all its tests (and subcontexts). The 
+# The second argument is the context with all its tests (and subcontexts). The
 # topic passed to all tests is the browser window after loading the document.
 # However, you can (and often need to) supply a ready function that will be
 # called with err and window; the ready function can then call this.callback.
