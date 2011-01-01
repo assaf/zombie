@@ -2,6 +2,7 @@ jsdom = require("jsdom")
 vm = process.binding("evals")
 require "./jsdom_patches"
 require "./forms"
+require "./xpath"
 
 
 
@@ -172,8 +173,7 @@ class Browser extends require("events").EventEmitter
     # Returns a string
     this.text = (selector, context)->
       return "" unless @document.documentElement
-      elements = if selector then (context || @document).querySelectorAll(selector).toArray() else [@document]
-      elements.map((e)-> e.textContent).join("")
+      @css(selector, context).map((e)-> e.textContent).join("")
 
     # ### browser.html(selector?, context?) => String
     #
@@ -185,8 +185,22 @@ class Browser extends require("events").EventEmitter
     # Returns a string
     this.html = (selector, context)->
       return "" unless @document.documentElement
-      elements = if selector then (context || @document).querySelectorAll(selector).toArray() else [@document]
-      elements.map((e)-> e.outerHTML.trim()).join("")
+      @css(selector, context).map((e)-> e.outerHTML.trim()).join("")
+
+    # ### browser.css(selector, context?) => NodeList
+    #
+    # Evaluates the CSS selector against the document (or context node) and
+    # return a node list.  Shortcut for `document.querySelectorAll`.
+    this.css = (selector, context)->
+      if selector then (context || @document).querySelectorAll(selector).toArray() else [@document]
+
+    # ### browser.xpath(expression, context?) => XPathResult
+    #
+    # Evaluates the XPath expression against the document (or context node) and
+    # return the XPath result.  Shortcut for `document.evaluate`.
+    this.xpath = (expression, context)->
+      @document.evaluate(expression, context || @document)
+
 
     # ### browser.window => Window
     #
@@ -239,10 +253,6 @@ class Browser extends require("events").EventEmitter
     # setting `window.location`).
     @__defineSetter__ "location", (url)-> window.location = url
     
-
-    # Forms
-    # -----
-
     # ### browser.link(selector) : Element
     #
     # Finds and returns a link by its text content or selector.

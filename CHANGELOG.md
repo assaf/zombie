@@ -4,6 +4,11 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.8.7  2010-12-31
 
+Adds DOM Level 3 XPath support.
+
+    208 Tests
+    2.7 sec to complete
+
 
 ### Version 0.8.6  2010-12-31
 
