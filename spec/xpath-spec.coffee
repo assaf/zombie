@@ -17,6 +17,12 @@ vows.describe("XPath").addBatch(
       "should return two nodes": (result)-> assert.length result.value, 2
       "should return first paragraph": (result)-> assert.equal result.value[0].textContent, "First paragraph"
       "should return second paragraph": (result)-> assert.equal result.value[1].textContent, "Second paragraph"
+  "evaluate with id":
+	  zombie.wants "http://localhost:3003/xpath"
+	    topic: (browser)->
+	      browser.xpath('//p[@id="first"]')
+      "should return one node": (result)-> assert.length result.value, 1
+      "should return first paragraph": (result)-> assert.equal result.value[0].textContent, "First paragraph"
   "evaluate number":
     zombie.wants "http://localhost:3003/xpath"
       topic: (browser)->

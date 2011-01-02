@@ -1,3 +1,18 @@
+// Based on <http://www.w3.org/TR/2000/REC-DOM-Level-2-Core-20001113/
+// core.html#ID-1950641247>
+var DOM_ELEMENT_NODE = 1;
+var DOM_ATTRIBUTE_NODE = 2;
+var DOM_TEXT_NODE = 3;
+var DOM_CDATA_SECTION_NODE = 4;
+var DOM_ENTITY_REFERENCE_NODE = 5;
+var DOM_ENTITY_NODE = 6;
+var DOM_PROCESSING_INSTRUCTION_NODE = 7;
+var DOM_COMMENT_NODE = 8;
+var DOM_DOCUMENT_NODE = 9;
+var DOM_DOCUMENT_TYPE_NODE = 10;
+var DOM_DOCUMENT_FRAGMENT_NODE = 11;
+var DOM_NOTATION_NODE = 12;
+
 // Copyright 2005 Google Inc.
 // All Rights Reserved
 //
@@ -828,43 +843,13 @@ StepExpr.prototype.evaluate = function(ctx) {
     }
 
   } else if (this.axis == xpathAxis.ATTRIBUTE) {
-    if (this.nodetest.name != undefined) {
-      // single-attribute step
-      if (input.attributes) {
-        if (input.attributes instanceof Array) {
-          // probably evaluating on document created by xmlParse()
-          copyArray(nodelist, input.attributes);
-        }
-        else {
-          if (this.nodetest.name == 'style') {
-            var value = input.getAttribute('style');
-            if (value && typeof(value) != 'string') {
-              // this is the case where indexing into the attributes array
-              // doesn't give us the attribute node in IE - we create our own
-              // node instead
-              nodelist.push(XNode.create(DOM_ATTRIBUTE_NODE, 'style',
-                value.cssText, document));
-            }
-            else {
-              nodelist.push(input.attributes[this.nodetest.name]);
-            }
-          }
-          else {
-            nodelist.push(input.attributes[this.nodetest.name]);
-          }
-        }
-      }
+    if (ctx.ignoreAttributesWithoutValue) {
+      copyArrayIgnoringAttributesWithoutValue(nodelist, input.attributes);
     }
     else {
-      // all-attributes step
-      if (ctx.ignoreAttributesWithoutValue) {
-        copyArrayIgnoringAttributesWithoutValue(nodelist, input.attributes);
-      }
-      else {
-        copyArray(nodelist, input.attributes);
-      }
+      copyArray(nodelist, input.attributes);
     }
-    
+
   } else if (this.axis == xpathAxis.CHILD) {
     copyArray(nodelist, input.childNodes);
 

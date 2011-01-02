@@ -12,7 +12,6 @@ xpath = ->
     engine.navigator = { appVersion: "Zombie.js" }
     new vm.Script(fs.readFileSync(__dirname + "/../../dep/util.js")).runInContext engine
     new vm.Script(fs.readFileSync(__dirname + "/../../dep/xmltoken.js")).runInContext engine
-    new vm.Script(fs.readFileSync(__dirname + "/../../dep/dom.js")).runInContext engine
     new vm.Script(fs.readFileSync(__dirname + "/../../dep/xpath.js")).runInContext engine
   return engine
 
