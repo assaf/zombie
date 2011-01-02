@@ -134,7 +134,7 @@ class Browser extends require("events").EventEmitter
     #
     # The current system time according to the browser (see also
     # `browser.clock`).
-    @__defineGetter__ "now", -> new Date(clock)
+    @__defineGetter__ "now", -> new Date(@clock)
 
 
     # Accessors
