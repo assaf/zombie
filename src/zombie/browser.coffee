@@ -397,12 +397,12 @@ class Browser extends require("events").EventEmitter
         throw new Error("This SELECT field is readonly") if field.getAttribute("readonly")
         for option in field.options
           if option.value == value
-            field.value = option.value
+            option.selected = true
             @fire "change", field
             return this
         for option in field.options
           if option.label == value
-            field.value = option.value
+            option.selected = true
             @fire "change", field
             return this
         throw new Error("No OPTION '#{value}'")

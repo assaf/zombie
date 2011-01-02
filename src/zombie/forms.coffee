@@ -11,17 +11,32 @@ serializeFieldTypes = "email hidden number password range search text url".split
 core.HTMLFormElement.prototype.submit = (button)->
   document = @ownerDocument
   params = {}
+
   for field in @elements
     continue if field.getAttribute("disabled")
-    if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
-      params[field.getAttribute("name")] = field.value if field.checked
+    value = null
+
+    if field.nodeName == "SELECT"
+      selected = []
+      for option in field.options
+        selected.push(option.value) if option.selected
+
+      if field.multiple
+        value = selected
+      else
+        value = selected.shift()
+    else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
+      value = field.value if field.checked
     else if field.nodeName == "INPUT" && field.type == "file"
       file = fs.readFileSync(field.value)
       file.filename = field.value
       file.mime = "text/plain"
-      params[field.getAttribute("name")] = file
-    else if field.nodeName == "SELECT" || field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
-      params[field.getAttribute("name")] = field.value
+      value = file
+    else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
+      value = field.value
+
+    params[field.getAttribute("name")] = value if value
+
   params[button.name] = button.value if button && button.name
   history = document.parentWindow.history
   history._submit @getAttribute("action"), @getAttribute("method"), params, @getAttribute("enctype")

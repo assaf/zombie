@@ -11,7 +11,7 @@ brains.get "/form", (req, res)-> res.send """
         <input type="text" name="email" id="field-email"></label>
         <textarea name="likes" id="field-likes">Warm brains</textarea>
         <input type="password" name="password" id="field-password">
-        
+
         <label>Hungry <input type="checkbox" name="hungry" value="you bet" id="field-hungry"></label>
         <label for="field-brains">Brains?</label>
         <input type="checkbox" name="brains" id="field-brains">
@@ -31,6 +31,12 @@ brains.get "/form", (req, res)-> res.send """
           <option>dead</option>
         </select>
 
+        <select name="hobbies[]" id="field-hobbies" multiple="multiple">
+          <option>Eat Brains</option>
+          <option>Make Messy</option>
+          <option>Sleep</option>
+        </select>
+
         <input type="reset" value="Reset">
         <input type="submit" name="button" value="Submit">
 
@@ -48,6 +54,7 @@ brains.post "/submit", (req, res)-> res.send """
       <div id="state">#{req.body.state}</div>
       <div id="scary">#{req.body.scary}</div>
       <div id="state">#{req.body.state}</div>
+      <div id="hobbies">#{JSON.stringify(req.body.hobbies)}</div>
       <div id="clicked">#{req.body.button}</div>
     </body>
   </html>
@@ -175,7 +182,25 @@ vows.describe("Forms").addBatch(
         "should select second option": (browser)->
           selected = (option.selected for option in browser.querySelector("#field-state").options)
           assert.deepEqual selected, [false, true]
+        "should select first option on second click": (browser)->
+          browser.select "state", "alive"
+          selected = (option.selected for option in browser.querySelector("#field-state").options)
+          assert.deepEqual selected, [true, false]
         "should fire change event": (browser)-> assert.ok browser.stateChanged
+
+  "multiple select option":
+    zombie.wants "http://localhost:3003/form"
+      topic: (browser)->
+        browser.querySelector("#field-hobbies").addEventListener "change", -> browser["hobbiesChanged"] = true
+        @callback null, browser
+      "select name using option value":
+        topic: (browser)->
+          browser.select "#field-hobbies", "Eat Brains"
+          browser.select "#field-hobbies", "Sleep"
+        "should select first and second options": (browser)->
+          selected = (option.selected for option in browser.querySelector("#field-hobbies").options)
+          assert.deepEqual selected, [true, false, true]
+        "should fire change event": (browser)-> assert.ok browser.hobbiesChanged
 
   "reset form":
     "by calling reset":
@@ -219,7 +244,9 @@ vows.describe("Forms").addBatch(
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
-            check("Hungry").choose("Scary").select("state", "dead")
+            check("Hungry").choose("Scary").select("state", "dead").
+            select("#field-hobbies", "Eat Brains").select("#field-hobbies", "Sleep")
+
           browser.querySelector("form").submit()
           browser.wait @callback
         "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
@@ -229,6 +256,7 @@ vows.describe("Forms").addBatch(
         "should send checkbox values to server": (browser)-> assert.equal browser.text("#hungry"), "you bet"
         "should send radio button to server": (browser)-> assert.equal browser.text("#scary"), "yes"
         "should send selected option to server": (browser)-> assert.equal browser.text("#state"), "dead"
+        "should send multiple selected options to server": (browser)-> assert.equal browser.text("#hobbies"), '["Eat Brains","Sleep"]'
     "by clicking button":
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->

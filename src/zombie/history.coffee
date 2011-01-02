@@ -80,14 +80,16 @@ class History
       makeRequest = (url, method, data)=>
         headers = { "user-agent": browser.userAgent }
         browser.cookies(url.hostname, url.pathname).addHeader headers
+
         if method == "GET" || method == "HEAD"
-          url.search = "?" + qs.stringify(data) if data
+          url.search = "?" + qs.stringify(data, '&', '=', false) if data
           data = null
           headers["content-length"] = 0
         else
           headers["content-type"] = enctype || "application/x-www-form-urlencoded"
           switch headers["content-type"]
-            when "application/x-www-form-urlencoded" then data = qs.stringify(data)
+            when "application/x-www-form-urlencoded"
+              data = qs.stringify(data, '&', '=', false)
             when "multipart/form-data"
               parts = [""]
               for name, value of data
