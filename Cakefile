@@ -169,14 +169,19 @@ publishDocs = (callback)->
 task "doc:publish", "Publish documentation to site", -> publishDocs onerror
 
 task "publish", "Publish new version (Git, NPM, site)", ->
+  # Run tests, don't publish unless tests pass.
   runTests (err)->
     onerror err
+    # Clean up temporary files and such, want to create everything from
+    # scratch, don't want generated files we no longer use, etc.
     clean (err)->
       onerror err
       fs.readFile "package.json", "utf8", (err, package)->
-        version = JSON.parse(package).version
-        log "Tagging v#{version} ...", green
-        exec "git tag v#{version}", (err, stdout, stderr)->
+        package = JSON.parse(package)
+
+        # Create a tag for this version and push changes to Github.
+        log "Tagging v#{package.version} ...", green
+        exec "git tag v#{package.version}", (err, stdout, stderr)->
           log stdout, green
           exec "git push --tags origin master", (err, stdout, stderr)->
             log stdout, green
@@ -184,8 +189,18 @@ task "publish", "Publish new version (Git, NPM, site)", ->
         log "Publishing to NPM ...", green
         build (err)->
           onerror err
-          exec "npm publish ./", (err, stdout, stderr)->
-            log stdout, green
+          # Beware: npm publish pushes everything it finds to the Web,
+          # don't run it on your working copy.  Here we create a clean
+          # directory with only the files we *want* to publish.
+          files = package.files.slice(0)
+          files.push path for n,path of package.directories
+          exec "rm -rf clean ; mkdir clean", (err)->
             onerror err
-            # Publish documentation
-            publishDocs onerror
+            exec "cp -R #{files.join(" ")} clean/", (err)->
+              onerror err
+              exec "npm publish clean", (err, stdout, stderr)->
+                log stdout, green
+                onerror err
+
+        # Publish documentation in parallel.
+        publishDocs onerror

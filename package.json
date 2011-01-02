@@ -15,6 +15,7 @@
     "lib": "./lib",
     "man": "./man7"
   },
+  "files": ["README.md", "CHANGELOG.md", "Cakefile", "MIT-LICENSE", "TODO.md", "package.json", "dep", "src", "spec"],
   "scripts": {
     "build": "cake",
     "test": "vows"
