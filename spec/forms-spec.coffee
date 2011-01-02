@@ -37,6 +37,7 @@ brains.get "/form", (req, res)-> res.send """
           <option>Sleep</option>
         </select>
 
+        <input type="unknown" name="unknown" value="yes">
         <input type="reset" value="Reset">
         <input type="submit" name="button" value="Submit">
 
@@ -55,6 +56,7 @@ brains.post "/submit", (req, res)-> res.send """
       <div id="scary">#{req.body.scary}</div>
       <div id="state">#{req.body.state}</div>
       <div id="hobbies">#{JSON.stringify(req.body.hobbies)}</div>
+      <div id="unknown">#{req.body.unknown}</div>
       <div id="clicked">#{req.body.button}</div>
     </body>
   </html>
@@ -257,6 +259,7 @@ vows.describe("Forms").addBatch(
         "should send radio button to server": (browser)-> assert.equal browser.text("#scary"), "yes"
         "should send selected option to server": (browser)-> assert.equal browser.text("#state"), "dead"
         "should send multiple selected options to server": (browser)-> assert.equal browser.text("#hobbies"), '["Eat Brains","Sleep"]'
+        "should send unknown types to server": (browser)-> assert.equal browser.text("#unknown"), "yes"
     "by clicking button":
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->

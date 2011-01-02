@@ -5,7 +5,6 @@ fs = require("fs")
 # The Form
 # --------
 
-serializeFieldTypes = "email hidden number password range search text url".split(" ")
 # Implement form.submit such that it actually submits a request to the server.
 # This method takes the submitting button so we can send the button name/value.
 core.HTMLFormElement.prototype.submit = (button)->
