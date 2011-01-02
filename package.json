@@ -23,7 +23,7 @@
     "node": "*"
   },
   "dependencies": {
-    "html5": "0.2.5",
+    "html5": "0.2.7",
     "jsdom": "0.1.22"
   },
   "devDependencies": {
