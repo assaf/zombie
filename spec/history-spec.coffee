@@ -144,6 +144,16 @@ vows.describe("History").addBatch(
         "should not change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/"
         "should reload document": (browser)-> assert.match browser.html(), /Tap, Tap/
         "should reload document in new window": (browser)-> assert.ok browser.window != @window
+    "components":
+      zombie.wants "http://localhost:3003/"
+        topic: (browser)-> browser.location
+        "should include protocol": (location)-> assert.equal location.protocol, "http:"
+        "should include hostname": (location)-> assert.equal location.hostname, "localhost"
+        "should include port": (location)-> assert.equal location.port, 3003
+        "should include hostname and port": (location)-> assert.equal location.host, "localhost:3003"
+        "should include pathname": (location)-> assert.equal location.pathname, "/"
+        "should include search": (location)-> assert.equal location.search, ""
+        "should include hash": (location)-> assert.equal location.hash, ""
 
   "redirect":
     zombie.wants "http://localhost:3003/redirect"

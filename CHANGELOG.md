@@ -15,13 +15,15 @@ Support `select` with multiple options (José Valim).
 
 Fix handling of unknown input fields and select fields (José Valim).
 
+Fix issue 24, search and hash must be empty string not null.
+
 Support Node 0.3.3 (thanks [Pete Bevin](http://www.petebevin.com/))
 
 For the brave enough to hack a Zombie, we now support (and `cake setup`
 assumes) `npm bundle`.
 
-    213 Tests
-    2.8 sec to complete
+    220 Tests
+    2.7 sec to complete
 
 
 ### Version 0.8.6  2010-12-31

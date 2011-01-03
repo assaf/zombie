@@ -266,7 +266,7 @@ class Location
     # Getter/setter for location parts.
     for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search"]
       do (prop)=>
-        @__defineGetter__ prop, -> url?[prop]
+        @__defineGetter__ prop, -> url?[prop] || ""
         @__defineSetter__ prop, (value)->
           newUrl = URL.parse(url?.href)
           newUrl[prop] = value
