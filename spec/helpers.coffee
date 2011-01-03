@@ -92,7 +92,8 @@ zombie.Browser.prototype.wants = (url, options, callback)->
 # Handle multipart/form-data so we can test file upload.
 express.bodyDecoder.decode["multipart/form-data"] = (body)->
   # Find the boundary
-  if boundary = body.match(/^(--.*)\r\n(?:.|\n|\r)*\1--/m)[1]
+  match = body.match(/^(--.*)\r\n(?:.|\n|\r)*\1--/m)
+  if match && boundary = match[1]
     # Split body at boundary, ignore first (opening) and last (closing)
     # boundaries, and map the rest into name/value pairs.
     body.split("#{boundary}").slice(1,-1).reduce (parts, part)->
@@ -125,6 +126,8 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         parts[pairs.name] = contents if pairs.name
       parts
     , {}
+  else
+    {}
 
 
 vows.zombie = zombie

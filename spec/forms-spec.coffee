@@ -78,10 +78,9 @@ brains.post "/upload", (req, res)->
   res.send """
   <html>
     <head><title>#{text?.filename || image?.filename}</title></head>
-    <body>#{text || image.length}</body>
+    <body>#{text || image?.length}</body>
   </html>
   """
-
 
 vows.describe("Forms").addBatch(
   "fill field":
@@ -307,6 +306,13 @@ vows.describe("Forms").addBatch(
       topic: (browser)->
         @filename = __dirname + "/data/zombie.jpg"
         browser.attach("image", @filename).pressButton "Upload", @callback
-      #"should upload file": (browser)-> assert.equal browser.text("body").trim(), "Random text"
       "should upload include name": (browser)-> assert.equal browser.text("title"), @filename
+
+  "empty file upload":
+    zombie.wants "http://localhost:3003/upload"
+      topic: (browser)->
+        browser.attach "text", ""
+        browser.pressButton "Upload", @callback
+      "should not upload any file": (browser)-> assert.equal browser.text("body").trim(), "undefined"
+
 ).export(module)
