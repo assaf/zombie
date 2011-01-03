@@ -53,6 +53,26 @@ brains.post "/submit", (req, res)-> res.send """
   </html>
   """
 
+brains.get "/upload", (req, res)-> res.send """
+  <html>
+    <body>
+      <form method="post" enctype="multipart/form-data">
+        <input name="file" type="file">
+        <button>Upload</button> 
+      </form>
+    </body>
+  </html>
+  """
+brains.post "/upload", (req, res)->
+  file = req.body.file
+  res.send """
+  <html>
+    <head><title>#{file.filename}</title></head>
+    <body>#{file}</body>
+  </html>
+  """
+
+
 vows.describe("Forms").addBatch(
   "fill field":
     zombie.wants "http://localhost:3003/form"
@@ -232,4 +252,12 @@ vows.describe("Forms").addBatch(
           assert.equal browser.text("#name"), "ArmBiter"
           assert.equal browser.text("#likes"), "Arm Biting"
 
+  "file upload":
+    zombie.wants "http://localhost:3003/upload"
+      topic: (browser)->
+        @filename = __dirname + "/data/random.txt"
+        browser.attach "file", @filename
+        browser.pressButton "Upload", @callback
+      "should upload file": (browser)-> assert.equal browser.text("body").trim(), "Random text"
+      "should upload include name": (browser)-> assert.equal browser.text("title"), @filename
 ).export(module)

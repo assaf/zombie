@@ -282,25 +282,6 @@ class Browser extends require("events").EventEmitter
     # Forms
     # -----
 
-    # Find input field from selector, name or label.
-    findInput = (selector, match)=>
-      # Try more specific selector first.
-      field = @querySelector(selector)
-      return field if field && match(field)
-      # Use field name (case sensitive).
-      field = @querySelector("[name='#{selector}']")
-      return field if field && match(field)
-      # Try finding field from label.
-      for label in @querySelectorAll("label")
-        if label.textContent.trim() == selector
-          # Label can either reference field or enclose it
-          if for_attr = label.getAttribute("for")
-            field = @document.getElementById(for_attr)
-          else
-            field = label.querySelector("input, textarea, select")
-          return field if field && match(field)
-      return
-
     # ### browser.field(selector) : Element
     #
     # Find and return an input field (`INPUT`, `TEXTAREA` or `SELECT`) based on
@@ -338,7 +319,7 @@ class Browser extends require("events").EventEmitter
     # Returns this
     this.fill = (selector, value)->
       field = @field(selector)
-      if field.tagName == "TEXTAREA" || (field.tagName == "INPUT" && TEXT_TYPES.indexOf(field.type) >= 0)
+      if field && field.tagName == "TEXTAREA" || (field.tagName == "INPUT" && TEXT_TYPES.indexOf(field.type) >= 0)
         throw new Error("This INPUT field is disabled") if field.getAttribute("input")
         throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
         field.value = value
@@ -348,7 +329,7 @@ class Browser extends require("events").EventEmitter
 
     setCheckbox = (selector, state)=>
       field = @field(selector)
-      if field.tagName == "INPUT" && field.type == "checkbox"
+      if field && field.tagName == "INPUT" && field.type == "checkbox"
         throw new Error("This INPUT field is disabled") if field.getAttribute("input")
         throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
         field.checked = state
@@ -384,7 +365,7 @@ class Browser extends require("events").EventEmitter
     # Returns this
     this.choose = (selector)->
       field = @field(selector)
-      if field.tagName == "INPUT" && field.type == "radio" && field.form
+      if field && field.tagName == "INPUT" && field.type == "radio" && field.form
         radios = @querySelectorAll(":radio[name='#{field.getAttribute("name")}']", field.form)
         for radio in radios
           throw new Error("This INPUT field is disabled") if radio.getAttribute("input")
@@ -407,7 +388,7 @@ class Browser extends require("events").EventEmitter
     # Returns this
     this.select = (selector, value)->
       field = @field(selector)
-      if field.tagName == "SELECT"
+      if field && field.tagName == "SELECT"
         throw new Error("This SELECT field is disabled") if field.getAttribute("disabled")
         throw new Error("This SELECT field is readonly") if field.getAttribute("readonly")
         for option in field.options
@@ -423,6 +404,19 @@ class Browser extends require("events").EventEmitter
         throw new Error("No OPTION '#{value}'")
       else
         throw new Error("No SELECT matching '#{selector}'")
+
+    # ### browser.attach(selector, filename) => this
+    #
+    # Attaches a file to the specified input field.  The second argument is the
+    # file name.
+    this.attach = (selector, filename)->
+      field = @field(selector)
+      if field && field.tagName == "INPUT" && field.type == "file"
+        field.value = filename
+        @fire "change", field
+        return this
+      else
+        throw new Error("No file INPUT matching '#{selector}'")
 
     # ### browser.button(selector) : Element
     #

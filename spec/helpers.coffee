@@ -88,5 +88,40 @@ zombie.Browser.prototype.wants = (url, options, callback)->
   return
 
 
+# Handle multipart/form-data so we can test file upload.
+express.bodyDecoder.decode["multipart/form-data"] = (body)->
+  # Find the boundary
+  if boundary = body.match(/^(--.*)\r\n(?:.|\n|\r)*\1--/m)[1]
+    # Split body at boundary, ignore first (opening) and last (closing)
+    # boundaries, and map the rest into name/value pairs.
+    body.split("#{boundary}").slice(1,-1).reduce (parts, part)->
+      # Each part consists of headers followed by the contents.
+      split = part.trim().split("\r\n\r\n")
+      heading = split[0]
+      contents = new String(split.slice(1).join("\r\n"))
+      # Now let's split the header into name/value pairs.
+      headers = heading.split(/\r\n/).reduce (headers, line)->
+        split = line.split(":")
+        headers[split[0].toLowerCase()] = split.slice(1).join(":").trim()
+        headers
+      , {}
+      contents.mime = headers["content-type"].split(/;/)[0]
+      # We're looking for the content-disposition header, which has
+      # form-data follows by name/value pairs, including the field name.
+      if disp = headers["content-disposition"]
+        pairs = disp.split(/;\s*/).slice(1).reduce (pairs, pair)->
+          match = pair.match(/^(.*)="(.*)"$/)
+          pairs[match[1]] = match[2]
+          pairs
+        , {}
+        # From content disposition we can tell the field name, if it's a
+        # file upload, also the file name. Content type is separate
+        # header.
+        contents.filename = pairs.filename if pairs.filename
+        parts[pairs.name] = contents if pairs.name
+      parts
+    , {}
+
+
 vows.zombie = zombie
 vows.brains = brains

@@ -1,5 +1,6 @@
 # Patches to JSDOM for properly handling forms.
 core = require("jsdom").dom.level3.core
+fs = require("fs")
 
 # The Form
 # --------
@@ -12,10 +13,15 @@ core.HTMLFormElement.prototype.submit = (button)->
   params = {}
   for field in @elements
     continue if field.getAttribute("disabled")
-    if field.nodeName == "SELECT" || field.nodeName == "TEXTAREA" || (field.nodeName == "INPUT" && serializeFieldTypes.indexOf(field.type) >= 0)
-      params[field.getAttribute("name")] = field.value
-    else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
+    if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
       params[field.getAttribute("name")] = field.value if field.checked
+    else if field.nodeName == "INPUT" && field.type == "file"
+      file = fs.readFileSync(field.value)
+      file.filename = field.value
+      file.mime = "text/plain"
+      params[field.getAttribute("name")] = file
+    else if field.nodeName == "SELECT" || field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
+      params[field.getAttribute("name")] = field.value
   params[button.name] = button.value if button && button.name
   history = document.parentWindow.history
   history._submit @getAttribute("action"), @getAttribute("method"), params, @getAttribute("enctype")

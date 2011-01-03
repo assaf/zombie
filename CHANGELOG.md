@@ -6,12 +6,14 @@ zombie.js-changelog(7) -- Changelog
 
 Adds DOM Level 3 XPath support.
 
+Added support for file upload: `browser.attach(selector, filename)`.
+
 Support Node 0.3.3 (thanks [Pete Bevin](http://www.petebevin.com/))
 
 For the brave enough to hack a Zombie, we now support (and `cake setup`
 assumes) `npm bundle`.
 
-    204 Tests
+    206 Tests
     2.6 sec to complete
 
 

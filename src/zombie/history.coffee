@@ -85,8 +85,22 @@ class History
           data = null
           headers["content-length"] = 0
         else
-          data = qs.stringify(data)
           headers["content-type"] = enctype || "application/x-www-form-urlencoded"
+          switch headers["content-type"]
+            when "application/x-www-form-urlencoded" then data = qs.stringify(data)
+            when "multipart/form-data"
+              parts = [""]
+              for name, value of data
+                lines = [ "Content-Disposition: form-data; name=\"#{name}\"" ]
+                if value.filename
+                  lines[0] = lines[0] + ";filename=\"#{value.filename}\"" if value.filename
+                  lines.push "Content-Type: #{value.mime || "text/plain"}"
+                lines.push ""
+                lines.push value
+                parts.push lines.join("\r\n")
+              boundary = "\r\n--#{new Date().getTime()}#{Math.random()}"
+              data = parts.join("#{boundary}\r\n") + "#{boundary}--\r\n"
+            else data = data.toString()
           headers["content-length"] = data.length
 
         window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>

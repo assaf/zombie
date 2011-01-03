@@ -221,6 +221,11 @@ If there are event handlers, they will all be run before transferring
 control to the callback function.  Zombie.js can even support jQuery
 live event handlers.
 
+### browser.attach(selector, filename) : this
+
+Attaches a file to the specified input field.  The second argument is
+the file name (you cannot attach streams).
+
 ### browser.check(field) : this
  
 Checks a checkbox.  The argument can be the field name, label text or a

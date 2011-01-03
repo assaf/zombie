@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "docco": "0.3.0",
-    "express": "1.0.0",
+    "express": "1.0.1",
     "ronn": "0.3.5",
     "vows": "0.5.3"
   },
