@@ -127,10 +127,9 @@ vows.describe("Scripts").addBatch(
       "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
       "move around":
         topic: (browser)->
-          browser.window.location.hash = "/dead"
-          browser.wait @callback
+          browser.visit browser.location.href + "dead", @callback
         "should execute route": (browser)-> assert.equal browser.text("#main"), "The Living Dead"
-        "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/dead"
+        "should change location": (browser)-> assert.equal browser.location.href, "http://localhost:3003/living#/dead"
 
   "live events":
     zombie.wants "http://localhost:3003/living"

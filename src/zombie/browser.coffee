@@ -237,10 +237,10 @@ class Browser extends require("events").EventEmitter
           reset()
           callback error
         history._assign url
-        window.document.addEventListener "DOMContentLoaded", =>
+        @wait (error)=>
           @removeListener "error", arguments.callee
           reset()
-          @wait callback
+          callback null, this
       return
 
     # ### browser.location => Location

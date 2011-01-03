@@ -11,8 +11,8 @@ Support Node 0.3.3 (thanks [Pete Bevin](http://www.petebevin.com/))
 For the brave enough to hack a Zombie, we now support (and `cake setup`
 assumes) `npm bundle`.
 
-    208 Tests
-    2.7 sec to complete
+    204 Tests
+    2.6 sec to complete
 
 
 ### Version 0.8.6  2010-12-31
