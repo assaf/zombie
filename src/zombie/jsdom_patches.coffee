@@ -62,7 +62,13 @@ core.languageProcessors =
     document = element.ownerDocument
     window = document.parentWindow
     window.browser.log -> "Running script from #{filename}" if filename
-    window.browser.evaluate code, filename
+    try
+      window.browser.evaluate code, filename
+    catch error
+      event = document.createEvent("HTMLEvents")
+      event.initEvent "error", true, false
+      event.error = error
+      window.dispatchEvent event
 
 # DOMCharacterDataModified event fired when text is added to a
 # TextNode.  This is a crappy implementation, a good one would old and

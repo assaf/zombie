@@ -30,9 +30,11 @@ class Browser extends require("events").EventEmitter
       eventloop.extend window
       history.extend window
       xhr.extend window
+      window.JSON = JSON
+      # Default onerror handler.
+      window.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
       # TODO: Fix
       window.Image = ->
-      window.JSON = JSON
       return window
     # Always start with an open window.
     @open()
@@ -232,15 +234,17 @@ class Browser extends require("events").EventEmitter
       if typeof options is "function"
         [callback, options] = [options, null]
       @withOptions options, (reset)=>
-        @on "error", (error)->
-          @removeListener "error", arguments.callee
+        onerror = (error)-> 
+          @removeListener "error", onerror
           reset()
           callback error
+        @on "error", onerror
         history._assign url
-        @wait (error)=>
-          @removeListener "error", arguments.callee
-          reset()
-          callback null, this
+        @wait =>
+          if @listeners("error").indexOf(onerror) >= 0
+            @removeListener "error", onerror
+            reset()
+            callback null, this
       return
 
     # ### browser.location => Location
@@ -492,8 +496,13 @@ class Browser extends require("events").EventEmitter
       if window._vars
         context[v[0]] = v[1] for v in @window._vars
       script = new vm.Script(code, filename || "eval")
-      result = script.runInContext context
-      window._vars = ([n,v] for n, v of context).filter((v)-> !window[v[0]])
+      try
+        result = script.runInContext context
+      catch ex
+        this.log ex.stack.split("\n").slice(0,2)
+        throw ex
+      finally
+        window._vars = ([n,v] for n, v of context).filter((v)-> !window[v[0]])
       result
 
 

@@ -8,6 +8,9 @@ Adds DOM Level 3 XPath support.
 
 Added support for file upload: `browser.attach(selector, filename)`.
 
+Send script errors to `window.onerror` and report them back to `visit`
+callback.
+
 Support Node 0.3.3 (thanks [Pete Bevin](http://www.petebevin.com/))
 
 For the brave enough to hack a Zombie, we now support (and `cake setup`
