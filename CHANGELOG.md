@@ -11,13 +11,17 @@ Added support for file upload: `browser.attach(selector, filename)`.
 Send script errors to `window.onerror` and report them back to `visit`
 callback.
 
+Support `select` with multiple options (José Valim).
+
+Fix handling of unknown input fields and select fields (José Valim).
+
 Support Node 0.3.3 (thanks [Pete Bevin](http://www.petebevin.com/))
 
 For the brave enough to hack a Zombie, we now support (and `cake setup`
 assumes) `npm bundle`.
 
-    206 Tests
-    2.6 sec to complete
+    213 Tests
+    2.8 sec to complete
 
 
 ### Version 0.8.6  2010-12-31
