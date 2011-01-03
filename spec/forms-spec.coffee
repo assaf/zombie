@@ -33,7 +33,7 @@ brains.get "/form", (req, res)-> res.send """
 
         <select name="hobbies[]" id="field-hobbies" multiple="multiple">
           <option>Eat Brains</option>
-          <option>Make Messy</option>
+          <option id="hobbies-messy">Make Messy</option>
           <option>Sleep</option>
         </select>
 
@@ -133,6 +133,8 @@ vows.describe("Forms").addBatch(
         "should fire change event": (browser)-> assert.ok browser.brainsChanged
       "checkbox by name":
         topic: (browser)->
+          browser.check "green"
+          browser["greenChanged"] = false
           browser.uncheck "green"
           browser.wait @callback
         "should uncheck checkbox": (browser)-> assert.ok !browser.querySelector("#field-green").checked
@@ -202,7 +204,15 @@ vows.describe("Forms").addBatch(
         "should select first and second options": (browser)->
           selected = (option.selected for option in browser.querySelector("#field-hobbies").options)
           assert.deepEqual selected, [true, false, true]
+        "should unselect items": (browser)->
+          browser.unselect "#field-hobbies", "Sleep"
+          selected = (option.selected for option in browser.querySelector("#field-hobbies").options)
+          assert.deepEqual selected, [true, false, false]
         "should fire change event": (browser)-> assert.ok browser.hobbiesChanged
+        "should not fire change event if nothing changed": (browser)->
+          browser["hobbiesChanged"] = false
+          browser.select "#field-hobbies", "Eat Brains"
+          assert.ok !browser.hobbiesChanged
 
   "reset form":
     "by calling reset":

@@ -150,10 +150,6 @@ class Browser extends require("events").EventEmitter
     #
     # Returns an Element or null
     this.querySelector = (selector)->
-      if selector == "#field-brains" && !@document.getElementById("field-brains")
-        console.log "looking for:", selector.slice(1)
-        console.log "  " + id for id,elem of @document._ids
-        console.log "document:", @html()
       window.document?.querySelector(selector)
 
     # ### browser.querySelectorAll(selector) => NodeList
@@ -234,7 +230,7 @@ class Browser extends require("events").EventEmitter
       if typeof options is "function"
         [callback, options] = [options, null]
       @withOptions options, (reset)=>
-        onerror = (error)-> 
+        onerror = (error)->
           @removeListener "error", onerror
           reset()
           callback error
@@ -256,7 +252,7 @@ class Browser extends require("events").EventEmitter
     # Changes document location, loads new document if necessary (same as
     # setting `window.location`).
     @__defineSetter__ "location", (url)-> window.location = url
-    
+
     # ### browser.link(selector) : Element
     #
     # Finds and returns a link by its text content or selector.
@@ -309,7 +305,6 @@ class Browser extends require("events").EventEmitter
             return label.querySelector(":input")
       return
 
-
     # HTML5 field types that you can "fill in".
     TEXT_TYPES = "email number password range search text url".split(" ")
 
@@ -331,13 +326,14 @@ class Browser extends require("events").EventEmitter
         return this
       throw new Error("No INPUT matching '#{selector}'")
 
-    setCheckbox = (selector, state)=>
+    setCheckbox = (selector, value)=>
       field = @field(selector)
       if field && field.tagName == "INPUT" && field.type == "checkbox"
         throw new Error("This INPUT field is disabled") if field.getAttribute("input")
         throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
-        field.checked = state
-        @fire "change", field
+        if(field.checked ^ value)
+          field.checked = value
+          @fire "change", field
         return this
       else
         throw new Error("No checkbox INPUT matching '#{selector}'")
@@ -349,7 +345,7 @@ class Browser extends require("events").EventEmitter
     # * selector -- CSS selector, field name or text of the field label
     #
     # Returns this
-    this.check = (selector)-> setCheckbox selector, true
+    this.check = (selector)-> setCheckbox(selector, true)
 
     # ### browser.uncheck(selector) => this
     #
@@ -358,7 +354,7 @@ class Browser extends require("events").EventEmitter
     # * selector -- CSS selector, field name or text of the field label
     #
     # Returns this
-    this.uncheck = (selector)-> setCheckbox selector, false
+    this.uncheck = (selector)-> setCheckbox(selector, false)
 
     # ### browser.choose(selector) => this
     #
@@ -369,42 +365,29 @@ class Browser extends require("events").EventEmitter
     # Returns this
     this.choose = (selector)->
       field = @field(selector)
-      if field && field.tagName == "INPUT" && field.type == "radio" && field.form
-        radios = @querySelectorAll(":radio[name='#{field.getAttribute("name")}']", field.form)
-        for radio in radios
-          throw new Error("This INPUT field is disabled") if radio.getAttribute("input")
-          throw new Error("This INPUT field is readonly") if radio.getAttribute("readonly")
-        radio.checked = false for radio in radios
-        field.checked = true
-        @fire "change", field
+      if field.tagName == "INPUT" && field.type == "radio" && field.form
+        if(!field.checked)
+          radios = @querySelectorAll(":radio[name='#{field.getAttribute("name")}']", field.form)
+          for radio in radios
+            radio.checked = false unless radio.getAttribute("disabled") || radio.getAttribute("readonly")
+          field.checked = true
+          @fire "change", field
+
         @fire "click", field
         return this
-      else
-        throw new Error("No radio INPUT matching '#{selector}'")
+      throw new Error("No radio INPUT matching '#{selector}'")
 
-    # ### browser.select(selector, value) => this
-    #
-    # Selects an option.
-    #
-    # * selector -- CSS selector, field name or text of the field label
-    # * value -- Value (or label) or option to select
-    #
-    # Returns this
-    this.select = (selector, value)->
+    findOption = (selector, value)=>
       field = @field(selector)
       if field && field.tagName == "SELECT"
         throw new Error("This SELECT field is disabled") if field.getAttribute("disabled")
         throw new Error("This SELECT field is readonly") if field.getAttribute("readonly")
         for option in field.options
           if option.value == value
-            option.selected = true
-            @fire "change", field
-            return this
+            return option
         for option in field.options
           if option.label == value
-            option.selected = true
-            @fire "change", field
-            return this
+            return option
         throw new Error("No OPTION '#{value}'")
       else
         throw new Error("No SELECT matching '#{selector}'")
@@ -421,6 +404,39 @@ class Browser extends require("events").EventEmitter
         return this
       else
         throw new Error("No file INPUT matching '#{selector}'")
+
+    # ### browser.select(selector, value) => this
+    #
+    # Selects an option.
+    #
+    # * selector -- CSS selector, field name or text of the field label
+    # * value -- Value (or label) or option to select
+    #
+    # Returns this
+    this.select = (selector, value)->
+      option = findOption(selector, value)
+      if(!option.selected)
+        select = @xpath("./ancestor::select", option).value[0]
+        option.selected = true
+        @fire "change", select
+      return this
+
+    # ### browser.unselect(selector, value) => this
+    #
+    # Unselects an option.
+    #
+    # * selector -- CSS selector, field name or text of the field label
+    # * value -- Value (or label) or option to select
+    #
+    # Returns this
+    this.unselect = (selector, value)->
+      option = findOption(selector, value)
+      if(option.selected)
+        select = @xpath("./ancestor::select", option).value[0]
+        throw new Error("Cannot unselect in single select") unless select.multiple
+        option.removeAttribute('selected')
+        @fire "change", select
+      return this
 
     # ### browser.button(selector) : Element
     #
