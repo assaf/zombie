@@ -29,6 +29,8 @@ core.HTMLFormElement.prototype.submit = (button)->
 
   process = (index)=>
     if field = @elements.item(index)
+      value = null
+
       if !field.getAttribute("disabled") && name = field.getAttribute("name")
         if field.nodeName == "SELECT"
           selected = []
@@ -42,14 +44,17 @@ core.HTMLFormElement.prototype.submit = (button)->
             if !value && option = field.options[0]
               value = option.value
 
-          params[name] = value if value
         else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
-          params[name] = field.value if field.checked
+          value = field.value if field.checked
         else if field.nodeName == "INPUT" && field.type == "file"
-          params[name] = new UploadedFile(field.value) if field.value
+          value = new UploadedFile(field.value) if field.value
         else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
           if field.value && field.type != "submit" && field.type != "image"
-            params[name] = field.value
+            value = field.value
+
+      if value
+        value = [value] unless typeof value == "array"
+        params[name] = (params[name] || []).concat(value)
 
       process index + 1
     else

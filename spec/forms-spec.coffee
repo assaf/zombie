@@ -12,10 +12,13 @@ brains.get "/form", (req, res)-> res.send """
         <textarea name="likes" id="field-likes">Warm brains</textarea>
         <input type="password" name="password" id="field-password">
 
-        <label>Hungry <input type="checkbox" name="hungry" value="you bet" id="field-hungry"></label>
+        <label>Hungry</label>
+        <label>You bet<input type="checkbox" name="hungry[]" value="you bet" id="field-hungry"></label>
+        <label>Certainly<input type="checkbox" name="hungry[]" value="certainly" id="field-hungry-certainly"></label>
+
         <label for="field-brains">Brains?</label>
-        <input type="checkbox" name="brains" id="field-brains">
-        <input type="checkbox" name="green" id="field-green" checked>
+        <input type="checkbox" name="brains" value="yes" id="field-brains">
+        <input type="checkbox" name="green" id="field-green" value="Super green!" checked="checked">
 
         <label>Looks
           <select name="looks" id="field-looks">
@@ -57,7 +60,9 @@ brains.post "/submit", (req, res)-> res.send """
     <body>
       <div id="name">#{req.body.name}</div>
       <div id="likes">#{req.body.likes}</div>
-      <div id="hungry">#{req.body.hungry}</div>
+      <div id="green">#{req.body.green}</div>
+      <div id="brains">#{req.body.brains}</div>
+      <div id="hungry">#{JSON.stringify(req.body.hungry)}</div>
       <div id="state">#{req.body.state}</div>
       <div id="scary">#{req.body.scary}</div>
       <div id="state">#{req.body.state}</div>
@@ -134,7 +139,7 @@ vows.describe("Forms").addBatch(
         @callback null, browser
       "checkbox enclosed in label":
         topic: (browser)->
-          browser.check "Hungry"
+          browser.check "You bet"
           browser.wait @callback
         "should check checkbox": (browser)-> assert.ok browser.querySelector("#field-hungry").checked
         "should fire change event": (browser)-> assert.ok browser.hungryChanged
@@ -232,7 +237,7 @@ vows.describe("Forms").addBatch(
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
-            check("Hungry").choose("Scary").select("state", "dead")
+            check("You bet").choose("Scary").select("state", "dead")
           browser.querySelector("form").reset()
           @callback null, browser
         "should reset input field to original value": (browser)-> assert.equal browser.querySelector("#field-name").value, ""
@@ -269,8 +274,8 @@ vows.describe("Forms").addBatch(
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
-            check("Hungry").choose("Scary").select("state", "dead").
-            select("#field-hobbies", "Eat Brains").select("#field-hobbies", "Sleep")
+            check("You bet").check("Certainly").choose("Scary").select("state", "dead").
+            select("#field-hobbies", "Eat Brains").select("#field-hobbies", "Sleep").check("Brains?")
 
           browser.querySelector("form").submit()
           browser.wait @callback
@@ -278,9 +283,14 @@ vows.describe("Forms").addBatch(
         "should add location to history": (browser)-> assert.length browser.window.history, 2
         "should send text input values to server": (browser)-> assert.equal browser.text("#name"), "ArmBiter"
         "should send textarea values to server": (browser)-> assert.equal browser.text("#likes"), "Arm Biting"
-        "should send checkbox values to server": (browser)-> assert.equal browser.text("#hungry"), "you bet"
         "should send radio button to server": (browser)-> assert.equal browser.text("#scary"), "yes"
         "should send unknown types to server": (browser)-> assert.equal browser.text("#unknown"), "yes"
+        "should send checkbox with default value to server": (browser)->
+          assert.equal browser.text("#brains"), "yes"
+        "should send checkbox with default value to server": (browser)->
+          assert.equal browser.text("#green"), "Super green!"
+        "should send multiple checkbox values to server": (browser)->
+          assert.equal browser.text("#hungry"), '["you bet","certainly"]'
         "should send selected option to server": (browser)->
           assert.equal browser.text("#state"), "dead"
         "should send first selected option if none was chosen to server": (browser)->

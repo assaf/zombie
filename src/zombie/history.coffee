@@ -93,26 +93,27 @@ class History
             when "multipart/form-data"
               boundary = "#{new Date().getTime()}#{Math.random()}"
               lines = ["--#{boundary}"]
-              for name, value of data
-                disp = "Content-Disposition: form-data; name=\"#{name}\""
+              for name, values of data
+                for value in values
+                  disp = "Content-Disposition: form-data; name=\"#{name}\""
 
-                if value.contents
-                  disp += "; filename=\"#{value}\""
-                  content = value.contents()
-                  mime = value.mime()
-                  encoding = value.encoding()
-                else
-                  content = value
-                  mime = "text/plain"
+                  if value.contents
+                    disp += "; filename=\"#{value}\""
+                    content = value.contents()
+                    mime = value.mime()
+                    encoding = value.encoding()
+                  else
+                    content = value
+                    mime = "text/plain"
 
-                lines.push disp
-                lines.push "Content-Type: #{mime}"
-                lines.push "Content-Length: #{content.length}"
-                lines.push "Content-Transfer-Encoding: base64" if encoding
-                lines.push ""
-                lines.push content
+                  lines.push disp
+                  lines.push "Content-Type: #{mime}"
+                  lines.push "Content-Length: #{content.length}"
+                  lines.push "Content-Transfer-Encoding: base64" if encoding
+                  lines.push ""
+                  lines.push content
 
-                lines.push "--#{boundary}"
+                  lines.push "--#{boundary}"
               data = lines.join("\r\n") + "--\r\n"
               headers["content-type"] += "; boundary=#{boundary}"
             else data = data.toString()
