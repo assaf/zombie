@@ -39,6 +39,9 @@ core.HTMLFormElement.prototype.submit = (button)->
             value = selected
           else
             value = selected.shift()
+            if !value && option = field.options[0]
+              value = option.value
+
           params[name] = value if value
         else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
           params[name] = field.value if field.checked

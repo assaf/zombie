@@ -31,6 +31,11 @@ brains.get "/form", (req, res)-> res.send """
           <option>dead</option>
         </select>
 
+        <select name="unselected_state" id="field-unselected-state">
+          <option>alive</option>
+          <option>dead</option>
+        </select>
+
         <select name="hobbies[]" id="field-hobbies" multiple="multiple">
           <option>Eat Brains</option>
           <option id="hobbies-messy">Make Messy</option>
@@ -56,6 +61,7 @@ brains.post "/submit", (req, res)-> res.send """
       <div id="state">#{req.body.state}</div>
       <div id="scary">#{req.body.scary}</div>
       <div id="state">#{req.body.state}</div>
+      <div id="unselected_state">#{req.body.unselected_state}</div>
       <div id="hobbies">#{JSON.stringify(req.body.hobbies)}</div>
       <div id="unknown">#{req.body.unknown}</div>
       <div id="clicked">#{req.body.button}</div>
@@ -274,9 +280,14 @@ vows.describe("Forms").addBatch(
         "should send textarea values to server": (browser)-> assert.equal browser.text("#likes"), "Arm Biting"
         "should send checkbox values to server": (browser)-> assert.equal browser.text("#hungry"), "you bet"
         "should send radio button to server": (browser)-> assert.equal browser.text("#scary"), "yes"
-        "should send selected option to server": (browser)-> assert.equal browser.text("#state"), "dead"
-        "should send multiple selected options to server": (browser)-> assert.equal browser.text("#hobbies"), '["Eat Brains","Sleep"]'
         "should send unknown types to server": (browser)-> assert.equal browser.text("#unknown"), "yes"
+        "should send selected option to server": (browser)->
+          assert.equal browser.text("#state"), "dead"
+        "should send first selected option if none was chosen to server": (browser)->
+          assert.equal browser.text("#unselected_state"), "alive"
+        "should send multiple selected options to server": (browser)->
+          assert.equal browser.text("#hobbies"), '["Eat Brains","Sleep"]'
+
     "by clicking button":
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->
