@@ -1,10 +1,25 @@
 # Patches to JSDOM for properly handling forms.
 core = require("jsdom").dom.level3.core
-exec = require("child_process").exec
-fs = require("fs")
+path = require("path")
+fs   = require("fs")
+mime = require("mime")
+base64 = require("base64")
 
 # The Form
 # --------
+UploadedFile = (filename)->
+  file = new String(path.basename(filename))
+  file.mime = ()-> mime.lookup(filename)
+  file.encoding = ()->
+    if @mime().match(/^text/)
+      null
+    else
+      "base64"
+  file.contents = ()->
+    result = fs.readFileSync(filename)
+    result = base64.encode(result).replace(/(.{76})/g, "$1\r\n") if @encoding() == "base64"
+    result
+  return file
 
 # Implement form.submit such that it actually submits a request to the server.
 # This method takes the submitting button so we can send the button name/value.
@@ -14,10 +29,7 @@ core.HTMLFormElement.prototype.submit = (button)->
 
   process = (index)=>
     if field = @elements.item(index)
-      if field.getAttribute("disabled")
-        process index + 1
-      else
-        name = field.getAttribute("name")
+      if !field.getAttribute("disabled") && name = field.getAttribute("name")
         if field.nodeName == "SELECT"
           selected = []
           for option in field.options
@@ -28,28 +40,14 @@ core.HTMLFormElement.prototype.submit = (button)->
           else
             value = selected.shift()
           params[name] = value if value
-          process index + 1
         else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
           params[name] = field.value if field.checked
-          process index + 1
         else if field.nodeName == "INPUT" && field.type == "file"
-          if filename = field.value
-            file = fs.readFileSync(filename)
-            file.filename = filename
-            document.parentWindow.queue (done)->
-              exec "file -b -I '#{filename}'", (err, stdout)->
-                file.mime = stdout unless err
-                file.mime = "text/plain" if file.mime == ""
-                params[name] = file
-                done()
-                process index + 1
-          else
-            process index + 1
+          params[name] = new UploadedFile(field.value) if field.value
         else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
           params[name] = field.value if field.value
-          process index + 1
-        else
-          process index + 1
+
+      process index + 1
     else
       params[button.name] = button.value if button && button.name
       history = document.parentWindow.history

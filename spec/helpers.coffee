@@ -92,7 +92,8 @@ zombie.Browser.prototype.wants = (url, options, callback)->
 # Handle multipart/form-data so we can test file upload.
 express.bodyDecoder.decode["multipart/form-data"] = (body)->
   # Find the boundary
-  if boundary = body.match(/^(--.*)\r\n(?:.|\n|\r)*\1--/m)[1]
+  match = body.match(/^(--.*)\r\n(?:.|\n|\r)*\1--/m)
+  if match && boundary = match[1]
     # Split body at boundary, ignore first (opening) and last (closing)
     # boundaries, and map the rest into name/value pairs.
     body.split("#{boundary}").slice(1,-1).reduce (parts, part)->
@@ -106,8 +107,13 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         headers[split[0].toLowerCase()] = split.slice(1).join(":").trim()
         headers
       , {}
-      contents = decode(contents) if headers["content-transfer-encoding"] == "base64"
+
+      # Intentionally do not decode base64 files if the content-type is text.
+      # This is the behavior of a few servers.
+      if headers["content-transfer-encoding"] == "base64" && !headers["content-type"].match(/^text/)
+        contents = decode(contents)
       contents.mime = headers["content-type"].split(/;/)[0]
+
       # We're looking for the content-disposition header, which has
       # form-data follows by name/value pairs, including the field name.
       if disp = headers["content-disposition"]
@@ -124,6 +130,8 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         parts[pairs.name] = contents if pairs.name
       parts
     , {}
+  else
+    {}
 
 
 vows.zombie = zombie
