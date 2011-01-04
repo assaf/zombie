@@ -10,7 +10,8 @@ function xpathLog(msg) {};
 function xsltLog(msg) {};
 function xsltLogXml(msg) {};
 
-var ajaxsltIsIE6 = navigator.appVersion.match(/MSIE 6.0/);
+// zombie.js change
+var ajaxsltIsIE6 = false;
 
 // Throws an exception if false.
 function assert(b) {

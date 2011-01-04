@@ -843,13 +843,27 @@ StepExpr.prototype.evaluate = function(ctx) {
     }
 
   } else if (this.axis == xpathAxis.ATTRIBUTE) {
-    if (ctx.ignoreAttributesWithoutValue) {
-      copyArrayIgnoringAttributesWithoutValue(nodelist, input.attributes);
+    // zombie.js changed
+    if (this.nodetest.name != undefined) {
+      if (input.attributes) {
+        for(var i = input.attributes.length - 1; i >= 0; --i){
+          var attribute = input.attributes[i];
+          if(this.nodetest.name === attribute.name) {
+            nodelist.push(attribute);
+            break;
+          }
+        }
+      }
     }
     else {
-      copyArray(nodelist, input.attributes);
+      // all-attributes step
+      if (ctx.ignoreAttributesWithoutValue) {
+        copyArrayIgnoringAttributesWithoutValue(nodelist, input.attributes);
+      }
+      else {
+        copyArray(nodelist, input.attributes);
+      }
     }
-
   } else if (this.axis == xpathAxis.CHILD) {
     copyArray(nodelist, input.childNodes);
 
@@ -991,7 +1005,7 @@ function NodeTestName(name) {
 
 NodeTestName.prototype.evaluate = function(ctx) {
   var n = ctx.node;
-  if (ctx.caseInsensitive) {
+  if (ctx.caseInsensitive || n instanceof HTMLElement) {
     if (n.nodeName.length != this.name.length) return new BooleanValue(false);
     return new BooleanValue(this.re.test(n.nodeName));
   } else {
