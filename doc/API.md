@@ -379,7 +379,7 @@ events.  The terminator can be a number, in which case that many events
 are processed.  It can be a function, which is called after each event;
 processing stops when the function returns the value `false`.
 
-### Event: 'drain'
+### Event: 'done'
 `function (browser) { }`
 
 Emitted whenever the event queue goes back to empty.

@@ -4,14 +4,17 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.8.8  2011-01-04
 
+Fixed script execution order: now in document order even when mixing
+internal and external scripts.
+
 Fixed image submit (José Valim).
 
 Ensure checkboxes are properly serialized (José Valim).
 
 It should send first select option if none was chosen (José Valim).
 
-    232 Tests
-    3.4 sec to complete
+    231 Tests
+    3.3 sec to complete
 
 
 ### Version 0.8.7  2011-01-04

@@ -54,11 +54,27 @@ class EventLoop
     # Implements window.clearInterval using event queue
     this.clearInterval = (handle)-> delete timers[handle] if timers[handle]?.interval
 
+    # Size of processing queue (number of ongoing tasks).
+    processing = 0
     # Requests on wait that cannot be handled yet: there's no event in the
     # queue, but we anticipate one (in-progress XHR request).
     waiting = []
-    # Queue of events.
-    queue = []
+    # Called when done processing a request, and if we're done processing all
+    # requests, wake up any waiting callbacks.
+    wakeUp = ->
+      if --processing == 0
+        process.nextTick waiter while waiter = waiting.pop()
+
+    # ### perform(fn)
+    #
+    # Run the function as part of the event queue (calls to `wait` will wait for
+    # this function to complete).  Function can be anything and is called
+    # synchronous with a `done` function; when it's done processing, it lets the
+    # event loop know by calling the done function.
+    this.perform = (fn)->
+      ++processing
+      fn wakeUp
+      return
 
     # ### wait(window, terminate, callback, intervals)
     #
@@ -67,22 +83,9 @@ class EventLoop
     # the callback with null, window; if any event fails, it calls the callback
     # with the exception.
     #
-    # With one argument, that argument is the callback. With two arguments, the
-    # first argument is a terminator and the last argument is the callback. The
-    # terminator is one of:
-    #
-    # * null -- process all events
-    # * number -- process that number of events
-    # * function -- called after each event, stop processing when function
-    #   returns false
-    #
     # Events include timeout, interval and XHR onreadystatechange. DOM events
     # are handled synchronously.
     this.wait = (window, terminate, callback, intervals)->
-      if !callback
-        intervals = callback
-        callback = terminate
-        terminate = null
       process.nextTick =>
         earliest = null
         for handle, timer of timers
@@ -96,24 +99,26 @@ class EventLoop
         if event
           try 
             event()
+            done = false
             if typeof terminate is "number"
               --terminate
-              if terminate <= 0
-                process.nextTick -> callback null, window
-                return
+              done = true if terminate <= 0
             else if typeof terminate is "function"
-              if terminate.call(window) == false
-                process.nextTick -> callback null, window
-                return
-            @wait window, terminate, callback, intervals
+              done = true if terminate.call(window) == false
+            if done
+              process.nextTick ->
+                browser.emit "done", browser
+                callback null, window if callback
+            else
+              @wait window, terminate, callback, intervals
           catch err
             browser.emit "error", err
-            callback err, window
-        else if queue.length > 0
+            callback err, window if callback
+        else if processing > 0
           waiting.push => @wait window, terminate, callback, intervals
         else
-          browser.emit "drain", browser
-          callback null, window
+          browser.emit "done", browser
+          callback null, window if callback
 
     # Used internally for the duration of an internal request (loading
     # resource, XHR). Also collects request/response for debugging.
@@ -122,49 +127,34 @@ class EventLoop
     # next. After storing the request, that function is called with a single
     # argument, a done callback. It must call the done callback when it
     # completes processing, passing error and response arguments.
+    #
+    # See also `processing`.
     this.request = (request, fn)->
       url = request.url.toString()
       browser.log -> "#{request.method} #{url}"
       pending = browser.record request
-      this.queue (done)->
-        fn (err, response)->
-          if err
-            browser.log -> "Error loading #{url}: #{err}"
-            pending.error = err
-          else
-            browser.log -> "#{request.method} #{url} => #{response.status}"
-            pending.response = response
-          done()
-
-    queue = []
-    # ### queue(event)
-    #
-    # Queue an event to be processed by wait(). Event is a function call in the
-    # context of the window.
-    this.queue = (fn)->
-      queue.push fn
-      fn ->
-        queue.splice queue.indexOf(fn), 1
-        if queue.length == 0
-          for wait in waiting
-            process.nextTick -> wait()
-          waiting = []
+      ++processing
+      fn (err, response)->
+        if err
+          browser.log -> "Error loading #{url}: #{err}"
+          pending.error = err
+        else
+          browser.log -> "#{request.method} #{url} => #{response.status}"
+          pending.response = response
+        wakeUp()
 
     this.extend = (window)=>
       for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
         window[fn] = this[fn]
-      window.queue = this.queue
+      window.perform = this.perform
       window.wait = (terminate, callback)=> this.wait(window, terminate, callback)
       window.request = this.request 
 
     this.dump = ()->
-      dump = [ "The time: #{browser.clock}",
-               "Timers:   #{timers.length}",
-               "Queue:    #{queue.length}",
-               "Waiting:  #{waiting.length}",
-               "Requests:"]
-      dump.push "  #{request}" for request in requests
-      dump
+      [ "The time:   #{browser.clock}",
+         "Timers:     #{timers.length}",
+         "Processing: #{processing}",
+         "Waiting:    #{waiting.length}" ]
 
 exports.use = (browser)->
   return new EventLoop(browser)

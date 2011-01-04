@@ -83,7 +83,7 @@ class Browser extends require("events").EventEmitter
     # Events
     # ------
 
-    # ### browser.wait(callback)
+    # ### browser.wait(callback?)
     # ### browser.wait(terminator, callback)
     #
     # Process all events from the queue. This method returns immediately, events
@@ -100,13 +100,26 @@ class Browser extends require("events").EventEmitter
     # * function -- called after each event, stop processing when function
     #   returns false
     #
+    # You can call this method with no arguments and simply listen to the `done`
+    # and `error` events.
+    #
     # Events include timeout, interval and XHR `onreadystatechange`. DOM events
     # are handled synchronously.
     this.wait = (terminate, callback)->
       if !callback
         [callback, terminate] = [terminate, null]
-      eventloop.wait window, terminate, (error) =>
-        callback error, this if callback
+      if callback
+        onerror = (error)=>
+          @removeListener "error", onerror
+          @removeListener "done", ondone
+          callback error
+        ondone = (error)=>
+          @removeListener "error", onerror
+          @removeListener "done", ondone
+          callback null, this
+        @on "error", onerror
+        @on "done", ondone
+      eventloop.wait window, terminate
       return
 
     # ### browser.fire(name, target, calback?)

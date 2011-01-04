@@ -86,19 +86,16 @@ core.CharacterData.prototype.__defineGetter__ "_nodeValue", -> @_text
 # when its text contents is changed.  Safari and Firefox support that.
 core.Document.prototype._elementBuilders["script"] = (doc, s)->
   script = new core.HTMLScriptElement(doc, s)
-  script.addEventListener "DOMCharacterDataModified", (event)->
-    code = event.target.nodeValue
-    if code.trim().length > 0
-      src = @sourceLocation || {}
-      filename = src.file || @ownerDocument.URL
-      if src
-        filename += ':' + src.line + ':' + src.col
-      filename += '<script>'
-      eval = (text, filename)->
-        if text == @text && @ownerDocument.implementation.hasFeature("ProcessExternalResources", "script")
-          core.languageProcessors[@language](this, text, filename)
-      process.nextTick =>
-        core.resourceLoader.enqueue(this, eval, filename)(null, code)
+  if doc.implementation.hasFeature("ProcessExternalResources", "script")
+    script.addEventListener "DOMCharacterDataModified", (event)->
+      code = event.target.nodeValue
+      if code.trim().length > 0
+        filename = @ownerDocument.URL
+        @ownerDocument.parentWindow.perform (done)=>
+          loaded = (code, filename)=>
+            core.languageProcessors[@language](this, code, filename) if code == @text
+            done()
+          core.resourceLoader.enqueue(this, loaded, filename)(null, code)
   return script
 
 

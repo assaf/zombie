@@ -106,7 +106,7 @@ vows.describe("Browser").addBatch(
       topic: ->
         brains.ready =>
           browser = new zombie.Browser
-          browser.on "drain", (browser)=> @callback null, browser
+          browser.on "done", (browser)=> @callback null, browser
           browser.window.location = "http://localhost:3003/"
           browser.wait()
       "should fire done event": (browser)-> assert.ok browser.visit
