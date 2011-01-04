@@ -10,3 +10,6 @@ zombie.js-todo(7) -- Wishlist
   and timezone; allow changing browser timezone and default to system's.
 
 * Prompts: handle window.confirm and window.alert.
+
+* CSS support: DOM API support for stylesheets and the style attribute;
+  optionally loading so we don't impact performance.
