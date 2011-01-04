@@ -6,8 +6,12 @@ zombie.js-changelog(7) -- Changelog
 
 Fixed image submit (José Valim).
 
-    230 Tests
-    3.2 sec to complete
+Ensure checkboxes are properly serialized (José Valim).
+
+It should send first select option if none was chosen (José Valim).
+
+    232 Tests
+    3.4 sec to complete
 
 
 ### Version 0.8.7  2011-01-04
