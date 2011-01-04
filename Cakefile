@@ -42,7 +42,6 @@ task "setup", "Install development dependencies", ->
 build = (callback)->
   log "Compiling CoffeeScript to JavaScript ...", green
   exec "rm -rf lib && coffee -c -l -b -o lib src", (err, stdout)->
-    log stdout + "Done", green
     callback err
 task "build", "Compile CoffeeScript to JavaScript", -> build onerror
 
@@ -124,11 +123,12 @@ generateMan = (callback)->
         exec "ronn --roff #{file}", (err, stdout, stderr)->
           onerror err
           log "Creating #{target}", green
-          fs.writeFile target, stdout, "utf8", callback
+          fs.writeFile target, stdout, "utf8", onerror
           convert()
       else
         exec "mv man7/readme.7 man7/zombie.7", onerror
         process.stdout.write "\n"
+        callback()
     convert()
 
 generatePDF = (callback)->
@@ -159,14 +159,14 @@ task "doc",        "Generate all documentation",               -> generateDocs o
 ## Publishing ##
 
 publishDocs = (callback)->
-  log "Publishing documentation ...", green
+  log "Uploading documentation ...", green
+  exec "rsync -chr --del --stats html/ labnotes.org:/var/www/zombie/", (err, stdout, stderr)->
+    log stdout, green
+    callback err
+task "doc:publish", "Publish documentation to site", ->
   generateDocs (err)->
-    onerror err
-    log "Uploading documentation ...", green
-    exec "rsync -chr --del --stats html/ labnotes.org:/var/www/zombie/", (err, stdout, stderr)->
-      log stdout, green
-      callback err
-task "doc:publish", "Publish documentation to site", -> publishDocs onerror
+    onerror error
+    publishDocs onerror
 
 task "publish", "Publish new version (Git, NPM, site)", ->
   # Run tests, don't publish unless tests pass.
@@ -186,21 +186,27 @@ task "publish", "Publish new version (Git, NPM, site)", ->
           exec "git push --tags origin master", (err, stdout, stderr)->
             log stdout, green
 
-        log "Publishing to NPM ...", green
-        build (err)->
+        # Publish documentation, need these first to generate man pages,
+        # inclusion on NPM package.
+        generateDocs (err)->
           onerror err
-          # Beware: npm publish pushes everything it finds to the Web,
-          # don't run it on your working copy.  Here we create a clean
-          # directory with only the files we *want* to publish.
-          files = package.files.slice(0)
-          files.push path for n,path of package.directories
-          exec "rm -rf clean ; mkdir clean", (err)->
-            onerror err
-            exec "cp -R #{files.join(" ")} clean/", (err)->
-              onerror err
-              exec "npm publish clean", (err, stdout, stderr)->
-                log stdout, green
-                onerror err
 
-        # Publish documentation in parallel.
-        publishDocs onerror
+          log "Publishing to NPM ...", green
+          build (err)->
+            onerror err
+            # Beware: npm publish pushes everything it finds to the Web,
+            # don't run it on your working copy.  Here we create a clean
+            # directory with only the files we *want* to publish.
+            files = package.files.slice(0)
+            files.push path for n,path of package.directories
+            exec "rm -rf clean && mkdir clean", (err)->
+              onerror err
+              exec "cp -R #{files.join(" ")} clean/", (err)->
+                onerror err
+                exec "npm publish clean", (err, stdout, stderr)->
+                  log stdout, green
+                  onerror err
+
+          # We can do this in parallel.
+          publishDocs onerror
+
