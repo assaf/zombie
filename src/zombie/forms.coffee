@@ -10,10 +10,15 @@ base64 = require("base64")
 UploadedFile = (filename)->
   file = new String(path.basename(filename))
   file.mime = ()-> mime.lookup(filename)
-  file.encoding = ()-> "base64"
+  file.encoding = ()->
+    if @mime().match(/^text/)
+      null
+    else
+      "base64"
   file.contents = ()->
     result = fs.readFileSync(filename)
-    base64.encode(result).replace(/(.{76})/g, "$1\r\n")
+    result = base64.encode(result).replace(/(.{76})/g, "$1\r\n") if @encoding() == "base64"
+    result
   return file
 
 # Implement form.submit such that it actually submits a request to the server.

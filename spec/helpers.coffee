@@ -108,7 +108,12 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         headers
       , {}
       console.log contents
-      contents = decode(contents) if headers["content-transfer-encoding"] == "base64"
+
+      # Intentionally do not decode base64 files if the content-type is text.
+      # This is the behavior of a few servers.
+      if headers["content-transfer-encoding"] == "base64" && !headers["content-type"].match(/^text/)
+        contents = decode(contents)
+
       contents.mime = headers["content-type"].split(/;/)[0]
       # We're looking for the content-disposition header, which has
       # form-data follows by name/value pairs, including the field name.
