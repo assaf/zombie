@@ -73,7 +73,7 @@ brains.get "/upload", (req, res)-> res.send """
 
       <form>
         <input name="get_file" type="file">
-        <button>Get Upload</button> 
+        <input type="submit" value="Get Upload">
       </form>
     </body>
   </html>
@@ -297,6 +297,11 @@ vows.describe("Forms").addBatch(
         "should send input values to server": (browser)->
           assert.equal browser.text("#name"), "ArmBiter"
           assert.equal browser.text("#likes"), "Arm Biting"
+    "by cliking a button without name":
+      zombie.wants "http://localhost:3003/upload"
+        topic: (browser)->
+          browser.pressButton "Get Upload", @callback
+        "should not send inputs without names": (browser)-> assert.equal browser.location.search, "?"
 
   "file upload (ascii)":
     zombie.wants "http://localhost:3003/upload"
