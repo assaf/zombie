@@ -258,4 +258,4 @@ Magical Zombie Girl by [Toho Scope](http://www.flickr.com/people/tohoscope/)
 
 ## See Also
 
-**zombie-api**(7), **zombie-troublshooting**(7), **zombie-selectors**(7), **zombie-changelog**(7), **zombie-todo**(7)
+**zombie-api**(7), **zombie-troubleshoot**(7), **zombie-selectors**(7), **zombie-changelog**(7), **zombie-todo**(7)
