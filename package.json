@@ -17,17 +17,19 @@
   },
   "files": ["README.md", "CHANGELOG.md", "Cakefile", "MIT-LICENSE", "TODO.md", "package.json", "dep", "src", "spec"],
   "scripts": {
-    "build": "cake",
+    "build": "cake build",
     "test": "vows"
   },
   "engines": {
     "node": "*"
   },
   "dependencies": {
+    "cssom": "0.2.0",
     "html5": "0.2.7",
     "jsdom": "0.1.22"
   },
   "devDependencies": {
+    "coffee-script": ">= 1.0.0",
     "docco": "0.3.0",
     "express": "1.0.1",
     "ronn": "0.3.5",

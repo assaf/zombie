@@ -106,7 +106,6 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         headers[split[0].toLowerCase()] = split.slice(1).join(":").trim()
         headers
       , {}
-      console.log contents
       contents = decode(contents) if headers["content-transfer-encoding"] == "base64"
       contents.mime = headers["content-type"].split(/;/)[0]
       # We're looking for the content-disposition header, which has
