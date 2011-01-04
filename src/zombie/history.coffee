@@ -1,5 +1,4 @@
 # Window history and location.
-encode = require("base64").encode
 http = require("http")
 jsdom = require("jsdom")
 html = jsdom.dom.level3.html
@@ -95,15 +94,24 @@ class History
               boundary = "#{new Date().getTime()}#{Math.random()}"
               lines = ["--#{boundary}"]
               for name, value of data
-                encoded = encode(value).replace(/(.{76})/g, "$1\r\n")
                 disp = "Content-Disposition: form-data; name=\"#{name}\""
-                disp += "; filename=\"#{value.filename}\"" if value.filename
+
+                if value.contents
+                  disp += "; filename=\"#{value}\""
+                  content = value.contents()
+                  mime = value.mime()
+                  encoding = value.encoding()
+                else
+                  content = value
+                  mime = "text/plain"
+
                 lines.push disp
-                lines.push "Content-Type: #{value.mime || "text/plain"}"
-                lines.push "Content-Length: #{encoded.length}"
-                lines.push "Content-Transfer-Encoding: base64"
+                lines.push "Content-Type: #{mime}"
+                lines.push "Content-Length: #{content.length}"
+                lines.push "Content-Transfer-Encoding: base64" if encoding
                 lines.push ""
-                lines.push encoded
+                lines.push content
+
                 lines.push "--#{boundary}"
               data = lines.join("\r\n") + "--\r\n"
               headers["content-type"] += "; boundary=#{boundary}"

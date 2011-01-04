@@ -70,6 +70,11 @@ brains.get "/upload", (req, res)-> res.send """
         <input name="image" type="file">
         <button>Upload</button> 
       </form>
+
+      <form>
+        <input name="get_file" type="file">
+        <button>Get Upload</button> 
+      </form>
     </body>
   </html>
   """
@@ -299,20 +304,28 @@ vows.describe("Forms").addBatch(
         @filename = __dirname + "/data/random.txt"
         browser.attach("text", @filename).pressButton "Upload", @callback
       "should upload file": (browser)-> assert.equal browser.text("body").trim(), "Random text"
-      "should upload include name": (browser)-> assert.equal browser.text("title"), @filename
+      "should upload include name": (browser)-> assert.equal browser.text("title"), "random.txt"
 
   "file upload (binary)":
     zombie.wants "http://localhost:3003/upload"
       topic: (browser)->
         @filename = __dirname + "/data/zombie.jpg"
         browser.attach("image", @filename).pressButton "Upload", @callback
-      "should upload include name": (browser)-> assert.equal browser.text("title"), @filename
+      "should upload include name": (browser)-> assert.equal browser.text("title"), "zombie.jpg"
 
-  "empty file upload":
+  "file upload (empty)":
     zombie.wants "http://localhost:3003/upload"
       topic: (browser)->
         browser.attach "text", ""
         browser.pressButton "Upload", @callback
       "should not upload any file": (browser)-> assert.equal browser.text("body").trim(), "undefined"
+
+  "file upload (get)":
+    zombie.wants "http://localhost:3003/upload"
+      topic: (browser)->
+        @filename = __dirname + "/data/random.txt"
+        browser.attach("get_file", @filename).pressButton "Get Upload", @callback
+      "should send just the file basename": (browser)->
+        assert.equal browser.location.search, "?get_file=random.txt"
 
 ).export(module)

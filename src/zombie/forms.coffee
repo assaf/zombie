@@ -1,10 +1,20 @@
 # Patches to JSDOM for properly handling forms.
 core = require("jsdom").dom.level3.core
-exec = require("child_process").exec
-fs = require("fs")
+path = require("path")
+fs   = require("fs")
+mime = require("mime")
+base64 = require("base64")
 
 # The Form
 # --------
+UploadedFile = (filename)->
+  file = new String(path.basename(filename))
+  file.mime = ()-> mime.lookup(filename)
+  file.encoding = ()-> "base64"
+  file.contents = ()->
+    result = fs.readFileSync(filename)
+    base64.encode(result).replace(/(.{76})/g, "$1\r\n")
+  return file
 
 # Implement form.submit such that it actually submits a request to the server.
 # This method takes the submitting button so we can send the button name/value.
@@ -33,18 +43,8 @@ core.HTMLFormElement.prototype.submit = (button)->
           params[name] = field.value if field.checked
           process index + 1
         else if field.nodeName == "INPUT" && field.type == "file"
-          if filename = field.value
-            file = fs.readFileSync(filename)
-            file.filename = filename
-            document.parentWindow.queue (done)->
-              exec "file -b -I '#{filename}'", (err, stdout)->
-                file.mime = stdout unless err
-                file.mime = "text/plain" if file.mime == ""
-                params[name] = file
-                done()
-                process index + 1
-          else
-            process index + 1
+          params[name] = new UploadedFile(field.value) if field.value
+          process index + 1
         else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
           params[name] = field.value if field.value
           process index + 1
