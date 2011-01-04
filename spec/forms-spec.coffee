@@ -40,6 +40,7 @@ brains.get "/form", (req, res)-> res.send """
         <input type="unknown" name="unknown" value="yes">
         <input type="reset" value="Reset">
         <input type="submit" name="button" value="Submit">
+        <input type="image" name="image" id="image_submit" value="Image Submit">
 
         <button name="button" value="hit-me">Hit Me</button>
       </form>
@@ -58,6 +59,7 @@ brains.post "/submit", (req, res)-> res.send """
       <div id="hobbies">#{JSON.stringify(req.body.hobbies)}</div>
       <div id="unknown">#{req.body.unknown}</div>
       <div id="clicked">#{req.body.button}</div>
+      <div id="image_clicked">#{req.body.image}</div>
     </body>
   </html>
   """
@@ -286,6 +288,23 @@ vows.describe("Forms").addBatch(
         "should send input values to server": (browser)->
           assert.equal browser.text("#name"), "ArmBiter"
           assert.equal browser.text("#likes"), "Arm Biting"
+        "should not send other button values to server": (browser)->
+          assert.equal browser.text("#image_clicked"), "undefined"
+
+    "by clicking image button":
+      zombie.wants "http://localhost:3003/form"
+        topic: (browser)->
+          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
+            pressButton "#image_submit", @callback
+        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
+        "should add location to history": (browser)-> assert.length browser.window.history, 2
+        "should send image value to server": (browser)-> assert.equal browser.text("#image_clicked"), "Image Submit"
+        "should send input values to server": (browser)->
+          assert.equal browser.text("#name"), "ArmBiter"
+          assert.equal browser.text("#likes"), "Arm Biting"
+        "should not send other button values to server": (browser)->
+          assert.equal browser.text("#clicked"), "undefined"
+
     "by clicking input":
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->

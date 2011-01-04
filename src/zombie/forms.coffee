@@ -45,7 +45,8 @@ core.HTMLFormElement.prototype.submit = (button)->
         else if field.nodeName == "INPUT" && field.type == "file"
           params[name] = new UploadedFile(field.value) if field.value
         else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
-          params[name] = field.value if field.value
+          if field.value && field.type != "submit" && field.type != "image"
+            params[name] = field.value
 
       process index + 1
     else
@@ -93,7 +94,7 @@ core.HTMLInputElement.prototype._eventDefaults =
       when "reset"
         if form = input.form
           form.reset()
-      when "submit"
+      when "submit", "image"
         if form = input.form
           form._dispatchSubmitEvent input
       when "checkbox"
