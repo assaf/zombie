@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+### Version 0.8.8  2011-01-04
+
+Fixed image submit (José Valim).
+
+    230 Tests
+    3.2 sec to complete
+
+
 ### Version 0.8.7  2011-01-04
 
 Adds DOM Level 3 XPath support.

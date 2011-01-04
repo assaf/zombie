@@ -27,7 +27,7 @@
     "base64": "1.0.1",
     "cssom": "0.2.0",
     "html5": "0.2.7",
-    "jsdom": "0.1.22",
+    "jsdom": "0.1.23",
     "mime": "1.1.0"
   },
   "devDependencies": {
