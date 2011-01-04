@@ -66,18 +66,19 @@ brains.get "/upload", (req, res)-> res.send """
   <html>
     <body>
       <form method="post" enctype="multipart/form-data">
-        <input name="file" type="file">
+        <input name="text" type="file">
+        <input name="image" type="file">
         <button>Upload</button> 
       </form>
     </body>
   </html>
   """
 brains.post "/upload", (req, res)->
-  file = req.body.file
+  [text, image] = [req.body.text, req.body.image]
   res.send """
   <html>
-    <head><title>#{file.filename}</title></head>
-    <body>#{file}</body>
+    <head><title>#{text?.filename || image?.filename}</title></head>
+    <body>#{text || image.length}</body>
   </html>
   """
 
@@ -293,11 +294,19 @@ vows.describe("Forms").addBatch(
           assert.equal browser.text("#name"), "ArmBiter"
           assert.equal browser.text("#likes"), "Arm Biting"
 
-  "file upload":
+  "file upload (ascii)":
     zombie.wants "http://localhost:3003/upload"
       topic: (browser)->
         @filename = __dirname + "/data/random.txt"
-        browser.attach("file", @filename).pressButton "Upload", @callback
+        browser.attach("text", @filename).pressButton "Upload", @callback
       "should upload file": (browser)-> assert.equal browser.text("body").trim(), "Random text"
+      "should upload include name": (browser)-> assert.equal browser.text("title"), @filename
+
+  "file upload (binary)":
+    zombie.wants "http://localhost:3003/upload"
+      topic: (browser)->
+        @filename = __dirname + "/data/zombie.jpg"
+        browser.attach("image", @filename).pressButton "Upload", @callback
+      #"should upload file": (browser)-> assert.equal browser.text("body").trim(), "Random text"
       "should upload include name": (browser)-> assert.equal browser.text("title"), @filename
 ).export(module)

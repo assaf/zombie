@@ -60,15 +60,6 @@ class EventLoop
     # Queue of events.
     queue = []
 
-    # ### queue(event)
-    #
-    # Queue an event to be processed by wait(). Event is a function call in the
-    # context of the window.
-    this.queue = (event)->
-      queue.push event if event
-      wait() for wait in waiting
-      waiting = []
-
     # ### wait(window, terminate, callback, intervals)
     #
     # Process all events from the queue. This method returns immediately, events
@@ -93,18 +84,15 @@ class EventLoop
         callback = terminate
         terminate = null
       process.nextTick =>
-        if event = queue.shift()
-          intervals = true
-        else
-          earliest = null
-          for handle, timer of timers
-            continue if timer.interval && intervals == false
-            earliest = timer if !earliest || timer.when < earliest.when
-          if earliest
-            intervals = false
-            event = ->
-              browser.clock = earliest.when if browser.clock < earliest.when
-              earliest.fire()
+        earliest = null
+        for handle, timer of timers
+          continue if timer.interval && intervals == false
+          earliest = timer if !earliest || timer.when < earliest.when
+        if earliest
+          intervals = false
+          event = ->
+            browser.clock = earliest.when if browser.clock < earliest.when
+            earliest.fire()
         if event
           try 
             event()
@@ -121,14 +109,12 @@ class EventLoop
           catch err
             browser.emit "error", err
             callback err, window
-        else if requests.length > 0
+        else if queue.length > 0
           waiting.push => @wait window, terminate, callback, intervals
         else
           browser.emit "drain", browser
           callback null, window
 
-    # Counts outstanding requests.
-    requests = []
     # Used internally for the duration of an internal request (loading
     # resource, XHR). Also collects request/response for debugging.
     #
@@ -139,18 +125,27 @@ class EventLoop
     this.request = (request, fn)->
       url = request.url.toString()
       browser.log -> "#{request.method} #{url}"
-      requests.push url
       pending = browser.record request
-      fn (err, response)->
-        if err
-          browser.log -> "Error loading #{url}: #{err}"
-          pending.error = err
-        else
-          browser.log -> "#{request.method} #{url} => #{response.status}"
-          pending.response = response
-        index = requests.indexOf(url)
-        requests.splice index, 1
-        if requests.length == 0
+      this.queue (done)->
+        fn (err, response)->
+          if err
+            browser.log -> "Error loading #{url}: #{err}"
+            pending.error = err
+          else
+            browser.log -> "#{request.method} #{url} => #{response.status}"
+            pending.response = response
+          done()
+
+    queue = []
+    # ### queue(event)
+    #
+    # Queue an event to be processed by wait(). Event is a function call in the
+    # context of the window.
+    this.queue = (fn)->
+      queue.push fn
+      fn ->
+        queue.splice queue.indexOf(fn), 1
+        if queue.length == 0
           for wait in waiting
             process.nextTick -> wait()
           waiting = []

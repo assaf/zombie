@@ -15,7 +15,9 @@ XMLHttpRequest = (browser, window)->
     @__defineGetter__ "readyState", -> state
     if @onreadystatechange
       # Since we want to wait on these events, put them in the event loop.
-      window.queue => @onreadystatechange.call(@)
+      window.queue (done)=>
+        @onreadystatechange.call(@)
+        done()
   # Bring XHR to initial state (open/abort).
   reset = =>
     # Switch back to unsent state

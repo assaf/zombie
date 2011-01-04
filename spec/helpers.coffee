@@ -1,6 +1,7 @@
 require.paths.unshift __dirname + "/../node_modules"
 require.paths.unshift __dirname + "/../src"
 fs = require("fs")
+decode = require("base64").decode
 express = require("express")
 zombie = require("index")
 
@@ -98,13 +99,15 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
       # Each part consists of headers followed by the contents.
       split = part.trim().split("\r\n\r\n")
       heading = split[0]
-      contents = new String(split.slice(1).join("\r\n"))
+      contents = split.slice(1).join("\r\n")
       # Now let's split the header into name/value pairs.
       headers = heading.split(/\r\n/).reduce (headers, line)->
         split = line.split(":")
         headers[split[0].toLowerCase()] = split.slice(1).join(":").trim()
         headers
       , {}
+      console.log contents
+      contents = decode(contents) if headers["content-transfer-encoding"] == "base64"
       contents.mime = headers["content-type"].split(/;/)[0]
       # We're looking for the content-disposition header, which has
       # form-data follows by name/value pairs, including the field name.
@@ -117,6 +120,7 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         # From content disposition we can tell the field name, if it's a
         # file upload, also the file name. Content type is separate
         # header.
+        contents = new String(contents)
         contents.filename = pairs.filename if pairs.filename
         parts[pairs.name] = contents if pairs.name
       parts

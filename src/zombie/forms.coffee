@@ -33,12 +33,18 @@ core.HTMLFormElement.prototype.submit = (button)->
           params[name] = field.value if field.checked
           process index + 1
         else if field.nodeName == "INPUT" && field.type == "file"
-          file = fs.readFileSync(field.value)
-          file.filename = field.value
-          # exec "file -b -I spec/data/random.txt", (err, stdout)->
-          file.mime = "text/plain"
-          params[name] = file
-          process index + 1
+          if filename = field.value
+            file = fs.readFileSync(filename)
+            file.filename = filename
+            document.parentWindow.queue (done)->
+              exec "file -b -I '#{filename}'", (err, stdout)->
+                file.mime = stdout unless err
+                file.mime = "text/plain" if file.mime == ""
+                params[name] = file
+                done()
+                process index + 1
+          else
+            process index + 1
         else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
           params[name] = field.value if field.value
           process index + 1
