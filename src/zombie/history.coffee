@@ -91,17 +91,18 @@ class History
             when "application/x-www-form-urlencoded"
               data = qs.stringify(data, '&', '=', false)
             when "multipart/form-data"
-              parts = [""]
+              boundary = "#{new Date().getTime()}#{Math.random()}"
+              lines = ["--#{boundary}"]
               for name, value of data
-                lines = [ "Content-Disposition: form-data; name=\"#{name}\"" ]
-                if value.filename
-                  lines[0] = lines[0] + ";filename=\"#{value.filename}\"" if value.filename
-                  lines.push "Content-Type: #{value.mime || "text/plain"}"
+                disp = "Content-Disposition: form-data; name=\"#{name}\""
+                disp += "; filename=\"#{value.filename}\"" if value.filename
+                lines.push disp
+                lines.push "Content-Type: #{value.mime || "text/plain"}"
                 lines.push ""
                 lines.push value
-                parts.push lines.join("\r\n")
-              boundary = "\r\n--#{new Date().getTime()}#{Math.random()}"
-              data = parts.join("#{boundary}\r\n") + "#{boundary}--\r\n"
+                lines.push "--#{boundary}"
+              data = lines.join("\r\n") + "--\r\n"
+              headers["content-type"] += "; boundary=#{boundary}"
             else data = data.toString()
           headers["content-length"] = data.length
 

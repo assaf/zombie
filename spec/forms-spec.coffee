@@ -297,8 +297,7 @@ vows.describe("Forms").addBatch(
     zombie.wants "http://localhost:3003/upload"
       topic: (browser)->
         @filename = __dirname + "/data/random.txt"
-        browser.attach "file", @filename
-        browser.pressButton "Upload", @callback
+        browser.attach("file", @filename).pressButton "Upload", @callback
       "should upload file": (browser)-> assert.equal browser.text("body").trim(), "Random text"
       "should upload include name": (browser)-> assert.equal browser.text("title"), @filename
 ).export(module)
