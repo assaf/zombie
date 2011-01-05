@@ -1,6 +1,6 @@
 {
   "name": "zombie",
-  "version": "0.8.7",
+  "version": "0.8.8",
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "http://zombie.labnotes.org/",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
@@ -15,7 +15,17 @@
     "lib": "./lib",
     "man": "./man7"
   },
-  "files": ["README.md", "CHANGELOG.md", "Cakefile", "MIT-LICENSE", "TODO.md", "package.json", "dep", "src", "spec"],
+  "files": [
+    "README.md",
+    "CHANGELOG.md",
+    "Cakefile",
+    "MIT-LICENSE",
+    "TODO.md",
+    "package.json",
+    "dep",
+    "src",
+    "spec"
+  ],
   "scripts": {
     "build": "cake build",
     "test": "vows"
