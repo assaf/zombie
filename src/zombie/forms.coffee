@@ -41,7 +41,7 @@ core.HTMLFormElement.prototype.submit = (button)->
             value = selected
           else
             value = selected.shift()
-            if !value && option = field.options[0]
+            if !value? && option = field.options[0]
               value = option.value
 
         else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
@@ -52,7 +52,7 @@ core.HTMLFormElement.prototype.submit = (button)->
           if field.value && field.type != "submit" && field.type != "image"
             value = field.value
 
-      if value
+      if value?
         value = [value] unless typeof value == "array"
         params[name] = (params[name] || []).concat(value)
 

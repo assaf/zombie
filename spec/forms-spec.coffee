@@ -24,6 +24,7 @@ brains.get "/form", (req, res)-> res.send """
           <select name="looks" id="field-looks">
             <option value="blood" label="Bloody"></option>
             <option value="clean" label="Clean"></option>
+            <option value=""      label="Choose one"></option>
           </select>
         </label>
         <label>Scary <input name="scary" type="radio" value="yes" id="field-scary"></label>
@@ -62,6 +63,7 @@ brains.post "/submit", (req, res)-> res.send """
       <div id="likes">#{req.body.likes}</div>
       <div id="green">#{req.body.green}</div>
       <div id="brains">#{req.body.brains}</div>
+      <div id="looks">#{req.body.looks}</div>
       <div id="hungry">#{JSON.stringify(req.body.hungry)}</div>
       <div id="state">#{req.body.state}</div>
       <div id="scary">#{req.body.scary}</div>
@@ -195,7 +197,7 @@ vows.describe("Forms").addBatch(
         "should set value": (browser)-> assert.equal browser.querySelector("#field-looks").value, "blood"
         "should select first option": (browser)->
           selected = (option.selected for option in browser.querySelector("#field-looks").options)
-          assert.deepEqual selected, [true, false]
+          assert.deepEqual selected, [true, false, false]
         "should fire change event": (browser)-> assert.ok browser.looksChanged
       "select name using option value":
         topic: (browser)->
@@ -273,8 +275,8 @@ vows.describe("Forms").addBatch(
     "by calling submit":
       zombie.wants "http://localhost:3003/form"
         topic: (browser)->
-          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
-            check("You bet").check("Certainly").choose("Scary").select("state", "dead").
+          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").check("You bet").
+            check("Certainly").choose("Scary").select("state", "dead").select("looks", "Choose one").
             select("#field-hobbies", "Eat Brains").select("#field-hobbies", "Sleep").check("Brains?")
 
           browser.querySelector("form").submit()
@@ -295,6 +297,7 @@ vows.describe("Forms").addBatch(
           assert.equal browser.text("#state"), "dead"
         "should send first selected option if none was chosen to server": (browser)->
           assert.equal browser.text("#unselected_state"), "alive"
+          assert.equal browser.text("#looks"), ""
         "should send multiple selected options to server": (browser)->
           assert.equal browser.text("#hobbies"), '["Eat Brains","Sleep"]'
 
