@@ -77,6 +77,7 @@ zombie.wants = (url, context)->
         catch err
           @callback err
       else
+        throw err if err
         browser.wait @callback
     return
   return context

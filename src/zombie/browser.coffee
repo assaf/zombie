@@ -231,7 +231,7 @@ class Browser extends require("events").EventEmitter
     # Navigation
     # ----------
 
-    # ### browser.visit(url, callback)
+    # ### browser.visit(url, callback?)
     # ### browser.visit(url, options, callback)
     #
     # Loads document from the specified URL, processes events and calls the
