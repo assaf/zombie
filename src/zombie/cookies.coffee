@@ -132,9 +132,9 @@ class Cookies
     #
     # Adds Cookie header suitable for sending to the server.
     this.addHeader = (headers)->
-      header = ("#{match[2]}=\"#{match[3].value}\";$Path=\"#{match[1]}\"" for match in selected()).join("; ")
+      header = ("#{match[2]}=#{match[3].value};$Path=#{match[1]}" for match in selected()).join("; ")
       if header.length > 0
-        headers.cookie = "$Version=\"1\"; #{header}"
+        headers.cookie = "$Version=1; #{header}"
 
     #### cookies(host, path).pairs => String
     #
