@@ -19,4 +19,8 @@ core.HTMLDocument.prototype.evaluate = (expr, node, nsResolver, type, result)->
   engine = xpath()
   context = new engine.ExprContext(node || this)
   context.setCaseInsensitive true
-  engine.xpathParse(expr).evaluate(context)
+  result = engine.xpathParse(expr).evaluate(context)
+  result.value = result.value.sort (a,b)->
+    value = a.compareDocumentPosition(b)
+    value == 2 || value == 8 || value == 10 ? -1 : 1
+  result
