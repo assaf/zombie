@@ -29,6 +29,17 @@ To run the test suite:
 
     $ cake test
 
+If you're hacking on Zombie and testing it in a different project, you
+can "install" your working directory using `npm link`.  Keep in mind,
+though, Zombie is written in CoffeeScript ad your project is loading the
+compiled JavaScript.  You need to keep both synchronized by running
+`cake build` or `cake watch`.
+
+Install the working directory and have all changes compiled in
+real-time:
+
+    $ npm link && cake watch
+
 To generate the documentation:
 
     $ cake doc:pages
