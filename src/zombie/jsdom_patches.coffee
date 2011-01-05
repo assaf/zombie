@@ -86,6 +86,7 @@ core.CharacterData.prototype.__defineGetter__ "_nodeValue", -> @_text
 # when its text contents is changed.  Safari and Firefox support that.
 core.Document.prototype._elementBuilders["script"] = (doc, s)->
   script = new core.HTMLScriptElement(doc, s)
+  script.sourceLocation ||= { line: 0, col: 0 }
   if doc.implementation.hasFeature("ProcessExternalResources", "script")
     script.addEventListener "DOMCharacterDataModified", (event)->
       code = event.target.nodeValue

@@ -243,17 +243,10 @@ class Browser extends require("events").EventEmitter
       if typeof options is "function"
         [callback, options] = [options, null]
       @withOptions options, (reset)=>
-        onerror = (error)->
-          @removeListener "error", onerror
-          reset()
-          callback error
-        @on "error", onerror
         history._assign url
-        @wait =>
-          if @listeners("error").indexOf(onerror) >= 0
-            @removeListener "error", onerror
-            reset()
-            callback null, this
+        @wait (error, browser)->
+          reset()
+          callback error, browser if callback
       return
 
     # ### browser.location => Location
