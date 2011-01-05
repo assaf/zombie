@@ -2,6 +2,16 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+### Version 0.8.9  2011-01-05
+
+Properly use the existance operator so empty strings are sent (José Valim).
+
+Fixs to XPath evaluation and sorting by document order (José Valim).
+
+    231 Tests
+    3.4 sec to complete
+
+
 ### Version 0.8.8  2011-01-04
 
 Fixed script execution order: now in document order even when mixing
