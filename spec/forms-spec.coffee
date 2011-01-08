@@ -35,6 +35,13 @@ brains.get "/form", (req, res)-> res.send """
         <select name="state" id="field-state">
           <option>alive</option>
           <option>dead</option>
+          <option>neither</option>
+        </select>
+
+        <select name="kills" id="field-kills">
+          <option>Five</option>
+          <option>Seventeen</option>
+          <option id="option-killed-thousands">Thousands</option>
         </select>
 
         <select name="unselected_state" id="field-unselected-state">
@@ -199,7 +206,7 @@ vows.describe("Forms").addBatch(
   "select option":
     zombie.wants "http://localhost:3003/form"
       topic: (browser)->
-        for field in ["looks", "state"]
+        for field in ["looks", "state", "kills"]
           do (field)->
             browser.querySelector("#field-#{field}").addEventListener "change", -> browser["#{field}Changed"] = true
         @callback null, browser
@@ -217,12 +224,20 @@ vows.describe("Forms").addBatch(
         "should set value": (browser)-> assert.equal browser.querySelector("#field-state").value, "dead"
         "should select second option": (browser)->
           selected = (option.selected for option in browser.querySelector("#field-state").options)
-          assert.deepEqual selected, [false, true]
+          assert.deepEqual selected, [false, true, false]
         "should select first option on second click": (browser)->
           browser.select "state", "alive"
           selected = (option.selected for option in browser.querySelector("#field-state").options)
-          assert.deepEqual selected, [true, false]
+          assert.deepEqual selected, [true, false, false]
         "should fire change event": (browser)-> assert.ok browser.stateChanged
+      "select option value directly":
+        topic: (browser)->
+          browser.selectOption browser.querySelector("#option-killed-thousands")
+        "should set value": (browser)-> assert.equal browser.querySelector("#field-kills").value, "Thousands"
+        "should select second option": (browser)->
+          selected = (option.selected for option in browser.querySelector("#field-kills").options)
+          assert.deepEqual selected, [false, false, true]
+        "should fire change event": (browser)-> assert.ok browser.killsChanged
 
   "multiple select option":
     zombie.wants "http://localhost:3003/form"

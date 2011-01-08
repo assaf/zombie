@@ -424,7 +424,18 @@ class Browser extends require("events").EventEmitter
     # Returns this
     this.select = (selector, value)->
       option = findOption(selector, value)
-      if(!option.selected)
+      @selectOption(option)
+      return this
+
+    # ### browser.selectOption(option) => this
+    #
+    # Selects an option.
+    #
+    # * option -- option to select
+    #
+    # Returns this
+    this.selectOption = (option)->
+      if(option && !option.selected)
         select = @xpath("./ancestor::select", option).value[0]
         option.selected = true
         @fire "change", select
@@ -440,7 +451,18 @@ class Browser extends require("events").EventEmitter
     # Returns this
     this.unselect = (selector, value)->
       option = findOption(selector, value)
-      if(option.selected)
+      @unselectOption(option)
+      return this
+    
+    # ### browser.unselectOption(option) => this
+    #
+    # Unselects an option.
+    #
+    # * option -- option to unselect
+    #
+    # Returns this
+    this.unselectOption = (option)->
+      if(option && option.selected)
         select = @xpath("./ancestor::select", option).value[0]
         throw new Error("Cannot unselect in single select") unless select.multiple
         option.removeAttribute('selected')
