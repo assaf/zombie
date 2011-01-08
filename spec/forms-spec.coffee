@@ -11,6 +11,7 @@ brains.get "/form", (req, res)-> res.send """
         <input type="text" name="email" id="field-email"></label>
         <textarea name="likes" id="field-likes">Warm brains</textarea>
         <input type="password" name="password" id="field-password">
+        <input type="badtype" name="invalidtype" id="field-invalidtype" />
 
         <label>Hungry</label>
         <label>You bet<input type="checkbox" name="hungry[]" value="you bet" id="field-hungry"></label>
@@ -106,7 +107,7 @@ vows.describe("Forms").addBatch(
   "fill field":
     zombie.wants "http://localhost:3003/form"
       topic: (browser)->
-        for field in ["email", "likes", "name", "password"]
+        for field in ["email", "likes", "name", "password", "invalidtype"]
           do (field)->
             browser.querySelector("#field-#{field}").addEventListener "change", -> browser["#{field}Changed"] = true
         @callback null, browser
@@ -130,6 +131,11 @@ vows.describe("Forms").addBatch(
           browser.fill ":password[name=password]", "b100d"
         "should set password": (browser)-> assert.equal browser.querySelector("#field-password").value, "b100d"
         "should fire change event": (browser)-> assert.ok browser.passwordChanged
+      "input without a valid type":
+        topic: (browser)->
+          browser.fill ":input[name=invalidtype]", "some value"
+        "should set value": (browser)-> assert.equal browser.querySelector("#field-invalidtype").value, "some value"
+        "should fire change event": (browser)-> assert.ok browser.invalidtypeChanged
 
   "check box":
     zombie.wants "http://localhost:3003/form"
