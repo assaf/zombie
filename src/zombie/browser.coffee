@@ -295,6 +295,9 @@ class Browser extends require("events").EventEmitter
     # label associated with that field (case sensitive, but ignores
     # leading/trailing spaces).
     this.field = (selector)->
+      # If the field has already been queried, return itself
+      if typeof selector == 'object'
+        return selector
       # Try more specific selector first.
       if field = @querySelector(selector)
         return field if field.tagName == "INPUT" || field.tagName == "TEXTAREA" || field.tagName == "SELECT"
