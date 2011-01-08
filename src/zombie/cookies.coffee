@@ -91,6 +91,17 @@ class Cookies
         if in_path = in_domain[pathname]
           delete in_path[name.toLowerCase()]
 
+    #### cookies(host, path).clear()
+    #
+    # Clears all cookies.
+    #
+    this.clear = (options = {})->
+      if in_domain = cookies[hostname]
+        if in_path = in_domain[pathname]
+          for name, value of in_path
+            delete in_path[name]
+          # delete in_path[name.toLowerCase()]
+
     #### cookies(host, path).update(serialized)
     #
     # Update cookies from serialized form. This method works equally well for
