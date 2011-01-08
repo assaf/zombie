@@ -62,7 +62,8 @@ runTests = (callback)->
   log "Running test suite ...", green
   exec "vows --spec", (err, stdout)->
     process.stdout.write stdout
-    callback err
+    process.stdout.write err
+    # callback err # <-- prevents errors from being printed with vows!
 task "test", "Run all tests", -> runTests onerror
 
 
