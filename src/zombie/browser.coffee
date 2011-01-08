@@ -446,7 +446,7 @@ class Browser extends require("events").EventEmitter
     # Unselects an option.
     #
     # * selector -- CSS selector, field name or text of the field label
-    # * value -- Value (or label) or option to select
+    # * value -- Value (or label) or option to unselect
     #
     # Returns this
     this.unselect = (selector, value)->
