@@ -324,7 +324,7 @@ class Browser extends require("events").EventEmitter
     # Returns this
     this.fill = (selector, value)->
       field = @field(selector)
-      if field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT" && TEXT_TYPES.indexOf(field.type) >= 0))
+      if field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT")) # && TEXT_TYPES.indexOf(field.type) >= 0))
         throw new Error("This INPUT field is disabled") if field.getAttribute("input")
         throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
         field.value = value
