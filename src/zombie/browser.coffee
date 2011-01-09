@@ -1,4 +1,5 @@
 jsdom = require("jsdom")
+html = jsdom.dom.level3.html
 vm = process.binding("evals")
 require "./jsdom_patches"
 require "./forms"
@@ -23,7 +24,7 @@ class Browser extends require("events").EventEmitter
     #
     # Open new browser window.
     this.open = ->
-      window = jsdom.createWindow(jsdom.dom.level3.html)
+      window = jsdom.createWindow(html)
       window.__defineGetter__ "browser", => this
       cookies.extend window
       storage.extend window
@@ -296,7 +297,7 @@ class Browser extends require("events").EventEmitter
     # leading/trailing spaces).
     this.field = (selector)->
       # If the field has already been queried, return itself
-      if typeof selector == 'object'
+      if selector instanceof html.Element
         return selector
       # Try more specific selector first.
       if field = @querySelector(selector)
