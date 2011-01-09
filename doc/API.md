@@ -205,7 +205,7 @@ and resets before passing control to the callback.  For example:
 Methods for interacting with form controls (e.g. `fill`, `check`) take a
 first argument that tries to identify the form control using a variety
 of approaches.  You can always select the form control using an
-appropriate [CSS selector](selectors.html).
+appropriate [CSS selector](selectors.html), or pass the element itself.
 
 Zombie.js can also identify form controls using their name (the value of
 the `name` attribute) or using the text of the label associated with
@@ -292,12 +292,33 @@ For example:
 
     browser.select("Currency", "brain$")
 
+See also `selectOption`.
+
 Returns itself.
+
+### browser.selectOption(option) : this
+
+Selects the option (an `OPTION` element) and returns itself.
 
 ### browser.uncheck(field) : this
 
 Unchecks a checkbox.  The argument can be the field name, label text or
 a CSS selector.
+
+### browser.unselect(field, value) : this
+ 
+Unselects an option.  The first argument can be the field name, label
+text or a CSS selector.  The second value is the option to unselect, by
+value or label.
+
+You can use this (or `unselectOption`) when dealing with multiple
+selection.
+
+Returns itself.
+
+### browser.unselectOption(option) : this
+
+Unselects the option (an `OPTION` element) and returns itself.
 
 
 ## State Management
@@ -317,8 +338,8 @@ For example:
 
     browser.cookies("localhost").set("session", "567");
 
-The `Cookies` object has the methods `get(name)`, `set(name, value)`,
-`remove(name)` and `dump()`.
+The `Cookies` object has the methods `clear()`, `get(name)`, `set(name,
+value)`, `remove(name)` and `dump()`.
 
 The `set` method accepts a third argument which may include the options
 `expires`, `maxAge` and `secure`.

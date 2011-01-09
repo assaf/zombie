@@ -135,11 +135,11 @@ entering text, submitting forms.  You can certainly do that using the
 functions we're going to cover next.
 
 To click a link on the page, use `clickLink` with selector and callback.
-The first argument can be a CSS selector (see _Hunting_) or the text
-contents of the `A` element you want to click.  The second argument is a
-callback, which is passed on to `browser.wait` (see _Walking_).  In
-other words, it gets fired after all events are processed, with error
-and browser as arguments.
+The first argument can be a CSS selector (see _Hunting_), the `A`
+element, or the text contents of the `A` element you want to click.  The
+second argument is a callback, which is passed on to `browser.wait` (see
+_Walking_).  In other words, it gets fired after all events are
+processed, with error and browser as arguments.
 
 Let's see that in action:
 
@@ -150,16 +150,16 @@ Let's see that in action:
     });
 
 To submit a form, use `pressButton`.  The first argument can be a CSS
-selector, the button name (the value of the `name` argument) or the text
-that shows on the button.  You can press any `BUTTON` element or `INPUT`
-of type `submit`, `reset` or `button`.  The second argument is a
-callback, just like `clickLink`.
+selector, the button/input element. the button name (the value of the
+`name` argument) or the text that shows on the button.  You can press
+any `BUTTON` element or `INPUT` of type `submit`, `reset` or `button`.
+The second argument is a callback, just like `clickLink`.
 
 Of course, before submitting a form, you'll need to fill it with values.
 For text fields, use the `fill` function, which takes two arguments:
 selector and the field value.  This time the selector can be a CSS
-selector, the field name (its `name` attribute), or the text that shows
-on the label associated with that field.
+selector, the input element, the field name (its `name` attribute), or
+the text that shows on the label associated with that field.
 
 Zombie.js supports text fields, password fields, text areas, and also
 the new HTML 5 fields types like email, search and url.
