@@ -16,7 +16,7 @@ reset = "\033[0m"
 log = (message, color, explanation) ->
   console.log color + message + reset + ' ' + (explanation or '')
 
-# Handle error, do nothing if null
+# Handle error and kill the process.
 onerror = (err)->
   if err
     process.stdout.write "#{red}#{err.stack}#{reset}\n"
@@ -62,10 +62,10 @@ runTests = (callback)->
   log "Running test suite ...", green
   exec "vows --spec", (err, stdout)->
     process.stdout.write stdout
-    # process.stdout.write err
-    # callback err # <-- prevents errors from being printed with vows!
-task "test", "Run all tests", -> runTests onerror
-
+    callback err if callback
+task "test", "Run all tests", ->
+  runTests (err)->
+    process.stdout.on "drain", -> process.exit -1 if err
 
 
 ## Documentation ##
