@@ -1,5 +1,4 @@
-# http://redis.io/topics/protocol
-
+net = require("net")
 
 # Response types
 ERROR = -1
@@ -8,96 +7,112 @@ INTEGER = 1
 BULK = 2
 MULTI = 3
 
+# Server-side of the Zombie protocol.
+# See http://redis.io/topics/protocol
 class Protocol
-  constructor: (browser)->
-    # Processing
-    # ----------
+  constructor: (port)->
+    port ||= 8091
+    active = false
+    commands = {}
+    debug = false
+    server = net.createServer (stream)->
+      # For each connection (stream): no delay, send data as soon as
+      # it's available.
+      stream.setNoDelay true
+      input = ""
+      stream.on "data", (chunk)->
+        # Collect input and process as much as possible.
+        input = process(stream, input + chunk)
+      stream.on "end", ->
+        # Collect input and process as much as possible.
+        process(stream, input)
 
-    stream.setNoDelay true
-    input = ""
-    stream.on "data", (chunk)->
-      input += chunk
-      process()
-    stream.on "end", process
+    # ## Processing
 
     argc = 0 # Number of arguments
     argl = 0 # Size of next argument
     argv = [] # Received arguments
-    # Process the currently available input.
-    process = ->
+
+    # Process the currently available input, returns remaining input.
+    process = (stream, input)->
       if argc
-        # Waiting for argc arguments to arrive
+        # We're here because we're waiting for argc arguments to arrive
+        # before we can execute the next requet.
         if argl
+          # We're here because the length of the next argument is argl,
+          # and we're waiting to receive that many bytes.
           if input.length >= argl
             # We have sufficient input for one argument, extract it from
             # the input and reset argl to await the next argument.
             argv.push input.slice(0, argl)
-            input = input.silce(argl)
+            input = input.slice(argl)
             argl = 0
             if argv.length == argc
               # We have all the arguments we expect, run a command and
               # reset argc/argv to await the next command.
-              command argv
+              queue stream, argv
               argc = 0
               argv = []
-            process() if input.length > 0
+            # See if we have more input to process.
+            return process(stream, input) if input.length > 0
         else
-          # Expect $<number of bytes of argument 1> CR LF
+          # We're here because we expect to read the argument length:
+          # $<number of bytes of argument 1> CR LF
           input = input.replace /^\$(\d+)\r\n/, (_, value)->
             argl = parseInt(value, 10)
-            console.log "Expecting argument of size #{argl}"
+            console.log "Expecting argument of size #{argl}" if debug
             return ""
           if argl
-            process()
+            return process(stream, input)
           else
             throw new Error("Expecting $<argc>CRLF") if input.length > 0 && input[0] != "$"
       else
-        # Expect *<number of arguments> CR LF
+        # We're here because we epxect to read the number of arguments:
+        # *<number of arguments> CR LF
         input = input.replace /^\*(\d+)\r\n/, (_, value)->
           argc = parseInt(value, 10)
-          console.log "Expecting #{argc} arguments"
+          console.log "Expecting #{argc} arguments" if debug
           return ""
         if argc
-          process()
+          return process(stream, input)
         else
+          console.log input.length
           throw new Error("Expecting *<argc>CRLF") if input.length > 0 && input[0] != "*"
-          
-    # Run command from arguments.
-    command = (argv)->
-      try
-        cmd = argv[0]
-        argv[0] = queue()
-        this[cmd].apply this, argv
-      catch error
-        stream.write "-#{error.message}\r\n"
+      return input
 
-    # Last request in the queue.
-    last = nil
-    # Queue this request and return a reply object.  The reply object can
-    # be invoked at any time, but will only send a response when there are
-    # no previous pending request in the queue, to guarantee order when
-    # pipelining.
-    queue = ->
-      reply = (type, value, callback)->
-        # Send request back to client, invoke callback if supplied, and
-        # trigger the next request (if ready)
-        this.send = ->
-          respondWith type, value
-          callback() if callback
-          last = next if last == this
-          next.send() if next && next.send
-        # Don't send yet if waiting for a previous reply
-        return if reply.previous
-        this.send()
-      # Add this request to end of queue, double linked list so we know
-      # there's a previous request and previous request can trigger us.
-      last.next = reply if last
-      reply.previous = last
-      last = reply
-      return reply
+    # The last command in the queue.
+    last = null
+    # Queue next command to execute (since we're pipelining, we wait for
+    # the previous command to complete and send its output first).
+    queue = (stream, argv)->
+      command = {}
+      # Invoke this command.
+      command.invoke = ->
+        if fn = commands[argv[0]]
+          console.log "Executing #{argv.join(" ")}" if debug
+          argv[0] = command.reply
+          fn.apply {}, argv
+        else
+          command.reply ERROR, "Unknown command #{argv[0]}"
+      # Send a reply back to the client and if there's another command
+      # in the queue, invoke it next.
+      command.reply = (type, value)->
+        respond stream, type, value
+        last = command.next if last == command
+        # Invoke next command in queue.
+        if command.next
+          process.nextTick -> command.next.invoke
+      if last
+        # There's another command in the queue, add us at the end.
+        last.next = command
+        last = command
+      else
+        # We're the next command in the queue, run now.
+        last = command
+        command.invoke()
 
     # Send a response of the specified type. 
-    respondWith = (type, value)->
+    respond = (stream, type, value)->
       switch type
         when ERROR then stream.write "-#{value.message}\r\n"
         when SINGLE then stream.write "+#{value}\r\n"
@@ -122,20 +137,65 @@ class Protocol
           else
             stream.write "*-1\r\n"
 
+    # ## Controlling
 
-  # Commands
-  # --------
-
-  # Wait for all events to be processed, then reply OK.
-  wait: (reply)->
-    @browser.wait (error)->
-      if error
-        reply ERROR, error
+    # Start listening to incoming requests.
+    this.listen = (callback)->
+      listener = (err)->
+        active = true unless err
+        callback err if callback
+      if typeof port is "number"
+        server.listen port, "127.0.0.1", listener # don't listen on 0.0.0.0
       else
-        reply SINGLE, "OK"
+        server.listen port, listener # port is actually a socket
 
-  # Shutdown command.
-  shutdown: (reply)->
-    reply SINGLE, "OK", =>
-      @stream.end()
-      @stream.destroy()
+    this.close = ->
+      if active
+        server.close()
+        active = false
+
+    # Returns true if connection is open and active.
+    this.__defineGetter__ "active", ->active
+
+
+    # ## Commnands
+
+    # For testing purposes.
+    commands.ECHO = (reply, text)->
+      reply SINGLE, text
+
+    # Creates a new browser.
+    #
+    # Replies with browser identifier (integer).
+    browsers = []
+    commands.BROWSER = (reply)->
+      browsers.push new module.parent.exports.Browser(debug: debug)
+      reply INTEGER, browsers.length - 1
+    # Tells browser <id> to visit <url>.
+    #
+    # Replies with OK.
+    commands.VISIT = (reply, browser, url)->
+      browsers[browser].visit url
+      reply SINGLE, "OK"
+    # Tells browser <id> to wait for all events to be processed.
+    #
+    # Replies with error or OK.
+    commands.WAIT = (reply, browser)->
+      browsers[browser].wait (err)->
+        if err
+          reply ERROR, err.message
+        else
+          reply SINGLE, "OK"
+
+
+exports.Protocol = Protocol
+
+# ### Zombie.listen port, callback
+# ### Zombie.listen socket, callback
+#
+# Ask Zombie to listen on the specified port for requests.  The default
+# port is 8091, or you can specify a socket name.  The callback is
+# invoked once Zombie is ready to accept new connections.
+exports.listen = (port, callback)->
+  protocol = new Protocol(port)
+  protocol.listen callback
