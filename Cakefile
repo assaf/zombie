@@ -165,9 +165,13 @@ publishDocs = (callback)->
     log stdout, green
     callback err
 task "doc:publish", "Publish documentation to site", ->
-  generateDocs (err)->
-    onerror error
-    publishDocs onerror
+  documentPages (err)->
+    onerror err
+    documentSource (err)->
+      onerror err
+      generatePDF (err)->
+        onerror err
+        publishDocs onerror
 
 task "publish", "Publish new version (Git, NPM, site)", ->
   # Run tests, don't publish unless tests pass.
@@ -195,18 +199,9 @@ task "publish", "Publish new version (Git, NPM, site)", ->
           log "Publishing to NPM ...", green
           build (err)->
             onerror err
-            # Beware: npm publish pushes everything it finds to the Web,
-            # don't run it on your working copy.  Here we create a clean
-            # directory with only the files we *want* to publish.
-            files = package.files.slice(0)
-            files.push path for n,path of package.directories
-            exec "rm -rf clean && mkdir clean", (err)->
+            exec "npm publish", (err, stdout, stderr)->
+              log stdout, green
               onerror err
-              exec "cp -R #{files.join(" ")} clean/", (err)->
-                onerror err
-                exec "npm publish clean", (err, stdout, stderr)->
-                  log stdout, green
-                  onerror err
 
           # We can do this in parallel.
           publishDocs onerror

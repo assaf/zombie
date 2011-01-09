@@ -19,7 +19,7 @@ class EventLoop
             if typeof fn == "function"
               fn.apply this
             else
-              eval fn
+              browser.evaluate fn
           finally
             delete timers[handle]
       handle = ++lastHandle
@@ -38,7 +38,7 @@ class EventLoop
             if typeof fn == "function"
               fn.apply this
             else
-              eval fn
+              browser.evaluate fn
           finally
             timer.when = browser.clock + delay
       handle = ++lastHandle

@@ -6,7 +6,9 @@ zombie.js-changelog(7) -- Changelog
 
 Properly use the existance operator so empty strings are sent (José Valim).
 
-Fixs to XPath evaluation and sorting by document order (José Valim).
+Fix to XPath evaluation and sorting by document order (José Valim).
+
+Update to HTML5 0.2.9.
 
     231 Tests
     3.4 sec to complete
