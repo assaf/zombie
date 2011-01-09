@@ -16,10 +16,7 @@ class EventLoop
         timeout: true
         fire: =>
           try
-            if typeof fn == "function"
-              fn.apply this
-            else
-              browser.evaluate fn
+            browser.evaluate fn
           finally
             delete timers[handle]
       handle = ++lastHandle
@@ -35,10 +32,7 @@ class EventLoop
         interval: true
         fire: =>
           try
-            if typeof fn == "function"
-              fn.apply this
-            else
-              browser.evaluate fn
+            browser.evaluate fn
           finally
             timer.when = browser.clock + delay
       handle = ++lastHandle

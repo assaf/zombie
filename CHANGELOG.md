@@ -8,10 +8,20 @@ Properly use the existance operator so empty strings are sent (José Valim).
 
 Fix to XPath evaluation and sorting by document order (José Valim).
 
+Added `unselect`, `selectOption` and `unselectOption` to browser (Bob
+Lail).
+
+Added `cookies.clear` (Bob Lail).
+
+You can now call browser methods that accept a selector (e.g. `fill`,
+`select`) with the element itself.
+
+Fix to populate fields even if field type is invalid (Bob Lail).
+
 Update to HTML5 0.2.9.
 
-    231 Tests
-    3.4 sec to complete
+    238 Tests
+    3.3 sec to complete
 
 
 ### Version 0.8.8  2011-01-04

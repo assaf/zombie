@@ -1,4 +1,5 @@
 jsdom = require("jsdom")
+html = jsdom.dom.level3.html
 vm = process.binding("evals")
 require "./jsdom_patches"
 require "./forms"
@@ -23,7 +24,7 @@ class Browser extends require("events").EventEmitter
     #
     # Open new browser window.
     this.open = ->
-      window = jsdom.createWindow(jsdom.dom.level3.html)
+      window = jsdom.createWindow(html)
       window.__defineGetter__ "browser", => this
       cookies.extend window
       storage.extend window
@@ -296,7 +297,7 @@ class Browser extends require("events").EventEmitter
     # leading/trailing spaces).
     this.field = (selector)->
       # If the field has already been queried, return itself
-      if typeof selector == 'object'
+      if selector instanceof html.Element
         return selector
       # Try more specific selector first.
       if field = @querySelector(selector)
@@ -527,30 +528,36 @@ class Browser extends require("events").EventEmitter
     # Scripts
     # -------
 
+    # ### browser.evaluate(function) : Object
     # ### browser.evaluate(code, filename) : Object
     #
     # Evaluates a JavaScript expression in the context of the current window
     # and returns the result.  When evaluating external script, also include
     # filename.
+    #
+    # You can also use this to evaluate a function in the context of the
+    # window: for timers and asynchronous callbacks (e.g. XHR).
     this.evaluate = (code, filename)->
-      # Unfortunately, using the same context in multiple scripts
-      # doesn't agree with jQuery, Sammy and other scripts I tested,
-      # so each script gets a new context.
-      context = vm.Script.createContext(window)
-      # But we need to carry global variables from one script to the
-      # next, so we're going to store them in window._vars and add them
-      # back to the new context.
-      if window._vars
-        context[v[0]] = v[1] for v in @window._vars
-      script = new vm.Script(code, filename || "eval")
-      try
-        result = script.runInContext context
-      catch ex
-        this.log ex.stack.split("\n").slice(0,2)
-        throw ex
-      finally
-        window._vars = ([n,v] for n, v of context).filter((v)-> !window[v[0]])
-      result
+      if typeof code == "function"
+        code.apply window
+      else
+        # Unfortunately, using the same context in multiple scripts
+        # doesn't agree with jQuery, Sammy and other scripts I tested,
+        # so each script gets a new context.
+        context = vm.Script.createContext(window)
+        # But we need to carry global variables from one script to the
+        # next, so we're going to store them in window._vars and add them
+        # back to the new context.
+        if window._vars
+          context[v[0]] = v[1] for v in @window._vars
+        script = new vm.Script(code, filename || "eval")
+        try
+          return script.runInContext context
+        catch ex
+          this.log ex.stack.split("\n").slice(0,2)
+          throw ex
+        finally
+          window._vars = ([n,v] for n, v of context).filter((v)-> !window[v[0]])
 
 
     # Debugging

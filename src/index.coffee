@@ -31,3 +31,5 @@ exports.visit = (url, options, callback)->
   browser = new exports.Browser(options)
   browser.visit url, callback
   return
+
+exports.listen = require("./zombie/protocol").listen
