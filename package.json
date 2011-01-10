@@ -13,8 +13,7 @@
   "directories": {
     "doc": "./doc",
     "lib": "./lib",
-    "man": "./man7",
-    "bundle": "./node_modules"
+    "man": "./man7"
   },
   "files": [
     "README.md",
@@ -22,14 +21,9 @@
     "Cakefile",
     "MIT-LICENSE",
     "TODO.md",
-    "package.json",
     "dep",
     "src",
-    "spec",
-    "doc",
-    "lib",
-    "man7",
-    "node_modules"
+    "spec"
   ],
   "scripts": {
     "build": "cake build",
