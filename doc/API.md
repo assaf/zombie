@@ -64,7 +64,7 @@ To find out all the even rows in a table:
 CSS selectors support is provied by
 [Sizzle.js](https://github.com/jeresig/sizzle/wiki), the same engine
 used by jQuery.  You're probably familiar with it, if not, check the
-[list of supported selectors](selectors.html).
+[list of supported selectors](selectors).
 
 ### browser.body : Element
 
@@ -205,7 +205,7 @@ and resets before passing control to the callback.  For example:
 Methods for interacting with form controls (e.g. `fill`, `check`) take a
 first argument that tries to identify the form control using a variety
 of approaches.  You can always select the form control using an
-appropriate [CSS selector](selectors.html), or pass the element itself.
+appropriate [CSS selector](selectors), or pass the element itself.
 
 Zombie.js can also identify form controls using their name (the value of
 the `name` attribute) or using the text of the label associated with
@@ -420,7 +420,7 @@ Emitted if an error occurred loading a page or submitting a form.
 ## Debugging
 
 When trouble strikes, refer to these functions and the [troubleshooting
-guide](troubleshoot.html).
+guide](troubleshoot).
 
 ### browser.dump()
 

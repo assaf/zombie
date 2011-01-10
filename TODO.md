@@ -16,8 +16,6 @@ zombie.js-todo(7) -- Wishlist
     context by copying properties to/from, which breaks asynchronous
     scripts (timer, XHR, etc) which run in the contex, not the sandbox
 
-* Fix site links to not require `.html`.
-
 * Navigation: Browser.open/close should work as a pair; look into supporting
   window.open; fire unload event when navigating away from page.
 
@@ -27,3 +25,11 @@ zombie.js-todo(7) -- Wishlist
   and timezone; allow changing browser timezone and default to system's.
 
 * Prompts: handle window.confirm and window.alert.
+
+* Accessors for window.status, window title.
+
+* Accessor for HTTP status from last request, also pass back to visit method callback
+
+* Accessor to determine if last request was a redirect.
+
+* Support focus and blur events. 
