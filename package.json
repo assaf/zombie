@@ -1,6 +1,6 @@
 {
   "name": "zombie",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "http://zombie.labnotes.org/",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
@@ -13,7 +13,8 @@
   "directories": {
     "doc": "./doc",
     "lib": "./lib",
-    "man": "./man7"
+    "man": "./man7",
+    "bundle": "./node_modules"
   },
   "files": [
     "README.md",
@@ -24,7 +25,11 @@
     "package.json",
     "dep",
     "src",
-    "spec"
+    "spec",
+    "doc",
+    "lib",
+    "man7",
+    "node_modules"
   ],
   "scripts": {
     "build": "cake build",
@@ -59,5 +64,28 @@
       "type": "MIT",
       "url": "http://github.com/assaf/zombie/raw/master/MIT-LICENSE"
     }
+  ],
+  "modules": {
+    "index.js": "lib/index.js",
+    "zombie/bcat.js": "lib/zombie/bcat.js",
+    "zombie/browser.js": "lib/zombie/browser.js",
+    "zombie/cookies.js": "lib/zombie/cookies.js",
+    "zombie/eventloop.js": "lib/zombie/eventloop.js",
+    "zombie/forms.js": "lib/zombie/forms.js",
+    "zombie/history.js": "lib/zombie/history.js",
+    "zombie/jsdom_patches.js": "lib/zombie/jsdom_patches.js",
+    "zombie/protocol.js": "lib/zombie/protocol.js",
+    "zombie/storage.js": "lib/zombie/storage.js",
+    "zombie/xhr.js": "lib/zombie/xhr.js",
+    "zombie/xpath.js": "lib/zombie/xpath.js"
+  },
+  "man": [
+    "man7/api.7",
+    "man7/changelog.7",
+    "man7/guts.7",
+    "man7/selectors.7",
+    "man7/todo.7",
+    "man7/troubleshoot.7",
+    "man7/zombie.7"
   ]
 }
