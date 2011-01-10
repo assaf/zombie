@@ -5,3 +5,5 @@ html
 lib
 man7
 node_modules
+build
+.lock-wscript

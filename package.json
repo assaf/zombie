@@ -25,6 +25,8 @@
     "xpath"
   ],
   "scripts": {
+    "preinstall" : "node-waf",
+    "preuninstall" : "node-waf clean",
     "build": "cake build",
     "test": "cake test"
   },
