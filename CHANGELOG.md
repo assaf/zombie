@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-### Version 0.8.9  2011-01-05
+### Version 0.8.9  2011-01-10
 
 Properly use the existance operator so empty strings are sent (José Valim).
 
@@ -18,10 +18,10 @@ You can now call browser methods that accept a selector (e.g. `fill`,
 
 Fix to populate fields even if field type is invalid (Bob Lail).
 
-Update to HTML5 0.2.9.
+Update to HTML5 0.2.12.
 
     238 Tests
-    3.3 sec to complete
+    3.2 sec to complete
 
 
 ### Version 0.8.8  2011-01-04

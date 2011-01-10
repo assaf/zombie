@@ -9,7 +9,7 @@ brains.get "/cookies", (req, res)->
   res.cookie "_expires4", "0s", "Max-Age": 0
   res.cookie "_path1", "yummy", "Path": "/cookies"
   res.cookie "_path2", "yummy", "Path": "/cookies/sub"
-  res.cookie "_path3", "wrong", "Path": "/cookies/wrong"
+  res.cookie "_path3", "wrong", "Path": "/wrong"
   res.cookie "_domain1", "here", "Domain": ".localhost"
   res.cookie "_domain2", "not here", "Domain": "not.localhost"
   res.cookie "_domain3", "wrong", "Domain": "notlocalhost"
@@ -39,7 +39,7 @@ vows.describe("Cookies").addBatch(
           assert.equal cookies.get("_path1"), "yummy"
         "should not have access to other paths": (cookies)->
           assert.isUndefined cookies.get("_path2")
-          assert.isUndefined cookies.get("_path2")
+          assert.isUndefined cookies.get("_path3")
         "should not have access to .domain": (cookies)->
           assert.equal cookies.get("_domain1"), "here"
         "should not have access to other domains": (cookies)->

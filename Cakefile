@@ -49,7 +49,7 @@ task "watch", "Continously compile CoffeeScript to JavaScript", ->
   cmd = spawn("coffee", ["-cw", "-o", "lib", "src"])
   cmd.stdout.on "data", (data)-> process.stdout.write green + data + reset
   cmd.on "error", onerror
-  
+
 
 clean = (callback)->
   exec "rm -rf html lib man7", callback
@@ -205,4 +205,3 @@ task "publish", "Publish new version (Git, NPM, site)", ->
 
           # We can do this in parallel.
           publishDocs onerror
-

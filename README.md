@@ -71,7 +71,7 @@ using Zombie.js with Vows.
 Whenever you want to wait for all events to be processed, just call
 `browser.wait` with a callback.
 
-Read more [on the Browser API](api.html)
+Read more [on the Browser API](api)
 
 
 ## Hunting
@@ -122,8 +122,8 @@ selectors you get additional and quite useful extensions, such as
 so forth.  Check out the [Sizzle.js
 documentation](https://github.com/jeresig/sizzle/wiki) for more details.
 
-Read more [on the Browser API](api.html) and [CSS
-selectors](selectors.html)
+Read more [on the Browser API](api) and [CSS
+selectors](selectors)
 
 
 
@@ -182,7 +182,7 @@ Let's combine all of that into one example:
         assert.equal(browser.location, "http://localhost:3003/thankyou");
       });
 
-Read more [on the Browser API](api.html)
+Read more [on the Browser API](api)
 
 
 ## Readiness
@@ -221,7 +221,7 @@ browser state:
 trying to access.  Even better, provide a test script I can run from the
 Node.js console (similar to step 1 above).
 
-Read more [about troubleshooting](troubleshoot.html)
+Read more [about troubleshooting](troubleshoot)
 
 
 ## Giving Back
@@ -232,8 +232,8 @@ Read more [about troubleshooting](troubleshoot.html)
 * Make your changes
 * Send a pull request
 
-Read more [about the guts of Zombie.js](guts.html) and check out the
-outstanding [to-dos](todo.html).
+Read more [about the guts of Zombie.js](guts) and check out the
+outstanding [to-dos](todo).
 
 
 ## Brains
