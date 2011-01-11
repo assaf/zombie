@@ -26,6 +26,8 @@ class Browser extends require("events").EventEmitter
     this.open = ->
       window = jsdom.createWindow(html)
       window.__defineGetter__ "browser", => this
+      window.__defineGetter__ "title", => @window?.document?.title
+      window.__defineSetter__ "title", (title)=> @window?.document?.title = title
       cookies.extend window
       storage.extend window
       eventloop.extend window
@@ -37,6 +39,7 @@ class Browser extends require("events").EventEmitter
       # TODO: Fix
       window.Image = ->
       return window
+
     # Always start with an open window.
     @open()
 

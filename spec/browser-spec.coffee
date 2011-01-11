@@ -2,6 +2,14 @@ require "./helpers"
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 jsdom = require("jsdom")
 
+brains.get "/static", (req, res)-> res.send """
+  <html>
+    <head>
+      <title>Whatever</title>
+    </head>
+    <body>Hello World</body>
+  </html>
+  """
 
 brains.get "/scripted", (req, res)-> res.send """
   <html>
@@ -37,6 +45,7 @@ brains.get "/living", (req, res)-> res.send """
     </body>
   </html>
   """
+
 brains.get "/app.js", (req, res)-> res.send """
   Sammy("#main", function(app) {
     app.get("#/", function(context) {
@@ -76,6 +85,13 @@ brains.get "/useragent", (req, res)-> res.send "<body>#{req.headers["user-agent"
 
 
 vows.describe("Browser").addBatch(
+  "window.title":
+    zombie.wants "http://localhost:3003/static"
+      "should return the document's title": (browser)-> assert.equal browser.window.title, "Whatever"
+      "should set the document's title": (browser)->
+        browser.window.title = "Overwritten"
+        assert.equal browser.window.title, browser.document.title
+    
   "open page":
     zombie.wants "http://localhost:3003/scripted"
       "should create HTML document": (browser)-> assert.instanceOf browser.document, jsdom.dom.level3.html.HTMLDocument
