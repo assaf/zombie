@@ -126,7 +126,7 @@ class Browser extends require("events").EventEmitter
       eventloop.wait window, terminate
       return
 
-    # ### browser.fire(name, target, calback?)
+    # ### browser.fire(name, target, callback?)
     #
     # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a
     # link.  These events will bubble up and can be cancelled.  With a callback, this
@@ -135,12 +135,26 @@ class Browser extends require("events").EventEmitter
     # * name -- Even name (e.g `click`)
     # * target -- Target element (e.g a link)
     # * callback -- Wait for events to be processed, then call me (optional)
-    this.fire = (name, target, callback)->
-      event = window.document.createEvent("HTMLEvents")
-      event.initEvent name, true, true
+    this.fire = (name, target, options, callback)->
+      [callback, options] = [options, null] if typeof(options) == 'function'
+      options ?= {}
+      
+      klass = options.klass || ((name in mouseEventNames) ? "MouseEvents" : "HTMLEvents")
+      bubbles = options.bubbles ? true
+      cancelable = options.cancelable ? true
+      
+      event = window.document.createEvent(klass)
+      event.initEvent(name, bubbles, cancelable)
+      
+      if options.attributes?
+        for key, value of options.attributes
+          event[key] = value
+      
       target.dispatchEvent event
       @wait callback if callback
-
+    
+    mouseEventNames = ['mousedown', 'mousemove', 'mouseup']
+    
     # ### browser.clock => Number
     #
     # The current system time according to the browser (see also
