@@ -2,6 +2,19 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+### Version 0.8.10  2011-01-10
+
+Allow setting cookies from subdomains (Damian Janowski & Michel Martens).
+
+Modified `browser.fire` to fire MouseEvents as well (Bob Lail).
+
+Added `window.title` accessor (Bob Lail).
+
+    241 Tests
+    3.4 sec to complete
+
+
+
 ### Version 0.8.9  2011-01-10
 
 Properly use the existance operator so empty strings are sent (José Valim).

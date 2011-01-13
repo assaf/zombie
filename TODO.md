@@ -26,7 +26,7 @@ zombie.js-todo(7) -- Wishlist
 
 * Prompts: handle window.confirm and window.alert.
 
-* Accessors for window.status, window title.
+* Accessors for window.status.
 
 * Accessor for HTTP status from last request, also pass back to visit method callback
 
