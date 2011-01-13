@@ -362,6 +362,51 @@ Returns session Storage based on the document origin (hostname/port).
 See `localStorage` above.
 
 
+## Interaction
+ 
+### browser.onalert(fn)
+
+Called by `window.alert` with the message.  If you just want to know if
+an alert was shown, you can also use `prompted` (see below).
+
+### browser.onconfirm(question, response)
+### browser.onconfirm(fn)
+
+The first form specifies a canned response to return when
+`window.confirm` is called with that question.  The second form will
+call the function with the question and use the respone of the first
+function to return a value (true or false).
+
+The response to the question can be true or false, so all canned
+responses are converted to either value.  If no response available,
+returns false.
+
+For example:
+
+    browser.onconfirm "Are you sure?", true
+
+### browser.onprompt(message, response)
+### browser.onprompt(fn)
+
+The first form specifies a canned response to return when
+`window.prompt` is called with that message.  The second form will call
+the function with the message and default value and use the response of
+the first function to return a value or false.
+
+The response to a prompt can be any value (converted to a string), false
+to indicate the user cancelled the prompt (returning null), or nothing
+to have the prompt return the default value or an empty string.
+
+For example:
+
+    browser.onprompt (message)-> Math.random()
+
+### browser.prompted(message) => boolean
+
+Returns true if user was prompted with that message by a previous call
+to `window.alert`, `window.confirm` or `window.prompt`.
+
+
 ## Events
 
 Since events may execute asynchronously (e.g. XHR requests, timers), the

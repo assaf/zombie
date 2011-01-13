@@ -24,8 +24,6 @@ zombie.js-todo(7) -- Wishlist
 * Time and timezone: within window context, new Date() should use browser clock
   and timezone; allow changing browser timezone and default to system's.
 
-* Prompts: handle window.confirm and window.alert.
-
 * Accessors for window.status.
 
 * Accessor for HTTP status from last request, also pass back to visit method callback
