@@ -1,15 +1,15 @@
 body {
-  font-family: Baskerville, Palatino, "Palatino Linotype", Georgia, serif;
-  font-size: 12pt;
-  margin: 2em 4em;
+  font-family: "Baskerville", "Palatino", "Palatino Linotype", serif;
+  font-size: 14pt;
+  margin: 0;
 }
 h1, h2, h3, h4, #header, .header {
   font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
 }
-h1 { font-size: 18pt; }
-h2 { font-size: 16pt; }
-h3 { font-size: 14pt; }
-h4 { font-size: 12pt; }
+h1 { font-size: 20pt; }
+h2 { font-size: 18pt; }
+h3 { font-size: 16pt; }
+h4 { font-size: 14pt; }
 pre, code {
   font-family: "Menlo", "Consolas", "New Courier", Courier, monospace;
   font-size: 10pt;

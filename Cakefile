@@ -137,7 +137,7 @@ generatePDF = (callback)->
   files = "index api selectors troubleshoot".split(" ").map((f)-> "html/#{f}.html")
   options = "--disable-javascript --outline --print-media-type --title Zombie.js --header-html doc/layout/header.html"
   toc = "--toc --toc-depth 2 --toc-no-dots --cover doc/layout/cover.html --allow doc/images --outline"
-  margins = "--margin-left 20 --margin-right 20 --margin-top 20 --margin-bottom 20 --header-spacing 5"
+  margins = "--margin-left 30 --margin-right 30 --margin-top 30 --margin-bottom 30 --header-spacing 5"
   exec "wkhtmltopdf #{options} #{margins} #{toc} #{files.join(" ")} html/zombie.pdf", callback
 
 generateDocs = (callback)->
@@ -153,7 +153,10 @@ generateDocs = (callback)->
 task "doc:pages",  "Generate documentation for main pages",    -> documentPages onerror
 task "doc:source", "Generate documentation from source files", -> documentSource onerror
 task "doc:man",    "Generate man pages",                       -> generateMan onerror
-task "doc:pdf",    "Generate PDF documentation",               -> generatePDF onerror
+task "doc:pdf",    "Generate PDF documentation",               ->
+  documentPages (err)->
+    onerror err
+    generatePDF onerror
 task "doc",        "Generate all documentation",               -> generateDocs onerror
 
 

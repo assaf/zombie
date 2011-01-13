@@ -59,5 +59,7 @@ pre, code {
 }
 
 #footer {
-  margin: 2em 0;
+  border-top: 1px solid #ccc;
+  margin: 4em 0;
+  color: #444;
 }

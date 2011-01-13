@@ -241,6 +241,9 @@ outstanding [to-dos](todo).
 Zombie.js is copyright of [Assaf Arkin](http://labnotes.org), released
 under the MIT License
 
+Much thanks to all the [many
+contributors](https://github.com/assaf/zombie/contributors).
+
 Zombie.js is written in
 [CoffeeScript](http://jashkenas.github.com/coffee-script/) for
 [Node.js](http://nodejs.org/)
