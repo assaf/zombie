@@ -85,13 +85,6 @@ brains.get "/useragent", (req, res)-> res.send "<body>#{req.headers["user-agent"
 
 
 vows.describe("Browser").addBatch(
-  "window.title":
-    zombie.wants "http://localhost:3003/static"
-      "should return the document's title": (browser)-> assert.equal browser.window.title, "Whatever"
-      "should set the document's title": (browser)->
-        browser.window.title = "Overwritten"
-        assert.equal browser.window.title, browser.document.title
-    
   "open page":
     zombie.wants "http://localhost:3003/scripted"
       "should create HTML document": (browser)-> assert.instanceOf browser.document, jsdom.dom.level3.html.HTMLDocument
@@ -169,15 +162,24 @@ vows.describe("Browser").addBatch(
     topic: ->
       browser = new zombie.Browser
       browser.wants "http://localhost:3003/useragent", @callback
-    "should send own version": (browser)-> assert.match browser.text("body"), /Zombie.js\/\d\.\d/
+    "should send own version to server": (browser)-> assert.match browser.text("body"), /Zombie.js\/\d\.\d/
+    "should be accessible from navigator": (browser)-> assert.match browser.window.navigator.userAgent, /Zombie.js\/\d\.\d/
     "specified":
       topic: (browser)->
         browser.visit "http://localhost:3003/useragent", { userAgent: "imposter" }, @callback
-      "should send user agent to browser": (browser)-> assert.equal browser.text("body"), "imposter"
+      "should send user agent to server": (browser)-> assert.equal browser.text("body"), "imposter"
+      "should be accessible from navigator": (browser)-> assert.equal browser.window.navigator.userAgent, "imposter"
 
   "URL without path":
     zombie.wants "http://localhost:3003"
       "should resolve URL": (browser)-> assert.equal browser.location.href, "http://localhost:3003"
       "should load page": (browser)-> assert.equal browser.text("title"), "Tap, Tap"
 
+  "window.title":
+    zombie.wants "http://localhost:3003/static"
+      "should return the document's title": (browser)-> assert.equal browser.window.title, "Whatever"
+      "should set the document's title": (browser)->
+        browser.window.title = "Overwritten"
+        assert.equal browser.window.title, browser.document.title
+    
 ).export(module)

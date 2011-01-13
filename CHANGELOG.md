@@ -10,6 +10,9 @@ Modified `browser.fire` to fire MouseEvents as well (Bob Lail).
 
 Added `window.title` accessor (Bob Lail).
 
+Fixed `window.navigator.userAgent` to return `userAgent` property (same
+as sent to server) (Assaf Arkin).
+
     241 Tests
     3.4 sec to complete
 

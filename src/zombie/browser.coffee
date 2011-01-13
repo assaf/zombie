@@ -19,30 +19,6 @@ class Browser extends require("events").EventEmitter
     xhr = require("./xhr").use(this)
 
 
-    window = null
-    # ### browser.open() => Window
-    #
-    # Open new browser window.
-    this.open = ->
-      window = jsdom.createWindow(html)
-      window.__defineGetter__ "browser", => this
-      window.__defineGetter__ "title", => @window?.document?.title
-      window.__defineSetter__ "title", (title)=> @window?.document?.title = title
-      cookies.extend window
-      storage.extend window
-      eventloop.extend window
-      history.extend window
-      xhr.extend window
-      window.JSON = JSON
-      # Default onerror handler.
-      window.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
-      # TODO: Fix
-      window.Image = ->
-      return window
-
-    # Always start with an open window.
-    @open()
-
     # Options
     # -------
 
@@ -82,6 +58,36 @@ class Browser extends require("events").EventEmitter
           @[k] = v
         else
           throw "I don't recognize the option #{k}"
+
+
+    # Windows
+    # -------
+    
+    window = null
+    # ### browser.open() => Window
+    #
+    # Open new browser window.
+    this.open = ->
+      window = jsdom.createWindow(html)
+      window.__defineGetter__ "browser", => this
+      window.__defineGetter__ "title", => @window?.document?.title
+      window.__defineSetter__ "title", (title)=> @window?.document?.title = title
+      window.navigator.userAgent = @userAgent
+      cookies.extend window
+      storage.extend window
+      eventloop.extend window
+      history.extend window
+      xhr.extend window
+      window.JSON = JSON
+      # Default onerror handler.
+      window.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
+      # TODO: Fix
+      window.Image = ->
+      return window
+
+    # Always start with an open window.
+    @open()
+
 
 
     # Events
