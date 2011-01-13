@@ -14,9 +14,11 @@ brains.get "/cookies", (req, res)->
   res.cookie "_domain2", "not here", "Domain": "not.localhost"
   res.cookie "_domain3", "wrong", "Domain": "notlocalhost"
   res.send "<html></html>"
+
 brains.get "/cookies/echo", (req,res)->
   cookies = ("#{k}=#{v}" for k,v of req.cookies).join("; ")
   res.send "<html>#{cookies}</html>"
+
 brains.get "/cookies_redirect", (req, res)->
   res.cookie "_expires5", "3s", "Expires": new Date(Date.now() + 3000), "Path": "/"
   res.redirect "/"
@@ -56,7 +58,7 @@ vows.describe("Cookies").addBatch(
               map[name] = value
               map
             , {}
-          "should include only visibile cookies": (pairs)->
+          "should include only visible cookies": (pairs)->
             keys = (key for key, value of pairs).sort()
             assert.deepEqual keys, "_domain1 _expires1 _expires2 _name _path1".split(" ")
           "should match name to value": (pairs)->
@@ -104,5 +106,14 @@ vows.describe("Cookies").addBatch(
     "should not pass other domain cookies to server": (cookies)->
       assert.isUndefined cookies._domain2
       assert.isUndefined cookies._domain3
+
+  "setting cookies from subdomains":
+    topic: (browser)->
+      browser = new zombie.Browser()
+      browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
+      @callback null, browser
+    "should be accessible": (browser)->
+      assert.equal "bar", browser.cookies("localhost").get("foo")
+      assert.equal "bar", browser.cookies("www.localhost").get("foo")
 
 ).export(module)

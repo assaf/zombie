@@ -23,7 +23,7 @@ class Cookies
 
     domainMatch = (domain, hostname)->
       return true if domain == hostname
-      return domain.charAt(0) == "." && domain.substring(1) == hostname.replace(/^[^.]\./, "")
+      return domain.charAt(0) == "." && domain.substring(1) == hostname.replace(/^[^.]+\./, "")
 
     # Return all the cookies that match the given hostname/path, from most
     # specific to least specific. Returns array of arrays, each item is
