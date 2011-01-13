@@ -139,7 +139,7 @@ class Browser extends require("events").EventEmitter
       [callback, options] = [options, null] if typeof(options) == 'function'
       options ?= {}
       
-      klass = options.klass || ((name in mouseEventNames) ? "MouseEvents" : "HTMLEvents")
+      klass = options.klass || if (name in mouseEventNames) then "MouseEvents" else "HTMLEvents"
       bubbles = options.bubbles ? true
       cancelable = options.cancelable ? true
       
@@ -151,6 +151,7 @@ class Browser extends require("events").EventEmitter
           event[key] = value
       
       target.dispatchEvent event
+      
       @wait callback if callback
     
     mouseEventNames = ['mousedown', 'mousemove', 'mouseup']
