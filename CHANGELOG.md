@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-### Version 0.8.10  2011-01-10
+### Version 0.8.10  2011-01-13
 
 Allow setting cookies from subdomains (Damian Janowski & Michel Martens).
 
