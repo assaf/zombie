@@ -162,7 +162,9 @@ class History
                 event = document.createEvent("HTMLEvents")
                 event.initEvent "error", true, false
                 document.dispatchEvent event
-                browser.emit "error", new Error(error)
+                error = new Error(error)
+                error.statusCode = response.statusCode
+                browser.emit "error", error
 
           client.on "error", (error)->
             event = document.createEvent("HTMLEvents")

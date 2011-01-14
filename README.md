@@ -16,13 +16,13 @@ Let's try to sign up to a page and see what happens:
     var assert = require("assert");
 
     // Load the page from localhost
-    zombie.visit("http://localhost:3000/", function (err, browser) {
+    zombie.visit("http://localhost:3000/", function (err, browser, status) {
 
       // Fill email, password and submit form
       browser.
         fill("email", "zombie@underworld.dead").
         fill("password", "eat-the-living").
-        pressButton("Sign Me Up!", function(err, browser) {
+        pressButton("Sign Me Up!", function(err, browser, status) {
 
           // Form submitted, new page loaded.
           assert.equal(browser.text("title"), "Welcome To Brains Depot");
@@ -60,13 +60,12 @@ error.
 
 If you worked with Node.js before you're familiar with this callback
 pattern.  Every time you see a callback in the Zombie.js API, it works
-that way: the first argument is an error, or null if there is no error,
-with interesting value in the second argument.
+that way: the first argument is an error, or null if there is no error.
+And if there are no errors, the remaining arguments may hold interesting
+values.
 
-Typically the second argument would be a reference to the browser or
-window object you called.  This may seem redudant, but works suprisingly
-well when composing with other asynchronous APIs, for example, when
-using Zombie.js with Vows.
+For example, the callback you pass to `visit` receives the browser as
+the second argument and HTTP status code as the third argument.
 
 Whenever you want to wait for all events to be processed, just call
 `browser.wait` with a callback.
@@ -136,16 +135,17 @@ functions we're going to cover next.
 
 To click a link on the page, use `clickLink` with selector and callback.
 The first argument can be a CSS selector (see _Hunting_), the `A`
-element, or the text contents of the `A` element you want to click.  The
-second argument is a callback, which is passed on to `browser.wait` (see
-_Walking_).  In other words, it gets fired after all events are
-processed, with error and browser as arguments.
+element, or the text contents of the `A` element you want to click.
+
+The second argument is a callback, which much like the `visit` callback
+gets fired after all events are processed, with either an error, or
+`null`, the browser and the HTTP status code.
 
 Let's see that in action:
 
     // Now go to the shopping cart page and check that we have
     // three bodies there.
-    browser.clickLink("View Cart", function(err, browser) {
+    browser.clickLink("View Cart", function(err, browser, status) {
       assert.equal(browser.querySelectorAll("#cart .body"), 3);
     });
 
@@ -177,7 +177,7 @@ Let's combine all of that into one example:
       fill("Profession", "Living dead").
       select("Born", "1968")
       uncheck("Send me the newsletter").
-      pressButton("Sign me up", function(err, browser) {
+      pressButton("Sign me up", function(err, browser, status) {
         // Make sure we got redirected to thank you page.
         assert.equal(browser.location, "http://localhost:3003/thankyou");
       });
@@ -206,7 +206,7 @@ Zombie.js supports the following:
 figure out what it's doing. For example:
 
     var browser = new zombie.Browser({ debug: true });
-    browser.visit("http://thedead", function(err, browser) {
+    browser.visit("http://thedead", function(err, browser, status) {
       if (err)
         throw(err.message);
       ... 

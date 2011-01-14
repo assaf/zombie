@@ -155,7 +155,7 @@ real browser.
 
 For example:
 
-    browser.clickLink("View Cart", function(err, browser) {
+    browser.clickLink("View Cart", function(err, browser, status) {
       assert.equal(browser.querySelectorAll("#cart .body"), 3);
     });
 
@@ -196,7 +196,7 @@ In the second form, sets the options for the duration of the request,
 and resets before passing control to the callback.  For example:
 
     browser.visit("http://localhost:3000", { debug: true },
-      function(err, browser) {
+      function(err, browser, status) {
         if (err)
           throw(err.message);
         console.log("The page:", browser.html());
@@ -510,9 +510,17 @@ system browser on OS X, BSD and Linux.  Probably errors on Windows.
 
 #### Callbacks
 
-By convention most callback functions take two arguments.  If an error
-occurred, the first argument is the error and the second argument is
-`null`.  If everything went smoothly, the first argument is `null` and
-the second argument is the relevant value (e.g. the brower, a window).
+By convention the first argument to a callback function is the error.
+If the first argument is null, no error occurred, and other arguments
+may have meaningful data.
 
+For example, the second and third arguments to the callback of `visit`,
+`clickLink` and `pressButton` are the browser itself and the status
+code.
+
+    pressButton("Create", function(error, browser, status) {
+      if (error)
+        throw error;
+      assert.equal(status, 201, "Expected status 201 Created")
+    });
 

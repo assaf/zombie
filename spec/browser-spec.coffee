@@ -118,6 +118,27 @@ vows.describe("Browser").addBatch(
       "should run jQuery.onready": (browser)-> assert.equal browser.document.title, "Awesome"
       "should return status code of last request": (browser)-> assert.equal browser.statusCode, 200
 
+  "visit":
+    "successful":
+      topic: ->
+        brains.ready =>
+          browser = new zombie.Browser
+          browser.visit "http://localhost:3003/scripted", =>
+            @callback null, arguments
+      "should pass three arguments to callback": (args)-> assert.length args, 3
+      "should not include an error": (args)-> assert.isNull args[0]
+      "should pass browser to callback": (args)-> assert.ok args[1] instanceof zombie.Browser
+      "should pass status code to callback": (args)-> assert.equal args[2], 200
+    "error":
+      topic: ->
+        brains.ready =>
+          browser = new zombie.Browser
+          browser.visit "http://localhost:3003/missing", =>
+            @callback null, arguments
+      "should pass single argument to callback": (args)-> assert.length args, 1
+      "should pass error to callback": (args)-> assert.ok args[0] instanceof Error
+      "should include status code in error": (args)-> assert.equal args[0].statusCode, 404
+
   "event emitter":
     "successful":
       topic: ->
@@ -163,8 +184,9 @@ vows.describe("Browser").addBatch(
     zombie.wants "http://localhost:3003/living"
       topic: (browser)->
         browser.clickLink "Kill", @callback
-      "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/dead"
-      "should run all events": (browser)-> assert.equal browser.document.title, "The Dead"
+      "should change location": (_, browser)-> assert.equal browser.location, "http://localhost:3003/dead"
+      "should run all events": (_, browser)-> assert.equal browser.document.title, "The Dead"
+      "should return status code": (_, browser, status)-> assert.equal status, 200
 
   "tag soup":
     zombie.wants "http://localhost:3003/soup"
@@ -244,7 +266,5 @@ vows.describe("Browser").addBatch(
       assert.ok browser.prompted("gender")
       assert.ok browser.prompted("location")
       assert.ok !browser.prompted("not asked")
-
-
     
 ).export(module)

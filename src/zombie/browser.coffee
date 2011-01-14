@@ -285,7 +285,10 @@ class Browser extends require("events").EventEmitter
         history._assign url
         @wait (error, browser)->
           reset()
-          callback error, browser if callback
+          if callback && error
+            callback error
+          else if callback
+            callback null, browser, browser.statusCode
       return
 
     # ### browser.location => Location
@@ -319,7 +322,8 @@ class Browser extends require("events").EventEmitter
     # * callback -- Called with two arguments: error and browser
     this.clickLink = (selector, callback)->
       if link = @link(selector)
-        @fire "click", link, callback
+        @fire "click", link, =>
+          callback null, this, this.statusCode
       else
         callback new Error("No link matching '#{selector}'")
 
@@ -539,7 +543,8 @@ class Browser extends require("events").EventEmitter
         if button.getAttribute("disabled")
           callback new Error("This button is disabled")
         else
-          @fire "click", button, callback
+          @fire "click", button, =>
+            callback null, this, this.statusCode
       else
         callback new Error("No BUTTON '#{selector}'")
 

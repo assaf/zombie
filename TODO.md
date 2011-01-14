@@ -26,6 +26,4 @@ zombie.js-todo(7) -- Wishlist
 
 * Accessors for window.status.
 
-* Accessor for HTTP status from last request, also pass back to visit method callback
-
 * Support focus and blur events. 

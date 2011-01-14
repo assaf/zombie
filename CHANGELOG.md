@@ -16,10 +16,14 @@ as sent to server) (Assaf Arkin).
 Added support for `alert`, `confirm` and `prompt` (Assaf Arkin).
 
 Added accessors for status code from last respone (`browser.statusCode`)
-and whether last response followed a redirect (`browser.redirected`).
+and whether last response followed a redirect (`browser.redirected`)
+(Assaf Arkin).
 
-    256 Tests
-    3.5 sec to complete
+The `visit`, `clickLink` and `pressButton` methods now pass three
+arguments to the callback: error, browser and status code (Assaf Arkin).
+
+    265 Tests
+    3.7 sec to complete
 
 
 

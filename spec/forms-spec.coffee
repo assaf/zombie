@@ -341,6 +341,7 @@ vows.describe("Forms").addBatch(
           assert.equal browser.text("#likes"), "Arm Biting"
         "should not send other button values to server": (browser)->
           assert.equal browser.text("#image_clicked"), "undefined"
+        "should return status code": (_, browser, status)-> assert.equal status, 200
 
     "by clicking image button":
       zombie.wants "http://localhost:3003/form"
