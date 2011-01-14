@@ -198,6 +198,7 @@ Zombie.js supports the following:
 - `setTimeout`/`setInterval` and messing with the system clock
 - `pushState`, `popstate` and `hashchange` events
 - Scripts that use `document.write`
+- `alert`, `confirm` and `prompt`
 
 
 ## Reporting Glitches
@@ -226,6 +227,7 @@ Read more [about troubleshooting](troubleshoot)
 
 ## Giving Back
 
+
 * Find [assaf/zombie on Github](http://github.com/assaf/zombie)
 * Fork the project
 * Add tests
@@ -234,6 +236,8 @@ Read more [about troubleshooting](troubleshoot)
 
 Read more [about the guts of Zombie.js](guts) and check out the
 outstanding [to-dos](todo).
+
+IRC: [#zombie.js on Freenode](irc://irc.freenode.net/zombie.js)
 
 
 ## Brains
