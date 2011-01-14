@@ -255,6 +255,18 @@ class Browser extends require("events").EventEmitter
     @__defineGetter__ "body", -> window.document?.querySelector("body")
 
 
+    # ### browser.statusCode => Number
+    #
+    # Returns the status code of the last response.
+    @__defineGetter__ "statusCode", ->
+      response.status if response = @lastResponse
+    # ### browser.redirected => Boolean
+    #
+    # Returns true if the last response followed a redirect.
+    @__defineGetter__ "redirected", ->
+      response.redirected if response = @lastResponse
+
+
     # Navigation
     # ----------
 

@@ -15,8 +15,11 @@ as sent to server) (Assaf Arkin).
 
 Added support for `alert`, `confirm` and `prompt` (Assaf Arkin).
 
-    254 Tests
-    3.6 sec to complete
+Added accessors for status code from last respone (`browser.statusCode`)
+and whether last response followed a redirect (`browser.redirected`).
+
+    256 Tests
+    3.5 sec to complete
 
 
 

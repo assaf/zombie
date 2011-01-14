@@ -160,4 +160,5 @@ vows.describe("History").addBatch(
       "should redirect to final destination": (browser)-> assert.equal browser.location, "http://localhost:3003/boo?redirected=true"
       "should pass query parameter": (browser)-> assert.equal browser.text("title"), "Redirected"
       "should not add location in history": (browser)-> assert.length browser.window.history, 1
+      "should indicate last request followed a redirect": (browser)-> assert.ok browser.redirected
 ).export(module)

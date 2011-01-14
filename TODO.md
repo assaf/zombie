@@ -28,6 +28,4 @@ zombie.js-todo(7) -- Wishlist
 
 * Accessor for HTTP status from last request, also pass back to visit method callback
 
-* Accessor to determine if last request was a redirect.
-
 * Support focus and blur events. 

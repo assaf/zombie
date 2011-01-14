@@ -116,6 +116,7 @@ vows.describe("Browser").addBatch(
         assert.ok jQuery = browser.window.jQuery, "window.jQuery not available"
         assert.typeOf jQuery.ajax, "function"
       "should run jQuery.onready": (browser)-> assert.equal browser.document.title, "Awesome"
+      "should return status code of last request": (browser)-> assert.equal browser.statusCode, 200
 
   "event emitter":
     "successful":

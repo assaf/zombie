@@ -77,7 +77,7 @@ class History
       window.document = document
 
       # Make the actual request: called again when dealing with a redirect.
-      makeRequest = (url, method, data)=>
+      makeRequest = (url, method, data, redirected)=>
         headers = { "user-agent": browser.userAgent }
         browser.cookies(url.hostname, url.pathname).addHeader headers
 
@@ -134,7 +134,7 @@ class History
             response.on "data", (chunk)-> body += chunk
             response.on "end", =>
               browser.response = [response.statusCode, response.headers, body]
-              done null, { status: response.statusCode, headers: response.headers, body: body }
+              done null, { status: response.statusCode, headers: response.headers, body: body, redirected: !!redirected }
               switch response.statusCode
                 when 200
                   browser.cookies(url.hostname, url.pathname).update response.headers["set-cookie"]
@@ -150,7 +150,7 @@ class History
                   redirect = URL.parse(URL.resolve(url, response.headers["location"]))
                   stack[index] = new Entry(this, redirect)
                   browser.emit "redirected", redirect
-                  process.nextTick -> makeRequest redirect, "GET"
+                  process.nextTick -> makeRequest redirect, "GET", null, true
                 else
                   error = "Could not load document at #{URL.format(url)}, got #{response.statusCode}"
                   document.open()
