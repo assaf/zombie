@@ -201,6 +201,13 @@ Zombie.js supports the following:
 - `alert`, `confirm` and `prompt`
 
 
+## In The Family
+
+**[capybara-zombie](https://github.com/plataformatec/capybara-zombie)** -- Capybara driver for zombie.js running on top of node.
+
+**[zombie-jasmine-spike](https://github.com/mileskin/zombie-jasmine-spike)** -- Spike project for trying out Zombie.js with Jasmine
+
+
 ## Reporting Glitches
 
 **Step 1:** Run Zombie with debugging turned on, the trace will help
