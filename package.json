@@ -34,7 +34,7 @@
     "test": "vows"
   },
   "engines": {
-    "node": "*"
+    "node": ">= 0.2 < 0.3"
   },
   "dependencies": {
     "base64": "1.0.1",
