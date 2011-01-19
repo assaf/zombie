@@ -163,11 +163,12 @@ class History
               switch response.statusCode
                 when 200
                   browser.cookies(url.hostname, url.pathname).update response.headers["set-cookie"]
+                  body = "<html></html>" if body.trim() == ""
                   document.open()
                   document.write body
                   document.close()
 
-                  if document.documentElement or response.headers["content-length"] == '0'
+                  if document.documentElement
                     browser.emit "loaded", browser
                   else
                     error = "Could not parse document at #{URL.format(url)}"

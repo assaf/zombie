@@ -8,8 +8,6 @@ brains.get "/boo", (req, res)->
   res.send "<html><title>#{response}</title></html>"
 brains.get "/redirect", (req, res)->
   res.redirect "/boo?redirected=true"
-brains.get "/empty", (req, res)->
-  res.send ""
 
 
 vows.describe("History").addBatch(
@@ -156,10 +154,6 @@ vows.describe("History").addBatch(
         "should include pathname": (location)-> assert.equal location.pathname, "/"
         "should include search": (location)-> assert.equal location.search, ""
         "should include hash": (location)-> assert.equal location.hash, ""
-    "empty":
-      zombie.wants "http://localhost:3003/empty"
-        "should load document": (browser)-> assert.equal browser.html(), ''
-
 
   "redirect":
     zombie.wants "http://localhost:3003/redirect"

@@ -74,6 +74,8 @@ brains.get "/dead", (req, res)-> res.send """
   </html>
   """
 
+brains.get "/empty", (req, res)-> res.send ""
+
 brains.get "/soup", (req, res)-> res.send """
   <h1>Tag soup</h1>
   <p>One paragraph
@@ -138,6 +140,9 @@ vows.describe("Browser").addBatch(
       "should pass single argument to callback": (args)-> assert.length args, 1
       "should pass error to callback": (args)-> assert.ok args[0] instanceof Error
       "should include status code in error": (args)-> assert.equal args[0].statusCode, 404
+    "empty page":
+      zombie.wants "http://localhost:3003/empty"
+        "should load document": (browser)-> assert.ok browser.body
 
   "event emitter":
     "successful":

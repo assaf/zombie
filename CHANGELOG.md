@@ -2,6 +2,16 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+### Version 0.8.11  2011-01-19
+
+Ensure fields are sent in the order they are described (José Valim).
+
+Fix parsing of empty body (Vinicius Baggio).
+
+    267 Tests
+    3.8 sec to complete
+
+
 ### Version 0.8.10  2011-01-13
 
 Allow setting cookies from subdomains (Damian Janowski & Michel Martens).
