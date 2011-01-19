@@ -141,7 +141,8 @@ class History
                   document.open()
                   document.write body
                   document.close()
-                  if document.documentElement
+
+                  if document.documentElement or response.headers["content-length"] == '0'
                     browser.emit "loaded", browser
                   else
                     error = "Could not parse document at #{URL.format(url)}"
