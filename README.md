@@ -250,7 +250,8 @@ outstanding [to-dos](todo).
 
 Follow announcements, ask questions on [the mailing list](http://discuss.zombie.labnotes.org)
 
-Get help on IRC [zombie.js on Freenode](irc://irc.freenode.net/zombie.js)
+Get help on IRC: join [zombie.js on
+Freenode](irc://irc.freenode.net/zombie.js) or [web-based IRC](http://webchat.freenode.net/?channels=zombie-js)
 
 
 ## Brains
