@@ -244,7 +244,9 @@ Read more [about troubleshooting](troubleshoot)
 Read more [about the guts of Zombie.js](guts) and check out the
 outstanding [to-dos](todo).
 
-IRC: [#zombie.js on Freenode](irc://irc.freenode.net/zombie.js)
+Follow announcements, ask questions on [the mailing list](http://discuss.zombie.labnotes.org)
+
+Get help on IRC [zombie.js on Freenode](irc://irc.freenode.net/zombie.js)
 
 
 ## Brains
