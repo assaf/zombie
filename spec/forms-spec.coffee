@@ -38,6 +38,20 @@ brains.get "/form", (req, res)-> res.send """
           <option>neither</option>
         </select>
 
+        <span>First address<span>
+        <label for='address1_street'>Street</label>
+        <input type="text" name="addresses[][street]" value="" id="address1_street">
+
+        <label for='address1_city'>City</label>
+        <input type="text" name="addresses[][city]" value="" id="address1_city"> 
+
+        <span>Second address<span>
+        <label for='address2_street'>Street</label>
+        <input type="text" name="addresses[][street]" value="" id="address2_street">
+
+        <label for='address2_city'>City</label>
+        <input type="text" name="addresses[][city]" value="" id="address2_city"> 
+
         <select name="kills" id="field-kills">
           <option>Five</option>
           <option>Seventeen</option>
@@ -79,6 +93,7 @@ brains.post "/submit", (req, res)-> res.send """
       <div id="state">#{req.body.state}</div>
       <div id="unselected_state">#{req.body.unselected_state}</div>
       <div id="hobbies">#{JSON.stringify(req.body.hobbies)}</div>
+      <div id="addresses">#{JSON.stringify(req.body.addresses)}</div>
       <div id="unknown">#{req.body.unknown}</div>
       <div id="clicked">#{req.body.button}</div>
       <div id="image_clicked">#{req.body.image}</div>
@@ -304,7 +319,9 @@ vows.describe("Forms").addBatch(
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").check("You bet").
             check("Certainly").choose("Scary").select("state", "dead").select("looks", "Choose one").
-            select("#field-hobbies", "Eat Brains").select("#field-hobbies", "Sleep").check("Brains?")
+            select("#field-hobbies", "Eat Brains").select("#field-hobbies", "Sleep").check("Brains?").
+            fill('#address1_city', 'Paris').fill('#address1_street', 'CDG').
+            fill('#address2_city', 'Mikolaiv').fill('#address2_street', 'PGS')
 
           browser.querySelector("form").submit()
           browser.wait @callback
@@ -327,6 +344,8 @@ vows.describe("Forms").addBatch(
           assert.equal browser.text("#looks"), ""
         "should send multiple selected options to server": (browser)->
           assert.equal browser.text("#hobbies"), '["Eat Brains","Sleep"]'
+        "should send nested attributes in the order they are declared": (browser) ->
+          assert.equal browser.text("#addresses"), '[{"street":"CDG"},{"city":"Paris"},{"street":"PGS"},{"city":"Mikolaiv"}]'
 
     "by clicking button":
       zombie.wants "http://localhost:3003/form"

@@ -25,7 +25,7 @@ UploadedFile = (filename)->
 # This method takes the submitting button so we can send the button name/value.
 core.HTMLFormElement.prototype.submit = (button)->
   document = @ownerDocument
-  params = {}
+  params = []
 
   process = (index)=>
     if field = @elements.item(index)
@@ -52,13 +52,10 @@ core.HTMLFormElement.prototype.submit = (button)->
           if field.value && field.type != "submit" && field.type != "image"
             value = field.value
 
-      if value?
-        value = [value] unless typeof value == "array"
-        params[name] = (params[name] || []).concat(value)
-
+      params.push [name, value] if value?
       process index + 1
     else
-      params[button.name] = button.value if button && button.name
+      params.push [button.name, button.value] if button && button.name
       history = document.parentWindow.history
       history._submit @getAttribute("action"), @getAttribute("method"), params, @getAttribute("enctype")
   process 0

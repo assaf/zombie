@@ -32,6 +32,26 @@ class History
     stack = []
     index = -1
 
+    stringifyPrimitive = (v) =>
+      switch Object.prototype.toString.call(v)
+        when '[object Boolean]' then v ? 'true' : 'false'
+        when '[object Number]'  then isFinite(v) ? v : ''
+        when '[object String]'  then v
+        else ''
+
+    stringify = (obj) =>
+      sep = '&'
+      eq = '='
+
+      obj.map((k) ->
+        if Array.isArray(k[1])
+          k[1].map((v) ->
+            qs.escape(stringifyPrimitive(k[0])) + eq + qs.escape(stringifyPrimitive(v))
+          ).join(sep);
+        else
+          qs.escape(stringifyPrimitive(k[0])) + eq + qs.escape(stringifyPrimitive(k[1]))
+      ).join(sep)
+
     # Called when we switch to a new page with the URL of the old page.
     pageChanged = (was)=>
       url = stack[index]?.url
@@ -82,18 +102,22 @@ class History
         browser.cookies(url.hostname, url.pathname).addHeader headers
 
         if method == "GET" || method == "HEAD"
-          url.search = "?" + qs.stringify(data, '&', '=', false) if data
+          url.search = "?" + stringify(data) if data
           data = null
           headers["content-length"] = 0
         else
           headers["content-type"] = enctype || "application/x-www-form-urlencoded"
           switch headers["content-type"]
             when "application/x-www-form-urlencoded"
-              data = qs.stringify(data, '&', '=', false)
+              data = stringify(data)
             when "multipart/form-data"
               boundary = "#{new Date().getTime()}#{Math.random()}"
               lines = ["--#{boundary}"]
-              for name, values of data
+              data.map((item) ->
+                name   = item[0]
+                values = item[1]
+                values = [values] unless typeof values == "array"
+
                 for value in values
                   disp = "Content-Disposition: form-data; name=\"#{name}\""
 
@@ -114,6 +138,7 @@ class History
                   lines.push content
 
                   lines.push "--#{boundary}"
+              )
               data = lines.join("\r\n") + "--\r\n"
               headers["content-type"] += "; boundary=#{boundary}"
             else data = data.toString()
