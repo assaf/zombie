@@ -2,6 +2,10 @@ zombie.js(1) -- Insanely fast, headless full-stack testing using Node.js
 ========================================================================
 
 
+Psst .. we got a [mailing list](http://discuss.zombie.labnotes.org) and
+[IRC](irc://irc.freenode.net/zombie.js)
+
+
 ## The Bite
 
 If you're going to write an insanely fast, headless browser, how can you not
