@@ -14,8 +14,8 @@ Ensure fields are sent in the order they are described (José Valim).
 
 Fix parsing of empty body (Vinicius Baggio).
 
-    267 Tests
-    3.8 sec to complete
+    270 Tests
+    2.6 sec to complete
 
 
 ### Version 0.8.10  2011-01-13
