@@ -8,6 +8,8 @@ brains.get "/boo", (req, res)->
   res.send "<html><title>#{response}</title></html>"
 brains.get "/redirect", (req, res)->
   res.redirect "/boo?redirected=true"
+brains.get "/redirect_back", (req, res)->
+  res.redirect req.headers['referer']
 
 
 vows.describe("History").addBatch(
@@ -160,5 +162,16 @@ vows.describe("History").addBatch(
       "should redirect to final destination": (browser)-> assert.equal browser.location, "http://localhost:3003/boo?redirected=true"
       "should pass query parameter": (browser)-> assert.equal browser.text("title"), "Redirected"
       "should not add location in history": (browser)-> assert.length browser.window.history, 1
+      "should indicate last request followed a redirect": (browser)-> assert.ok browser.redirected
+
+  "redirect back":
+    zombie.wants "http://localhost:3003/boo"
+      topic: (browser)->
+        browser.visit "http://localhost:3003/redirect_back"
+        browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
+        return
+      "should redirect to the previous path": (browser)-> assert.equal browser.location.href, "http://localhost:3003/boo"
+      "should pass query parameter": (browser)-> assert.match browser.text("title"), /Eeek!/
+      "should not add location in history": (browser)-> assert.length browser.window.history, 2
       "should indicate last request followed a redirect": (browser)-> assert.ok browser.redirected
 ).export(module)

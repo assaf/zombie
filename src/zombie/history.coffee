@@ -77,6 +77,7 @@ class History
       # (e.g. window.$) so open a new window.
       window = browser.window
       window = browser.open() if browser.window.document
+
       # Create new DOM Level 3 document, add features (load external
       # resources, etc) and associate it with current document. From this
       # point on the browser sees a new document, client register event
@@ -99,6 +100,10 @@ class History
       # Make the actual request: called again when dealing with a redirect.
       makeRequest = (url, method, data, redirected)=>
         headers = { "user-agent": browser.userAgent }
+
+        referer            = stack[index-1]?.url
+        headers["referer"] = referer.href if referer?
+
         browser.cookies(url.hostname, url.pathname).addHeader headers
 
         if method == "GET" || method == "HEAD"
