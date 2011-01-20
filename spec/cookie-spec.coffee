@@ -88,6 +88,8 @@ vows.describe("Cookies").addBatch(
       browser.cookies("localhost", "/cookies/fido").set "_path4", "there", "path": "/cookies/fido"
       browser.cookies("localhost", "/jars").set "_path5", "here", "path": "/cookies"
       browser.cookies("localhost", "/jars").set "_path6", "here"
+      browser.cookies("localhost", "/cookies/oreos").set "_path7", "here"
+      browser.cookies("localhost", "/jars/butter").set "_path8", "there"
       browser.cookies(".localhost").set "_domain1", "here"
       browser.cookies("not.localhost").set "_domain2", "there"
       browser.cookies("notlocalhost").set "_domain3", "there"
@@ -106,9 +108,11 @@ vows.describe("Cookies").addBatch(
       assert.equal cookies._path2, "here"
     "should pass cookies that specified a different path when they were assigned": (cookies)-> assert.equal cookies._path5, "here" 
     "should pass cookies that didn't specify a path when they were assigned": (cookies)-> assert.equal cookies._path6, "here" 
+    "should pass cookies that are included in subpath, gotten through default path behavior": (cookies)-> assert.equal cookies._path7, "here"
     "should not pass unrelated path cookies to server": (cookies)->
       assert.isUndefined cookies._path3
       assert.isUndefined cookies._path4
+      assert.isUndefined cookies._path8
     "should pass sub-domain cookies to server": (cookies)-> assert.equal cookies._domain1, "here"
     "should not pass other domain cookies to server": (cookies)->
       assert.isUndefined cookies._domain2

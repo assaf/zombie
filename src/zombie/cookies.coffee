@@ -74,12 +74,15 @@ class Cookies
         maxage = options["max-age"]
         state.expires = browser.clock + maxage if typeof maxage is "number"
       state.secure = true if options.secure
-      
+
+      fallback_path = pathname.replace(/\/\w*$/, '')
+      fallback_path = '/' if fallback_path == ''
+
       if typeof state.expires is "number" && state.expires <= browser.clock
         @remove(name, options)
       else
         in_domain = cookies[options.domain || hostname] ||= {}
-        in_path = in_domain[options.path || '/'] ||= {}
+        in_path = in_domain[options.path || fallback_path] ||= {}
         in_path[name] = state
 
     #### cookies(host, path).remove(name, options?)
