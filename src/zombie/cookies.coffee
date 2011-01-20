@@ -78,8 +78,9 @@ class Cookies
       if typeof state.expires is "number" && state.expires <= browser.clock
         @remove(name, options)
       else
+        path_without_resource = pathname.match(/.*\//) # everything but what trails the last /
         in_domain = cookies[options.domain || hostname] ||= {}
-        in_path = in_domain[options.path || '/'] ||= {}
+        in_path = in_domain[options.path || path_without_resource] ||= {} 
         in_path[name] = state
 
     #### cookies(host, path).remove(name, options?)
