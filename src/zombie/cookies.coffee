@@ -65,7 +65,6 @@ class Cookies
     # * options -- Options max-age, expires, secure, domain, path
     this.set = (name, value, options = {})->
       return if options.domain && !domainMatch(options.domain, hostname)
-      return if options.path && pathname.indexOf(options.path) != 0
       
       name = name.toLowerCase()
       state = { value: value.toString() }
