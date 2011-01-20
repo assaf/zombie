@@ -79,7 +79,7 @@ class Cookies
         @remove(name, options)
       else
         in_domain = cookies[options.domain || hostname] ||= {}
-        in_path = in_domain[options.path || pathname] ||= {}
+        in_path = in_domain[options.path || '/'] ||= {}
         in_path[name] = state
 
     #### cookies(host, path).remove(name, options?)
