@@ -63,7 +63,7 @@ vows.describe("Cookies").addBatch(
             , {}
           "should include only visible cookies": (pairs)->
             keys = (key for key, value of pairs).sort()
-            assert.deepEqual keys, "_domain1 _expires1 _expires2 _name _path1".split(" ")
+            assert.deepEqual keys, "_domain1 _expires1 _expires2 _name _path1 _path4".split(" ")
           "should match name to value": (pairs)->
            assert.equal pairs._name, "value"
            assert.equal pairs._path1, "yummy"
