@@ -108,6 +108,17 @@ brains.get "/prompt", (req, res)-> res.send """
   </script>
   """
 
+brains.get "/screen", (req, res)-> res.send """
+  <script>
+    var props = [];
+
+    for (key in window.screen) {
+      props.push(key + "=" + window.screen[key]);
+    }
+
+    document.title = props.join(", ");
+  </script>
+  """
 
 vows.describe("Browser").addBatch(
   "open page":
@@ -271,5 +282,19 @@ vows.describe("Browser").addBatch(
       assert.ok browser.prompted("gender")
       assert.ok browser.prompted("location")
       assert.ok !browser.prompted("not asked")
-    
+
+  "window.screen":
+    zombie.wants "http://localhost:3003/screen"
+      "should have a screen object available": (browser)->
+        assert.match browser.document.title, /width=1280/
+        assert.match browser.document.title, /height=800/
+        assert.match browser.document.title, /left=0/
+        assert.match browser.document.title, /top=0/
+        assert.match browser.document.title, /availLeft=0/
+        assert.match browser.document.title, /availTop=0/
+        assert.match browser.document.title, /availWidth=1280/
+        assert.match browser.document.title, /availHeight=800/
+        assert.match browser.document.title, /colorDepth=24/
+        assert.match browser.document.title, /pixelDepth=24/
+
 ).export(module)
