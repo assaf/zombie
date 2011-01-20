@@ -73,22 +73,21 @@ class Cookies
         state.expires = browser.clock + maxage if typeof maxage is "number"
       state.secure = true if options.secure
       if typeof state.expires is "number" && state.expires <= browser.clock
-        if in_domain = cookies[hostname]
-          if in_path = in_domain[pathname]
-            delete in_path[name]
+        @remove(name)
       else
         in_domain = cookies[hostname] ||= {}
         in_path = in_domain[pathname] ||= {}
         in_path[name] = state
 
-    #### cookies(host, path).remove(name)
+    #### cookies(host, path).remove(name, options?)
     #
     # Deletes a cookie.
     #
     # * name -- Cookie name
+    # * options -- Options domain, path
     this.remove = (name, options = {})->
-      if in_domain = cookies[hostname]
-        if in_path = in_domain[pathname]
+      if in_domain = cookies[options.domain || hostname]
+        if in_path = in_domain[options.path || pathname]
           delete in_path[name.toLowerCase()]
 
     #### cookies(host, path).clear()
@@ -125,11 +124,11 @@ class Cookies
             when "secure"   then options.secure = true
         continue if domain && !domainMatch(domain, hostname)
         continue if path && pathname.indexOf(path) != 0
+        
+        # @set(name, value, options)
 
         if options.expires && options.expires <= browser.clock
-          if in_domain = cookies[domain || hostname]
-            if in_path = in_domain[path || pathname]
-              delete in_path[name]
+          @remove(name, {domain: domain, path: path})
         else
           in_domain = cookies[domain || hostname] ||= {}
           in_path = in_domain[path || pathname] ||= {}
