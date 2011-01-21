@@ -179,6 +179,7 @@ vows.describe("Forms").addBatch(
           browser.wait @callback
         "should check checkbox": (browser)-> assert.ok browser.querySelector("#field-hungry").checked
         "should fire change event": (browser)-> assert.ok browser.hungryChanged
+        "should fire clicked event": (browser)-> assert.ok browser.hungryClicked
       "checkbox referenced from label":
         topic: (browser)->
           browser.check "Brains?"
