@@ -389,8 +389,7 @@ class Browser extends require("events").EventEmitter
         throw new Error("This INPUT field is disabled") if field.getAttribute("input")
         throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
         if(field.checked ^ value)
-          field.checked = value
-          @fire "change", field
+          @fire "click", field
         return this
       else
         throw new Error("No checkbox INPUT matching '#{selector}'")

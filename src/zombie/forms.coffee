@@ -94,7 +94,7 @@ core.HTMLInputElement.prototype._eventDefaults =
     change = ->
       event = input.ownerDocument.createEvent("HTMLEvents")
       event.initEvent "change", true, true
-      input.ownerDocument.dispatchEvent event
+      input.dispatchEvent event
     switch input.type
       when "reset"
         if form = input.form
