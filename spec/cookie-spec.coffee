@@ -125,4 +125,13 @@ vows.describe("Cookies").addBatch(
       assert.equal "bar", browser.cookies("localhost").get("foo")
       assert.equal "bar", browser.cookies("www.localhost").get("foo")
 
+  "setting Cookie header":
+    topic: (browser)->
+      browser = new zombie.Browser()
+      header = {cookie: ''}
+      browser.cookies("localhost").update("foo=bar;")
+      browser.cookies("localhost").addHeader header
+      header
+    "should set the header according to the spec": (header)-> assert.equal header.cookie, "$Version=1; foo=bar;$Path=/"
+
 ).export(module)
