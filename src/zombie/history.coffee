@@ -169,6 +169,7 @@ class History
                 when 200
                   browser.cookies(url.hostname, url.pathname).update response.headers["set-cookie"]
                   body = "<html></html>" if body.trim() == ""
+                  window._source = body
                   document.open()
                   document.write body
                   document.close()

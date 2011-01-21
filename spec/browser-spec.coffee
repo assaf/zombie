@@ -226,6 +226,22 @@ vows.describe("Browser").addBatch(
       "should resolve URL": (browser)-> assert.equal browser.location.href, "http://localhost:3003"
       "should load page": (browser)-> assert.equal browser.text("title"), "Tap, Tap"
 
+  "source":
+    zombie.wants "http://localhost:3003/scripted"
+      "should return the unmodified page": (browser)-> assert.equal browser.source, """
+  <html>
+    <head>
+      <title>Whatever</title>
+      <script src="/jquery.js"></script>
+    </head>
+    <body>Hello World</body>
+    <script>
+      document.title = "Nice";
+      $(function() { $("title").text("Awesome") })
+    </script>
+  </html>
+  """
+
   "window.title":
     zombie.wants "http://localhost:3003/static"
       "should return the document's title": (browser)-> assert.equal browser.window.title, "Whatever"

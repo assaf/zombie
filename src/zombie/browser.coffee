@@ -37,6 +37,11 @@ class Browser extends require("events").EventEmitter
     #
     # User agent string sent to server.
     @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{exports.version}"
+    # ### source
+    #
+    # Returns the unmodified source of the document loaded by the browser
+    @__defineGetter__ "source", => @window?._source
+    
 
     # ### withOptions(options, fn)
     #
