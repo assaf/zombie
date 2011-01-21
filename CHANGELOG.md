@@ -4,6 +4,11 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.8.11  2011-01-19
 
+Added `browser.source` which returns the unmodified source of
+the current page (Bob Lail).
+
+Added support for the Referer header (Vinicius Baggio).
+
 If cookies do not specify a path, they are set to the root path
 rather than to the request path (Bob Lail).
 
@@ -14,7 +19,7 @@ Ensure fields are sent in the order they are described (José Valim).
 
 Fix parsing of empty body (Vinicius Baggio).
 
-    270 Tests
+    275 Tests
     2.6 sec to complete
 
 
