@@ -5,6 +5,12 @@ http = require("http")
 html5 = require("html5").HTML5
 
 
+core.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
+core.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
+core.HTMLElement.prototype.__defineGetter__ "offsetWidth",  -> 100
+core.HTMLElement.prototype.__defineGetter__ "offsetHeight", -> 100
+
+
 # Links/Resources
 # ---------------
 
