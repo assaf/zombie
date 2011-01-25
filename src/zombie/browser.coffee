@@ -12,12 +12,13 @@ require "./xpath"
 # The browser maintains state for cookies and localStorage.
 class Browser extends require("events").EventEmitter
   constructor: (options) ->
+    cache = require("./cache").cache(this)
     cookies = require("./cookies").use(this)
     storage = require("./storage").use(this)
     eventloop = require("./eventloop").use(this)
-    history = require("./history").use(this)
+    history = require("./history").use(this, cache)
     interact = require("./interact").use(this)
-    xhr = require("./xhr").use(this)
+    xhr = require("./xhr").use(cache)
 
 
     # Options
@@ -270,6 +271,11 @@ class Browser extends require("events").EventEmitter
     # Returns true if the last response followed a redirect.
     @__defineGetter__ "redirected", ->
       response.redirected if response = @lastResponse
+
+    # ### browser.cache => Cache
+    #
+    # Returns the browser's cache.
+    @__defineGetter__ "cache", -> cache
 
 
     # Navigation

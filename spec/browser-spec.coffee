@@ -139,7 +139,7 @@ vows.describe("Browser").addBatch(
             @callback null, arguments
       "should pass single argument to callback": (args)-> assert.length args, 1
       "should pass error to callback": (args)-> assert.ok args[0] instanceof Error
-      "should include status code in error": (args)-> assert.equal args[0].statusCode, 404
+      "should include status code in error": (args)-> assert.equal args[0].response.statusCode, 404
     "empty page":
       zombie.wants "http://localhost:3003/empty"
         "should load document": (browser)-> assert.ok browser.body
@@ -160,7 +160,7 @@ vows.describe("Browser").addBatch(
           browser.window.location = "http://localhost:3003/deadend"
       "should fire onerror event": (err)->
         assert.ok err.message && err.stack
-        assert.equal err.message, "Could not load document at http://localhost:3003/deadend, got 404"
+        assert.equal err.message, "Could not load resource at http://localhost:3003/deadend, got 404"
     "wait over":
       topic: ->
         brains.ready =>
@@ -223,7 +223,7 @@ vows.describe("Browser").addBatch(
 
   "URL without path":
     zombie.wants "http://localhost:3003"
-      "should resolve URL": (browser)-> assert.equal browser.location.href, "http://localhost:3003"
+      "should resolve URL": (browser)-> assert.equal browser.location.href, "http://localhost:3003/"
       "should load page": (browser)-> assert.equal browser.text("title"), "Tap, Tap"
 
   "source":

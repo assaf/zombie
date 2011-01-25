@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-### Version 0.8.11  2011-01-19
+### Version 0.8.11  Pending
 
 Added `browser.source` which returns the unmodified source of
 the current page (Bob Lail).
@@ -19,8 +19,8 @@ Ensure fields are sent in the order they are described (José Valim).
 
 Fix parsing of empty body (Vinicius Baggio).
 
-    275 Tests
-    2.6 sec to complete
+    277 Tests
+    4.0 sec to complete
 
 
 ### Version 0.8.10  2011-01-13
