@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-### Version 0.8.11  Pending
+### Version 0.8.11  2011-01-25
 
 Added `browser.source` which returns the unmodified source of
 the current page (Bob Lail).
