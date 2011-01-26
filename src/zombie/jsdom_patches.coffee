@@ -30,36 +30,14 @@ core.resourceLoader.load = (element, href, callback)->
   if ownerImplementation.hasFeature('FetchExternalResources', element.tagName.toLowerCase())
     window.request { url: href, method: "GET", headers: {} }, (done)=>
       url = URL.parse(@resolve(document, href))
-      loaded = (data, filename)->
-        done null, { status: 200, headers: {}, body: data.slice(0,100) }
-        callback.call this, data, filename
+      loaded = (response, filename)->
+        done null, { status: response.statusCode, headers: response.headers, body: response.body }
+        callback.call this, response.body, URL.parse(response.url).pathname
       if url.hostname
-        @download url, @enqueue(element, loaded, url.pathname)
+        window.browser.cache.get url, @enqueue(element, loaded, url.pathname)
       else
         file = @resolve(document, url.pathname)
         @readFile file, @enqueue(element, loaded, file)
-
-# Adds redirect support when loading resources (JavaScript).
-core.resourceLoader.download = (url, callback)->
-  path = url.pathname + (url.search || "")
-  secure = url.protocol == "https:"
-  port = url.port || (if secure then 443 else 80)
-  client = http.createClient(port, url.hostname, secure)
-  request = client.request("GET", path, "host": url.hostname)
-  request.on "response", (response)->
-    response.setEncoding "utf8"
-    data = ""
-    response.on "data", (chunk)-> data += chunk
-    response.on "end", ()->
-      switch response.statusCode
-        when 301, 302, 303, 307
-          redirect = URL.resolve(url, response.headers["location"])
-          download redirect, callback
-        else
-          callback null, data
-  # TODO: add to JSDOM
-  request.on "error", (error)-> callback error
-  request.end()
 
 
 # Scripts
