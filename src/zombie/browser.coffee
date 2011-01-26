@@ -86,15 +86,13 @@ class Browser extends require("events").EventEmitter
       history.extend window
       interact.extend window
       xhr.extend window
+      window.screen = new Screen()
       window.JSON = JSON
       # Default onerror handler.
       window.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
       # TODO: Fix
       window.Image = ->
       return window
-
-    # Always start with an open window.
-    @open()
 
 
 
@@ -725,6 +723,22 @@ class Browser extends require("events").EventEmitter
       else
         console.log "No document" unless @document
 
+    class Screen
+      constructor: ->
+        @width = 1280
+        @height = 800
+        @left = 0
+        @top = 0
+
+        @__defineGetter__ "availLeft", -> 0
+        @__defineGetter__ "availTop", -> 0
+        @__defineGetter__ "availWidth", -> @width
+        @__defineGetter__ "availHeight", -> @height
+        @__defineGetter__ "colorDepth", -> 24
+        @__defineGetter__ "pixelDepth", -> 24
+
+    # Always start with an open window.
+    @open()
 
 exports.Browser = Browser
 
