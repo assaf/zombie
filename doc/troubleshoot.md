@@ -73,13 +73,15 @@ For example:
 
 ## Request/response
 
-The browser keeps a trail of every request, response or error.  You can
-dump the last request/response to the console:
+Each window keeps a trail of every resource request it makes (to load
+the page itself, scripts, XHR requests, etc).  You can inspect these by
+obtaining the `window.resources` array and looking into it.
 
-    // Last requet we made, including method, URL, headers
-    console.log(browser.lastRequest);
-    // Last response we received, inclusing status, body, headers
-    console.log(browser.lastResponse);
-    // Last error we received in lieu of a response
-    console.log(browser.lastError);
+For example:
 
+    window.resources.dump()
+
+The browser object provides the convenient methods `lastRequest`,
+`lastResponse` and `lastError` that return, respectively, the request,
+response and error associated with the last resources loaded by the
+current window.

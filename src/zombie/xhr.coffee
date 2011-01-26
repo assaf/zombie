@@ -9,7 +9,7 @@ core.SECURITY_ERR = 18
 core.NETWORK_ERR = 19
 core.ABORT_ERR = 20
 
-XMLHttpRequest = (cache, window)->
+XMLHttpRequest = (window)->
   # Fire onreadystatechange event
   stateChanged = (state)=>
     @__defineGetter__ "readyState", -> state
@@ -61,26 +61,23 @@ XMLHttpRequest = (cache, window)->
           reset()
         
         # Make the actual request: called again when dealing with a redirect.
-        window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
-          cache.request method, url, data, headers, (error, response)=>
-            if error
-              console.error "XHR error", error
-              done error
-              @_error = new core.DOMException(core.NETWORK_ERR, error.message)
+        window.resources.request method, url, data, headers, (error, response)=>
+          if error
+            console.error "XHR error", error
+            @_error = new core.DOMException(core.NETWORK_ERR, error.message)
+            stateChanged 4
+            reset()
+          else
+            # At this state, allow retrieving of headers and status code.
+            @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
+            @getAllResponseHeader = -> response.headers
+            @__defineGetter__ "status", -> response.statusCode
+            @__defineGetter__ "statusText", -> response.statusText
+            stateChanged 2
+            unless aborted
+              @__defineGetter__ "responseText", -> response.body
+              @__defineGetter__ "responseXML", -> # not implemented
               stateChanged 4
-              reset()
-            else
-              # At this state, allow retrieving of headers and status code.
-              @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
-              @getAllResponseHeader = -> response.headers
-              @__defineGetter__ "status", -> response.statusCode
-              @__defineGetter__ "statusText", -> response.statusText
-              stateChanged 2
-              unless aborted
-                @__defineGetter__ "responseText", -> response.body
-                @__defineGetter__ "responseXML", -> # not implemented
-                stateChanged 4
-              done null, { status: response.statusCode, headers: response.headers, body: response.body }
 
       # Calling open at this point aborts the ongoing request, resets the
       # state and starts a new request going
@@ -100,8 +97,8 @@ XMLHttpRequest.LOADING = 3
 XMLHttpRequest.DONE = 4
 
 
-exports.use = (cache)->
+exports.use = ->
   # Add XHR constructor to window.
   extend = (window)->
-    window.XMLHttpRequest = -> XMLHttpRequest.call this, cache, window
+    window.XMLHttpRequest = -> XMLHttpRequest.call this, window
   return extend: extend

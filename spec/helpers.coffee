@@ -84,7 +84,7 @@ zombie.wants = (url, context)->
 
 zombie.Browser.prototype.wants = (url, options, callback)->
   brains.ready =>
-    #@debug true
+    #options.debug = true
     @visit url, options, (err, browser)=>
       callback err, this if callback
   return

@@ -114,29 +114,6 @@ class EventLoop
           browser.emit "done", browser
           callback null, window if callback
 
-    # Used internally for the duration of an internal request (loading
-    # resource, XHR). Also collects request/response for debugging.
-    #
-    # Function is called with request object and the function to be called
-    # next. After storing the request, that function is called with a single
-    # argument, a done callback. It must call the done callback when it
-    # completes processing, passing error and response arguments.
-    #
-    # See also `processing`.
-    this.request = (request, fn)->
-      url = request.url.toString()
-      browser.log -> "#{request.method} #{url}"
-      pending = browser.record request
-      ++processing
-      fn (err, response)->
-        if err
-          browser.log -> "Error loading #{url}: #{err}"
-          pending.error = err
-        else
-          browser.log -> "#{request.method} #{url} => #{response.status}"
-          pending.response = response
-        wakeUp()
-
     this.extend = (window)=>
       for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
         window[fn] = this[fn]

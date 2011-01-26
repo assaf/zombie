@@ -25,8 +25,17 @@ Zombie now sends V0 cookies (Assaf Arkin).
 
 Fix for loading scripts over SSL (Damian Janowski).
 
+Added `window.resources` to return all resources loaded by the page
+(including the page itself).  You can see what the page is up with:
+
+    browser.window.resources.dump()
+
+Modified `lastRequest`/`lastResponse` to use the window resources, fixed
+`browser.status` and `browser.redirected` to only look at the page
+resource itself.
+
     278 Tests
-    4.0 sec to complete
+    4.2 sec to complete
 
 
 ### Version 0.8.10  2011-01-13

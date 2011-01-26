@@ -29,7 +29,7 @@ class Entry
 #
 # Represents window.history.
 class History
-  constructor: (browser, cache)->
+  constructor: (browser)->
     # History is a stack of Entry objects.
     stack = []
     index = -1
@@ -82,26 +82,23 @@ class History
       headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
       referer = stack[index-1]?.url
       headers["referer"] = referer.href if referer?
-      window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
-        cache.request method, url, data, headers, (error, response)=>
-          if error
-            event = document.createEvent("HTMLEvents")
-            event.initEvent "error", true, false
-            document.dispatchEvent event
-            browser.emit "error", error
+      window.resources.request method, url, data, headers, (error, response)=>
+        if error
+          event = document.createEvent("HTMLEvents")
+          event.initEvent "error", true, false
+          document.dispatchEvent event
+          browser.emit "error", error
+        else
+          browser.response = [response.statusCode, response.headers, response.body]
+          stack[index].update response.url
+          body = if response.body.trim() == "" then "<html></html>" else response.body
+          document.open()
+          document.write body
+          document.close()
+          if document.documentElement
+            browser.emit "loaded", browser
           else
-            browser.response = [response.statusCode, response.headers, response.body]
-            done null, { status: response.statusCode, headers: response.headers, body: response.body, redirected: !!response.redirects }
-            stack[index].update response.url
-            window._source = response.body
-            body = if response.body.trim() == "" then "<html></html>" else response.body
-            document.open()
-            document.write body
-            document.close()
-            if document.documentElement
-              browser.emit "loaded", browser
-            else
-              error = "Could not parse document at #{URL.format(url)}"
+            error = "Could not parse document at #{URL.format(url)}"
 
     # ### history.forward()
     @forward = -> @go(1)
@@ -223,5 +220,5 @@ class Location
 html.HTMLDocument.prototype.__defineGetter__ "location", -> @parentWindow.location
 
 
-exports.use = (browser, cache)->
-  return new History(browser, cache)
+exports.use = (browser)->
+  return new History(browser)

@@ -28,16 +28,14 @@ core.resourceLoader.load = (element, href, callback)->
   window = document.parentWindow
   ownerImplementation = document.implementation
   if ownerImplementation.hasFeature('FetchExternalResources', element.tagName.toLowerCase())
-    window.request { url: href, method: "GET", headers: {} }, (done)=>
-      url = URL.parse(@resolve(document, href))
-      loaded = (response, filename)->
-        done null, { status: response.statusCode, headers: response.headers, body: response.body }
-        callback.call this, response.body, URL.parse(response.url).pathname
-      if url.hostname
-        window.browser.cache.get url, @enqueue(element, loaded, url.pathname)
-      else
-        file = @resolve(document, url.pathname)
-        @readFile file, @enqueue(element, loaded, file)
+    url = URL.parse(@resolve(document, href))
+    loaded = (response, filename)->
+      callback.call this, response.body, URL.parse(response.url).pathname
+    if url.hostname
+      window.resources.get url, @enqueue(element, loaded, url.pathname)
+    else
+      file = @resolve(document, url.pathname)
+      @readFile file, @enqueue(element, loaded, file)
 
 
 # Scripts
