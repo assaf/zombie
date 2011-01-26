@@ -34,8 +34,8 @@ Modified `lastRequest`/`lastResponse` to use the window resources, fixed
 `browser.status` and `browser.redirected` to only look at the page
 resource itself.
 
-    278 Tests
-    4.2 sec to complete
+    282 Tests
+    4.3 sec to complete
 
 
 ### Version 0.8.10  2011-01-13
