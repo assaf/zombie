@@ -19,7 +19,11 @@ Ensure fields are sent in the order they are described (José Valim).
 
 Fix parsing of empty body (Vinicius Baggio).
 
-    277 Tests
+Add support for window.screen (Damian Janowski).
+
+Zombie now sends V0 cookies (Assaf Arkin).
+
+    278 Tests
     4.0 sec to complete
 
 
