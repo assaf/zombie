@@ -23,6 +23,8 @@ Add support for window.screen (Damian Janowski).
 
 Zombie now sends V0 cookies (Assaf Arkin).
 
+Fix for loading scripts over SSL (Damian Janowski).
+
     278 Tests
     4.0 sec to complete
 

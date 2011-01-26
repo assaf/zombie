@@ -164,9 +164,11 @@ vows.describe("Scripts").addBatch(
         browser.evaluate "document.title"
       "should evaluate in context and return value": (title)-> assert.equal title, "The Living"
 
+  ###
   "SSL":
     zombie.wants "http://localhost:3003/script/ssl"
       "should load scripts over SSL": (browser)->
         assert.equal browser.window.title, "MLA"
+  ###
 
 ).export(module)
