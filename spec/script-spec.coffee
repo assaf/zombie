@@ -84,6 +84,24 @@ brains.get "/living", (req, res)-> res.send """
     </body>
   </html>
   """
+
+brains.get "/script/ssl", (req, res)-> res.send """
+  <html>
+    <head>
+      <script>
+        function jsonp(response) {
+          document.title = response[2].id;
+        }
+      </script>
+
+      <script src="https://api.mercadolibre.com/sites/MLA?callback=jsonp"></script>
+    </head>
+    <body>
+
+    </body>
+  </html>
+  """
+
 brains.get "/app.js", (req, res)-> res.send """
   Sammy("#main", function(app) {
     app.get("#/", function(context) {
@@ -145,5 +163,10 @@ vows.describe("Scripts").addBatch(
       topic: (browser)->
         browser.evaluate "document.title"
       "should evaluate in context and return value": (title)-> assert.equal title, "The Living"
+
+  "SSL":
+    zombie.wants "http://localhost:3003/script/ssl"
+      "should load scripts over SSL": (browser)->
+        assert.equal browser.window.title, "MLA"
 
 ).export(module)
