@@ -7,6 +7,13 @@ INTEGER = 1
 BULK = 2
 MULTI = 3
 
+
+class Context
+  constructor: (@stream)->
+    this.reset()
+  reset: ->
+    @browser = new module.parent.exports.Browser(debug: debug)
+
 # Server-side of the Zombie protocol.
 # See http://redis.io/topics/protocol
 class Protocol
@@ -20,12 +27,13 @@ class Protocol
       # it's available.
       stream.setNoDelay true
       input = ""
+      context = new Context(stream)
       stream.on "data", (chunk)->
         # Collect input and process as much as possible.
-        input = process(stream, input + chunk)
+        input = process(context, input + chunk)
       stream.on "end", ->
         # Collect input and process as much as possible.
-        process(stream, input)
+        process context, input
 
     # ## Processing
 
@@ -34,7 +42,7 @@ class Protocol
     argv = [] # Received arguments
 
     # Process the currently available input, returns remaining input.
-    process = (stream, input)->
+    process = (context, input)->
       if argc
         # We're here because we're waiting for argc arguments to arrive
         # before we can execute the next requet.
@@ -50,11 +58,11 @@ class Protocol
             if argv.length == argc
               # We have all the arguments we expect, run a command and
               # reset argc/argv to await the next command.
-              queue stream, argv
+              queue context, argv
               argc = 0
               argv = []
             # See if we have more input to process.
-            return process(stream, input) if input.length > 0
+            return process(context, input) if input.length > 0
         else
           # We're here because we expect to read the argument length:
           # $<number of bytes of argument 1> CR LF
@@ -63,7 +71,7 @@ class Protocol
             console.log "Expecting argument of size #{argl}" if debug
             return ""
           if argl
-            return process(stream, input)
+            return process(context, input)
           else
             throw new Error("Expecting $<argc>CRLF") if input.length > 0 && input[0] != "$"
       else
@@ -74,7 +82,7 @@ class Protocol
           console.log "Expecting #{argc} arguments" if debug
           return ""
         if argc
-          return process(stream, input)
+          return process(context, input)
         else
           console.log input.length
           throw new Error("Expecting *<argc>CRLF") if input.length > 0 && input[0] != "*"
@@ -84,20 +92,20 @@ class Protocol
     last = null
     # Queue next command to execute (since we're pipelining, we wait for
     # the previous command to complete and send its output first).
-    queue = (stream, argv)->
+    queue = (context, argv)->
       command = {}
       # Invoke this command.
       command.invoke = ->
         if fn = commands[argv[0]]
           console.log "Executing #{argv.join(" ")}" if debug
           argv[0] = command.reply
-          fn.apply {}, argv
+          fn.apply context, argv
         else
           command.reply ERROR, "Unknown command #{argv[0]}"
       # Send a reply back to the client and if there's another command
       # in the queue, invoke it next.
       command.reply = (type, value)->
-        respond stream, type, value
+        respond context.stream, type, value
         last = command.next if last == command
         # Invoke next command in queue.
         if command.next
@@ -164,24 +172,22 @@ class Protocol
     commands.ECHO = (reply, text)->
       reply SINGLE, text
 
-    # Creates a new browser.
-    #
-    # Replies with browser identifier (integer).
-    browsers = []
-    commands.BROWSER = (reply)->
-      browsers.push new module.parent.exports.Browser(debug: debug)
-      reply INTEGER, browsers.length - 1
-    # Tells browser <id> to visit <url>.
+    # Resets the context.  Discards current browser.
+    commands.RESET = (reply)->
+      this.reset()
+      reply SINGLE, "OK"
+
+    # Tells browser to visit <url>.
     #
     # Replies with OK.
-    commands.VISIT = (reply, browser, url)->
-      browsers[browser].visit url
+    commands.VISIT = (reply, url)->
+      this.browser.visit url
       reply SINGLE, "OK"
-    # Tells browser <id> to wait for all events to be processed.
+    # Tells browser to wait for all events to be processed.
     #
     # Replies with error or OK.
-    commands.WAIT = (reply, browser)->
-      browsers[browser].wait (err)->
+    commands.WAIT = (reply)->
+      this.browser.wait (err)->
         if err
           reply ERROR, err.message
         else
