@@ -314,23 +314,25 @@ vows.describe("Browser").addBatch(
         assert.match browser.document.title, /pixelDepth=24/
 
   "fork":
-    zombie.wants "http://localhost:3003/living"
-      "new browser":
-        topic: (browser)->
-          forked = browser.fork()
-          [forked, browser]
-        "should have two browser objects": (browsers)->
-          [forked, browser] = browsers
-          assert.isNotNull forked
-          assert.isNotNull browser
-        "should not be the same object": (browsers)->
-          [forked, browser] = browsers
-          assert.notStrictEqual browser, forked
-        "should navigate independently": (browsers)->
-          [forked, browser] = browsers
-          forked.visit "http://localhost:3003/dead"
-          forked.wait()
-          assert.equal browser.location.href, "http://localhost:3003/living#/"
-          assert.equal forked.location, "http://localhost:3003/dead"
+    topic: ->
+      browser = new zombie.Browser
+      browser.visit("http://localhost:3003/living")
+      browser.wait()
+      browser.cookies("www.example").update("foo=bar; domain=www.example")
+      browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
+      forked = browser.fork()
+      [forked, browser]
+    "should not be the same object": ([forked, browser])-> assert.notStrictEqual browser, forked
+    "should have two browser objects": ([forked, browser])->
+      assert.isNotNull forked
+      assert.isNotNull browser
+    "should navigate independently": ([forked, browser])->
+      forked.visit "http://localhost:3003/dead"
+      forked.wait()
+      assert.equal browser.location.href, "http://localhost:3003/living"
+      assert.equal forked.location, "http://localhost:3003/dead"
+    "should manipulate cookies independently": ([forked, browser])->
+      assert.equal "bar", browser.cookies("localhost").get("foo")
+      assert.equal "bar", forked.cookies("localhost").get("foo")
 
 ).export(module)
