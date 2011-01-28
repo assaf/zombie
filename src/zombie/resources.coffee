@@ -8,7 +8,7 @@
 # If you're familiar with the WebKit Inspector Resources pane, this does
 # the same thing.
 
-inspect = require("utils").inspect
+inspect = require("util").inspect
 HTTP = require("http")
 QS = require("querystring")
 URL = require("url")
