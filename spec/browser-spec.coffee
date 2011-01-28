@@ -22,6 +22,9 @@ brains.get "/scripted", (req, res)-> res.send """
       document.title = "Nice";
       $(function() { $("title").text("Awesome") })
     </script>
+    <script type="text/x-do-not-parse">
+      <p>this is not valid JavaScript</p>
+    </script>
   </html>
   """
 
@@ -249,6 +252,9 @@ vows.describe("Browser").addBatch(
     <script>
       document.title = "Nice";
       $(function() { $("title").text("Awesome") })
+    </script>
+    <script type="text/x-do-not-parse">
+      <p>this is not valid JavaScript</p>
     </script>
   </html>
   """
