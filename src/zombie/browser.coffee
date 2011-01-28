@@ -491,7 +491,9 @@ class Browser extends require("events").EventEmitter
     this.selectOption = (option)->
       if(option && !option.selected)
         select = @xpath("./ancestor::select", option).value[0]
+        @fire "beforeactivate", select
         option.selected = true
+        @fire "beforedeactivate", select
         @fire "change", select
       return this
 
