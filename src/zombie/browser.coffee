@@ -63,6 +63,16 @@ class Browser extends require("events").EventEmitter
         else
           throw "I don't recognize the option #{k}"
 
+    # Fork
+    # ----
+
+    # ### browser.fork() => Browser
+    #
+    # Return a new browser with a snapshot of this browser's data.
+    # Any changes to the forked browser's state do not affect this browser.
+    this.fork = ->
+      forked = new Browser()
+      return forked
 
     # Windows
     # -------
