@@ -78,7 +78,8 @@ core.Document.prototype._elementBuilders["script"] = (doc, s)->
         filename = @ownerDocument.URL
         @ownerDocument.parentWindow.perform (done)=>
           loaded = (code, filename)=>
-            core.languageProcessors[@language](this, code, filename) if code == @text
+            if core.languageProcessors[@language]?
+              core.languageProcessors[@language](this, code, filename) if code == @text
             done()
           core.resourceLoader.enqueue(this, loaded, filename)(null, code)
   return script
