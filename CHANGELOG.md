@@ -2,6 +2,12 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+### Version 0.8.12  Pending
+
+Fix firing the `change` event on `SELECT` elements when using jQuery
+(Damian Janowski).
+
+
 ### Version 0.8.11  2011-01-25
 
 Added `browser.source` which returns the unmodified source of
