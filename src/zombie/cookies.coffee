@@ -181,5 +181,10 @@ exports.use = (browser)->
         for name, cookie of in_path
           dump.push serialize(browser, domain, path, name, cookie)
     dump
+  # Import cookies from a dump
+  from = (serialized)->
+    for cookie in serialized
+      unserialized = unserialize(cookie)
+      (new Cookies(browser, cookies, unserialized.domain, unserialized.path)).set(unserialized.name, unserialized.value, unserialized)
 
-  return access: access, extend: extend, dump: dump
+  return access: access, extend: extend, dump: dump, from: from

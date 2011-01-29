@@ -318,7 +318,6 @@ vows.describe("Browser").addBatch(
       browser = new zombie.Browser
       browser.visit("http://localhost:3003/living")
       browser.wait()
-      browser.cookies("www.example").update("foo=bar; domain=www.example")
       browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
       forked = browser.fork()
       [forked, browser]
@@ -332,7 +331,8 @@ vows.describe("Browser").addBatch(
       assert.equal browser.location.href, "http://localhost:3003/living"
       assert.equal forked.location, "http://localhost:3003/dead"
     "should manipulate cookies independently": ([forked, browser])->
-      assert.equal "bar", browser.cookies("localhost").get("foo")
-      assert.equal "bar", forked.cookies("localhost").get("foo")
+      browser.cookies("www.localhost").update("foo=baz; domain=.localhost")
+      assert.equal browser.cookies("localhost").get("foo"), "baz"
+      assert.equal forked.cookies("localhost").get("foo"), "bar"
 
 ).export(module)

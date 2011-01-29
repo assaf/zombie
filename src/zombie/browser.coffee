@@ -71,8 +71,13 @@ class Browser extends require("events").EventEmitter
     # Return a new browser with a snapshot of this browser's data.
     # Any changes to the forked browser's state do not affect this browser.
     this.fork = ->
+      serializedCookies = cookies.dump()
+
       forked = new Browser()
+      forked.importCookies(serializedCookies)
       return forked
+    this.importCookies = (serializedCookies) ->
+      cookies.from(serializedCookies)
 
     # Windows
     # -------
