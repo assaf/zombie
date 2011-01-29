@@ -135,6 +135,17 @@ class Storages
           for pair in pairs
             dump.push "  #{pair[0]} = #{pair[1]}"
       dump
+    this.from = (serialized) ->
+      for item in serialized
+        if (item[0] == " ")
+          [key, value] = item.split("=")
+          storage.setItem key.trim(), value.trim() if storage
+        else
+          [domain, type] = item.split(" ")
+          if (type == "local:")
+            storage = this.local(domain)
+          else if (type == "session:")
+            storage = this.session(domain)
 
 exports.use = (browser)->
   return new Storages(browser)
