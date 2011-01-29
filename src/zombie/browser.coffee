@@ -435,23 +435,23 @@ class Browser extends require("events").EventEmitter
     # * value -- Field value
     #
     # Returns this
-    this.fill = (selector, value)->
+    this.fill = (selector, value, callback)->
       field = @field(selector)
       if field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT")) # && TEXT_TYPES.indexOf(field.type) >= 0))
         throw new Error("This INPUT field is disabled") if field.getAttribute("input")
         throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
         field.value = value
-        @fire "change", field
+        @fire "change", field, callback
         return this
       throw new Error("No INPUT matching '#{selector}'")
 
-    setCheckbox = (selector, value)=>
+    setCheckbox = (selector, value, callback)=>
       field = @field(selector)
       if field && field.tagName == "INPUT" && field.type == "checkbox"
         throw new Error("This INPUT field is disabled") if field.getAttribute("input")
         throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
         if(field.checked ^ value)
-          @fire "click", field
+          @fire "click", field, callback
         return this
       else
         throw new Error("No checkbox INPUT matching '#{selector}'")
@@ -463,7 +463,7 @@ class Browser extends require("events").EventEmitter
     # * selector -- CSS selector, field name or text of the field label
     #
     # Returns this
-    this.check = (selector)-> setCheckbox(selector, true)
+    this.check = (selector, callback)-> setCheckbox(selector, true, callback)
 
     # ### browser.uncheck(selector) => this
     #
@@ -472,7 +472,7 @@ class Browser extends require("events").EventEmitter
     # * selector -- CSS selector, field name or text of the field label
     #
     # Returns this
-    this.uncheck = (selector)-> setCheckbox(selector, false)
+    this.uncheck = (selector, callback)-> setCheckbox(selector, false, callback)
 
     # ### browser.choose(selector) => this
     #
@@ -481,7 +481,7 @@ class Browser extends require("events").EventEmitter
     # * selector -- CSS selector, field value or text of the field label
     #
     # Returns this
-    this.choose = (selector)->
+    this.choose = (selector, callback)->
       field = @field(selector)
       if field.tagName == "INPUT" && field.type == "radio" && field.form
         if(!field.checked)
@@ -489,9 +489,9 @@ class Browser extends require("events").EventEmitter
           for radio in radios
             radio.checked = false unless radio.getAttribute("disabled") || radio.getAttribute("readonly")
           field.checked = true
-          @fire "change", field
+          @fire "change", field, callback
 
-        @fire "click", field
+        @fire "click", field, callback
         return this
       throw new Error("No radio INPUT matching '#{selector}'")
 
@@ -514,11 +514,11 @@ class Browser extends require("events").EventEmitter
     #
     # Attaches a file to the specified input field.  The second argument is the
     # file name.
-    this.attach = (selector, filename)->
+    this.attach = (selector, filename, callback)->
       field = @field(selector)
       if field && field.tagName == "INPUT" && field.type == "file"
         field.value = filename
-        @fire "change", field
+        @fire "change", field, callback
         return this
       else
         throw new Error("No file INPUT matching '#{selector}'")
@@ -531,9 +531,9 @@ class Browser extends require("events").EventEmitter
     # * value -- Value (or label) or option to select
     #
     # Returns this
-    this.select = (selector, value)->
+    this.select = (selector, value, callback)->
       option = findOption(selector, value)
-      @selectOption(option)
+      @selectOption(option, callback)
       return this
 
     # ### browser.selectOption(option) => this
@@ -543,10 +543,9 @@ class Browser extends require("events").EventEmitter
     # * option -- option to select
     #
     # Returns this
-    this.selectOption = (option)->
+    this.selectOption = (option, callback)->
       if(option && !option.selected)
         select = @xpath("./ancestor::select", option).value[0]
-        @fire "beforeactivate", select
         option.selected = true
         @fire "beforedeactivate", select
         @fire "change", select
@@ -560,9 +559,9 @@ class Browser extends require("events").EventEmitter
     # * value -- Value (or label) or option to unselect
     #
     # Returns this
-    this.unselect = (selector, value)->
+    this.unselect = (selector, value, callback)->
       option = findOption(selector, value)
-      @unselectOption(option)
+      @unselectOption(option, callback)
       return this
 
     # ### browser.unselectOption(option) => this
@@ -572,12 +571,12 @@ class Browser extends require("events").EventEmitter
     # * option -- option to unselect
     #
     # Returns this
-    this.unselectOption = (option)->
+    this.unselectOption = (option, callback)->
       if(option && option.selected)
         select = @xpath("./ancestor::select", option).value[0]
         throw new Error("Cannot unselect in single select") unless select.multiple
         option.removeAttribute('selected')
-        @fire "change", select
+        @fire "change", select, callback
       return this
 
     # ### browser.button(selector) : Element
