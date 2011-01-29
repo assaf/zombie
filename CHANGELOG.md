@@ -2,7 +2,13 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-### Version 0.8.11  2011-01-19
+### Version 0.8.12  Pending
+
+Fix firing the `change` event on `SELECT` elements when using jQuery
+(Damian Janowski).
+
+
+### Version 0.8.11  2011-01-25
 
 Added `browser.source` which returns the unmodified source of
 the current page (Bob Lail).
@@ -19,8 +25,23 @@ Ensure fields are sent in the order they are described (José Valim).
 
 Fix parsing of empty body (Vinicius Baggio).
 
-    275 Tests
-    2.6 sec to complete
+Add support for window.screen (Damian Janowski).
+
+Zombie now sends V0 cookies (Assaf Arkin).
+
+Fix for loading scripts over SSL (Damian Janowski).
+
+Added `window.resources` to return all resources loaded by the page
+(including the page itself).  You can see what the page is up with:
+
+    browser.window.resources.dump()
+
+Modified `lastRequest`/`lastResponse` to use the window resources, fixed
+`browser.status` and `browser.redirected` to only look at the page
+resource itself.
+
+    282 Tests
+    4.3 sec to complete
 
 
 ### Version 0.8.10  2011-01-13

@@ -108,6 +108,17 @@ brains.get "/prompt", (req, res)-> res.send """
   </script>
   """
 
+brains.get "/screen", (req, res)-> res.send """
+  <script>
+    var props = [];
+
+    for (key in window.screen) {
+      props.push(key + "=" + window.screen[key]);
+    }
+
+    document.title = props.join(", ");
+  </script>
+  """
 
 vows.describe("Browser").addBatch(
   "open page":
@@ -139,7 +150,7 @@ vows.describe("Browser").addBatch(
             @callback null, arguments
       "should pass single argument to callback": (args)-> assert.length args, 1
       "should pass error to callback": (args)-> assert.ok args[0] instanceof Error
-      "should include status code in error": (args)-> assert.equal args[0].statusCode, 404
+      "should include status code in error": (args)-> assert.equal args[0].response.statusCode, 404
     "empty page":
       zombie.wants "http://localhost:3003/empty"
         "should load document": (browser)-> assert.ok browser.body
@@ -160,7 +171,7 @@ vows.describe("Browser").addBatch(
           browser.window.location = "http://localhost:3003/deadend"
       "should fire onerror event": (err)->
         assert.ok err.message && err.stack
-        assert.equal err.message, "Could not load document at http://localhost:3003/deadend, got 404"
+        assert.equal err.message, "Could not load resource at http://localhost:3003/deadend, got 404"
     "wait over":
       topic: ->
         brains.ready =>
@@ -223,7 +234,7 @@ vows.describe("Browser").addBatch(
 
   "URL without path":
     zombie.wants "http://localhost:3003"
-      "should resolve URL": (browser)-> assert.equal browser.location.href, "http://localhost:3003"
+      "should resolve URL": (browser)-> assert.equal browser.location.href, "http://localhost:3003/"
       "should load page": (browser)-> assert.equal browser.text("title"), "Tap, Tap"
 
   "source":
@@ -287,5 +298,19 @@ vows.describe("Browser").addBatch(
       assert.ok browser.prompted("gender")
       assert.ok browser.prompted("location")
       assert.ok !browser.prompted("not asked")
-    
+
+  "window.screen":
+    zombie.wants "http://localhost:3003/screen"
+      "should have a screen object available": (browser)->
+        assert.match browser.document.title, /width=1280/
+        assert.match browser.document.title, /height=800/
+        assert.match browser.document.title, /left=0/
+        assert.match browser.document.title, /top=0/
+        assert.match browser.document.title, /availLeft=0/
+        assert.match browser.document.title, /availTop=0/
+        assert.match browser.document.title, /availWidth=1280/
+        assert.match browser.document.title, /availHeight=800/
+        assert.match browser.document.title, /colorDepth=24/
+        assert.match browser.document.title, /pixelDepth=24/
+
 ).export(module)

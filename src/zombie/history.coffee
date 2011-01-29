@@ -15,12 +15,14 @@ util = require("util")
 # - location -- Location object
 class Entry
   constructor: (history, url, options)->
-    @url = URL.parse(URL.format(url))
-    @location = new Location(history, @url)
     if options
       @state = options.state
       @title = options.title
       @pop = !!options.pop
+    this.update = (url)->
+      @url = URL.parse(URL.format(url))
+      @location = new Location(history, @url)
+    this.update url
 
 
 # ## window.history
@@ -31,26 +33,6 @@ class History
     # History is a stack of Entry objects.
     stack = []
     index = -1
-
-    stringifyPrimitive = (v) =>
-      switch Object.prototype.toString.call(v)
-        when '[object Boolean]' then v ? 'true' : 'false'
-        when '[object Number]'  then isFinite(v) ? v : ''
-        when '[object String]'  then v
-        else ''
-
-    stringify = (obj) =>
-      sep = '&'
-      eq = '='
-
-      obj.map((k) ->
-        if Array.isArray(k[1])
-          k[1].map((v) ->
-            qs.escape(stringifyPrimitive(k[0])) + eq + qs.escape(stringifyPrimitive(v))
-          ).join(sep);
-        else
-          qs.escape(stringifyPrimitive(k[0])) + eq + qs.escape(stringifyPrimitive(k[1]))
-      ).join(sep)
 
     # Called when we switch to a new page with the URL of the old page.
     pageChanged = (was)=>
@@ -69,7 +51,7 @@ class History
     
     # Make a request to external resource. We use this to fetch pages and
     # submit forms, see _loadPage and _submit.
-    resource = (url, method, data, enctype)=>
+    resource = (url, method, data, headers)=>
       method = (method || "GET").toUpperCase()
       throw new Error("Cannot load resource: #{URL.format(url)}") unless url.protocol && url.hostname
       # If the browser has a new window, use it. If a document was already
@@ -97,116 +79,26 @@ class History
       document.fixQueue()
       window.document = document
 
-      # Make the actual request: called again when dealing with a redirect.
-      makeRequest = (url, method, data, redirected)=>
-        headers = { "user-agent": browser.userAgent }
-
-        referer            = stack[index-1]?.url
-        headers["referer"] = referer.href if referer?
-
-        browser.cookies(url.hostname, url.pathname).addHeader headers
-
-        if method == "GET" || method == "HEAD"
-          url.search = "?" + stringify(data) if data
-          data = null
-          headers["content-length"] = 0
+      headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
+      referer = stack[index-1]?.url
+      headers["referer"] = referer.href if referer?
+      window.resources.request method, url, data, headers, (error, response)=>
+        if error
+          event = document.createEvent("HTMLEvents")
+          event.initEvent "error", true, false
+          document.dispatchEvent event
+          browser.emit "error", error
         else
-          headers["content-type"] = enctype || "application/x-www-form-urlencoded"
-          switch headers["content-type"]
-            when "application/x-www-form-urlencoded"
-              data = stringify(data)
-            when "multipart/form-data"
-              boundary = "#{new Date().getTime()}#{Math.random()}"
-              lines = ["--#{boundary}"]
-              data.map((item) ->
-                name   = item[0]
-                values = item[1]
-                values = [values] unless typeof values == "array"
-
-                for value in values
-                  disp = "Content-Disposition: form-data; name=\"#{name}\""
-
-                  if value.contents
-                    disp += "; filename=\"#{value}\""
-                    content = value.contents()
-                    mime = value.mime()
-                    encoding = value.encoding()
-                  else
-                    content = value
-                    mime = "text/plain"
-
-                  lines.push disp
-                  lines.push "Content-Type: #{mime}"
-                  lines.push "Content-Length: #{content.length}"
-                  lines.push "Content-Transfer-Encoding: base64" if encoding
-                  lines.push ""
-                  lines.push content
-
-                  lines.push "--#{boundary}"
-              )
-              data = lines.join("\r\n") + "--\r\n"
-              headers["content-type"] += "; boundary=#{boundary}"
-            else data = data.toString()
-          headers["content-length"] = data.length
-
-        window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
-          secure = url.protocol == "https:"
-          port = url.port || (if secure then 443 else 80)
-          client = http.createClient(port, url.hostname, secure)
-          path = "#{url.pathname || ""}#{url.search || ""}"
-          path = "/#{path}" unless path[0] == "/"
-          headers.host = url.host
-          request = client.request(method, path, headers)
-
-          request.on "response", (response)=>
-            response.setEncoding "utf8"
-            body = ""
-            response.on "data", (chunk)-> body += chunk
-            response.on "end", =>
-              browser.response = [response.statusCode, response.headers, body]
-              done null, { status: response.statusCode, headers: response.headers, body: body, redirected: !!redirected }
-              switch response.statusCode
-                when 200
-                  browser.cookies(url.hostname, url.pathname).update response.headers["set-cookie"]
-                  body = "<html></html>" if body.trim() == ""
-                  window._source = body
-                  document.open()
-                  document.write body
-                  document.close()
-
-                  if document.documentElement
-                    browser.emit "loaded", browser
-                  else
-                    error = "Could not parse document at #{URL.format(url)}"
-                when 301, 302, 303, 307
-                  browser.cookies(url.hostname, url.pathname).update response.headers["set-cookie"]
-                  redirect = URL.parse(URL.resolve(url, response.headers["location"]))
-                  stack[index] = new Entry(this, redirect)
-                  browser.emit "redirected", redirect
-                  process.nextTick -> makeRequest redirect, "GET", null, true
-                else
-                  error = "Could not load document at #{URL.format(url)}, got #{response.statusCode}"
-                  document.open()
-                  document.write error
-                  document.close()
-              # onerror is the only reliable way we have to notify the
-              # application.
-              if error
-                event = document.createEvent("HTMLEvents")
-                event.initEvent "error", true, false
-                document.dispatchEvent event
-                error = new Error(error)
-                error.statusCode = response.statusCode
-                browser.emit "error", error
-
-          client.on "error", (error)->
-            event = document.createEvent("HTMLEvents")
-            event.initEvent "error", true, false
-            document.dispatchEvent event
-            browser.emit "error", new Error(error)
-            done error
-          request.end data, "utf8"
-      makeRequest url, method, data
+          browser.response = [response.statusCode, response.headers, response.body]
+          stack[index].update response.url
+          body = if response.body.trim() == "" then "<html></html>" else response.body
+          document.open()
+          document.write body
+          document.close()
+          if document.documentElement
+            browser.emit "loaded", browser
+          else
+            error = "Could not parse document at #{URL.format(url)}"
 
     # ### history.forward()
     @forward = -> @go(1)
@@ -272,10 +164,11 @@ class History
     # * data -- Form valuesa
     # * enctype -- Encoding type, or use default
     @_submit = (url, method, data, enctype)->
+      headers = { "content-type": enctype || "application/x-www-form-urlencoded" }
       stack = stack[0..index]
       url = URL.resolve(stack[index]?.url, url)
       stack[++index] = new Entry(this, url)
-      resource stack[index].url, method, data, enctype
+      resource stack[index].url, method, data, headers
 
     # Add Location/History to window.
     this.extend = (window)->

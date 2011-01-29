@@ -184,7 +184,7 @@ hash (Zombie.js will fire a `hashchange` event), for example:
 
 ### browser.statusCode : Number
 
-Returns the status code from the last response (200, 304, etc).
+Returns the status code returned for this page request (200, 303, etc).
 
 ### browser.visit(url, callback)
 ### browser.visit(url, options, callback)
@@ -205,7 +205,7 @@ and resets before passing control to the callback.  For example:
 
 ### browser.redirected : Boolean
 
-Returns true if the last response followed a redirect.
+Returns true if the page request followed a redirect.
     
 
 ## Forms

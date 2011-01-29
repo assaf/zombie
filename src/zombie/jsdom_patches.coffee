@@ -15,7 +15,7 @@ core.HTMLElement.prototype.__defineGetter__ "offsetHeight", -> 100
 # ---------------
 
 # Default behavior for clicking on links: navigate to new URL is specified.
-core.HTMLAnchorElement.prototype._eventDefaults = 
+core.HTMLAnchorElement.prototype._eventDefaults =
   click: (event)->
     anchor = event.target
     anchor.ownerDocument.parentWindow.location = anchor.href if anchor.href
@@ -28,36 +28,14 @@ core.resourceLoader.load = (element, href, callback)->
   window = document.parentWindow
   ownerImplementation = document.implementation
   if ownerImplementation.hasFeature('FetchExternalResources', element.tagName.toLowerCase())
-    window.request { url: href, method: "GET", headers: {} }, (done)=>
-      url = URL.parse(@resolve(document, href))
-      loaded = (data, filename)->
-        done null, { status: 200, headers: {}, body: data.slice(0,100) }
-        callback.call this, data, filename
-      if url.hostname
-        @download url, @enqueue(element, loaded, url.pathname)
-      else
-        file = @resolve(document, url.pathname)
-        @readFile file, @enqueue(element, loaded, file)
-
-# Adds redirect support when loading resources (JavaScript).
-core.resourceLoader.download = (url, callback)->
-  path = url.pathname + (url.search || "")
-  client = http.createClient(url.port || 80, url.hostname)
-  request = client.request("GET", path, "host": url.hostname)
-  request.on "response", (response)->
-    response.setEncoding "utf8"
-    data = ""
-    response.on "data", (chunk)-> data += chunk
-    response.on "end", ()->
-      switch response.statusCode
-        when 301, 302, 303, 307
-          redirect = URL.resolve(url, response.headers["location"])
-          download redirect, callback
-        else
-          callback null, data
-  # TODO: add to JSDOM
-  request.on "error", (error)-> callback error
-  request.end()
+    url = URL.parse(@resolve(document, href))
+    loaded = (response, filename)->
+      callback.call this, response.body, URL.parse(response.url).pathname
+    if url.hostname
+      window.resources.get url, @enqueue(element, loaded, url.pathname)
+    else
+      file = @resolve(document, url.pathname)
+      @readFile file, @enqueue(element, loaded, file)
 
 
 # Scripts

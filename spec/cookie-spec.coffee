@@ -132,6 +132,6 @@ vows.describe("Cookies").addBatch(
       browser.cookies("localhost").update("foo=bar;")
       browser.cookies("localhost").addHeader header
       header
-    "should set the header according to the spec": (header)-> assert.equal header.cookie, "$Version=1; foo=bar;$Path=/"
+    "should send V0 header": (header)-> assert.equal header.cookie, "foo=bar"
 
 ).export(module)

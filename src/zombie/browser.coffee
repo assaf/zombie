@@ -12,12 +12,14 @@ require "./xpath"
 # The browser maintains state for cookies and localStorage.
 class Browser extends require("events").EventEmitter
   constructor: (options) ->
+    cache = require("./cache").use(this)
     cookies = require("./cookies").use(this)
     storage = require("./storage").use(this)
     eventloop = require("./eventloop").use(this)
     history = require("./history").use(this)
     interact = require("./interact").use(this)
-    xhr = require("./xhr").use(this)
+    xhr = require("./xhr").use(cache)
+    resources = require("./resources")
 
 
     # Options
@@ -37,10 +39,6 @@ class Browser extends require("events").EventEmitter
     #
     # User agent string sent to server.
     @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{exports.version}"
-    # ### source
-    #
-    # Returns the unmodified source of the document loaded by the browser
-    @__defineGetter__ "source", => @window?._source
     
 
     # ### withOptions(options, fn)
@@ -79,21 +77,20 @@ class Browser extends require("events").EventEmitter
       window.__defineGetter__ "title", => @window?.document?.title
       window.__defineSetter__ "title", (title)=> @window?.document?.title = title
       window.navigator.userAgent = @userAgent
+      resources.extend window
       cookies.extend window
       storage.extend window
       eventloop.extend window
       history.extend window
       interact.extend window
       xhr.extend window
+      window.screen = new Screen()
       window.JSON = JSON
       # Default onerror handler.
       window.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
       # TODO: Fix
       window.Image = ->
       return window
-
-    # Always start with an open window.
-    @open()
 
 
 
@@ -262,14 +259,24 @@ class Browser extends require("events").EventEmitter
 
     # ### browser.statusCode => Number
     #
-    # Returns the status code of the last response.
+    # Returns the status code of the request for loading the window.
     @__defineGetter__ "statusCode", ->
-      response.status if response = @lastResponse
+      @window.resources.first?.response.statusCode
     # ### browser.redirected => Boolean
     #
-    # Returns true if the last response followed a redirect.
+    # Returns true if the request for loading the window followed a
+    # redirect.
     @__defineGetter__ "redirected", ->
-      response.redirected if response = @lastResponse
+      @window.resources.first?.response.redirected
+    # ### source => String
+    #
+    # Returns the unmodified source of the document loaded by the browser
+    @__defineGetter__ "source", => @window.resources.first?.response.body
+
+    # ### browser.cache => Cache
+    #
+    # Returns the browser's cache.
+    @__defineGetter__ "cache", -> cache
 
 
     # Navigation
@@ -484,7 +491,9 @@ class Browser extends require("events").EventEmitter
     this.selectOption = (option, callback)->
       if(option && !option.selected)
         select = @xpath("./ancestor::select", option).value[0]
+        @fire "beforeactivate", select
         option.selected = true
+        @fire "beforedeactivate", select, callback
         @fire "change", select, callback
       return this
 
@@ -659,24 +668,20 @@ class Browser extends require("events").EventEmitter
     this.viewInBrowser = (browser)->
       require("./bcat").bcat @html()
 
-    trail = []
-    this.record = (request)->
-      trail.push pending = { request: request }
-      pending
-    # ### browser.last_request => Object
+    # ### browser.lastRequest => HTTPRequest
     #
     # Returns the last request sent by this browser. The object will have the
-    # properties url, method, headers, and if applicable, body.
-    @__defineGetter__ "lastRequest", -> trail[trail.length - 1]?.request
-    # ### browser.last_response => Object
+    # properties url, method, headers, and body.
+    @__defineGetter__ "lastRequest", -> @window.resources.last?.request
+    # ### browser.lastResponse => HTTPResponse
     #
     # Returns the last response received by this browser. The object will have the
-    # properties status, headers and body. Long bodies may be truncated.
-    @__defineGetter__ "lastResponse", -> trail[trail.length - 1]?.response
-    # ### browser.last_error => Object
+    # properties url, status, headers and body. Long bodies may be truncated.
+    @__defineGetter__ "lastResponse", -> @window.resources.last?.response
+    # ### browser.lastError => Object
     #
     # Returns the last error received by this browser in lieu of response.
-    @__defineGetter__ "lastError", -> trail[trail.length - 1]?.error
+    @__defineGetter__ "lastError", -> @window.resources.last?.error
 
     # Zombie can spit out messages to help you figure out what's going
     # on as your code executes.
@@ -719,6 +724,22 @@ class Browser extends require("events").EventEmitter
       else
         console.log "No document" unless @document
 
+    class Screen
+      constructor: ->
+        @width = 1280
+        @height = 800
+        @left = 0
+        @top = 0
+
+        @__defineGetter__ "availLeft", -> 0
+        @__defineGetter__ "availTop", -> 0
+        @__defineGetter__ "availWidth", -> @width
+        @__defineGetter__ "availHeight", -> @height
+        @__defineGetter__ "colorDepth", -> 24
+        @__defineGetter__ "pixelDepth", -> 24
+
+    # Always start with an open window.
+    @open()
 
 exports.Browser = Browser
 

@@ -9,7 +9,7 @@ core.SECURITY_ERR = 18
 core.NETWORK_ERR = 19
 core.ABORT_ERR = 20
 
-XMLHttpRequest = (browser, window)->
+XMLHttpRequest = (window)->
   # Fire onreadystatechange event
   stateChanged = (state)=>
     @__defineGetter__ "readyState", -> state
@@ -17,8 +17,10 @@ XMLHttpRequest = (browser, window)->
       # Since we want to wait on these events, put them in the event loop.
       window.perform (done)=>
         process.nextTick =>
-          @onreadystatechange.call(@)
-          done()
+          try
+            @onreadystatechange.call(@)
+          finally
+            done()
   # Bring XHR to initial state (open/abort).
   reset = =>
     # Switch back to unsent state
@@ -46,9 +48,8 @@ XMLHttpRequest = (browser, window)->
       @abort = ->
         aborted = true
         reset()
-
-      # Allow setting headers in this state.
-      headers = { "user-agent": browser.userAgent }
+      
+      headers = {}
       @setRequestHeader = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
       # Allow calling send method.
       @send = (data)->
@@ -60,58 +61,23 @@ XMLHttpRequest = (browser, window)->
           reset()
         
         # Make the actual request: called again when dealing with a redirect.
-        makeRequest = (url, method, headers, data)=>
-          if method == "GET" || method == "HEAD"
-            data = null
-            headers["content-length"] = 0
+        window.resources.request method, url, data, headers, (error, response)=>
+          if error
+            console.error "XHR error", error
+            @_error = new core.DOMException(core.NETWORK_ERR, error.message)
+            stateChanged 4
+            reset()
           else
-            headers["content-type"] ||= "text/plain;charset=UTF-8"
-            headers["content-length"] = data.length
-          browser.cookies(url.hostname, url.pathname).addHeader headers
-
-          window.request { url: URL.format(url), method: method, headers: headers, body: data }, (done)=>
-            secure = url.protocol == "https:"
-            port = url.port || (if secure then 443 else 80)
-            client = http.createClient(port, url.hostname, secure)
-            path = "#{url.pathname || ""}#{url.search || ""}"
-            path = "/#{path}" unless path[0] == "/"
-            headers.host = url.host
-            request = client.request(method, path, headers)
-            request.end data, "utf8"
-
-            request.on "response", (response)=>
-              response.setEncoding "utf8"
-              # At this state, allow retrieving of headers and status code.
-              @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
-              @getAllResponseHeader = -> response.headers
-              @__defineGetter__ "status", -> response.statusCode
-              @__defineGetter__ "statusText", -> XMLHttpRequest.STATUS[response.statusCode]
-              stateChanged 2
-              body = ""
-              response.on "data", (chunk)=>
-                return response.destroy() if aborted
-                body += chunk
-                stateChanged 3
-              response.on "end", (chunk)=>
-                return response.destroy() if aborted
-                browser.cookies(url.hostname, url.pathname).update response.headers["set-cookie"]
-                done null, { status: response.statusCode, headers: response.headers, body: body }
-                switch response.statusCode
-                  when 301, 302, 303, 307
-                    redirect = URL.parse(URL.resolve(url, response.headers["location"]))
-                    makeRequest redirect, "GET", {}
-                  else
-                    @__defineGetter__ "responseText", -> body
-                    @__defineGetter__ "responseXML", -> # not implemented
-                    stateChanged 4
-
-            client.on "error", (error)=>
-              console.error "XHR error", error
-              done error
-              @_error = new core.DOMException(core.NETWORK_ERR, error.message)
+            # At this state, allow retrieving of headers and status code.
+            @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
+            @getAllResponseHeader = -> response.headers
+            @__defineGetter__ "status", -> response.statusCode
+            @__defineGetter__ "statusText", -> response.statusText
+            stateChanged 2
+            unless aborted
+              @__defineGetter__ "responseText", -> response.body
+              @__defineGetter__ "responseXML", -> # not implemented
               stateChanged 4
-              reset()
-        makeRequest url, method, headers, data
 
       # Calling open at this point aborts the ongoing request, resets the
       # state and starts a new request going
@@ -129,11 +95,10 @@ XMLHttpRequest.OPENED = 1
 XMLHttpRequest.HEADERS_RECEIVED = 2
 XMLHttpRequest.LOADING = 3
 XMLHttpRequest.DONE = 4
-XMLHttpRequest.STATUS = { 200: "OK", 404: "Not Found", 500: "Internal Server Error" }
 
 
-exports.use = (browser)->
+exports.use = ->
   # Add XHR constructor to window.
   extend = (window)->
-    window.XMLHttpRequest = -> XMLHttpRequest.call this, browser, window
+    window.XMLHttpRequest = -> XMLHttpRequest.call this, window
   return extend: extend
