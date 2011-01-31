@@ -1,8 +1,8 @@
 require.paths.unshift __dirname + "/../node_modules"
 fs = require("fs")
-decode = require("base64").decode
 express = require("express")
 zombie = require("../src/index")
+debug = false # true
 
 
 # When you run the vows command, it picks all the files in the spec directory
@@ -83,7 +83,7 @@ zombie.wants = (url, context)->
 
 zombie.Browser.prototype.wants = (url, options, callback)->
   brains.ready =>
-    #options.debug = true
+    options.debug = debug
     @visit url, options, (err, browser)=>
       callback err, this if callback
   return
@@ -108,10 +108,9 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         headers
       , {}
 
-      # Intentionally do not decode base64 files if the content-type is text.
-      # This is the behavior of a few servers.
-      if headers["content-transfer-encoding"] == "base64" && !headers["content-type"].match(/^text/)
-        contents = decode(contents)
+      # Base64 encoding is optional.
+      if headers["content-transfer-encoding"] == "base64"
+        contents = require("base64").decode(contents)
       contents.mime = headers["content-type"].split(/;/)[0]
 
       # We're looking for the content-disposition header, which has

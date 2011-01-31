@@ -2,10 +2,10 @@ require("./helpers")
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 
 
-brains.get "/form", (req, res)-> res.send """
+brains.get "/forms/form", (req, res)-> res.send """
   <html>
     <body>
-      <form action="/submit" method="post">
+      <form action="/forms/submit" method="post">
         <label>Name <input type="text" name="name" id="field-name"></label>
         <label for="field-email">Email</label>
         <input type="text" name="email" id="field-email"></label>
@@ -38,14 +38,14 @@ brains.get "/form", (req, res)-> res.send """
           <option>neither</option>
         </select>
 
-        <span>First address<span>
+        <span>First address</span>
         <label for='address1_street'>Street</label>
         <input type="text" name="addresses[][street]" value="" id="address1_street">
 
         <label for='address1_city'>City</label>
         <input type="text" name="addresses[][city]" value="" id="address1_city"> 
 
-        <span>Second address<span>
+        <span>Second address</span>
         <label for='address2_street'>Street</label>
         <input type="text" name="addresses[][street]" value="" id="address2_street">
 
@@ -79,7 +79,7 @@ brains.get "/form", (req, res)-> res.send """
     </body>
   </html>
   """
-brains.post "/submit", (req, res)-> res.send """
+brains.post "/forms/submit", (req, res)-> res.send """
   <html>
     <body>
       <div id="name">#{req.body.name}</div>
@@ -101,7 +101,7 @@ brains.post "/submit", (req, res)-> res.send """
   </html>
   """
 
-brains.get "/upload", (req, res)-> res.send """
+brains.get "/forms/upload", (req, res)-> res.send """
   <html>
     <body>
       <form method="post" enctype="multipart/form-data">
@@ -117,7 +117,7 @@ brains.get "/upload", (req, res)-> res.send """
     </body>
   </html>
   """
-brains.post "/upload", (req, res)->
+brains.post "/forms/upload", (req, res)->
   [text, image] = [req.body.text, req.body.image]
   res.send """
   <html>
@@ -128,7 +128,7 @@ brains.post "/upload", (req, res)->
 
 vows.describe("Forms").addBatch(
   "fill field":
-    zombie.wants "http://localhost:3003/form"
+    zombie.wants "http://localhost:3003/forms/form"
       topic: (browser)->
         for field in ["email", "likes", "name", "password", "invalidtype", "email2"]
           do (field)->
@@ -166,7 +166,7 @@ vows.describe("Forms").addBatch(
         "should fire change event": (browser)-> assert.ok browser.email2Changed
 
   "check box":
-    zombie.wants "http://localhost:3003/form"
+    zombie.wants "http://localhost:3003/forms/form"
       topic: (browser)->
         for field in ["hungry", "brains", "green"]
           do (field)->
@@ -196,7 +196,7 @@ vows.describe("Forms").addBatch(
         "should fire change event": (browser)-> assert.ok browser.greenChanged
 
   "radio buttons":
-    zombie.wants "http://localhost:3003/form"
+    zombie.wants "http://localhost:3003/forms/form"
       topic: (browser)->
         for field in ["scary", "notscary"]
           do (field)->
@@ -220,7 +220,7 @@ vows.describe("Forms").addBatch(
         ###
 
   "select option":
-    zombie.wants "http://localhost:3003/form"
+    zombie.wants "http://localhost:3003/forms/form"
       topic: (browser)->
         for field in ["looks", "state", "kills"]
           do (field)->
@@ -256,7 +256,7 @@ vows.describe("Forms").addBatch(
         "should fire change event": (browser)-> assert.ok browser.killsChanged
 
   "multiple select option":
-    zombie.wants "http://localhost:3003/form"
+    zombie.wants "http://localhost:3003/forms/form"
       topic: (browser)->
         browser.querySelector("#field-hobbies").addEventListener "change", -> browser["hobbiesChanged"] = true
         @callback null, browser
@@ -279,7 +279,7 @@ vows.describe("Forms").addBatch(
 
   "reset form":
     "by calling reset":
-      zombie.wants "http://localhost:3003/form"
+      zombie.wants "http://localhost:3003/forms/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
             check("You bet").choose("Scary").select("state", "dead")
@@ -293,13 +293,13 @@ vows.describe("Forms").addBatch(
           assert.ok browser.querySelector("#field-notscary").checked
         "should reset select to original option": (browser)-> assert.equal browser.querySelector("#field-state").value, "alive"
     "with event handler":
-      zombie.wants "http://localhost:3003/form"
+      zombie.wants "http://localhost:3003/forms/form"
         topic: (browser)->
           browser.querySelector("form :reset").addEventListener "click", (event)=> @callback null, event
           browser.querySelector("form :reset").click()
         "should fire click event": (event)-> assert.equal event.type, "click"
     "with preventDefault":
-      zombie.wants "http://localhost:3003/form"
+      zombie.wants "http://localhost:3003/forms/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter")
           browser.querySelector("form :reset").addEventListener "click", (event)-> event.preventDefault()
@@ -307,7 +307,7 @@ vows.describe("Forms").addBatch(
           @callback null, browser
         "should not reset input field": (browser)-> assert.equal browser.querySelector("#field-name").value, "ArmBiter"
     "by clicking reset input":
-      zombie.wants "http://localhost:3003/form"
+      zombie.wants "http://localhost:3003/forms/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter")
           browser.querySelector("form :reset").click()
@@ -316,7 +316,7 @@ vows.describe("Forms").addBatch(
 
   "submit form":
     "by calling submit":
-      zombie.wants "http://localhost:3003/form"
+      zombie.wants "http://localhost:3003/forms/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").check("You bet").
             check("Certainly").choose("Scary").select("state", "dead").select("looks", "Choose one").
@@ -326,7 +326,7 @@ vows.describe("Forms").addBatch(
 
           browser.querySelector("form").submit()
           browser.wait @callback
-        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
+        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/forms/submit"
         "should add location to history": (browser)-> assert.length browser.window.history, 2
         "should send text input values to server": (browser)-> assert.equal browser.text("#name"), "ArmBiter"
         "should send textarea values to server": (browser)-> assert.equal browser.text("#likes"), "Arm Biting"
@@ -349,11 +349,11 @@ vows.describe("Forms").addBatch(
           assert.equal browser.text("#addresses"), '[{"street":"CDG"},{"city":"Paris"},{"street":"PGS"},{"city":"Mikolaiv"}]'
 
     "by clicking button":
-      zombie.wants "http://localhost:3003/form"
+      zombie.wants "http://localhost:3003/forms/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
             pressButton "Hit Me", @callback
-        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
+        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/forms/submit"
         "should add location to history": (browser)-> assert.length browser.window.history, 2
         "should send button value to server": (browser)-> assert.equal browser.text("#clicked"), "hit-me"
         "should send input values to server": (browser)->
@@ -364,11 +364,11 @@ vows.describe("Forms").addBatch(
         "should return status code": (_, browser, status)-> assert.equal status, 200
 
     "by clicking image button":
-      zombie.wants "http://localhost:3003/form"
+      zombie.wants "http://localhost:3003/forms/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
             pressButton "#image_submit", @callback
-        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
+        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/forms/submit"
         "should add location to history": (browser)-> assert.length browser.window.history, 2
         "should send image value to server": (browser)-> assert.equal browser.text("#image_clicked"), "Image Submit"
         "should send input values to server": (browser)->
@@ -378,49 +378,49 @@ vows.describe("Forms").addBatch(
           assert.equal browser.text("#clicked"), "undefined"
 
     "by clicking input":
-      zombie.wants "http://localhost:3003/form"
+      zombie.wants "http://localhost:3003/forms/form"
         topic: (browser)->
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
             pressButton "Submit", @callback
-        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/submit"
+        "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/forms/submit"
         "should add location to history": (browser)-> assert.length browser.window.history, 2
         "should send submit value to server": (browser)-> assert.equal browser.text("#clicked"), "Submit"
         "should send input values to server": (browser)->
           assert.equal browser.text("#name"), "ArmBiter"
           assert.equal browser.text("#likes"), "Arm Biting"
     "by cliking a button without name":
-      zombie.wants "http://localhost:3003/upload"
+      zombie.wants "http://localhost:3003/forms/upload"
         topic: (browser)->
           browser.pressButton "Get Upload", @callback
         "should not send inputs without names": (browser)-> assert.equal browser.location.search, "?"
 
   "file upload (ascii)":
-    zombie.wants "http://localhost:3003/upload"
+    zombie.wants "http://localhost:3003/forms/upload"
       topic: (browser)->
-        @filename = __dirname + "/data/random.txt"
-        browser.attach("text", @filename).pressButton "Upload", @callback
+        filename = __dirname + "/data/random.txt"
+        browser.attach("text", filename).pressButton "Upload", @callback
       "should upload file": (browser)-> assert.equal browser.text("body").trim(), "Random text"
       "should upload include name": (browser)-> assert.equal browser.text("title"), "random.txt"
 
   "file upload (binary)":
-    zombie.wants "http://localhost:3003/upload"
+    zombie.wants "http://localhost:3003/forms/upload"
       topic: (browser)->
-        @filename = __dirname + "/data/zombie.jpg"
-        browser.attach("image", @filename).pressButton "Upload", @callback
+        filename = __dirname + "/data/zombie.jpg"
+        browser.attach("image", filename).pressButton "Upload", @callback
       "should upload include name": (browser)-> assert.equal browser.text("title"), "zombie.jpg"
 
   "file upload (empty)":
-    zombie.wants "http://localhost:3003/upload"
+    zombie.wants "http://localhost:3003/forms/upload"
       topic: (browser)->
         browser.attach "text", ""
         browser.pressButton "Upload", @callback
       "should not upload any file": (browser)-> assert.equal browser.text("body").trim(), "undefined"
 
   "file upload (get)":
-    zombie.wants "http://localhost:3003/upload"
+    zombie.wants "http://localhost:3003/forms/upload"
       topic: (browser)->
-        @filename = __dirname + "/data/random.txt"
-        browser.attach("get_file", @filename).pressButton "Get Upload", @callback
+        filename = __dirname + "/data/random.txt"
+        browser.attach("get_file", filename).pressButton "Get Upload", @callback
       "should send just the file basename": (browser)->
         assert.equal browser.location.search, "?get_file=random.txt"
 

@@ -160,12 +160,13 @@ class Resources extends Array
 
               for value in values
                 disp = "Content-Disposition: form-data; name=\"#{name}\""
+                encoding = null
 
-                if value.contents
+                if value.read
+                  content = value.read()
                   disp += "; filename=\"#{value}\""
-                  content = value.contents()
-                  mime = value.mime()
-                  encoding = value.encoding()
+                  mime = value.mime
+                  encoding = "base64" unless value.mime == "text/plain"
                 else
                   content = value
                   mime = "text/plain"
@@ -173,10 +174,20 @@ class Resources extends Array
                 lines.push disp
                 lines.push "Content-Type: #{mime}"
                 lines.push "Content-Length: #{content.length}"
-                lines.push "Content-Transfer-Encoding: base64" if encoding
+                lines.push "Content-Transfer-Encoding: #{encoding}" if encoding
                 lines.push ""
-                lines.push content
-
+                switch encoding
+                  when "base64"
+                    # Base64 encoding is optional, loaded on demand.
+                    try
+                      base64 = require("base64")
+                    catch ex
+                      throw new Error("Base64 encoding support is optional, you need to `npm install base64`")
+                    lines.push base64.encode(content).replace(/(.{76})/g, "$1\r\n")
+                  when null
+                    lines.push content
+                  else
+                    throw new Error("Unsupported transfer encoding #{encoding}")
                 lines.push "--#{boundary}"
             )
             if lines.length < 2
