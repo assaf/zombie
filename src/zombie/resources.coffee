@@ -260,14 +260,19 @@ class Resources extends Array
             callback error
       request.end body, "utf8"
 
+    typeOf = (object)->
+      return Object.prototype.toString.call(object)
+
     # We use this to convert data array/hash into application/x-www-form-urlencoded
     stringifyPrimitive = (v) =>
-      switch Object.prototype.toString.call(v)
+      switch typeOf(v)
         when '[object Boolean]' then v ? 'true' : 'false'
         when '[object Number]'  then isFinite(v) ? v : ''
         when '[object String]'  then v
         else ''
+
     stringify = (object) =>
+      return object if typeOf(object) == '[object String]'
       object.map((k) ->
         if Array.isArray(k[1])
           k[1].map((v) ->

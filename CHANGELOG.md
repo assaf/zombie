@@ -13,6 +13,9 @@ to `npm install base64` (Assaf Arkin).
 
 Tested with Node 0.3.7 (Assaf Arkin).
 
+Fix for `jQuery.ajax` receiving a non-string `data` option (Damian
+Janowski).
+
     283 Tests
     4.6 sec to complete
 
