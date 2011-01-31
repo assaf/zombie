@@ -1,9 +1,8 @@
 require.paths.unshift __dirname + "/../node_modules"
-require.paths.unshift __dirname + "/../src"
 fs = require("fs")
 decode = require("base64").decode
 express = require("express")
-zombie = require("index")
+zombie = require("../src/index")
 
 
 # When you run the vows command, it picks all the files in the spec directory

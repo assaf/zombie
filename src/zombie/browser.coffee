@@ -744,8 +744,5 @@ class Browser extends require("events").EventEmitter
 exports.Browser = Browser
 
 # ### zombie.version : String
-try
-  exports.package = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
-  exports.version = exports.package.version
-catch err
-  console.log err
+exports.package = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
+exports.version = exports.package.version
