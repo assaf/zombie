@@ -39,7 +39,7 @@ class Browser extends require("events").EventEmitter
     #
     # User agent string sent to server.
     @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{exports.version}"
-    
+
 
     # ### withOptions(options, fn)
     #
@@ -66,7 +66,7 @@ class Browser extends require("events").EventEmitter
 
     # Windows
     # -------
-    
+
     window = null
     # ### browser.open() => Window
     #
@@ -148,24 +148,24 @@ class Browser extends require("events").EventEmitter
     this.fire = (name, target, options, callback)->
       [callback, options] = [options, null] if typeof(options) == 'function'
       options ?= {}
-      
+
       klass = options.klass || if (name in mouseEventNames) then "MouseEvents" else "HTMLEvents"
       bubbles = options.bubbles ? true
       cancelable = options.cancelable ? true
-      
+
       event = window.document.createEvent(klass)
       event.initEvent(name, bubbles, cancelable)
-      
+
       if options.attributes?
         for key, value of options.attributes
           event[key] = value
-      
+
       target.dispatchEvent event
-      
+
       @wait callback if callback
-    
+
     mouseEventNames = ['mousedown', 'mousemove', 'mouseup']
-    
+
     # ### browser.clock => Number
     #
     # The current system time according to the browser (see also
@@ -509,7 +509,7 @@ class Browser extends require("events").EventEmitter
       option = findOption(selector, value)
       @unselectOption(option)
       return this
-    
+
     # ### browser.unselectOption(option) => this
     #
     # Unselects an option.

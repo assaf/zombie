@@ -11,7 +11,7 @@ class EventLoop
     #
     # Implements window.setTimeout using event queue
     this.setTimeout = (fn, delay)->
-      timer = 
+      timer =
         when: browser.clock + delay
         timeout: true
         fire: =>
@@ -27,7 +27,7 @@ class EventLoop
     #
     # Implements window.setInterval using event queue
     this.setInterval = (fn, delay)->
-      timer = 
+      timer =
         when: browser.clock + delay
         interval: true
         fire: =>
@@ -91,7 +91,7 @@ class EventLoop
             browser.clock = earliest.when if browser.clock < earliest.when
             earliest.fire()
         if event
-          try 
+          try
             event()
             done = false
             if typeof terminate is "number"
@@ -119,7 +119,7 @@ class EventLoop
         window[fn] = this[fn]
       window.perform = this.perform
       window.wait = (terminate, callback)=> this.wait(window, terminate, callback)
-      window.request = this.request 
+      window.request = this.request
 
     this.dump = ()->
       [ "The time:   #{browser.clock}",

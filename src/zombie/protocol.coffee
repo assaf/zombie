@@ -95,7 +95,7 @@ class Context
         last = command
         command.invoke()
 
-    # Send a response of the specified type. 
+    # Send a response of the specified type.
     respond = (stream, type, value)->
       switch type
         when ERROR then stream.write "-#{value.message}\r\n"

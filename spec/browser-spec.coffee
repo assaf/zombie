@@ -180,7 +180,7 @@ vows.describe("Browser").addBatch(
           browser.window.location = "http://localhost:3003/"
           browser.wait()
       "should fire done event": (browser)-> assert.ok browser.visit
-     
+
   "content selection":
     zombie.wants "http://localhost:3003/living"
       "query text":

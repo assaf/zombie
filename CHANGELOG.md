@@ -211,7 +211,7 @@ object is more consistent with `window.location`, accepted that
 interpretation.
 
 `Location.assign` did not load a page if the page was already loaded
-in the browser.  Changed it to load the page (add caching later on). 
+in the browser.  Changed it to load the page (add caching later on).
 
     196 Tests
     2.6 sec to complete
@@ -242,7 +242,7 @@ Added new page covering the browser API.
 
 ### Version 0.7.7  2010-12-28
 
-Fix JSDOM queue and with it issue #6. 
+Fix JSDOM queue and with it issue #6.
 
     189 Tests
     2.3 sec to complete
@@ -254,9 +254,9 @@ HTML5 doesn't play nice with JSDOM, bringing back html-parser to handle
 innerHTML (full document parsing still handled by HTML5).
 
 Added documentation page for CSS selectors.
-    
+
 Man pages now moved to section 7.
-    
+
 Added zombie.version.
 
     189 Tests

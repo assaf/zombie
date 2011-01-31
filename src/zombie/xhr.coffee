@@ -48,7 +48,7 @@ XMLHttpRequest = (window)->
       @abort = ->
         aborted = true
         reset()
-      
+
       headers = {}
       @setRequestHeader = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
       # Allow calling send method.
@@ -59,7 +59,7 @@ XMLHttpRequest = (window)->
           @_error = new core.DOMException(core.ABORT_ERR, "Request aborted")
           stateChanged 4
           reset()
-        
+
         # Make the actual request: called again when dealing with a redirect.
         window.resources.request method, url, data, headers, (error, response)=>
           if error

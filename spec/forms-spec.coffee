@@ -43,14 +43,14 @@ brains.get "/forms/form", (req, res)-> res.send """
         <input type="text" name="addresses[][street]" value="" id="address1_street">
 
         <label for='address1_city'>City</label>
-        <input type="text" name="addresses[][city]" value="" id="address1_city"> 
+        <input type="text" name="addresses[][city]" value="" id="address1_city">
 
         <span>Second address</span>
         <label for='address2_street'>Street</label>
         <input type="text" name="addresses[][street]" value="" id="address2_street">
 
         <label for='address2_city'>City</label>
-        <input type="text" name="addresses[][city]" value="" id="address2_city"> 
+        <input type="text" name="addresses[][city]" value="" id="address2_city">
 
         <select name="kills" id="field-kills">
           <option>Five</option>
@@ -107,7 +107,7 @@ brains.get "/forms/upload", (req, res)-> res.send """
       <form method="post" enctype="multipart/form-data">
         <input name="text" type="file">
         <input name="image" type="file">
-        <button>Upload</button> 
+        <button>Upload</button>
       </form>
 
       <form>

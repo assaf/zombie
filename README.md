@@ -221,7 +221,7 @@ figure out what it's doing. For example:
     browser.visit("http://thedead", function(err, browser, status) {
       if (err)
         throw(err.message);
-      ... 
+      ...
     });
 
 **Step 2:** Wait for it to finish processing, then dump the current

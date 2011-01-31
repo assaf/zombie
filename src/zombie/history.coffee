@@ -48,7 +48,7 @@ class History
       else
         # Load new page for now (but later on use caching).
         resource url
-    
+
     # Make a request to external resource. We use this to fetch pages and
     # submit forms, see _loadPage and _submit.
     resource = (url, method, data, headers)=>

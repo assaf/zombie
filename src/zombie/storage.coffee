@@ -52,7 +52,7 @@ class StorageArea
     this.__defineGetter__ "pairs", -> [k,v] for k,v of items
     this.toString = ->
       ("#{k} = #{v}" for k,v of items).join("\n")
-        
+
 
 # Implementation of the Storage interface, used by local and session storage.
 class Storage

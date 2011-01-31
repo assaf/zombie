@@ -121,7 +121,7 @@ class Resources extends Array
     #
     # The callback is called with error and response (see `HTTPResponse`).
     this.request = (method, url, data, headers, callback)->
-      window.perform (done)-> 
+      window.perform (done)->
         makeRequest method, url, data, headers, null, (error, response)->
           done()
           callback error, response
@@ -214,7 +214,7 @@ class Resources extends Array
       url.port ||= if secure then 443 else 80
       client = HTTP.createClient(url.port, url.hostname, secure)
       request = client.request(method, "#{url.pathname}#{url.search || ""}", headers)
-  
+
       # First request has not resource, so create it and add to
       # Resources.  After redirect, we have a resource we're using.
       unless resource
@@ -233,7 +233,7 @@ class Resources extends Array
 
           # Turn body from string into a String, so we can add property getters.
           resource.response = new HTTPResponse(url, response.statusCode, response.headers, body)
-  
+
           error = null
           switch response.statusCode
             when 200, 201, 202, 204
