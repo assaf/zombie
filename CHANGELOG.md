@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-### Version 0.8.12  Pending
+### Version 0.8.12  2011-02-01
 
 Tested with Node 0.3.7 in preparation for Node 0.4.0.
 
@@ -16,7 +16,6 @@ affect the other.
 > Particularly useful for constructing a state (e.g.  sign in, add items
 to a shopping cart) and using that as the base for multiple tests, and
 for running parallel tests in Vows.
-
 
 Fix firing the `change` event on `SELECT` elements when using jQuery
 (Damian Janowski).
