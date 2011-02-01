@@ -2,6 +2,11 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+### Version 0.8.13  Pending
+
+Add support for IFRAMEs (Damian Janowski).
+
+
 ### Version 0.8.12  2011-02-01
 
 Tested with Node 0.3.7 in preparation for Node 0.4.0.

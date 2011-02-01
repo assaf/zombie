@@ -123,6 +123,17 @@ brains.get "/screen", (req, res)-> res.send """
   </script>
   """
 
+brains.get "/iframe", (req, res)-> res.send """
+  <html>
+    <head>
+      <script src="/jquery.js"></script>
+    </head>
+    <body>
+      <iframe src="/static" />
+    </body>
+  </html>
+  """
+
 vows.describe("Browser").addBatch(
   "open page":
     zombie.wants "http://localhost:3003/scripted"
@@ -133,6 +144,7 @@ vows.describe("Browser").addBatch(
         assert.typeOf jQuery.ajax, "function"
       "should run jQuery.onready": (browser)-> assert.equal browser.document.title, "Awesome"
       "should return status code of last request": (browser)-> assert.equal browser.statusCode, 200
+      "should have a parent": (browser)-> assert.ok browser.window.parent == browser.window
 
   "visit":
     "successful":
@@ -359,5 +371,24 @@ vows.describe("Browser").addBatch(
       assert.equal "http://localhost:3003/dead", forked.location.href
       forked.window.history.back()
       assert.equal "http://localhost:3003/living", forked.location.href
+
+  "iframes":
+    zombie.wants "http://localhost:3003/iframe"
+      "should load": (browser)->
+        assert.equal "Whatever", browser.querySelector("iframe").window.document.title
+        assert.match browser.querySelector("iframe").window.document.querySelector("body").innerHTML, /Hello World/
+        assert.equal "http://localhost:3003/static", browser.querySelector("iframe").window.location
+      "should reference the parent": (browser)->
+        assert.ok browser.window == browser.querySelector("iframe").window.parent
+      "should not alter the parent": (browser)->
+        assert.equal "http://localhost:3003/iframe", browser.window.location
+      "after a refresh":
+        topic: (browser)->
+          callback = @callback
+          browser.querySelector("iframe").window.location.reload(true)
+          browser.wait -> callback null, browser
+        "should still reference the parent": (browser)->
+          assert.ok browser.window == browser.querySelector("iframe").window.parent
+
 
 ).export(module)

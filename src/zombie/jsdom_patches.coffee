@@ -27,15 +27,22 @@ core.resourceLoader.load = (element, href, callback)->
   document = element.ownerDocument
   window = document.parentWindow
   ownerImplementation = document.implementation
-  if ownerImplementation.hasFeature('FetchExternalResources', element.tagName.toLowerCase())
-    url = URL.parse(@resolve(document, href))
-    loaded = (response, filename)->
-      callback.call this, response.body, URL.parse(response.url).pathname
-    if url.hostname
-      window.resources.get url, @enqueue(element, loaded, url.pathname)
-    else
-      file = @resolve(document, url.pathname)
-      @readFile file, @enqueue(element, loaded, file)
+  tagName = element.tagName.toLowerCase()
+
+  if ownerImplementation.hasFeature('FetchExternalResources', tagName)
+    switch tagName
+      when "iframe"
+        element.window.location = URL.resolve(element.window.parent.location, href)
+
+      else
+        url = URL.parse(@resolve(document, href))
+        loaded = (response, filename)->
+          callback.call this, response.body, URL.parse(response.url).pathname
+        if url.hostname
+          window.resources.get url, @enqueue(element, loaded, url.pathname)
+        else
+          file = @resolve(document, url.pathname)
+          @readFile file, @enqueue(element, loaded, file)
 
 
 # Scripts
@@ -84,6 +91,14 @@ core.Document.prototype._elementBuilders["script"] = (doc, s)->
           core.resourceLoader.enqueue(this, loaded, filename)(null, code)
   return script
 
+core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
+  window = doc.parentWindow
+
+  iframe = new core.HTMLIFrameElement(doc, s)
+  iframe.window = window.browser.open(interactive: false)
+  iframe.window.parent = window
+
+  return iframe
 
 # Queue
 # -----

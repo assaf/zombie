@@ -4,6 +4,7 @@ vm = process.binding("evals")
 require "./jsdom_patches"
 require "./forms"
 require "./xpath"
+History = require("./history").History
 
 
 
@@ -16,7 +17,6 @@ class Browser extends require("events").EventEmitter
     cookies = require("./cookies").use(this)
     storage = require("./storage").use(this)
     eventloop = require("./eventloop").use(this)
-    history = require("./history").use(this)
     interact = require("./interact").use(this)
     xhr = require("./xhr").use(cache)
     resources = require("./resources")
@@ -82,26 +82,37 @@ class Browser extends require("events").EventEmitter
     # ### browser.open() => Window
     #
     # Open new browser window.
-    this.open = ->
-      window = jsdom.createWindow(html)
-      window.__defineGetter__ "browser", => this
-      window.__defineGetter__ "title", => @window?.document?.title
-      window.__defineSetter__ "title", (title)=> @window?.document?.title = title
-      window.navigator.userAgent = @userAgent
-      resources.extend window
-      cookies.extend window
-      storage.extend window
-      eventloop.extend window
-      history.extend window
-      interact.extend window
-      xhr.extend window
-      window.screen = new Screen()
-      window.JSON = JSON
+    this.open = (features = {})->
+      features.interactive ?= true
+
+      history = features.history || new History
+
+      newWindow = jsdom.createWindow(html)
+
+      # Switch to the newly created window if it's interactive.
+      # Examples of non-interactive windows are frames.
+      window = newWindow if features.interactive
+
+      newWindow.parent = newWindow
+      newWindow.__defineGetter__ "browser", => this
+      newWindow.__defineGetter__ "title", => @window?.document?.title
+      newWindow.__defineSetter__ "title", (title)=> @window?.document?.title = title
+      newWindow.navigator.userAgent = @userAgent
+      resources.extend newWindow
+      cookies.extend newWindow
+      storage.extend newWindow
+      eventloop.extend newWindow
+      history.extend newWindow
+      interact.extend newWindow
+      xhr.extend newWindow
+      newWindow.screen = new Screen()
+      newWindow.JSON = JSON
       # Default onerror handler.
-      window.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
+      newWindow.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
       # TODO: Fix
-      window.Image = ->
-      return window
+      newWindow.Image = ->
+
+      return newWindow
 
 
 
@@ -305,7 +316,7 @@ class Browser extends require("events").EventEmitter
       if typeof options is "function"
         [callback, options] = [options, null]
       @withOptions options, (reset)=>
-        history._assign url
+        window.history._assign url
         @wait (error, browser)->
           reset()
           if callback && error
@@ -354,12 +365,12 @@ class Browser extends require("events").EventEmitter
     #
     # Save history to a text string.  You can use this to load the data
     # later on using `browser.loadHistory`.
-    this.saveHistory = -> history.save()
+    this.saveHistory = -> window.history.save()
     # ### browser.loadHistory(String)
     #
     # Load history from a text string (e.g. previously created using
     # `browser.saveHistory`.
-    this.loadHistory = (serialized)-> history.load serialized
+    this.loadHistory = (serialized)-> window.history.load serialized
 
 
     # Forms
@@ -756,7 +767,7 @@ class Browser extends require("events").EventEmitter
       indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
       console.log "Zombie: #{exports.version}\n"
       console.log "URL: #{@window.location.href}"
-      console.log "History:\n#{indent history.dump()}"
+      console.log "History:\n#{indent window.history.dump()}"
       console.log "Cookies:\n#{indent cookies.dump()}"
       console.log "Storage:\n#{indent storage.dump()}"
       console.log "Eventloop:\n#{indent eventloop.dump()}"
