@@ -11,15 +11,32 @@ serialize = (browser, domain, path, name, cookie)->
   str = str + "; secure" if cookie.secure
   str
 
+# Unserialize a cookie
+unserialize = (serialized)->
+  fields = serialized.split(/;+/)
+  first = fields[0].trim()
+  [name, value] = first.split(/\=/, 2)
+
+  cookie = name: name, value: value
+  for field in fields
+    [key, val] = field.trim().split(/\=/, 2)
+    switch key.toLowerCase()
+      when "domain"   then cookie.domain = dequote(val)
+      when "path"     then cookie.path   = dequote(val).replace(/%[^\/]*$/, "")
+      when "expires"  then cookie.expires = new Date(dequote(val))
+      when "max-age"  then cookie['max-age'] = parseInt(dequote(val), 10)
+      when "secure"   then cookie.secure = true
+  return cookie
+
+# Cookie header values are (supposed to be) quoted. This function strips
+# double quotes aroud value, if it finds both quotes.
+dequote = (value)-> value.replace(/^"(.*)"$/, "$1")
+
 # Maintains cookies for a Browser instance. This is actually a domain/path
 # specific scope around the global cookies collection.
 class Cookies
   constructor: (browser, cookies, hostname, pathname)->
     pathname = "/" if !pathname || pathname == ""
-
-    # Cookie header values are (supposed to be) quoted. This function strips
-    # double quotes aroud value, if it finds both quotes.
-    dequote = (value)-> value.replace(/^"(.*)"$/, "$1")
 
     domainMatch = (domain, hostname)->
       return true if domain == hostname
@@ -112,21 +129,8 @@ class Cookies
       # Handle case where we get array of headers.
       serialized = serialized.join(",") if serialized.constructor == Array
       for cookie in serialized.split(/,(?=[^;,]*=)|,$/)
-        fields = cookie.split(/;+/)
-        first = fields[0].trim()
-        [name, value] = first.split(/\=/, 2)
-
-        options = { value: value }
-        for field in fields
-          [key, val] = field.trim().split(/\=/, 2)
-          switch key.toLowerCase()
-            when "domain"   then options.domain = dequote(val)
-            when "path"     then options.path   = dequote(val).replace(/%[^\/]*$/, "")
-            when "expires"  then options.expires = new Date(dequote(val))
-            when "max-age"  then options['max-age'] = parseInt(dequote(val), 10)
-            when "secure"   then options.secure = true
-
-        @set(name, value, options)
+        unserialized = unserialize(cookie)
+        @set(unserialized.name, unserialized.value, unserialized)
 
     #### cookies(host, path).addHeader(headers)
     #
@@ -177,5 +181,10 @@ exports.use = (browser)->
         for name, cookie of in_path
           dump.push serialize(browser, domain, path, name, cookie)
     dump
+  # Import cookies from a dump
+  from = (serialized)->
+    for cookie in serialized
+      unserialized = unserialize(cookie)
+      (new Cookies(browser, cookies, unserialized.domain, unserialized.path)).set(unserialized.name, unserialized.value, unserialized)
 
-  return access: access, extend: extend, dump: dump
+  return access: access, extend: extend, dump: dump, from: from

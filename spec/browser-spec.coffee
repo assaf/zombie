@@ -319,4 +319,38 @@ vows.describe("Browser").addBatch(
         assert.match browser.document.title, /colorDepth=24/
         assert.match browser.document.title, /pixelDepth=24/
 
+  "fork":
+    topic: ->
+      browser = new zombie.Browser
+      browser.visit("http://localhost:3003/living")
+      browser.wait()
+      browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
+      browser.localStorage("www.localhost").setItem("foo", "bar")
+      browser.sessionStorage("www.localhost").setItem("baz", "qux")
+
+      forked = browser.fork()
+      forked.visit "http://localhost:3003/dead"
+      forked.wait()
+
+      browser.cookies("www.localhost").update("foo=baz; domain=.localhost")
+      browser.localStorage("www.localhost").setItem("foo", "new")
+      browser.sessionStorage("www.localhost").setItem("baz", "value")
+
+      [forked, browser]
+    "should not be the same object": ([forked, browser])-> assert.notStrictEqual browser, forked
+    "should have two browser objects": ([forked, browser])->
+      assert.isNotNull forked
+      assert.isNotNull browser
+    "should navigate independently": ([forked, browser])->
+      assert.equal browser.location.href, "http://localhost:3003/living"
+      assert.equal forked.location, "http://localhost:3003/dead"
+    "should manipulate cookies independently": ([forked, browser])->
+      assert.equal browser.cookies("localhost").get("foo"), "baz"
+      assert.equal forked.cookies("localhost").get("foo"), "bar"
+    "should manipulate storage independently": ([forked, browser])->
+      assert.equal browser.localStorage("www.localhost").getItem("foo"), "new"
+      assert.equal browser.sessionStorage("www.localhost").getItem("baz"), "value"
+      assert.equal forked.localStorage("www.localhost").getItem("foo"), "bar"
+      assert.equal forked.sessionStorage("www.localhost").getItem("baz"), "qux"
+
 ).export(module)
