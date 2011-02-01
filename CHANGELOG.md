@@ -12,8 +12,16 @@ Fix firing the `change` event on `SELECT` elements when using jQuery
 Fix for `jQuery.ajax` receiving a non-string `data` option (Damian
 Janowski).
 
-    284 Tests
-    4.9 sec to complete
+Fix to allow `script` elements that are not JavaScript (Sean Coates).
+
+NOTE: In this release I started running the test suite using `cake test`
+and recording the time reported by Vows.  This doesn't count the
+time it takes to fire up Node, Cake, etc, so the reported time is
+approximately a second smaller than the previously reported time for
+0.8.11.  All other things being equal.
+
+    285 Tests
+    3.4 sec to complete
 
 
 ### Version 0.8.11  2011-01-25
