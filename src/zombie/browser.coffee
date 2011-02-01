@@ -65,7 +65,7 @@ class Browser extends require("events").EventEmitter
 
     # ### browser.fork() => Browser
     #
-    # Return a new browser with a snapshot of this browser's data.
+    # Return a new browser with a snapshot of this browser's state.
     # Any changes to the forked browser's state do not affect this browser.
     this.fork = ->
       forked = new Browser()

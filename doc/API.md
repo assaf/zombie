@@ -352,6 +352,17 @@ value)`, `remove(name)` and `dump()`.
 The `set` method accepts a third argument which may include the options
 `expires`, `maxAge` and `secure`.
 
+### browser.fork() : Browser
+
+Return a new browser using a snapshot of this browser's state.  This
+method clones the forked browser's cookies, history and storage.  The
+two browsers are independent, actions you perform in one browser do not
+affect the other.
+
+Particularly useful for constructing a state (e.g.  sign in, add items
+to a shopping cart) and using that as the base for multiple tests, and
+for running parallel tests in Vows.
+
 ### browser.loadCookies(String)
 
 Load cookies from a text string (e.g. previously created using

@@ -4,7 +4,19 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.8.12  Pending
 
-Tested with Node 0.3.7 in preparation for Node 0.4.0 (Assaf Arkin).
+Tested with Node 0.3.7 in preparation for Node 0.4.0.
+
+Added `browser.fork` (Josh Adell):
+
+> Return a new browser using a snapshot of this browser's state.  This
+method clones the forked browser's cookies, history and storage.  The
+two browsers are independent, actions you perform in one browser do not
+affect the other.
+
+> Particularly useful for constructing a state (e.g.  sign in, add items
+to a shopping cart) and using that as the base for multiple tests, and
+for running parallel tests in Vows.
+
 
 Fix firing the `change` event on `SELECT` elements when using jQuery
 (Damian Janowski).
