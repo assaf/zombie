@@ -177,6 +177,7 @@ class History
       window.__defineSetter__ "location", (url)=>
         @_assign URL.resolve(stack[index]?.url, url)
 
+    # Used to dump state to console (debuggin)
     this.dump = ->
       dump = []
       for i, entry of stack
@@ -187,6 +188,21 @@ class History
         dump.push line
       dump
 
+    # browser.saveHistory uses this
+    this.save = ->
+      serialized = []
+      for i, entry of stack
+        line = URL.format(entry.url)
+        line += " #{JSON.stringify(entry.state)}" if entry.pop
+        serialized.push line
+      serialized.join("\n")
+    # browser.loadHistory uses this
+    this.load = (serialized) ->
+      for line in serialized.split(/\n+/)
+        [url, state] = line.split(/\s/)
+        options = state && { state: JSON.parse(state), title: null, pop: true }
+        stack[++index] = new Entry(this, url, state)
+    
 
 # ## window.location
 #

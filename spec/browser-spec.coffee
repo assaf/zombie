@@ -352,5 +352,12 @@ vows.describe("Browser").addBatch(
       assert.equal browser.sessionStorage("www.localhost").getItem("baz"), "value"
       assert.equal forked.localStorage("www.localhost").getItem("foo"), "bar"
       assert.equal forked.sessionStorage("www.localhost").getItem("baz"), "qux"
+    "should have independent history": ([forked, browser])->
+      assert.equal "http://localhost:3003/living", browser.location.href
+      assert.equal "http://localhost:3003/dead", forked.location.href
+    "should clone history from source": ([forked, browser])->
+      assert.equal "http://localhost:3003/dead", forked.location.href
+      forked.window.history.back()
+      assert.equal "http://localhost:3003/living", forked.location.href
 
 ).export(module)

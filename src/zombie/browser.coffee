@@ -63,22 +63,17 @@ class Browser extends require("events").EventEmitter
         else
           throw "I don't recognize the option #{k}"
 
-    # Fork
-    # ----
-
     # ### browser.fork() => Browser
     #
     # Return a new browser with a snapshot of this browser's data.
     # Any changes to the forked browser's state do not affect this browser.
     this.fork = ->
       forked = new Browser()
-      forked.importCookies(cookies.dump())
-      forked.importStorage(storage.dump())
+      forked.loadCookies this.saveCookies()
+      forked.loadStorage this.saveStorage()
+      forked.loadHistory this.saveHistory()
       return forked
-    this.importCookies = (serialized) ->
-      cookies.from(serialized)
-    this.importStorage = (serialized) ->
-      storage.from(serialized)
+
 
     # Windows
     # -------
@@ -355,6 +350,17 @@ class Browser extends require("events").EventEmitter
       else
         callback new Error("No link matching '#{selector}'")
 
+    # ### browser.saveHistory() => String
+    #
+    # Save history to a text string.  You can use this to load the data
+    # later on using `browser.loadHistory`.
+    this.saveHistory = -> history.save()
+    # ### browser.loadHistory(String)
+    #
+    # Load history from a text string (e.g. previously created using
+    # `browser.saveHistory`.
+    this.loadHistory = (serialized)-> history.load serialized
+
 
     # Forms
     # -----
@@ -585,6 +591,17 @@ class Browser extends require("events").EventEmitter
     #
     # Returns all the cookies for this domain/path. Path defaults to "/".
     this.cookies = (domain, path)-> cookies.access(domain, path)
+    # ### browser.saveCookies() => String
+    #
+    # Save cookies to a text string.  You can use this to load them back
+    # later on using `browser.loadCookies`.
+    this.saveCookies = -> cookies.save()
+    # ### browser.loadCookies(String)
+    #
+    # Load cookies from a text string (e.g. previously created using
+    # `browser.saveCookies`.
+    this.loadCookies = (serialized)-> cookies.load serialized
+
     # ### brower.localStorage(host) => Storage
     #
     # Returns local Storage based on the document origin (hostname/port). This
@@ -595,6 +612,16 @@ class Browser extends require("events").EventEmitter
     # Returns session Storage based on the document origin (hostname/port). This
     # is the same storage area you can access from any document of that origin.
     this.sessionStorage = (host)-> storage.session(host)
+    # ### browser.saveStorage() => String
+    #
+    # Save local/session storage to a text string.  You can use this to
+    # load the data later on using `browser.loadStorage`.
+    this.saveStorage = -> storage.save()
+    # ### browser.loadStorage(String)
+    #
+    # Load local/session stroage from a text string (e.g. previously
+    # created using `browser.saveStorage`.
+    this.loadStorage = (serialized)-> storage.load serialized
 
 
     # Scripts

@@ -120,26 +120,44 @@ class Storages
         @document._sessionStorage ||= browser.sessionStorage(@location.host)
       window.__defineGetter__ "localStorage", ->
         @document._localStorage ||= browser.localStorage(@location.host)
+
+    # Used to dump state to console (debuggin)
     this.dump = ->
-      dump = []
+      serialized = []
+      for domain, area of localAreas
+        pairs = area.pairs
+        serialized.push "#{domain} local:"
+        for pair in pairs
+          serialized.push "  #{pair[0]} = #{pair[1]}"
+      for domain, area of sessionAreas
+        pairs = area.pairs
+        serialized.push "#{domain} session:"
+        for pair in pairs
+          serialized.push "  #{pair[0]} = #{pair[1]}"
+      serialized.join("\n")
+    # browser.saveStorage uses this
+    this.save = ->
+      serialized = ["# Saved on #{new Date().toISOString()}"]
       for domain, area of localAreas
         pairs = area.pairs
         if pairs.length > 0
-          dump.push "#{domain} local:"
+          serialized.push "#{domain} local:"
           for pair in pairs
-            dump.push "  #{pair[0]} = #{pair[1]}"
+            serialized.push "  #{escape pair[0]} = #{escape pair[1]}"
       for domain, area of sessionAreas
         pairs = area.pairs
         if pairs.length > 0
-          dump.push "#{domain} session:"
+          serialized.push "#{domain} session:"
           for pair in pairs
-            dump.push "  #{pair[0]} = #{pair[1]}"
-      dump
-    this.from = (serialized) ->
-      for item in serialized
+            serialized.push "  #{escape pair[0]} = #{escape pair[1]}"
+      serialized.join("\n")
+    # browser.loadStorage uses this
+    this.load = (serialized) ->
+      for item in serialized.split(/\n+/)
+        continue if item[0] == "#"
         if (item[0] == " ")
           [key, value] = item.split("=")
-          storage.setItem key.trim(), value.trim() if storage
+          storage.setItem unescape(key.trim()), unescape(value.trim()) if storage
         else
           [domain, type] = item.split(" ")
           if (type == "local:")

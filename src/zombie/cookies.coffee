@@ -11,8 +11,8 @@ serialize = (browser, domain, path, name, cookie)->
   str = str + "; secure" if cookie.secure
   str
 
-# Unserialize a cookie
-unserialize = (serialized)->
+# Deserialize a cookie
+deserialize = (serialized)->
   fields = serialized.split(/;+/)
   first = fields[0].trim()
   [name, value] = first.split(/\=/, 2)
@@ -129,8 +129,8 @@ class Cookies
       # Handle case where we get array of headers.
       serialized = serialized.join(",") if serialized.constructor == Array
       for cookie in serialized.split(/,(?=[^;,]*=)|,$/)
-        unserialized = unserialize(cookie)
-        @set(unserialized.name, unserialized.value, unserialized)
+        cookie = deserialize(cookie)
+        @set(cookie.name, cookie.value, cookie)
 
     #### cookies(host, path).addHeader(headers)
     #
@@ -174,17 +174,28 @@ exports.use = (browser)->
   # Add cookies accessor to window: documents need this.
   extend = (window)->
     window.__defineGetter__ "cookies", -> access(@location.hostname, @location.pathname)
+
+  # Used to dump state to console (debuggin)
   dump = ->
-    dump = []
+    serialized = []
     for domain, in_domain of cookies
       for path, in_path of in_domain
         for name, cookie of in_path
-          dump.push serialize(browser, domain, path, name, cookie)
-    dump
-  # Import cookies from a dump
-  from = (serialized)->
-    for cookie in serialized
-      unserialized = unserialize(cookie)
-      (new Cookies(browser, cookies, unserialized.domain, unserialized.path)).set(unserialized.name, unserialized.value, unserialized)
+          serialized.push serialize(browser, domain, path, name, cookie)
+    serialized.join("\n")
+  # browser.saveCookies uses this
+  save = ->
+    serialized = ["# Saved on #{new Date().toISOString()}"]
+    for domain, in_domain of cookies
+      for path, in_path of in_domain
+        for name, cookie of in_path
+          serialized.push serialize(browser, domain, path, name, cookie)
+    serialized.join("\n")
+  # browser.loadCookies uses this
+  load = (serialized)->
+    for cookie in serialized.split(/\n+/)
+      continue if cookie[0] == "#"
+      cookie = deserialize(cookie)
+      new Cookies(browser, cookies, cookie.domain, cookie.path).set(cookie.name, cookie.value, cookie)
 
-  return access: access, extend: extend, dump: dump, from: from
+  return access: access, extend: extend, save: save, load: load

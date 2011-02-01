@@ -20,8 +20,8 @@ time it takes to fire up Node, Cake, etc, so the reported time is
 approximately a second smaller than the previously reported time for
 0.8.11.  All other things being equal.
 
-    285 Tests
-    3.4 sec to complete
+    292 Tests
+    3.7 sec to complete
 
 
 ### Version 0.8.11  2011-01-25
