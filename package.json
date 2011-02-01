@@ -22,7 +22,6 @@
     "doc",
     "lib",
     "man7",
-    "index.js",
     "package.json"
   ],
   "scripts": {
