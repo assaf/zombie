@@ -108,9 +108,7 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         headers
       , {}
 
-      # Base64 encoding is optional.
-      if headers["content-transfer-encoding"] == "base64"
-        contents = require("base64").decode(contents)
+      contents = new Buffer(contents, "base64") if headers["content-transfer-encoding"] == "base64"
       contents.mime = headers["content-type"].split(/;/)[0]
 
       # We're looking for the content-disposition header, which has
@@ -124,7 +122,7 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         # From content disposition we can tell the field name, if it's a
         # file upload, also the file name. Content type is separate
         # header.
-        contents = new String(contents)
+        contents = new String(contents) if typeof contents is "string"
         contents.filename = pairs.filename if pairs.filename
         parts[pairs.name] = contents if pairs.name
       parts

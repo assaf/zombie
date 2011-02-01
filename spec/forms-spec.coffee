@@ -1,5 +1,7 @@
 require("./helpers")
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
+fs = require("fs")
+crypto = require("crypto")
 
 
 brains.get "/forms/form", (req, res)-> res.send """
@@ -79,7 +81,18 @@ brains.get "/forms/form", (req, res)-> res.send """
     </body>
   </html>
   """
-brains.post "/forms/submit", (req, res)-> res.send """
+brains.post "/forms/submit", (req, res)->
+  # These fixes necessary with Express 1.0.3 under Node 0.3.x.  Otherwise,
+  # bodyDecoder takes care of these mapping.
+  req.body.hungry ||= req.body["hungry[]"]
+  req.body.hobbies ||= req.body["hobbies[]"]
+  if req.body["addresses[][street]"]
+    req.body.addresses = []
+    for i,j of req.body["addresses[][street]"]
+      req.body.addresses.push street: j
+      req.body.addresses.push city: req.body["addresses[][city]"][i]
+
+  res.send """
   <html>
     <body>
       <div id="name">#{req.body.name}</div>
@@ -119,10 +132,11 @@ brains.get "/forms/upload", (req, res)-> res.send """
   """
 brains.post "/forms/upload", (req, res)->
   [text, image] = [req.body.text, req.body.image]
+  digest = crypto.createHash("md5").update(image).digest("hex") if image
   res.send """
   <html>
     <head><title>#{text?.filename || image?.filename}</title></head>
-    <body>#{text || image?.length}</body>
+    <body>#{text || digest}</body>
   </html>
   """
 
@@ -405,9 +419,12 @@ vows.describe("Forms").addBatch(
   "file upload (binary)":
     zombie.wants "http://localhost:3003/forms/upload"
       topic: (browser)->
-        filename = __dirname + "/data/zombie.jpg"
-        browser.attach("image", filename).pressButton "Upload", @callback
+        @filename = __dirname + "/data/zombie.jpg"
+        browser.attach("image", @filename).pressButton "Upload", @callback
       "should upload include name": (browser)-> assert.equal browser.text("title"), "zombie.jpg"
+      "should upload file": (browser)->
+        digest = crypto.createHash("md5").update(fs.readFileSync(@filename)).digest("hex")
+        assert.equal browser.text("body").trim(), digest
 
   "file upload (empty)":
     zombie.wants "http://localhost:3003/forms/upload"

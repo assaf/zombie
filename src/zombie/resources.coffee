@@ -171,23 +171,18 @@ class Resources extends Array
                   content = value
                   mime = "text/plain"
 
+                switch encoding
+                  when "base64" then content = content.toString("base64")
+                  when "7bit" then content = content.toString("ascii")
+                  when null
+                  else throw new Error("Unsupported transfer encoding #{encoding}")
+
                 lines.push disp
                 lines.push "Content-Type: #{mime}"
                 lines.push "Content-Length: #{content.length}"
                 lines.push "Content-Transfer-Encoding: #{encoding}" if encoding
                 lines.push ""
-                switch encoding
-                  when "base64"
-                    # Base64 encoding is optional, loaded on demand.
-                    try
-                      base64 = require("base64")
-                    catch ex
-                      throw new Error("Base64 encoding support is optional, you need to `npm install base64`")
-                    lines.push base64.encode(content).replace(/(.{76})/g, "$1\r\n")
-                  when null
-                    lines.push content
-                  else
-                    throw new Error("Unsupported transfer encoding #{encoding}")
+                lines.push content
                 lines.push "--#{boundary}"
             )
             if lines.length < 2

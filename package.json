@@ -30,7 +30,7 @@
     "test": "vows"
   },
   "engines": {
-    "node": ">= 0.2 < 0.3"
+    "node": ">= 0.2.5"
   },
   "dependencies": {
     "html5": "0.2.12",
@@ -38,8 +38,7 @@
     "mime": "1.2.1"
   },
   "devDependencies": {
-    "base64": ">1.0.1",
-    "coffee-script": ">= 1.0.0",
+    "coffee-script": ">= 1.0.1",
     "docco": "0.3.0",
     "express": "1.0.3",
     "ronn": "0.3.5",

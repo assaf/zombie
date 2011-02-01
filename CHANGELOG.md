@@ -4,20 +4,16 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.8.12  Pending
 
+Tested with Node 0.3.7 in preparation for Node 0.4.0 (Assaf Arkin).
+
 Fix firing the `change` event on `SELECT` elements when using jQuery
 (Damian Janowski).
-
-You can now run Zombie without base64 module, if you're not planning on
-uploading binary files.  If you are uploading binary files, you'll need
-to `npm install base64` (Assaf Arkin).
-
-Tested with Node 0.3.7 (Assaf Arkin).
 
 Fix for `jQuery.ajax` receiving a non-string `data` option (Damian
 Janowski).
 
-    283 Tests
-    4.6 sec to complete
+    284 Tests
+    4.9 sec to complete
 
 
 ### Version 0.8.11  2011-01-25
