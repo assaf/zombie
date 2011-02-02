@@ -121,7 +121,7 @@ class Resources extends Array
     #
     # The callback is called with error and response (see `HTTPResponse`).
     this.request = (method, url, data, headers, callback)->
-      window.perform (done)-> 
+      window.perform (done)->
         makeRequest method, url, data, headers, null, (error, response)->
           done()
           callback error, response
@@ -160,23 +160,29 @@ class Resources extends Array
 
               for value in values
                 disp = "Content-Disposition: form-data; name=\"#{name}\""
+                encoding = null
 
-                if value.contents
+                if value.read
+                  content = value.read()
                   disp += "; filename=\"#{value}\""
-                  content = value.contents()
-                  mime = value.mime()
-                  encoding = value.encoding()
+                  mime = value.mime
+                  encoding = "base64" unless value.mime == "text/plain"
                 else
                   content = value
                   mime = "text/plain"
 
+                switch encoding
+                  when "base64" then content = content.toString("base64")
+                  when "7bit" then content = content.toString("ascii")
+                  when null
+                  else throw new Error("Unsupported transfer encoding #{encoding}")
+
                 lines.push disp
                 lines.push "Content-Type: #{mime}"
                 lines.push "Content-Length: #{content.length}"
-                lines.push "Content-Transfer-Encoding: base64" if encoding
+                lines.push "Content-Transfer-Encoding: #{encoding}" if encoding
                 lines.push ""
                 lines.push content
-
                 lines.push "--#{boundary}"
             )
             if lines.length < 2
@@ -203,7 +209,7 @@ class Resources extends Array
       url.port ||= if secure then 443 else 80
       client = HTTP.createClient(url.port, url.hostname, secure)
       request = client.request(method, "#{url.pathname}#{url.search || ""}", headers)
-  
+
       # First request has not resource, so create it and add to
       # Resources.  After redirect, we have a resource we're using.
       unless resource
@@ -222,7 +228,7 @@ class Resources extends Array
 
           # Turn body from string into a String, so we can add property getters.
           resource.response = new HTTPResponse(url, response.statusCode, response.headers, body)
-  
+
           error = null
           switch response.statusCode
             when 200, 201, 202, 204
@@ -249,14 +255,19 @@ class Resources extends Array
             callback error
       request.end body, "utf8"
 
+    typeOf = (object)->
+      return Object.prototype.toString.call(object)
+
     # We use this to convert data array/hash into application/x-www-form-urlencoded
     stringifyPrimitive = (v) =>
-      switch Object.prototype.toString.call(v)
+      switch typeOf(v)
         when '[object Boolean]' then v ? 'true' : 'false'
         when '[object Number]'  then isFinite(v) ? v : ''
         when '[object String]'  then v
         else ''
+
     stringify = (object) =>
+      return object.toString() unless object.map
       object.map((k) ->
         if Array.isArray(k[1])
           k[1].map((v) ->

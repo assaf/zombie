@@ -29,10 +29,13 @@ class Entry
 #
 # Represents window.history.
 class History
-  constructor: (browser)->
+  constructor: ->
     # History is a stack of Entry objects.
     stack = []
     index = -1
+
+    window = null
+    browser = null
 
     # Called when we switch to a new page with the URL of the old page.
     pageChanged = (was)=>
@@ -44,21 +47,24 @@ class History
         # Hash changed. Do not reload page, but do send hashchange
         evt = browser.document.createEvent("HTMLEvents")
         evt.initEvent "hashchange", true, false
-        browser.window.dispatchEvent evt
+        window.dispatchEvent evt
       else
         # Load new page for now (but later on use caching).
         resource url
-    
+
     # Make a request to external resource. We use this to fetch pages and
     # submit forms, see _loadPage and _submit.
     resource = (url, method, data, headers)=>
       method = (method || "GET").toUpperCase()
       throw new Error("Cannot load resource: #{URL.format(url)}") unless url.protocol && url.hostname
+
       # If the browser has a new window, use it. If a document was already
       # loaded into that window it would have state information we don't want
       # (e.g. window.$) so open a new window.
-      window = browser.window
-      window = browser.open() if browser.window.document
+      if window.document
+        browser.open
+          history: this
+          interactive: window.parent == window
 
       # Create new DOM Level 3 document, add features (load external
       # resources, etc) and associate it with current document. From this
@@ -75,6 +81,7 @@ class History
       if browser.runScripts
         options.features.ProcessExternalResources.push "script"
         options.features.FetchExternalResources.push "script"
+      options.features.FetchExternalResources.push "iframe"
       document = jsdom.jsdom(false, jsdom.level3, options)
       document.fixQueue()
       window.document = document
@@ -171,12 +178,16 @@ class History
       resource stack[index].url, method, data, headers
 
     # Add Location/History to window.
-    this.extend = (window)->
+    this.extend = (new_window)->
+      window = new_window
+      browser = window.browser
+
       window.__defineGetter__ "history", => this
       window.__defineGetter__ "location", => stack[index]?.location || new Location(this, {})
       window.__defineSetter__ "location", (url)=>
         @_assign URL.resolve(stack[index]?.url, url)
 
+    # Used to dump state to console (debuggin)
     this.dump = ->
       dump = []
       for i, entry of stack
@@ -186,6 +197,21 @@ class History
         line += " state: " + util.inspect(entry.state) if entry.state
         dump.push line
       dump
+
+    # browser.saveHistory uses this
+    this.save = ->
+      serialized = []
+      for i, entry of stack
+        line = URL.format(entry.url)
+        line += " #{JSON.stringify(entry.state)}" if entry.pop
+        serialized.push line
+      serialized.join("\n")
+    # browser.loadHistory uses this
+    this.load = (serialized) ->
+      for line in serialized.split(/\n+/)
+        [url, state] = line.split(/\s/)
+        options = state && { state: JSON.parse(state), title: null, pop: true }
+        stack[++index] = new Entry(this, url, state)
 
 
 # ## window.location
@@ -220,5 +246,4 @@ class Location
 html.HTMLDocument.prototype.__defineGetter__ "location", -> @parentWindow.location
 
 
-exports.use = (browser)->
-  return new History(browser)
+exports.History = History

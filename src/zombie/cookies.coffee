@@ -11,15 +11,32 @@ serialize = (browser, domain, path, name, cookie)->
   str = str + "; secure" if cookie.secure
   str
 
+# Deserialize a cookie
+deserialize = (serialized)->
+  fields = serialized.split(/;+/)
+  first = fields[0].trim()
+  [name, value] = first.split(/\=/, 2)
+
+  cookie = name: name, value: value
+  for field in fields
+    [key, val] = field.trim().split(/\=/, 2)
+    switch key.toLowerCase()
+      when "domain"   then cookie.domain = dequote(val)
+      when "path"     then cookie.path   = dequote(val).replace(/%[^\/]*$/, "")
+      when "expires"  then cookie.expires = new Date(dequote(val))
+      when "max-age"  then cookie['max-age'] = parseInt(dequote(val), 10)
+      when "secure"   then cookie.secure = true
+  return cookie
+
+# Cookie header values are (supposed to be) quoted. This function strips
+# double quotes aroud value, if it finds both quotes.
+dequote = (value)-> value.replace(/^"(.*)"$/, "$1")
+
 # Maintains cookies for a Browser instance. This is actually a domain/path
 # specific scope around the global cookies collection.
 class Cookies
   constructor: (browser, cookies, hostname, pathname)->
     pathname = "/" if !pathname || pathname == ""
-
-    # Cookie header values are (supposed to be) quoted. This function strips
-    # double quotes aroud value, if it finds both quotes.
-    dequote = (value)-> value.replace(/^"(.*)"$/, "$1")
 
     domainMatch = (domain, hostname)->
       return true if domain == hostname
@@ -65,8 +82,8 @@ class Cookies
     # * options -- Options max-age, expires, secure, domain, path
     this.set = (name, value, options = {})->
       return if options.domain && !domainMatch(options.domain, hostname)
-      
-      name = name.toLowerCase()
+
+      name = name
       state = { value: value.toString() }
       if options.expires
         state.expires = options.expires.getTime()
@@ -74,13 +91,13 @@ class Cookies
         maxage = options["max-age"]
         state.expires = browser.clock + maxage if typeof maxage is "number"
       state.secure = true if options.secure
-      
+
       if typeof state.expires is "number" && state.expires <= browser.clock
         @remove(name, options)
       else
         path_without_resource = pathname.match(/.*\//) # everything but what trails the last /
         in_domain = cookies[options.domain || hostname] ||= {}
-        in_path = in_domain[options.path || path_without_resource] ||= {} 
+        in_path = in_domain[options.path || path_without_resource] ||= {}
         in_path[name] = state
 
     #### cookies(host, path).remove(name, options?)
@@ -92,7 +109,7 @@ class Cookies
     this.remove = (name, options = {})->
       if in_domain = cookies[options.domain || hostname]
         if in_path = in_domain[options.path || pathname]
-          delete in_path[name.toLowerCase()]
+          delete in_path[name]
 
     #### cookies(host, path).clear()
     #
@@ -112,21 +129,8 @@ class Cookies
       # Handle case where we get array of headers.
       serialized = serialized.join(",") if serialized.constructor == Array
       for cookie in serialized.split(/,(?=[^;,]*=)|,$/)
-        fields = cookie.split(/;+/)
-        first = fields[0].trim()
-        [name, value] = first.split(/\=/, 2)
-        
-        options = { value: value }
-        for field in fields
-          [key, val] = field.trim().split(/\=/, 2)
-          switch key.toLowerCase()
-            when "domain"   then options.domain = dequote(val)
-            when "path"     then options.path   = dequote(val).replace(/%[^\/]*$/, "")
-            when "expires"  then options.expires = new Date(dequote(val))
-            when "max-age"  then options['max-age'] = parseInt(dequote(val), 10)
-            when "secure"   then options.secure = true
-        
-        @set(name, value, options)
+        cookie = deserialize(cookie)
+        @set(cookie.name, cookie.value, cookie)
 
     #### cookies(host, path).addHeader(headers)
     #
@@ -170,12 +174,28 @@ exports.use = (browser)->
   # Add cookies accessor to window: documents need this.
   extend = (window)->
     window.__defineGetter__ "cookies", -> access(@location.hostname, @location.pathname)
+
+  # Used to dump state to console (debuggin)
   dump = ->
-    dump = []
+    serialized = []
     for domain, in_domain of cookies
       for path, in_path of in_domain
         for name, cookie of in_path
-          dump.push serialize(browser, domain, path, name, cookie)
-    dump
+          serialized.push serialize(browser, domain, path, name, cookie)
+    serialized.join("\n")
+  # browser.saveCookies uses this
+  save = ->
+    serialized = ["# Saved on #{new Date().toISOString()}"]
+    for domain, in_domain of cookies
+      for path, in_path of in_domain
+        for name, cookie of in_path
+          serialized.push serialize(browser, domain, path, name, cookie)
+    serialized.join("\n")
+  # browser.loadCookies uses this
+  load = (serialized)->
+    for cookie in serialized.split(/\n+/)
+      continue if cookie[0] == "#"
+      cookie = deserialize(cookie)
+      new Cookies(browser, cookies, cookie.domain, cookie.path).set(cookie.name, cookie.value, cookie)
 
-  return access: access, extend: extend, dump: dump
+  return access: access, extend: extend, save: save, load: load

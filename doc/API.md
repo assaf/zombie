@@ -352,6 +352,32 @@ value)`, `remove(name)` and `dump()`.
 The `set` method accepts a third argument which may include the options
 `expires`, `maxAge` and `secure`.
 
+### browser.fork() : Browser
+
+Return a new browser using a snapshot of this browser's state.  This
+method clones the forked browser's cookies, history and storage.  The
+two browsers are independent, actions you perform in one browser do not
+affect the other.
+
+Particularly useful for constructing a state (e.g.  sign in, add items
+to a shopping cart) and using that as the base for multiple tests, and
+for running parallel tests in Vows.
+
+### browser.loadCookies(String)
+
+Load cookies from a text string (e.g. previously created using
+`browser.saveCookies`.
+
+### browser.loadHistory(String)
+
+Load history from a text string (e.g. previously created using
+`browser.saveHistory`.
+
+### browser.loadStorage(String)
+
+Load local/session stroage from a text string (e.g. previously created
+using `browser.saveStorage`.
+
 ### browser.localStorage(host) : Storage
     
 Returns local Storage based on the document origin (hostname/port).
@@ -363,6 +389,21 @@ For example:
 The `Storage` object has the methods `key(index)`, `getItem(name)`,
 `setItem(name, value)`, `removeItem(name)`, `clear()` and `dump`.  It
 also has the read-only property `length`.
+
+### browser.saveCookies() : String
+
+Save cookies to a text string.  You can use this to load them back later
+on using `browser.loadCookies`.
+
+### browser.saveHistory() : String
+
+Save history to a text string.  You can use this to load the data
+later on using `browser.loadHistory`.
+
+### browser.saveStorage() : String
+
+Save local/session storage to a text string.  You can use this to load
+the data later on using `browser.loadStorage`.
 
 ### browser.sessionStorage(host) : Storage
 

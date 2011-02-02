@@ -1,11 +1,51 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+### Version 0.8.13  Pending
 
-### Version 0.8.12  Pending
+Add support for IFRAMEs (Damian Janowski).
+
+Upgraded to HTML5 0.2.13.
+
+Fixes #71 cookie names now preserve case.
+
+Fixes #69 incorrectly resolving partial URLs in XHR requests.
+
+    299 Tests
+    3.7 sec to complete
+
+
+### Version 0.8.12  2011-02-01
+
+Tested with Node 0.3.7 in preparation for Node 0.4.0.
+
+Added `browser.fork` (Josh Adell):
+
+> Return a new browser using a snapshot of this browser's state.  This
+method clones the forked browser's cookies, history and storage.  The
+two browsers are independent, actions you perform in one browser do not
+affect the other.
+
+> Particularly useful for constructing a state (e.g.  sign in, add items
+to a shopping cart) and using that as the base for multiple tests, and
+for running parallel tests in Vows.
 
 Fix firing the `change` event on `SELECT` elements when using jQuery
 (Damian Janowski).
+
+Fix for `jQuery.ajax` receiving a non-string `data` option (Damian
+Janowski).
+
+Fix to allow `script` elements that are not JavaScript (Sean Coates).
+
+NOTE: In this release I started running the test suite using `cake test`
+and recording the time reported by Vows.  This doesn't count the
+time it takes to fire up Node, Cake, etc, so the reported time is
+approximately a second smaller than the previously reported time for
+0.8.11.  All other things being equal.
+
+    292 Tests
+    3.7 sec to complete
 
 
 ### Version 0.8.11  2011-01-25
@@ -199,7 +239,7 @@ object is more consistent with `window.location`, accepted that
 interpretation.
 
 `Location.assign` did not load a page if the page was already loaded
-in the browser.  Changed it to load the page (add caching later on). 
+in the browser.  Changed it to load the page (add caching later on).
 
     196 Tests
     2.6 sec to complete
@@ -230,7 +270,7 @@ Added new page covering the browser API.
 
 ### Version 0.7.7  2010-12-28
 
-Fix JSDOM queue and with it issue #6. 
+Fix JSDOM queue and with it issue #6.
 
     189 Tests
     2.3 sec to complete
@@ -242,9 +282,9 @@ HTML5 doesn't play nice with JSDOM, bringing back html-parser to handle
 innerHTML (full document parsing still handled by HTML5).
 
 Added documentation page for CSS selectors.
-    
+
 Man pages now moved to section 7.
-    
+
 Added zombie.version.
 
     189 Tests

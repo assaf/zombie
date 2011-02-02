@@ -8,12 +8,12 @@ brains.get "/xhr", (req, res)->
     <head><script src="/jquery.js"></script></head>
     <body>
       <script>
-        $.get("/backend", function(response) { window.response = response });
+        $.get("/xhr/backend", function(response) { window.response = response });
       </script>
     </body>
   </html>
   """
-brains.get "/backend", (req, res)->
+brains.get "/xhr/backend", (req, res)->
   res.cookie "xml", "lol", "Path": "/"
   response = req.cookies["xhr"] || ""
   response = "redirected: #{response}" if req.query.redirected
@@ -26,13 +26,36 @@ brains.get "/xhr/redirect", (req, res)->
     <head><script src="/jquery.js"></script></head>
     <body>
       <script>
-        $.get("/backend/redirect", function(response) { window.response = response });
+        $.get("/xhr/redirect/backend", function(response) { window.response = response });
       </script>
     </body>
   </html>
   """
-brains.get "/backend/redirect", (req, res)->
-  res.redirect "/backend?redirected=true"
+brains.get "/xhr/redirect/backend", (req, res)->
+  res.redirect "/xhr/backend?redirected=true"
+
+brains.get "/xhr/parturl", (req, res)-> res.send """
+  <html>
+    <head><script src="/jquery.js"></script></head>
+    <body>
+      <script>
+        $.get("http://:3003", function(response) { window.response = "ok" });
+      </script>
+    </body>
+  </html>
+  """
+
+brains.get "/xhr/postempty", (req, res)-> res.send """
+  <html>
+    <head><script src="/jquery.js"></script></head>
+    <body>
+      <script>
+        $.post("/xhr/postempty", function(response) { window.response = "ok" });
+      </script>
+    </body>
+  </html>
+  """
+brains.post "/xhr/postempty", (req, res)-> res.send ""
 
 
 vows.describe("XMLHttpRequest").addBatch(
@@ -51,4 +74,14 @@ vows.describe("XMLHttpRequest").addBatch(
   "redirect":
     zombie.wants "http://localhost:3003/xhr/redirect"
       "should send cookies in XHR response": (browser)-> assert.equal browser.window.response, "redirected: yes"
+
+  "handle partial URLs":
+    # If the request URL is http://:3003 it means use the current document's hostname, but the port 3003.
+    zombie.wants "http://localhost:3003/xhr/parturl"
+      "should resolve partial URL": (browser)-> assert.equal browser.window.response, "ok"
+
+  "handle POST requests with no data":
+    zombie.wants "http://localhost:3003/xhr/postempty"
+      "should post with no data": (browser)-> assert.equal browser.window.response, "ok"
+
 ).export(module)

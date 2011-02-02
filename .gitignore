@@ -1,4 +1,5 @@
 .npm
+build
 clean
 html
 lib

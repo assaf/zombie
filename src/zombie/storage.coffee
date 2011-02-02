@@ -52,7 +52,7 @@ class StorageArea
     this.__defineGetter__ "pairs", -> [k,v] for k,v of items
     this.toString = ->
       ("#{k} = #{v}" for k,v of items).join("\n")
-        
+
 
 # Implementation of the Storage interface, used by local and session storage.
 class Storage
@@ -120,21 +120,50 @@ class Storages
         @document._sessionStorage ||= browser.sessionStorage(@location.host)
       window.__defineGetter__ "localStorage", ->
         @document._localStorage ||= browser.localStorage(@location.host)
+
+    # Used to dump state to console (debuggin)
     this.dump = ->
-      dump = []
+      serialized = []
+      for domain, area of localAreas
+        pairs = area.pairs
+        serialized.push "#{domain} local:"
+        for pair in pairs
+          serialized.push "  #{pair[0]} = #{pair[1]}"
+      for domain, area of sessionAreas
+        pairs = area.pairs
+        serialized.push "#{domain} session:"
+        for pair in pairs
+          serialized.push "  #{pair[0]} = #{pair[1]}"
+      serialized.join("\n")
+    # browser.saveStorage uses this
+    this.save = ->
+      serialized = ["# Saved on #{new Date().toISOString()}"]
       for domain, area of localAreas
         pairs = area.pairs
         if pairs.length > 0
-          dump.push "#{domain} local:"
+          serialized.push "#{domain} local:"
           for pair in pairs
-            dump.push "  #{pair[0]} = #{pair[1]}"
+            serialized.push "  #{escape pair[0]} = #{escape pair[1]}"
       for domain, area of sessionAreas
         pairs = area.pairs
         if pairs.length > 0
-          dump.push "#{domain} session:"
+          serialized.push "#{domain} session:"
           for pair in pairs
-            dump.push "  #{pair[0]} = #{pair[1]}"
-      dump
+            serialized.push "  #{escape pair[0]} = #{escape pair[1]}"
+      serialized.join("\n")
+    # browser.loadStorage uses this
+    this.load = (serialized) ->
+      for item in serialized.split(/\n+/)
+        continue if item[0] == "#"
+        if (item[0] == " ")
+          [key, value] = item.split("=")
+          storage.setItem unescape(key.trim()), unescape(value.trim()) if storage
+        else
+          [domain, type] = item.split(" ")
+          if (type == "local:")
+            storage = this.local(domain)
+          else if (type == "session:")
+            storage = this.session(domain)
 
 exports.use = (browser)->
   return new Storages(browser)

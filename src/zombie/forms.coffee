@@ -3,23 +3,25 @@ core = require("jsdom").dom.level3.core
 path = require("path")
 fs   = require("fs")
 mime = require("mime")
-base64 = require("base64")
+
 
 # The Form
 # --------
-UploadedFile = (filename)->
+
+# Forms convert INPUT fields of type file into this object and pass it as
+# parameter to resource request.
+#
+# The base class is a String, so the value (e.g. when passed in a GET request)
+# is the base filename.  Additional properties include the MIME type (`mime`),
+# the full filename (`filename`) and the `read` method that returns the file
+# contents.
+UploadedFile = (filename) ->
   file = new String(path.basename(filename))
-  file.mime = ()-> mime.lookup(filename)
-  file.encoding = ()->
-    if @mime().match(/^text/)
-      null
-    else
-      "base64"
-  file.contents = ()->
-    result = fs.readFileSync(filename)
-    result = base64.encode(result).replace(/(.{76})/g, "$1\r\n") if @encoding() == "base64"
-    result
+  file.filename = filename
+  file.mime = mime.lookup(filename)
+  file.read = -> fs.readFileSync(filename)
   return file
+
 
 # Implement form.submit such that it actually submits a request to the server.
 # This method takes the submitting button so we can send the button name/value.

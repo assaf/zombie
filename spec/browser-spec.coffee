@@ -22,6 +22,9 @@ brains.get "/scripted", (req, res)-> res.send """
       document.title = "Nice";
       $(function() { $("title").text("Awesome") })
     </script>
+    <script type="text/x-do-not-parse">
+      <p>this is not valid JavaScript</p>
+    </script>
   </html>
   """
 
@@ -120,6 +123,17 @@ brains.get "/screen", (req, res)-> res.send """
   </script>
   """
 
+brains.get "/iframe", (req, res)-> res.send """
+  <html>
+    <head>
+      <script src="/jquery.js"></script>
+    </head>
+    <body>
+      <iframe src="/static" />
+    </body>
+  </html>
+  """
+
 vows.describe("Browser").addBatch(
   "open page":
     zombie.wants "http://localhost:3003/scripted"
@@ -130,6 +144,7 @@ vows.describe("Browser").addBatch(
         assert.typeOf jQuery.ajax, "function"
       "should run jQuery.onready": (browser)-> assert.equal browser.document.title, "Awesome"
       "should return status code of last request": (browser)-> assert.equal browser.statusCode, 200
+      "should have a parent": (browser)-> assert.ok browser.window.parent == browser.window
 
   "visit":
     "successful":
@@ -180,7 +195,7 @@ vows.describe("Browser").addBatch(
           browser.window.location = "http://localhost:3003/"
           browser.wait()
       "should fire done event": (browser)-> assert.ok browser.visit
-     
+
   "content selection":
     zombie.wants "http://localhost:3003/living"
       "query text":
@@ -250,6 +265,9 @@ vows.describe("Browser").addBatch(
       document.title = "Nice";
       $(function() { $("title").text("Awesome") })
     </script>
+    <script type="text/x-do-not-parse">
+      <p>this is not valid JavaScript</p>
+    </script>
   </html>
   """
 
@@ -312,5 +330,65 @@ vows.describe("Browser").addBatch(
         assert.match browser.document.title, /availHeight=800/
         assert.match browser.document.title, /colorDepth=24/
         assert.match browser.document.title, /pixelDepth=24/
+
+  "fork":
+    topic: ->
+      browser = new zombie.Browser
+      browser.visit("http://localhost:3003/living")
+      browser.wait()
+      browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
+      browser.localStorage("www.localhost").setItem("foo", "bar")
+      browser.sessionStorage("www.localhost").setItem("baz", "qux")
+
+      forked = browser.fork()
+      forked.visit "http://localhost:3003/dead"
+      forked.wait()
+
+      browser.cookies("www.localhost").update("foo=baz; domain=.localhost")
+      browser.localStorage("www.localhost").setItem("foo", "new")
+      browser.sessionStorage("www.localhost").setItem("baz", "value")
+
+      [forked, browser]
+    "should not be the same object": ([forked, browser])-> assert.notStrictEqual browser, forked
+    "should have two browser objects": ([forked, browser])->
+      assert.isNotNull forked
+      assert.isNotNull browser
+    "should navigate independently": ([forked, browser])->
+      assert.equal browser.location.href, "http://localhost:3003/living"
+      assert.equal forked.location, "http://localhost:3003/dead"
+    "should manipulate cookies independently": ([forked, browser])->
+      assert.equal browser.cookies("localhost").get("foo"), "baz"
+      assert.equal forked.cookies("localhost").get("foo"), "bar"
+    "should manipulate storage independently": ([forked, browser])->
+      assert.equal browser.localStorage("www.localhost").getItem("foo"), "new"
+      assert.equal browser.sessionStorage("www.localhost").getItem("baz"), "value"
+      assert.equal forked.localStorage("www.localhost").getItem("foo"), "bar"
+      assert.equal forked.sessionStorage("www.localhost").getItem("baz"), "qux"
+    "should have independent history": ([forked, browser])->
+      assert.equal "http://localhost:3003/living", browser.location.href
+      assert.equal "http://localhost:3003/dead", forked.location.href
+    "should clone history from source": ([forked, browser])->
+      assert.equal "http://localhost:3003/dead", forked.location.href
+      forked.window.history.back()
+      assert.equal "http://localhost:3003/living", forked.location.href
+
+  "iframes":
+    zombie.wants "http://localhost:3003/iframe"
+      "should load": (browser)->
+        assert.equal "Whatever", browser.querySelector("iframe").window.document.title
+        assert.match browser.querySelector("iframe").window.document.querySelector("body").innerHTML, /Hello World/
+        assert.equal "http://localhost:3003/static", browser.querySelector("iframe").window.location
+      "should reference the parent": (browser)->
+        assert.ok browser.window == browser.querySelector("iframe").window.parent
+      "should not alter the parent": (browser)->
+        assert.equal "http://localhost:3003/iframe", browser.window.location
+      "after a refresh":
+        topic: (browser)->
+          callback = @callback
+          browser.querySelector("iframe").window.location.reload(true)
+          browser.wait -> callback null, browser
+        "should still reference the parent": (browser)->
+          assert.ok browser.window == browser.querySelector("iframe").window.parent
+
 
 ).export(module)

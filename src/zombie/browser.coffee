@@ -4,6 +4,7 @@ vm = process.binding("evals")
 require "./jsdom_patches"
 require "./forms"
 require "./xpath"
+History = require("./history").History
 
 
 
@@ -16,7 +17,6 @@ class Browser extends require("events").EventEmitter
     cookies = require("./cookies").use(this)
     storage = require("./storage").use(this)
     eventloop = require("./eventloop").use(this)
-    history = require("./history").use(this)
     interact = require("./interact").use(this)
     xhr = require("./xhr").use(cache)
     resources = require("./resources")
@@ -39,7 +39,7 @@ class Browser extends require("events").EventEmitter
     #
     # User agent string sent to server.
     @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{exports.version}"
-    
+
 
     # ### withOptions(options, fn)
     #
@@ -63,35 +63,58 @@ class Browser extends require("events").EventEmitter
         else
           throw "I don't recognize the option #{k}"
 
+    # ### browser.fork() => Browser
+    #
+    # Return a new browser with a snapshot of this browser's state.
+    # Any changes to the forked browser's state do not affect this browser.
+    this.fork = ->
+      forked = new Browser()
+      forked.loadCookies this.saveCookies()
+      forked.loadStorage this.saveStorage()
+      forked.loadHistory this.saveHistory()
+      return forked
+
 
     # Windows
     # -------
-    
+
     window = null
     # ### browser.open() => Window
     #
-    # Open new browser window.
-    this.open = ->
-      window = jsdom.createWindow(html)
-      window.__defineGetter__ "browser", => this
-      window.__defineGetter__ "title", => @window?.document?.title
-      window.__defineSetter__ "title", (title)=> @window?.document?.title = title
-      window.navigator.userAgent = @userAgent
-      resources.extend window
-      cookies.extend window
-      storage.extend window
-      eventloop.extend window
-      history.extend window
-      interact.extend window
-      xhr.extend window
-      window.screen = new Screen()
-      window.JSON = JSON
-      # Default onerror handler.
-      window.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
-      # TODO: Fix
-      window.Image = ->
-      return window
+    # Open new browser window.  Takes a single argument that determines
+    # which features are supported by this Window.  At the moment all
+    # features are undocumented, use at your own peril.
+    this.open = (features = {})->
+      features.interactive ?= true
 
+      history = features.history || new History
+
+      newWindow = jsdom.createWindow(html)
+
+      # Switch to the newly created window if it's interactive.
+      # Examples of non-interactive windows are frames.
+      window = newWindow if features.interactive
+
+      newWindow.parent = newWindow
+      newWindow.__defineGetter__ "browser", => this
+      newWindow.__defineGetter__ "title", => @window?.document?.title
+      newWindow.__defineSetter__ "title", (title)=> @window?.document?.title = title
+      newWindow.navigator.userAgent = @userAgent
+      resources.extend newWindow
+      cookies.extend newWindow
+      storage.extend newWindow
+      eventloop.extend newWindow
+      history.extend newWindow
+      interact.extend newWindow
+      xhr.extend newWindow
+      newWindow.screen = new Screen()
+      newWindow.JSON = JSON
+      # Default onerror handler.
+      newWindow.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
+      # TODO: Fix
+      newWindow.Image = ->
+
+      return newWindow
 
 
     # Events
@@ -148,24 +171,23 @@ class Browser extends require("events").EventEmitter
     this.fire = (name, target, options, callback)->
       [callback, options] = [options, null] if typeof(options) == 'function'
       options ?= {}
-      
+
       klass = options.klass || if (name in mouseEventNames) then "MouseEvents" else "HTMLEvents"
       bubbles = options.bubbles ? true
       cancelable = options.cancelable ? true
-      
+
       event = window.document.createEvent(klass)
       event.initEvent(name, bubbles, cancelable)
-      
+
       if options.attributes?
         for key, value of options.attributes
           event[key] = value
-      
+
       target.dispatchEvent event
-      
       @wait callback if callback
-    
+
     mouseEventNames = ['mousedown', 'mousemove', 'mouseup']
-    
+
     # ### browser.clock => Number
     #
     # The current system time according to the browser (see also
@@ -294,7 +316,7 @@ class Browser extends require("events").EventEmitter
       if typeof options is "function"
         [callback, options] = [options, null]
       @withOptions options, (reset)=>
-        history._assign url
+        window.history._assign url
         @wait (error, browser)->
           reset()
           if callback && error
@@ -338,6 +360,17 @@ class Browser extends require("events").EventEmitter
           callback null, this, this.statusCode
       else
         callback new Error("No link matching '#{selector}'")
+
+    # ### browser.saveHistory() => String
+    #
+    # Save history to a text string.  You can use this to load the data
+    # later on using `browser.loadHistory`.
+    this.saveHistory = -> window.history.save()
+    # ### browser.loadHistory(String)
+    #
+    # Load history from a text string (e.g. previously created using
+    # `browser.saveHistory`.
+    this.loadHistory = (serialized)-> window.history.load serialized
 
 
     # Forms
@@ -509,7 +542,7 @@ class Browser extends require("events").EventEmitter
       option = findOption(selector, value)
       @unselectOption(option, callback)
       return this
-    
+
     # ### browser.unselectOption(option) => this
     #
     # Unselects an option.
@@ -569,6 +602,17 @@ class Browser extends require("events").EventEmitter
     #
     # Returns all the cookies for this domain/path. Path defaults to "/".
     this.cookies = (domain, path)-> cookies.access(domain, path)
+    # ### browser.saveCookies() => String
+    #
+    # Save cookies to a text string.  You can use this to load them back
+    # later on using `browser.loadCookies`.
+    this.saveCookies = -> cookies.save()
+    # ### browser.loadCookies(String)
+    #
+    # Load cookies from a text string (e.g. previously created using
+    # `browser.saveCookies`.
+    this.loadCookies = (serialized)-> cookies.load serialized
+
     # ### brower.localStorage(host) => Storage
     #
     # Returns local Storage based on the document origin (hostname/port). This
@@ -579,6 +623,16 @@ class Browser extends require("events").EventEmitter
     # Returns session Storage based on the document origin (hostname/port). This
     # is the same storage area you can access from any document of that origin.
     this.sessionStorage = (host)-> storage.session(host)
+    # ### browser.saveStorage() => String
+    #
+    # Save local/session storage to a text string.  You can use this to
+    # load the data later on using `browser.loadStorage`.
+    this.saveStorage = -> storage.save()
+    # ### browser.loadStorage(String)
+    #
+    # Load local/session stroage from a text string (e.g. previously
+    # created using `browser.saveStorage`.
+    this.loadStorage = (serialized)-> storage.load serialized
 
 
     # Scripts
@@ -713,7 +767,7 @@ class Browser extends require("events").EventEmitter
       indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
       console.log "Zombie: #{exports.version}\n"
       console.log "URL: #{@window.location.href}"
-      console.log "History:\n#{indent history.dump()}"
+      console.log "History:\n#{indent window.history.dump()}"
       console.log "Cookies:\n#{indent cookies.dump()}"
       console.log "Storage:\n#{indent storage.dump()}"
       console.log "Eventloop:\n#{indent eventloop.dump()}"
@@ -744,8 +798,5 @@ class Browser extends require("events").EventEmitter
 exports.Browser = Browser
 
 # ### zombie.version : String
-try
-  exports.package = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
-  exports.version = exports.package.version
-catch err
-  console.log err
+exports.package = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
+exports.version = exports.package.version

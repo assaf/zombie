@@ -36,7 +36,9 @@ XMLHttpRequest = (window)->
       method = method.toUpperCase()
       throw new core.DOMException(core.SECURITY_ERR, "Unsupported HTTP method") if /^(CONNECT|TRACE|TRACK)$/.test(method)
       throw new core.DOMException(core.SYNTAX_ERR, "Unsupported HTTP method") unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
-      url = URL.parse(URL.resolve(window.location, url))
+      url = URL.parse(URL.resolve(window.location.href, url))
+      url.hostname ||= window.location.hostname
+      url.host = "#{url.hostname}:#{url.port}"
       url.hash = null
       throw new core.DOMException(core.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
       throw new core.DOMException(core.NOT_SUPPORTED_ERR, "Only HTTP protocol supported") unless url.protocol == "http:"
@@ -48,7 +50,7 @@ XMLHttpRequest = (window)->
       @abort = ->
         aborted = true
         reset()
-      
+
       headers = {}
       @setRequestHeader = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
       # Allow calling send method.
@@ -59,7 +61,7 @@ XMLHttpRequest = (window)->
           @_error = new core.DOMException(core.ABORT_ERR, "Request aborted")
           stateChanged 4
           reset()
-        
+
         # Make the actual request: called again when dealing with a redirect.
         window.resources.request method, url, data, headers, (error, response)=>
           if error

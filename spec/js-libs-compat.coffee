@@ -15,6 +15,10 @@ brains.get "/jquery", (req, res)-> res.send """
       </select>
 
       <span id="option"></span>
+
+      <a href="#post">Post</a>
+
+      <div id="response"></div>
     </body>
 
     <script>
@@ -24,10 +28,23 @@ brains.get "/jquery", (req, res)-> res.send """
           $("#option").text(this.value);
         });
 
+        $("a[href='#post']").click(function() {
+          $.post("/echo", {"foo": "bar"}, function(response) {
+            $("#response").text(response);
+          });
+
+          return false;
+        });
       });
     </script>
   </html>
   """
+
+brains.post "/echo", (req, res)->
+  lines = for key, value of req.body
+    key + "=" + value
+
+  res.send lines.join("\n")
 
 vows.describe("Compatibility with JavaScript libraries").addBatch(
   "jQuery":
@@ -37,6 +54,12 @@ vows.describe("Compatibility with JavaScript libraries").addBatch(
           browser.select "select", "1"
           @callback null, browser
         "should fire the change event": (browser)-> assert.equal browser.text("#option"), "1"
+
+      "jQuery.post":
+        topic: (browser)->
+          browser.clickLink "Post", @callback
+        "should perform an AJAX POST request": (browser)->
+          assert.match browser.text("#response"), /foo=bar/
 
 
 ).export(module)

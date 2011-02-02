@@ -1,9 +1,8 @@
 require.paths.unshift __dirname + "/../node_modules"
-require.paths.unshift __dirname + "/../src"
 fs = require("fs")
-decode = require("base64").decode
 express = require("express")
-zombie = require("index")
+zombie = require("../src/index")
+debug = false # true
 
 
 # When you run the vows command, it picks all the files in the spec directory
@@ -84,7 +83,7 @@ zombie.wants = (url, context)->
 
 zombie.Browser.prototype.wants = (url, options, callback)->
   brains.ready =>
-    #options.debug = true
+    options.debug = debug
     @visit url, options, (err, browser)=>
       callback err, this if callback
   return
@@ -109,10 +108,7 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         headers
       , {}
 
-      # Intentionally do not decode base64 files if the content-type is text.
-      # This is the behavior of a few servers.
-      if headers["content-transfer-encoding"] == "base64" && !headers["content-type"].match(/^text/)
-        contents = decode(contents)
+      contents = new Buffer(contents, "base64") if headers["content-transfer-encoding"] == "base64"
       contents.mime = headers["content-type"].split(/;/)[0]
 
       # We're looking for the content-disposition header, which has
@@ -126,7 +122,7 @@ express.bodyDecoder.decode["multipart/form-data"] = (body)->
         # From content disposition we can tell the field name, if it's a
         # file upload, also the file name. Content type is separate
         # header.
-        contents = new String(contents)
+        contents = new String(contents) if typeof contents is "string"
         contents.filename = pairs.filename if pairs.filename
         parts[pairs.name] = contents if pairs.name
       parts

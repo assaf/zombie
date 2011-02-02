@@ -105,8 +105,8 @@ vows.describe("Cookies").addBatch(
     "should pass path cookies to server": (cookies)->
       assert.equal cookies._path1, "here"
       assert.equal cookies._path2, "here"
-    "should pass cookies that specified a different path when they were assigned": (cookies)-> assert.equal cookies._path5, "here" 
-    "should pass cookies that didn't specify a path when they were assigned": (cookies)-> assert.equal cookies._path6, "here" 
+    "should pass cookies that specified a different path when they were assigned": (cookies)-> assert.equal cookies._path5, "here"
+    "should pass cookies that didn't specify a path when they were assigned": (cookies)-> assert.equal cookies._path6, "here"
     "should not pass unrelated path cookies to server": (cookies)->
       assert.isUndefined cookies._path3
       assert.isUndefined cookies._path4
