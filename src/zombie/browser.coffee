@@ -81,7 +81,9 @@ class Browser extends require("events").EventEmitter
     window = null
     # ### browser.open() => Window
     #
-    # Open new browser window.
+    # Open new browser window.  Takes a single argument that determines
+    # which features are supported by this Window.  At the moment all
+    # features are undocumented, use at your own peril.
     this.open = (features = {})->
       features.interactive ?= true
 
@@ -113,7 +115,6 @@ class Browser extends require("events").EventEmitter
       newWindow.Image = ->
 
       return newWindow
-
 
 
     # Events
@@ -183,7 +184,6 @@ class Browser extends require("events").EventEmitter
           event[key] = value
 
       target.dispatchEvent event
-
       @wait callback if callback
 
     mouseEventNames = ['mousedown', 'mousemove', 'mouseup']

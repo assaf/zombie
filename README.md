@@ -259,8 +259,15 @@ Freenode](irc://irc.freenode.net/zombie.js) or [web-based IRC](http://webchat.fr
 Zombie.js is copyright of [Assaf Arkin](http://labnotes.org), released
 under the MIT License
 
-Much thanks to all the [many
-contributors](https://github.com/assaf/zombie/contributors).
+Blood, sweat and tears of joy:
+
+[Damian Janowski aka djanowski](https://github.com/djanowski)
+
+[José Valim aka josevalim](http://blog.plataformatec.com.br/)
+
+[Bob Lail boblail](http://boblail.tumblr.com/)
+
+And all the fine people mentioned in [the changelog](changelog).
 
 Zombie.js is written in
 [CoffeeScript](http://jashkenas.github.com/coffee-script/) for
