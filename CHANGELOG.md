@@ -3,15 +3,14 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.8.13  Pending
 
+Add support for IFRAMEs (Damian Janowski).
+
 Upgraded to HTML5 0.2.13.
+
+Fixes #71 cookie names now preserve case.
 
     292 Tests
     3.7 sec to complete
-
-
-### Version 0.8.13  Pending
-
-Add support for IFRAMEs (Damian Janowski).
 
 
 ### Version 0.8.12  2011-02-01

@@ -83,7 +83,7 @@ class Cookies
     this.set = (name, value, options = {})->
       return if options.domain && !domainMatch(options.domain, hostname)
 
-      name = name.toLowerCase()
+      name = name
       state = { value: value.toString() }
       if options.expires
         state.expires = options.expires.getTime()
@@ -109,7 +109,7 @@ class Cookies
     this.remove = (name, options = {})->
       if in_domain = cookies[options.domain || hostname]
         if in_path = in_domain[options.path || pathname]
-          delete in_path[name.toLowerCase()]
+          delete in_path[name]
 
     #### cookies(host, path).clear()
     #
