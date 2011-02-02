@@ -11,7 +11,7 @@ Fixes #71 cookie names now preserve case.
 
 Fixes #69 incorrectly resolving partial URLs in XHR requests.
 
-    294 Tests
+    299 Tests
     3.7 sec to complete
 
 

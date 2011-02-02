@@ -45,6 +45,19 @@ brains.get "/xhr/parturl", (req, res)-> res.send """
   </html>
   """
 
+brains.get "/xhr/postempty", (req, res)-> res.send """
+  <html>
+    <head><script src="/jquery.js"></script></head>
+    <body>
+      <script>
+        $.post("/xhr/postempty", function(response) { window.response = "ok" });
+      </script>
+    </body>
+  </html>
+  """
+brains.post "/xhr/postempty", (req, res)-> res.send ""
+
+
 vows.describe("XMLHttpRequest").addBatch(
   "load asynchronously":
     zombie.wants "http://localhost:3003/xhr"
@@ -63,6 +76,12 @@ vows.describe("XMLHttpRequest").addBatch(
       "should send cookies in XHR response": (browser)-> assert.equal browser.window.response, "redirected: yes"
 
   "handle partial URLs":
+    # If the request URL is http://:3003 it means use the current document's hostname, but the port 3003.
     zombie.wants "http://localhost:3003/xhr/parturl"
       "should resolve partial URL": (browser)-> assert.equal browser.window.response, "ok"
+
+  "handle POST requests with no data":
+    zombie.wants "http://localhost:3003/xhr/postempty"
+      "should post with no data": (browser)-> assert.equal browser.window.response, "ok"
+
 ).export(module)

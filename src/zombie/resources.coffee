@@ -267,7 +267,7 @@ class Resources extends Array
         else ''
 
     stringify = (object) =>
-      return object if typeOf(object) == '[object String]'
+      return object.toString() unless object.map
       object.map((k) ->
         if Array.isArray(k[1])
           k[1].map((v) ->
