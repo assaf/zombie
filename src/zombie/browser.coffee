@@ -609,7 +609,7 @@ class Browser extends require("events").EventEmitter
         if button.getAttribute("disabled")
           callback new Error("This button is disabled")
         else
-          @fire "click", button, callback
+           @fire "click", button, callback
       else
         callback new Error("No BUTTON '#{selector}'")
 
