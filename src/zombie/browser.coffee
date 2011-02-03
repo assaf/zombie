@@ -548,7 +548,7 @@ class Browser extends require("events").EventEmitter
         select = @xpath("./ancestor::select", option).value[0]
         option.selected = true
         @fire "beforedeactivate", select
-        @fire "change", select
+        @fire "change", select, callback
       return this
 
     # ### browser.unselect(selector, value) => this
