@@ -191,7 +191,7 @@ class Browser extends require("events").EventEmitter
     # * target -- Target element (e.g a link)
     # * callback -- Wait for events to be processed, then call me (optional)
     this.fire = (name, target, options, callback)->
-      [callback, options] = [options, null] if typeof(options) == 'function'
+      [callback, options] = [options, null] if typeof options is "function"
       options ?= {}
 
       klass = options.klass || if (name in mouseEventNames) then "MouseEvents" else "HTMLEvents"
@@ -450,7 +450,7 @@ class Browser extends require("events").EventEmitter
       if field && field.tagName == "INPUT" && field.type == "checkbox"
         throw new Error("This INPUT field is disabled") if field.getAttribute("input")
         throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
-        if(field.checked ^ value)
+        if field.checked ^ value
           @fire "click", field, callback
         return this
       else
@@ -533,7 +533,7 @@ class Browser extends require("events").EventEmitter
     # Returns this
     this.select = (selector, value, callback)->
       option = findOption(selector, value)
-      @selectOption(option, callback)
+      @selectOption option, callback
       return this
 
     # ### browser.selectOption(option) => this
@@ -547,7 +547,6 @@ class Browser extends require("events").EventEmitter
       if(option && !option.selected)
         select = @xpath("./ancestor::select", option).value[0]
         option.selected = true
-        @fire "beforedeactivate", select
         @fire "change", select, callback
       return this
 
@@ -561,7 +560,7 @@ class Browser extends require("events").EventEmitter
     # Returns this
     this.unselect = (selector, value, callback)->
       option = findOption(selector, value)
-      @unselectOption(option, callback)
+      @unselectOption option, callback
       return this
 
     # ### browser.unselectOption(option) => this
@@ -610,8 +609,7 @@ class Browser extends require("events").EventEmitter
         if button.getAttribute("disabled")
           callback new Error("This button is disabled")
         else
-          @fire "click", button, =>
-            callback null, this, this.statusCode
+          @fire "click", button, callback
       else
         callback new Error("No BUTTON '#{selector}'")
 

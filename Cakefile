@@ -74,7 +74,7 @@ runTests = (callback)->
   log "Running test suite ...", green
   exec "vows --spec spec/*-spec.coffee", (err, stdout, stderr)->
     process.stdout.write stdout
-    process.binding('stdio').writeError stderr
+    process.binding("stdio").writeError stderr
     callback err if callback
 task "test", "Run all tests", ->
   runTests (err)->

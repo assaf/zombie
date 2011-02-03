@@ -190,7 +190,7 @@ vows.describe("Forms").addBatch(
       "checkbox referenced from label":
         topic: (browser)->
           browser.check "Brains?"
-          browser.wait -> browser.wait @callback
+          browser.wait @callback
         "should check checkbox": (browser)-> assert.ok browser.querySelector("#field-brains").checked
         "should fire change event": (browser)-> assert.ok browser.brainsChanged
       "checkbox by name":
@@ -398,7 +398,6 @@ vows.describe("Forms").addBatch(
           assert.equal browser.text("#likes"), "Arm Biting"
         "should not send other button values to server": (browser)->
           assert.equal browser.text("#image_clicked"), "undefined"
-        "should return status code": (_, browser, status)-> assert.equal status, 200
 
     "by clicking image button":
       zombie.wants "http://localhost:3003/forms/form"
@@ -425,7 +424,7 @@ vows.describe("Forms").addBatch(
         "should send input values to server": (browser)->
           assert.equal browser.text("#name"), "ArmBiter"
           assert.equal browser.text("#likes"), "Arm Biting"
-    "by cliking a button without name":
+    "by clicking a button without name":
       zombie.wants "http://localhost:3003/forms/upload"
         topic: (browser)->
           browser.pressButton "Get Upload", @callback
