@@ -200,7 +200,7 @@ vows.describe("Forms").addBatch(
       "checkbox referenced from label":
         topic: (browser)->
           browser.check "Brains?"
-          browser.wait @callback
+          browser.wait -> browser.wait @callback
         "should check checkbox": (browser)-> assert.ok browser.querySelector("#field-brains").checked
         "should fire change event": (browser)-> assert.ok browser.brainsChanged
       "checkbox by name":
@@ -213,8 +213,8 @@ vows.describe("Forms").addBatch(
         "should fire change event": (browser)-> assert.ok browser.greenChanged
       "check callback":
         topic: (browser)->
-          browser.check "Brains?", @callback
-        "should callback": (_, browser)-> assert.ok browser.querySelector("#field-brains").checked
+          browser.check "You bet", @callback
+        "should callback": (_, browser)-> assert.ok browser.querySelector("#field-hungry").checked
       "uncheck callback":
         topic: (browser)->
           browser.check "Brains?"
@@ -286,8 +286,8 @@ vows.describe("Forms").addBatch(
         "should fire change event": (browser)-> assert.ok browser.killsChanged
       "select callback":
         topic: (browser)->
-          browser.select "state", "dead", @callback
-        "should callback": (_, browser)-> assert.equal browser.querySelector("#field-state").value, "dead"
+          browser.select "unselected_state", "dead"
+        "should callback": (_, browser)-> assert.equal browser.querySelector("#field-unselected-state").value, "dead"
       "select option callback":
         topic: (browser)->
           browser.selectOption browser.querySelector("#option-killed-thousands"), @callback
