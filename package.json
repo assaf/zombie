@@ -34,7 +34,8 @@
   "dependencies": {
     "html5": "0.2.13",
     "jsdom": "0.1.23",
-    "mime": "1.2.1"
+    "mime": "1.2.1",
+    "websocket-client": "1.0.0"
   },
   "devDependencies": {
     "coffee-script": ">= 1.0.1",
