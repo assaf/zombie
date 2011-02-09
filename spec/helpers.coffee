@@ -28,16 +28,6 @@ brains.use express.bodyDecoder()
 brains.use express.cookieDecoder()
 
 
-# Patch Express to do the right thing when setting a cookie: create single
-# header with multiple cookie values separated by comma.
-require("http").ServerResponse.prototype.cookie = (name, val, options)->
-  cookie = require("connect/utils").serializeCookie(name, val, options)
-  if @headers['Set-Cookie']
-    @headers['Set-Cookie'] += ", #{cookie}"
-  else
-    @headers['Set-Cookie'] = cookie
-
-
 brains.get "/", (req, res)->
   res.send "<html><title>Tap, Tap</title></html>"
 brains.get "/jquery.js", (req, res)->
