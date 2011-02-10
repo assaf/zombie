@@ -134,7 +134,7 @@ class Storages
         serialized.push "#{domain} session:"
         for pair in pairs
           serialized.push "  #{pair[0]} = #{pair[1]}"
-      serialized.join("\n")
+      serialized
     # browser.saveStorage uses this
     this.save = ->
       serialized = ["# Saved on #{new Date().toISOString()}"]

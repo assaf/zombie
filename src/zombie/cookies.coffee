@@ -182,7 +182,7 @@ exports.use = (browser)->
       for path, in_path of in_domain
         for name, cookie of in_path
           serialized.push serialize(browser, domain, path, name, cookie)
-    serialized.join("\n")
+    serialized
   # browser.saveCookies uses this
   save = ->
     serialized = ["# Saved on #{new Date().toISOString()}"]
@@ -198,4 +198,4 @@ exports.use = (browser)->
       cookie = deserialize(cookie)
       new Cookies(browser, cookies, cookie.domain, cookie.path).set(cookie.name, cookie.value, cookie)
 
-  return access: access, extend: extend, save: save, load: load
+  return access: access, extend: extend, save: save, load: load, dump: dump

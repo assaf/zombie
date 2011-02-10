@@ -15,6 +15,7 @@ class EventLoop
         when: browser.clock + delay
         timeout: true
         fire: =>
+          browser.log "Firing timeout #{handle}, delay: #{delay}"
           try
             browser.evaluate fn
           finally
@@ -31,6 +32,7 @@ class EventLoop
         when: browser.clock + delay
         interval: true
         fire: =>
+          browser.log "Firing interval #{handle}, interval: #{delay}"
           try
             browser.evaluate fn
           finally
@@ -123,9 +125,9 @@ class EventLoop
 
     this.dump = ()->
       [ "The time:   #{browser.clock}",
-         "Timers:     #{timers.length}",
-         "Processing: #{processing}",
-         "Waiting:    #{waiting.length}" ]
+        "Timers:     #{Object.keys(timers).length}",
+        "Processing: #{processing}",
+        "Waiting:    #{waiting.length}" ]
 
 exports.use = (browser)->
   return new EventLoop(browser)

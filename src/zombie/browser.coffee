@@ -195,7 +195,7 @@ class Browser extends require("events").EventEmitter
     #
     # You can change this to advance the system clock during tests.  It will
     # also advance when handling timeout/interval events.
-    @clock = new Date().getTime()
+    @clock = Date.now()
     # ### browser.now => Date
     #
     # The current system time according to the browser (see also
@@ -655,6 +655,7 @@ class Browser extends require("events").EventEmitter
         # doesn't agree with jQuery, Sammy and other scripts I tested,
         # so each script gets a new context.
         context = vm.Script.createContext(window)
+
         # But we need to carry global variables from one script to the
         # next, so we're going to store them in window._vars and add them
         # back to the new context.
@@ -662,7 +663,7 @@ class Browser extends require("events").EventEmitter
           context[v[0]] = v[1] for v in @window._vars
         script = new vm.Script(code, filename || "eval")
         try
-          return script.runInContext context
+          return script.runInContext(context)
         catch ex
           this.log ex.stack.split("\n").slice(0,2)
           throw ex

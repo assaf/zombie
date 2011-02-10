@@ -11,6 +11,12 @@ Fixes #71 cookie names now preserve case.
 
 Fixes #69 incorrectly resolving partial URLs in XHR requests.
 
+Fixes browser.clock to use Date.now instead of new Date (faster).
+
+Fixes browser.dump.
+
+In debug mode, show when firing timeout/interval.
+
     293 Tests
     3.6 sec to complete
 
