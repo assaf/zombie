@@ -10,9 +10,9 @@ xpath = ->
   unless engine
     engine = vm.Script.createContext()
     engine.navigator = { appVersion: "Zombie.js" }
-    new vm.Script(fs.readFileSync(__dirname + "/../../dep/util.js")).runInContext engine
-    new vm.Script(fs.readFileSync(__dirname + "/../../dep/xmltoken.js")).runInContext engine
-    new vm.Script(fs.readFileSync(__dirname + "/../../dep/xpath.js")).runInContext engine
+    new vm.Script(fs.readFileSync(__dirname + "/../../xpath/util.js")).runInContext engine
+    new vm.Script(fs.readFileSync(__dirname + "/../../xpath/xmltoken.js")).runInContext engine
+    new vm.Script(fs.readFileSync(__dirname + "/../../xpath/xpath.js")).runInContext engine
   return engine
 
 core.HTMLDocument.prototype.evaluate = (expr, node, nsResolver, type, result)->

@@ -3,6 +3,8 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.8.13  Pending
 
+Tested with Node 0.4.0.
+
 Add support for IFRAMEs (Damian Janowski).
 
 Upgraded to HTML5 0.2.13.
@@ -11,14 +13,16 @@ Fixes #71 cookie names now preserve case.
 
 Fixes #69 incorrectly resolving partial URLs in XHR requests.
 
-Fixes browser.clock to use Date.now instead of new Date (faster).
+Fixes `browser.clock` to use `Date.now` instead of `new Date` (faster).
 
-Fixes browser.dump.
+Fixes `browser.dump`.
 
 In debug mode, show when firing timeout/interval.
 
+Added `cake install`.
+
     293 Tests
-    3.6 sec to complete
+    3.7 sec to complete
 
 
 ### Version 0.8.12  2011-02-01
