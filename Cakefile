@@ -36,6 +36,16 @@ task "setup", "Install development dependencies", ->
       log "Installing #{name} #{version}", green
       exec "npm bundle install \"#{name}@#{version}\"", onerror
 
+task "install", "Install Zombie in your local repository", ->
+  build (err)->
+    onerror err
+    generateMan (err)->
+      onerror err
+      log "Installing Zombie ...", green
+      exec "npm install", (err, stdout, stderr)->
+        process.stdout.write stderr
+        onerror err
+
 
 ## Building ##
 
