@@ -3,6 +3,11 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.8.14  Pending
 
+New isolated contexts for executing JavaScript.
+
+    293 Tests
+    4.4 sec to complete
+
 
 ### Version 0.8.13  2011-02-11
 

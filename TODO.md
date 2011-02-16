@@ -9,13 +9,6 @@ zombie.js-todo(7) -- Wishlist
   * Make sure `DOMContentLoaded` event fires after all stylesheets
     are loaded
 
-* New script context
-  * The execution context for all scripts on the page is the `Window`
-    object itself
-  * Node's `runInContext` accepts a sandbox, then creates an actual V8
-    context by copying properties to/from, which breaks asynchronous
-    scripts (timer, XHR, etc) which run in the contex, not the sandbox
-
 * Navigation: Browser.open/close should work as a pair; look into supporting
   window.open; fire unload event when navigating away from page.
 

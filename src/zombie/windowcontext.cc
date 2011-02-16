@@ -4,6 +4,8 @@
 using namespace node;
 using namespace v8;
 
+// Isolated V8 Context/global scope for evaluating JavaScript, with access to
+// all window methods/properties.
 class WindowContext: ObjectWrap {
 private:
 
@@ -35,6 +37,27 @@ public:
     this->global = Persistent<Object>::New(global);
     tmpl->SetNamedPropertyHandler(GetProperty, SetProperty, NULL, DeleteProperty, EnumerateProperties, this->global);
     context = Context::New(NULL, tmpl);
+
+    // Define constructor functions for primitives.  We need to do this within
+    // the context, so "foo".constructor == String
+    context->Enter();
+    global->Set(String::New("Array"), Script::New(String::New("[].constructor"))->Run());
+    global->Set(String::New("Boolean"), Script::New(String::New("true.constructor"))->Run());
+    global->Set(String::New("Function"), Script::New(String::New("(function() {}).constructor"))->Run());
+    global->Set(String::New("Number"), Script::New(String::New("(1).constructor"))->Run());
+    global->Set(String::New("Object"), Script::New(String::New("({}).constructor"))->Run());
+    global->Set(String::New("RegExp"), Script::New(String::New("/./.constructor"))->Run());
+    global->Set(String::New("String"), Script::New(String::New("''.constructor"))->Run());
+    context->Exit();
+    // FIX ME: Define constructors for non-primitive types.  We copy the
+    // constructor from Zombie's context, which is not a good thing.
+    const char* const list[] = { "Date", "Error", "Math", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
+                                 "escape", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "unescape" };
+    const size_t len = sizeof(list) / sizeof(list[0]);
+    for (int i = len ; i-- >0 ; ) {
+      Handle<String> str = String::New(list[i]);
+      global->Set(str, Script::New(str)->Run());
+    }
   }
 
   ~WindowContext() {

@@ -5,7 +5,8 @@ require "./jsdom_patches"
 require "./forms"
 require "./xpath"
 History = require("./history").History
-
+require.paths.push "../../build/default"
+WindowContext = require("../../build/default/windowcontext").WindowContext
 
 
 # Use the browser to open up new windows and load documents.
@@ -78,10 +79,6 @@ class Browser extends require("events").EventEmitter
     # Windows
     # -------
 
-    require.paths.push "build/default"
-    WindowContext = require("windowcontext").WindowContext
-    
-
     window = null
     # ### browser.open() => Window
     #
@@ -94,36 +91,9 @@ class Browser extends require("events").EventEmitter
       history = features.history || new History
 
       newWindow = jsdom.createWindow(html)
+      # Add context for evaluating scripts.
       newWindow._evalContext = new WindowContext(newWindow)
-      global = newWindow._evalContext.global
-      global.decodeURI = decodeURI
-      global.decodeURIComponent = decodeURIComponent
-      global.encodeURI = encodeURI
-      global.encodeURIComponent = encodeURIComponent
-      global.escape = escape
-      global.eval = eval
-      global.isFinite = isFinite
-      global.isNaN = isNaN
-      global.parseFloat = parseFloat
-      global.parseInt = parseInt
-      global.unescape = unescape
-      global.Array = [].constructor
-      global.Boolean = Boolean
-      global.Date = Date
-      global.Error = Error
-      global.Function = Function
-      global.Math = Math
-      global.Number = Number
-      global.Object = {}.constructor
-      global.RegExp = //.constructor
-      global.String = newWindow._evalContext.evaluate("''.constructor")
-
-      newWindow._evaluate = (code, filename)->
-        try
-          newWindow._evalContext.evaluate(code, filename)
-        catch ex
-          console.log ex.message[0..500]
-          console.log ex.stack
+      newWindow._evaluate = (code, filename)-> newWindow._evalContext.evaluate(code, filename)
 
       # Switch to the newly created window if it's interactive.
       # Examples of non-interactive windows are frames.
