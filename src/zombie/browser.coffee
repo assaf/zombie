@@ -78,6 +78,10 @@ class Browser extends require("events").EventEmitter
     # Windows
     # -------
 
+    require.paths.push "build/default"
+    WindowContext = require("windowcontext").WindowContext
+    
+
     window = null
     # ### browser.open() => Window
     #
@@ -90,6 +94,8 @@ class Browser extends require("events").EventEmitter
       history = features.history || new History
 
       newWindow = jsdom.createWindow(html)
+      newWindow._evalContext = new WindowContext(newWindow)
+      newWindow._evaluate = (code, filename)-> window._evalContext.evaluate(code, filename)
 
       # Switch to the newly created window if it's interactive.
       # Examples of non-interactive windows are frames.
@@ -648,27 +654,7 @@ class Browser extends require("events").EventEmitter
     # You can also use this to evaluate a function in the context of the
     # window: for timers and asynchronous callbacks (e.g. XHR).
     this.evaluate = (code, filename)->
-      if typeof code == "function"
-        code.apply window
-      else
-        # Unfortunately, using the same context in multiple scripts
-        # doesn't agree with jQuery, Sammy and other scripts I tested,
-        # so each script gets a new context.
-        context = vm.Script.createContext(window)
-
-        # But we need to carry global variables from one script to the
-        # next, so we're going to store them in window._vars and add them
-        # back to the new context.
-        if window._vars
-          context[v[0]] = v[1] for v in @window._vars
-        script = new vm.Script(code, filename || "eval")
-        try
-          return script.runInContext(context)
-        catch ex
-          this.log ex.stack.split("\n").slice(0,2)
-          throw ex
-        finally
-          window._vars = ([n,v] for n, v of context).filter((v)-> !window[v[0]])
+      this.window._evaluate code, filename
 
 
     # Interaction

@@ -17,7 +17,7 @@ class EventLoop
         fire: =>
           browser.log "Firing timeout #{handle}, delay: #{delay}"
           try
-            browser.evaluate fn
+            browser.window._evaluate fn
           finally
             delete timers[handle]
       handle = ++lastHandle
@@ -34,7 +34,7 @@ class EventLoop
         fire: =>
           browser.log "Firing interval #{handle}, interval: #{delay}"
           try
-            browser.evaluate fn
+            browser.window._evaluate fn
           finally
             timer.when = browser.clock + delay
       handle = ++lastHandle

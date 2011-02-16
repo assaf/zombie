@@ -2,9 +2,12 @@ require "./helpers"
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 
 brains.get "/script/context", (req, res)-> res.send """
-  <script>var foo = 1;</script>
-  <script>foo = foo + 1;</script>
-  <script>document.title = foo;</script>
+  <script>var foo = 1</script>
+  <script>window.foo = foo + 1</script>
+  <script>document.title = this.foo</script>
+  <script>setTimeout(function() {
+    document.title = foo + window.foo
+  })</script>
   """
 
 brains.get "/script/order", (req, res)-> res.send """
@@ -121,7 +124,7 @@ brains.get "/app.js", (req, res)-> res.send """
 vows.describe("Scripts").addBatch(
   "script context":
     zombie.wants "http://localhost:3003/script/context"
-      "should be shared by all scripts": (browser)-> assert.equal browser.text("title"), "2"
+      "should be shared by all scripts": (browser)-> assert.equal browser.text("title"), "4"
 
   "script order":
     zombie.wants "http://localhost:3003/script/order"
