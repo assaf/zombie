@@ -95,7 +95,35 @@ class Browser extends require("events").EventEmitter
 
       newWindow = jsdom.createWindow(html)
       newWindow._evalContext = new WindowContext(newWindow)
-      newWindow._evaluate = (code, filename)-> window._evalContext.evaluate(code, filename)
+      global = newWindow._evalContext.global
+      global.decodeURI = decodeURI
+      global.decodeURIComponent = decodeURIComponent
+      global.encodeURI = encodeURI
+      global.encodeURIComponent = encodeURIComponent
+      global.escape = escape
+      global.eval = eval
+      global.isFinite = isFinite
+      global.isNaN = isNaN
+      global.parseFloat = parseFloat
+      global.parseInt = parseInt
+      global.unescape = unescape
+      global.Array = [].constructor
+      global.Boolean = Boolean
+      global.Date = Date
+      global.Error = Error
+      global.Function = Function
+      global.Math = Math
+      global.Number = Number
+      global.Object = {}.constructor
+      global.RegExp = //.constructor
+      global.String = newWindow._evalContext.evaluate("''.constructor")
+
+      newWindow._evaluate = (code, filename)->
+        try
+          newWindow._evalContext.evaluate(code, filename)
+        catch ex
+          console.log ex.message[0..500]
+          console.log ex.stack
 
       # Switch to the newly created window if it's interactive.
       # Examples of non-interactive windows are frames.

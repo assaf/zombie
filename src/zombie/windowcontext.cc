@@ -22,8 +22,9 @@ public:
     s_ct->InstanceTemplate()->SetInternalFieldCount(1);
     s_ct->SetClassName(String::NewSymbol("WindowContext"));
 
+    Local<ObjectTemplate> instance_t = t->InstanceTemplate();
+    instance_t->SetAccessor(String::New("global"), GetGlobal);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "evaluate", Evaluate);
-    NODE_SET_PROTOTYPE_METHOD(s_ct, "global", GetGlobal);
 
     target->Set(String::NewSymbol("WindowContext"), s_ct->GetFunction());
   }
@@ -49,8 +50,8 @@ public:
   }
 
   // Returns the global object.
-  static Handle<Value> GetGlobal(const Arguments& args) {
-    WindowContext* wc = ObjectWrap::Unwrap<WindowContext>(args.This());
+  static Handle<Value> GetGlobal(Local<String> name, const AccessorInfo& info) {
+    WindowContext* wc = ObjectWrap::Unwrap<WindowContext>(info.This());
     return wc->global;
   }
 
