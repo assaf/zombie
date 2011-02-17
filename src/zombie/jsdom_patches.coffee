@@ -83,7 +83,7 @@ core.Document.prototype._elementBuilders["script"] = (doc, s)->
       code = event.target.nodeValue
       if code.trim().length > 0
         filename = @ownerDocument.URL
-        @ownerDocument.parentWindow.perform (done)=>
+        @ownerDocument.parentWindow._eventloop.perform (done)=>
           loaded = (code, filename)=>
             if core.languageProcessors[@language] && code == @text
               core.languageProcessors[@language](this, code, filename)

@@ -5,6 +5,7 @@ require "./jsdom_patches"
 require "./forms"
 require "./xpath"
 History = require("./history").History
+EventLoop = require("./eventloop").EventLoop
 require.paths.push "../../build/default"
 WindowContext = require("../../build/default/windowcontext").WindowContext
 
@@ -17,7 +18,6 @@ class Browser extends require("events").EventEmitter
     cache = require("./cache").use(this)
     cookies = require("./cookies").use(this)
     storage = require("./storage").use(this)
-    eventloop = require("./eventloop").use(this)
     interact = require("./interact").use(this)
     xhr = require("./xhr").use(cache)
     resources = require("./resources")
@@ -107,7 +107,7 @@ class Browser extends require("events").EventEmitter
       resources.extend newWindow
       cookies.extend newWindow
       storage.extend newWindow
-      eventloop.extend newWindow
+      newWindow._eventloop = new EventLoop(newWindow)
       history.extend newWindow
       interact.extend newWindow
       xhr.extend newWindow
@@ -160,7 +160,7 @@ class Browser extends require("events").EventEmitter
           callback null, this
         @on "error", onerror
         @on "done", ondone
-      eventloop.wait window, terminate
+      window._eventloop.wait window, terminate
       return
 
     # ### browser.fire(name, target, callback?)
@@ -755,7 +755,7 @@ class Browser extends require("events").EventEmitter
       console.log "History:\n#{indent window.history.dump()}"
       console.log "Cookies:\n#{indent cookies.dump()}"
       console.log "Storage:\n#{indent storage.dump()}"
-      console.log "Eventloop:\n#{indent eventloop.dump()}"
+      console.log "Eventloop:\n#{indent window._eventloop.dump()}"
       if @document
         html = @document.outerHTML
         html = html.slice(0, 497) + "..." if html.length > 497
