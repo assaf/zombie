@@ -18,6 +18,11 @@ class EventLoop
           browser.log "Firing timeout #{handle}, delay: #{delay}"
           try
             browser.window._evaluate fn
+          catch error
+            evt = browser.document.createEvent("HTMLEvents")
+            evt.initEvent "error", true, false
+            evt.error = error
+            browser.window.dispatchEvent evt
           finally
             delete timers[handle]
       handle = ++lastHandle
@@ -35,6 +40,11 @@ class EventLoop
           browser.log "Firing interval #{handle}, interval: #{delay}"
           try
             browser.window._evaluate fn
+          catch error
+            evt = browser.document.createEvent("HTMLEvents")
+            evt.initEvent "error", true, false
+            evt.error = error
+            browser.window.dispatchEvent evt
           finally
             timer.when = browser.clock + delay
       handle = ++lastHandle

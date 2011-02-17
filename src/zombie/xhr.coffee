@@ -19,6 +19,11 @@ XMLHttpRequest = (window)->
         process.nextTick =>
           try
             @onreadystatechange.call(@)
+          catch error
+            evt = window.document.createEvent("HTMLEvents")
+            evt.initEvent "error", true, false
+            evt.error = error
+            window.dispatchEvent evt
           finally
             done()
   # Bring XHR to initial state (open/abort).

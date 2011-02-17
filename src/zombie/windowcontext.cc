@@ -4,6 +4,74 @@
 using namespace node;
 using namespace v8;
 
+
+// We start with an empty global scope, but we need various JavaScript
+// primitives (Array, Object, encode, parseInt, etc).  We're going to create
+// these primitives by running a script and assigning the result to a property
+// on the global scope.
+//
+// There are two types of primitives: primitives we extract in the context
+// (e.g. constructor for String) and primitives we extract from Zombie's global
+// scope (e.g. Date object). The former has their InContext flag set to true.
+//
+// Since there is no String in our global scope, we need to either get it from
+// another scope or create it in some other way. If we copy it from another
+// scope, we get a different function, and when we later try to do something
+// like this, if fails: "foo".constructor == String
+//
+// So instead we're going to use the current context to get the constructor for
+// an empty string and assign that to the String property. We need to do this
+// in the same context in which we're going to use the global scope.
+//
+// OTOH we have no way of obtaining a constructor for Date in that way, so we
+// copy it from Zombie's global scope, and to do that we need to execute the
+// script in the current context.
+//
+// If we're just copying a function, the script is the same as the primitive
+// name and you can use the single argument constructor.
+class SetPrimitive { private:
+  // The script we're going to execute. Compile once for performance (this
+  // really makes a difference of about 1 second in the test suite).
+  Persistent<Script> script; const char *name; bool in_context;
+
+public:
+  // All powerful constructor. Specify primitive name, code we need to run to
+  // extract its value, and whether or not we need to run it in context.
+  //
+  // If called with two arguments, we assume this script needs to be evaluated
+  // in context.
+  //
+  // If called with one argument, we assume it's copying a property from the
+  // current context, the code is the same as the primitive name and it
+  // executes in the current context.
+  SetPrimitive(const char *name, const char *code = NULL, bool in_context = true) {
+    this->name = name;
+    if (code == NULL) {
+      code = name;
+      in_context = false;
+    }
+    script = Persistent<Script>::New(Script::New(String::New(code)));
+    this->in_context = in_context;
+  }
+
+  // Returns the name of this primitive (e.g. Array, escape).
+  Handle<String> GetName() {
+    return String::New(name);
+  }
+
+  // Returns the value of this primitive (e.g. array constructor, escape function).
+  Handle<Value> GetValue() {
+    return script->Run();
+  }
+
+  // Returns true if we need to run this primitive in context.
+  bool InContext() {
+    return in_context;
+  }
+  
+};
+
+
 // Isolated V8 Context/global scope for evaluating JavaScript, with access to
 // all window methods/properties.
 class WindowContext: ObjectWrap {
@@ -17,6 +85,9 @@ private:
 public:
 
   static Persistent<FunctionTemplate> s_ct;
+  static SetPrimitive *primitives[];
+
+
   static void Init(Handle<Object> target) {
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
 
@@ -31,6 +102,7 @@ public:
     target->Set(String::NewSymbol("WindowContext"), s_ct->GetFunction());
   }
 
+
   // Create a new wrapper context around the global object.
   WindowContext(Handle<Object> global) {
     Handle<ObjectTemplate> tmpl = ObjectTemplate::New();
@@ -38,26 +110,17 @@ public:
     tmpl->SetNamedPropertyHandler(GetProperty, SetProperty, NULL, DeleteProperty, EnumerateProperties, this->global);
     context = Context::New(NULL, tmpl);
 
-    // Define constructor functions for primitives.  We need to do this within
-    // the context, so "foo".constructor == String
+    // Copy primitivies in context.
     context->Enter();
-    global->Set(String::New("Array"), Script::New(String::New("[].constructor"))->Run());
-    global->Set(String::New("Boolean"), Script::New(String::New("true.constructor"))->Run());
-    global->Set(String::New("Function"), Script::New(String::New("(function() {}).constructor"))->Run());
-    global->Set(String::New("Number"), Script::New(String::New("(1).constructor"))->Run());
-    global->Set(String::New("Object"), Script::New(String::New("({}).constructor"))->Run());
-    global->Set(String::New("RegExp"), Script::New(String::New("/./.constructor"))->Run());
-    global->Set(String::New("String"), Script::New(String::New("''.constructor"))->Run());
+    SetPrimitive *primitive;
+    for (int i = 0 ; (primitive = primitives[i]) ; ++i)
+      if (primitive->InContext())
+        global->Set(primitive->GetName(), primitive->GetValue());
     context->Exit();
-    // FIX ME: Define constructors for non-primitive types.  We copy the
-    // constructor from Zombie's context, which is not a good thing.
-    const char* const list[] = { "Date", "Error", "Math", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
-                                 "escape", "eval", "isFinite", "isNaN", "parseFloat", "parseInt", "unescape" };
-    const size_t len = sizeof(list) / sizeof(list[0]);
-    for (int i = len ; i-- >0 ; ) {
-      Handle<String> str = String::New(list[i]);
-      global->Set(str, Script::New(str)->Run());
-    }
+    // Copy primitivies outside context.
+    for (int i = 0 ; (primitive = primitives[i]) ; ++i)
+      if (!primitive->InContext())
+        global->Set(primitive->GetName(), primitive->GetValue());
   }
 
   ~WindowContext() {
@@ -132,7 +195,32 @@ public:
   
 };
 
+
 Persistent<FunctionTemplate> WindowContext::s_ct;
+SetPrimitive *WindowContext::primitives[] = {
+  new SetPrimitive("Array", "[].constructor"),
+  new SetPrimitive("Boolean", "true.constructor"),
+  new SetPrimitive("Function", "(function() {}).constructor"),
+  new SetPrimitive("Number", "(1).constructor"),
+  new SetPrimitive("Object", "({}).constructor"),
+  new SetPrimitive("RegExp", "/./.constructor"),
+  new SetPrimitive("String", "''.constructor"),
+  new SetPrimitive("Date"),
+  new SetPrimitive("Error"),
+  new SetPrimitive("Math"),
+  new SetPrimitive("decodeURI"),
+  new SetPrimitive("decodeURIComponent"),
+  new SetPrimitive("encodeURI"),
+  new SetPrimitive("encodeURIComponent"),
+  new SetPrimitive("escape"),
+  new SetPrimitive("eval"),
+  new SetPrimitive("isFinite"),
+  new SetPrimitive("isNaN"),
+  new SetPrimitive("parseFloat"),
+  new SetPrimitive("parseInt"),
+  new SetPrimitive("unescape")
+};
+
 
 extern "C" {
   static void init(Handle<Object> target) {

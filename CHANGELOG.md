@@ -5,8 +5,11 @@ zombie.js-changelog(7) -- Changelog
 
 New isolated contexts for executing JavaScript.
 
+Fixed error handling on timeout/XHR scripts, these now generate an
+`onerror` event.
+
     293 Tests
-    4.4 sec to complete
+    3.3 sec to complete
 
 
 ### Version 0.8.13  2011-02-11

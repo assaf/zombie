@@ -54,7 +54,7 @@ build = (callback)->
   exec "rm -rf lib && coffee -c -l -b -o lib src", (err, stdout)->
     onerror err
     log "Compiling native extension ...", green
-    exec "node-waf clean build", callback
+    exec "node-waf configure build", callback
 task "build", "Compile CoffeeScript to JavaScript", -> build onerror
 
 task "watch", "Continously compile CoffeeScript to JavaScript", ->
