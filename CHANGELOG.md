@@ -1,9 +1,13 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-### Version 0.8.14  Pending
+### Version 0.9.0  2011-02-17
 
-New isolated contexts for executing JavaScript.
+New isolated contexts for executing JavaScript.  This solves a long
+standing problems with pages that have more than one script.  Briefly
+speaking, each window gets it's own context/global scope that is shared
+by all scripts loaded for that page, but isolated from all other
+windows.
 
 Fixed error handling on timeout/XHR scripts, these now generate an
 `onerror` event.

@@ -1,8 +1,9 @@
 { "name": "zombie",
-  "version": "0.8.13",
+  "version": "0.8.14",
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "http://zombie.labnotes.org/",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
+  "contributors": [],
   "keywords": [ "test", "tests", "testing", "TDD", "spec", "specs", "BDD", "headless", "browser",
     "html", "html5", "dom", "css", "javascript", "integration", "ajax", "full-stack" ],
   "directories": {
@@ -24,6 +25,7 @@
     "TODO.md",
     "xpath"
   ],
+  "main": "lib/zombie/index.js",
   "scripts": {
     "install": "node-waf configure build",
     "build": "cake build",
@@ -33,7 +35,7 @@
     "node": ">= 0.2.6"
   },
   "dependencies": {
-    "html5": "0.2.13",
+    "html5": "0.2.14",
     "jsdom": "0.1.23",
     "mime": "1.2.1"
   },
@@ -48,12 +50,9 @@
     "type": "git",
     "url": "https://assaf@github.com/assaf/zombie.git"
   },
-  "bugs": {
-    "url": "http://github.com/assaf/zombie/issues"
-  },
+  "bugs": { "url": "http://github.com/assaf/zombie/issues" },
   "licenses": [
-    {
-      "type": "MIT",
+    { "type": "MIT",
       "url": "http://github.com/assaf/zombie/raw/master/MIT-LICENSE"
     }
   ]
