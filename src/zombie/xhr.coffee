@@ -15,10 +15,15 @@ XMLHttpRequest = (window)->
     @__defineGetter__ "readyState", -> state
     if @onreadystatechange
       # Since we want to wait on these events, put them in the event loop.
-      window.perform (done)=>
+      window._eventloop.perform (done)=>
         process.nextTick =>
           try
             @onreadystatechange.call(@)
+          catch error
+            evt = window.document.createEvent("HTMLEvents")
+            evt.initEvent "error", true, false
+            evt.error = error
+            window.dispatchEvent evt
           finally
             done()
   # Bring XHR to initial state (open/abort).

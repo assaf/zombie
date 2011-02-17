@@ -25,6 +25,7 @@
     "xpath"
   ],
   "scripts": {
+    "install": "node-waf configure build",
     "build": "cake build",
     "test": "cake test"
   },

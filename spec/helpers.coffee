@@ -31,9 +31,9 @@ brains.use express.cookieDecoder()
 brains.get "/", (req, res)->
   res.send "<html><title>Tap, Tap</title></html>"
 brains.get "/jquery.js", (req, res)->
-  fs.readFile "#{__dirname}/.scripts/jquery.js", (err, data)-> res.send data
+  fs.readFile "#{__dirname}/scripts/jquery.js", (err, data)-> res.send data
 brains.get "/sammy.js", (req, res)->
-  fs.readFile "#{__dirname}/.scripts/sammy.js", (err, data)->
+  fs.readFile "#{__dirname}/scripts/sammy.js", (err, data)->
     # Prevent sammy from polluting the output. Comment this if you need its
     # messages for debugging.
     data = data + ";window.Sammy.log = function() {}"

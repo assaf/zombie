@@ -3,21 +3,26 @@ URL = require("url")
 
 # Handles the Window event loop, timers and pending requests.
 class EventLoop
-  constructor: (browser)->
+  constructor: (window)->
     timers = {}
     lastHandle = 0
 
     # ### window.setTimeout(fn, delay) => Number
     #
     # Implements window.setTimeout using event queue
-    this.setTimeout = (fn, delay)->
+    window.setTimeout = (fn, delay)->
       timer =
-        when: browser.clock + delay
+        when: window.browser.clock + delay
         timeout: true
         fire: =>
-          browser.log "Firing timeout #{handle}, delay: #{delay}"
+          window.browser.log "Firing timeout #{handle}, delay: #{delay}"
           try
-            browser.evaluate fn
+            window._evaluate fn
+          catch error
+            evt = window.document.createEvent("HTMLEvents")
+            evt.initEvent "error", true, false
+            evt.error = error
+            window.dispatchEvent evt
           finally
             delete timers[handle]
       handle = ++lastHandle
@@ -27,16 +32,21 @@ class EventLoop
     # ### window.setInterval(fn, delay) => Number
     #
     # Implements window.setInterval using event queue
-    this.setInterval = (fn, delay)->
+    window.setInterval = (fn, delay)->
       timer =
-        when: browser.clock + delay
+        when: window.browser.clock + delay
         interval: true
         fire: =>
-          browser.log "Firing interval #{handle}, interval: #{delay}"
+          window.browser.log "Firing interval #{handle}, interval: #{delay}"
           try
-            browser.evaluate fn
+            window._evaluate fn
+          catch error
+            evt = window.document.createEvent("HTMLEvents")
+            evt.initEvent "error", true, false
+            evt.error = error
+            window.dispatchEvent evt
           finally
-            timer.when = browser.clock + delay
+            timer.when = window.browser.clock + delay
       handle = ++lastHandle
       timers[handle] = timer
       handle
@@ -44,11 +54,11 @@ class EventLoop
     # ### window.clearTimeout(timeout)
     #
     # Implements window.clearTimeout using event queue
-    this.clearTimeout = (handle)-> delete timers[handle] if timers[handle]?.timeout
+    window.clearTimeout = (handle)-> delete timers[handle] if timers[handle]?.timeout
     # ### window.clearInterval(interval)
     #
     # Implements window.clearInterval using event queue
-    this.clearInterval = (handle)-> delete timers[handle] if timers[handle]?.interval
+    window.clearInterval = (handle)-> delete timers[handle] if timers[handle]?.interval
 
     # Size of processing queue (number of ongoing tasks).
     processing = 0
@@ -90,7 +100,7 @@ class EventLoop
         if earliest
           intervals = false
           event = ->
-            browser.clock = earliest.when if browser.clock < earliest.when
+            window.browser.clock = earliest.when if window.browser.clock < earliest.when
             earliest.fire()
         if event
           try
@@ -103,31 +113,24 @@ class EventLoop
               done = true if terminate.call(window) == false
             if done
               process.nextTick ->
-                browser.emit "done", browser
+                window.browser.emit "done", window.browser
                 callback null, window if callback
             else
               @wait window, terminate, callback, intervals
           catch err
-            browser.emit "error", err
+            window.browser.emit "error", err
             callback err, window if callback
         else if processing > 0
           waiting.push => @wait window, terminate, callback, intervals
         else
-          browser.emit "done", browser
+          window.browser.emit "done", window.browser
           callback null, window if callback
 
-    this.extend = (window)=>
-      for fn in ["setTimeout", "setInterval", "clearTimeout", "clearInterval"]
-        window[fn] = this[fn]
-      window.perform = this.perform
-      window.wait = (terminate, callback)=> this.wait(window, terminate, callback)
-      window.request = this.request
-
     this.dump = ()->
-      [ "The time:   #{browser.clock}",
+      [ "The time:   #{window.browser.clock}",
         "Timers:     #{Object.keys(timers).length}",
         "Processing: #{processing}",
         "Waiting:    #{waiting.length}" ]
 
-exports.use = (browser)->
-  return new EventLoop(browser)
+
+exports.EventLoop = EventLoop

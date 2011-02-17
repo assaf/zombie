@@ -52,7 +52,9 @@ task "install", "Install Zombie in your local repository", ->
 build = (callback)->
   log "Compiling CoffeeScript to JavaScript ...", green
   exec "rm -rf lib && coffee -c -l -b -o lib src", (err, stdout)->
-    callback err
+    onerror err
+    log "Compiling native extension ...", green
+    exec "node-waf configure build", callback
 task "build", "Compile CoffeeScript to JavaScript", -> build onerror
 
 task "watch", "Continously compile CoffeeScript to JavaScript", ->

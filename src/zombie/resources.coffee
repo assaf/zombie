@@ -121,7 +121,7 @@ class Resources extends Array
     #
     # The callback is called with error and response (see `HTTPResponse`).
     this.request = (method, url, data, headers, callback)->
-      window.perform (done)->
+      window._eventloop.perform (done)->
         makeRequest method, url, data, headers, null, (error, response)->
           done()
           callback error, response
