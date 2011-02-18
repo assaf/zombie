@@ -9,10 +9,12 @@ speaking, each window gets it's own context/global scope that is shared
 by all scripts loaded for that page, but isolated from all other
 windows.
 
-Fixed error handling on timeout/XHR scripts, these now generate an
+Fixes error handling on timeout/XHR scripts, these now generate an
 `onerror` event.
 
 Eventloop is now associated with window instead of browser.
+
+Fixes URL resolution in XHR requests when there's no port. 
 
     293 Tests
     3.4 sec to complete

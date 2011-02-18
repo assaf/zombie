@@ -43,7 +43,7 @@ XMLHttpRequest = (window)->
       throw new core.DOMException(core.SYNTAX_ERR, "Unsupported HTTP method") unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
       url = URL.parse(URL.resolve(window.location.href, url))
       url.hostname ||= window.location.hostname
-      url.host = "#{url.hostname}:#{url.port}"
+      url.host = if url.port then "#{url.hostname}:#{url.port}" else url.hostname
       url.hash = null
       throw new core.DOMException(core.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
       throw new core.DOMException(core.NOT_SUPPORTED_ERR, "Only HTTP protocol supported") unless url.protocol == "http:"
