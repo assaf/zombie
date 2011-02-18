@@ -197,27 +197,29 @@ task "publish", "Publish new version (Git, NPM, site)", ->
     # scratch, don't want generated files we no longer use, etc.
     clean (err)->
       onerror err
-      fs.readFile "package.json", "utf8", (err, package)->
-        package = JSON.parse(package)
+      exec "git push", (err)->
+        onerror err
+        fs.readFile "package.json", "utf8", (err, package)->
+          package = JSON.parse(package)
 
-        # Publish documentation, need these first to generate man pages,
-        # inclusion on NPM package.
-        generateDocs (err)->
-          onerror err
-
-          log "Publishing to NPM ...", green
-          build (err)->
+          # Publish documentation, need these first to generate man pages,
+          # inclusion on NPM package.
+          generateDocs (err)->
             onerror err
-            exec "npm publish", (err, stdout, stderr)->
-              log stdout, green
+
+            log "Publishing to NPM ...", green
+            build (err)->
               onerror err
-
-              # Create a tag for this version and push changes to Github.
-              log "Tagging v#{package.version} ...", green
-              exec "git tag v#{package.version}", (err, stdout, stderr)->
+              exec "npm publish", (err, stdout, stderr)->
                 log stdout, green
-                exec "git push --tags origin master", (err, stdout, stderr)->
-                  log stdout, green
+                onerror err
 
-          # We can do this in parallel.
-          publishDocs onerror
+                # Create a tag for this version and push changes to Github.
+                log "Tagging v#{package.version} ...", green
+                exec "git tag v#{package.version}", (err, stdout, stderr)->
+                  log stdout, green
+                  exec "git push --tags origin master", (err, stdout, stderr)->
+                    log stdout, green
+
+            # We can do this in parallel.
+            publishDocs onerror
