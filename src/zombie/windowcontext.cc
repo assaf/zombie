@@ -97,6 +97,7 @@ public:
 
     Local<ObjectTemplate> instance_t = t->InstanceTemplate();
     instance_t->SetAccessor(String::New("global"), GetGlobal);
+    instance_t->SetAccessor(String::New("g"), GetG);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "evaluate", Evaluate);
 
     target->Set(String::NewSymbol("WindowContext"), s_ct->GetFunction());
@@ -107,7 +108,7 @@ public:
   WindowContext(Handle<Object> global) {
     Handle<ObjectTemplate> tmpl = ObjectTemplate::New();
     this->global = Persistent<Object>::New(global);
-    tmpl->SetNamedPropertyHandler(GetProperty, SetProperty, NULL, DeleteProperty, EnumerateProperties, this->global);
+    tmpl->SetNamedPropertyHandler(GetProperty, SetProperty, QueryProperty, DeleteProperty, EnumerateProperties, this->global);
     context = Context::New(NULL, tmpl);
 
     // Copy primitivies in context.
@@ -141,6 +142,11 @@ public:
     return wc->global;
   }
 
+  static Handle<Value> GetG(Local<String> name, const AccessorInfo& info) {
+    WindowContext* wc = ObjectWrap::Unwrap<WindowContext>(info.This());
+    return wc->context->Global();
+  }
+
   // Evaluate expression or function in this context.  First argument is either
   // a function or a script (String).  In the later case, second argument
   // specifies filename.
@@ -160,37 +166,43 @@ public:
       result = script->Run();
     }
     wc->context->Exit();
-    HandleScope scope;
-    return scope.Close(result);
+    return result;
   }
 
   // Returns the value of a property from the global scope.
   static Handle<Value> GetProperty(Local<String> name, const AccessorInfo &info) {
-    HandleScope scope;
     Local<Object> self = Local<Object>::Cast(info.Data());
-    Handle<Value> result = self->Get(name);
-    return scope.Close(result);
+    return self->Get(name);
   }
 
   // Sets the value of a property in the global scope.
   static Handle<Value> SetProperty(Local<String> name, Local<Value> value, const AccessorInfo &info) {
     Local<Object> self = Local<Object>::Cast(info.Data());
-    self->Set(name, value);
+    self->Set(name, Persistent<Value>::New(value));
     return value;
   }
 
   // Deletes a property from the global scope.
   static Handle<Boolean> DeleteProperty(Local<String> name, const AccessorInfo &info) {
+    HandleScope scope;
     Local<Object> self = Local<Object>::Cast(info.Data());
-    Handle<Boolean> result = Boolean::New(self->Delete(name));
-    return result;
+    Persistent<Value> value = (Persistent<Value>) self->Get(name);
+    bool deleted = self->Delete(name);
+    if (deleted)
+      value.Dispose();
+    return scope.Close(Boolean::New(deleted));
   }
 
   // Enumerate all named properties in the global scope.
   static Handle<Array> EnumerateProperties(const AccessorInfo &info) {
+    HandleScope scope;
     Local<Object> self = Local<Object>::Cast(info.Data());
-    Handle<Array> names = self->GetPropertyNames();
-    return names;
+    return scope.Close(self->GetPropertyNames());
+  }
+
+  static Handle<Integer> QueryProperty(Local<String> name, const AccessorInfo &info) {
+    HandleScope scope;
+    return scope.Close(Integer::New(None));
   }
   
 };
@@ -207,6 +219,7 @@ SetPrimitive *WindowContext::primitives[] = {
   new SetPrimitive("String", "''.constructor"),
   new SetPrimitive("Date"),
   new SetPrimitive("Error"),
+  new SetPrimitive("Image", "{}", false),
   new SetPrimitive("Math"),
   new SetPrimitive("decodeURI"),
   new SetPrimitive("decodeURIComponent"),

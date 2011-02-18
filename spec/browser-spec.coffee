@@ -372,6 +372,7 @@ vows.describe("Browser").addBatch(
       forked.window.history.back()
       assert.equal "http://localhost:3003/living", forked.location.href
 
+  ###
   "iframes":
     zombie.wants "http://localhost:3003/iframe"
       "should load": (browser)->
@@ -389,6 +390,6 @@ vows.describe("Browser").addBatch(
           browser.wait -> callback null, browser
         "should still reference the parent": (browser)->
           assert.ok browser.window == browser.querySelector("iframe").window.parent
-
+  ###
 
 ).export(module)

@@ -22,7 +22,8 @@
     "spec",
     "src",
     "TODO.md",
-    "xpath"
+    "xpath",
+    "wscript"
   ],
   "main": "lib/zombie/index.js",
   "scripts": {

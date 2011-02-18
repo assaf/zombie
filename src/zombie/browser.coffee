@@ -88,12 +88,17 @@ class Browser extends require("events").EventEmitter
     this.open = (features = {})->
       features.interactive ?= true
 
-      history = features.history || new History
+      history = features.history || new History(this)
+
+      # Add context for evaluating scripts.
+      #context = new WindowContext(jsdom.createWindow(html))
+      #newWindow = context.global
+      #newWindow._evaluate = (code, filename)-> context.evaluate(code, filename)
+      #newWindow._evaluate "this.window = this"
 
       newWindow = jsdom.createWindow(html)
-      # Add context for evaluating scripts.
-      newWindow._evalContext = new WindowContext(newWindow)
-      newWindow._evaluate = (code, filename)-> newWindow._evalContext.evaluate(code, filename)
+      context = new WindowContext(newWindow)
+      newWindow._evaluate = (code, filename)-> context.evaluate(code, filename)
 
       # Switch to the newly created window if it's interactive.
       # Examples of non-interactive windows are frames.
@@ -115,8 +120,6 @@ class Browser extends require("events").EventEmitter
       newWindow.JSON = JSON
       # Default onerror handler.
       newWindow.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
-      # TODO: Fix
-      newWindow.Image = ->
 
       return newWindow
 
