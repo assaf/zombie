@@ -14,10 +14,10 @@ Fixes error handling on timeout/XHR scripts, these now generate an
 
 Eventloop is now associated with window instead of browser.
 
-Fixes URL resolution in XHR requests when there's no port. 
+Fixes URL resolution in XHR requests with no port.
 
     293 Tests
-    3.4 sec to complete
+    3.3 sec to complete
 
 
 ### Version 0.8.13  2011-02-11
