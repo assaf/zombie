@@ -200,13 +200,6 @@ task "publish", "Publish new version (Git, NPM, site)", ->
       fs.readFile "package.json", "utf8", (err, package)->
         package = JSON.parse(package)
 
-        # Create a tag for this version and push changes to Github.
-        log "Tagging v#{package.version} ...", green
-        exec "git tag v#{package.version}", (err, stdout, stderr)->
-          log stdout, green
-          exec "git push --tags origin master", (err, stdout, stderr)->
-            log stdout, green
-
         # Publish documentation, need these first to generate man pages,
         # inclusion on NPM package.
         generateDocs (err)->
@@ -218,6 +211,13 @@ task "publish", "Publish new version (Git, NPM, site)", ->
             exec "npm publish", (err, stdout, stderr)->
               log stdout, green
               onerror err
+
+              # Create a tag for this version and push changes to Github.
+              log "Tagging v#{package.version} ...", green
+              exec "git tag v#{package.version}", (err, stdout, stderr)->
+                log stdout, green
+                exec "git push --tags origin master", (err, stdout, stderr)->
+                  log stdout, green
 
           # We can do this in parallel.
           publishDocs onerror
