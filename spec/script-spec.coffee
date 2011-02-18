@@ -10,6 +10,8 @@ brains.get "/script/context", (req, res)-> res.send """
   })</script>
   """
 
+brains.get "/script/window", (req, res)-> res.send "<script>document.title = [window == this, this == window.window].join(',')</script>"
+
 brains.get "/script/order", (req, res)-> res.send """
   <html>
     <head>
@@ -125,6 +127,12 @@ vows.describe("Scripts").addBatch(
   "script context":
     zombie.wants "http://localhost:3003/script/context"
       "should be shared by all scripts": (browser)-> assert.equal browser.text("title"), "4"
+
+  ###
+  "script window":
+    zombie.wants "http://localhost:3003/script/window"
+      "should be the same as this and top": (browser)-> assert.equal browser.text("title"), "true,true"
+  ###
 
   "script order":
     zombie.wants "http://localhost:3003/script/order"

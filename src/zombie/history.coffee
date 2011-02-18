@@ -29,13 +29,10 @@ class Entry
 #
 # Represents window.history.
 class History
-  constructor: ->
+  constructor: (browser)->
     # History is a stack of Entry objects.
     stack = []
     index = -1
-
-    window = null
-    browser = null
 
     # Called when we switch to a new page with the URL of the old page.
     pageChanged = (was)=>
@@ -45,9 +42,9 @@ class History
         resource url
       else if was.hash != url.hash
         # Hash changed. Do not reload page, but do send hashchange
-        evt = browser.document.createEvent("HTMLEvents")
+        evt = browser.window.document.createEvent("HTMLEvents")
         evt.initEvent "hashchange", true, false
-        window.dispatchEvent evt
+        browser.window.dispatchEvent evt
       else
         # Load new page for now (but later on use caching).
         resource url
@@ -61,10 +58,8 @@ class History
       # If the browser has a new window, use it. If a document was already
       # loaded into that window it would have state information we don't want
       # (e.g. window.$) so open a new window.
-      if window.document
-        browser.open
-          history: this
-          interactive: window.parent == window
+      if browser.window.document
+        browser.open history: this, interactive: browser.window.parent == browser.window
 
       # Create new DOM Level 3 document, add features (load external
       # resources, etc) and associate it with current document. From this
@@ -84,12 +79,12 @@ class History
       options.features.FetchExternalResources.push "iframe"
       document = jsdom.jsdom(false, jsdom.level3, options)
       document.fixQueue()
-      window.document = document
+      browser.window.document = document
 
       headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
       referer = stack[index-1]?.url
       headers["referer"] = referer.href if referer?
-      window.resources.request method, url, data, headers, (error, response)=>
+      browser.window.resources.request method, url, data, headers, (error, response)=>
         if error
           event = document.createEvent("HTMLEvents")
           event.initEvent "error", true, false
@@ -120,9 +115,9 @@ class History
       if new_index != index && entry = stack[new_index]
         index = new_index
         if entry.pop
-          if browser.document
+          if browser.window.document
             # Created with pushState/replaceState, send popstate event
-            evt = browser.document.createEvent("HTMLEvents")
+            evt = browser.window.document.createEvent("HTMLEvents")
             evt.initEvent "popstate", false, false
             evt.state = entry.state
             browser.window.dispatchEvent evt
@@ -179,13 +174,9 @@ class History
 
     # Add Location/History to window.
     this.extend = (new_window)->
-      window = new_window
-      browser = window.browser
-
-      window.__defineGetter__ "history", => this
-      window.__defineGetter__ "location", => stack[index]?.location || new Location(this, {})
-      window.__defineSetter__ "location", (url)=>
-        @_assign URL.resolve(stack[index]?.url, url)
+      new_window.__defineGetter__ "history", => this
+      new_window.__defineGetter__ "location", => stack[index]?.location || new Location(this, {})
+      new_window.__defineSetter__ "location", (url)=> @_assign URL.resolve(stack[index]?.url, url)
 
     # Used to dump state to console (debuggin)
     this.dump = ->
