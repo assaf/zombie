@@ -1,6 +1,9 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+### Version 0.9.2  Pending
+
+
 ### Version 0.9.1  2011-02-17
 
 Some internal changes to history. Breaks iframe.

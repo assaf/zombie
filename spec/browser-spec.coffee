@@ -201,14 +201,14 @@ vows.describe("Browser").addBatch(
       "query text":
         topic: (browser)-> browser
         "should query from document": (browser)-> assert.equal browser.text(".now"), "Walking Aimlessly"
-        "should query from context": (browser)-> assert.equal browser.text(".now", browser.body), "Walking Aimlessly"
-        "should query from context": (browser)-> assert.equal browser.text(".now", browser.querySelector("#main")), ""
+        "should query from context (exists)": (browser)-> assert.equal browser.text(".now", browser.body), "Walking Aimlessly"
+        "should query from context (unrelated)": (browser)-> assert.equal browser.text(".now", browser.querySelector("#main")), ""
         "should combine multiple elements": (browser)-> assert.equal browser.text("form label"), "Email Password "
       "query html":
         topic: (browser)-> browser
         "should query from document": (browser)-> assert.equal browser.html(".now"), "<div class=\"now\">Walking Aimlessly</div>"
-        "should query from context": (browser)-> assert.equal browser.html(".now", browser.body), "Walking Aimlessly"
-        "should query from context": (browser)-> assert.equal browser.html(".now", browser.querySelector("#main")), ""
+        "should query from context (exists)": (browser)-> assert.equal browser.html(".now", browser.body), "<div class=\"now\">Walking Aimlessly</div>"
+        "should query from context (unrelated)": (browser)-> assert.equal browser.html(".now", browser.querySelector("#main")), ""
         "should combine multiple elements": (browser)-> assert.equal browser.html("title, #main a"), "<title>The Living</title><a href=\"/dead\">Kill</a>"
 
   "click link":
