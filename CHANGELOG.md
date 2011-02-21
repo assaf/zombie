@@ -1,7 +1,13 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-### Version 0.9.2  Pending
+### Version 0.9.2  2011-02-21
+
+Fixes a couple of specs, plugs hole in array to prevent segfaults, and
+adds try/catch to leave context after executing script.
+
+    292 Tests
+    3.3 sec to complete
 
 
 ### Version 0.9.1  2011-02-17
