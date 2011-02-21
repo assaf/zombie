@@ -234,7 +234,8 @@ SetPrimitive *WindowContext::primitives[] = {
   new SetPrimitive("isNaN"),
   new SetPrimitive("parseFloat"),
   new SetPrimitive("parseInt"),
-  new SetPrimitive("unescape")
+  new SetPrimitive("unescape"),
+  NULL // please don't remove
 };
 
 
