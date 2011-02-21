@@ -7,5 +7,5 @@ def configure(conf):
 
 def build(bld):
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
-  obj.target = "windowcontext"
-  obj.source = "src/zombie/windowcontext.cc"
+  obj.target = "window_context"
+  obj.source = "src/zombie/window_context.cc"

@@ -12,6 +12,8 @@ brains.get "/script/context", (req, res)-> res.send """
 
 brains.get "/script/window", (req, res)-> res.send "<script>document.title = [window == this, this == window.window].join(',')</script>"
 
+brains.get "/script/error", (req, res)-> res.send "<script>foo.bar</script>"
+
 brains.get "/script/order", (req, res)-> res.send """
   <html>
     <head>
@@ -133,6 +135,12 @@ vows.describe("Scripts").addBatch(
     zombie.wants "http://localhost:3003/script/window"
       "should be the same as this and top": (browser)-> assert.equal browser.text("title"), "true,true"
   ###
+
+  "script error":
+    topic: ->
+      browser = new zombie.Browser
+      browser.wants "http://localhost:3003/script/error", (err, browser)=> @callback null, err
+    "should propagate error to window": (error)-> assert.deepEqual error.arguments, ["bar", undefined]
 
   "script order":
     zombie.wants "http://localhost:3003/script/order"

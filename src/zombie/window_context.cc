@@ -153,6 +153,7 @@ public:
   static Handle<Value> Evaluate(const Arguments& args) {
     WindowContext* wc = ObjectWrap::Unwrap<WindowContext>(args.This());
     Handle<Value> result;
+    TryCatch trycatch;
     wc->context->Enter();
     if (args[0]->IsFunction()) {
       // Execute function in the global scope.
@@ -166,6 +167,8 @@ public:
       result = script->Run();
     }
     wc->context->Exit();
+    if (result.IsEmpty())
+      trycatch.ReThrow();
     return result;
   }
 
@@ -239,5 +242,5 @@ extern "C" {
   static void init(Handle<Object> target) {
     WindowContext::Init(target);
   }
-  NODE_MODULE(windowcontext, init);
+  NODE_MODULE(window_context, init);
 }

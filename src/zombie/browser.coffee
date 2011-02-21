@@ -7,7 +7,7 @@ require "./xpath"
 History = require("./history").History
 EventLoop = require("./eventloop").EventLoop
 require.paths.push "../../build/default"
-WindowContext = require("../../build/default/windowcontext").WindowContext
+WindowContext = require("../../build/default/window_context").WindowContext
 
 
 # Use the browser to open up new windows and load documents.
