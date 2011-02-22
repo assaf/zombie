@@ -163,11 +163,14 @@ public:
       // Coerce argument into a string and execute that as a function.
       Local<String> source = args[0]->ToString();
       Local<String> filename = args[1]->ToString();
-      Handle<Script> script = Script::New(source, filename);
-      result = script->Run();
+      Handle<Script> script = Script::Compile(source, filename);
+      // Don't run script if it failed to compile, but go through cleanup
+      // before rethrowing exception.
+      if (!trycatch.HasCaught())
+        result = script->Run();
     }
     wc->context->Exit();
-    if (result.IsEmpty())
+    if (trycatch.HasCaught())
       trycatch.ReThrow();
     return result;
   }
@@ -229,7 +232,7 @@ SetPrimitive *WindowContext::primitives[] = {
   new SetPrimitive("encodeURI"),
   new SetPrimitive("encodeURIComponent"),
   new SetPrimitive("escape"),
-  new SetPrimitive("eval"),
+  //new SetPrimitive("eval"),
   new SetPrimitive("isFinite"),
   new SetPrimitive("isNaN"),
   new SetPrimitive("parseFloat"),
