@@ -5,6 +5,8 @@ zombie.js-changelog(7) -- Changelog
 
 Fixes `eval` to execute in the global scope.
 
+Fixes error when dumping cookies.
+
     294 Tests
     3.3 sec to complete
 
