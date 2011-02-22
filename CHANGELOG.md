@@ -3,14 +3,16 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.9.4  Pending
 
+Added preliminary support for Web sockets (Ben Ford).
+
 Fixes `eval` to execute in the global scope.
 
 Fixes error when dumping cookies (Christian Joudrey).
 
 Fixed some typos in the README (Jeff Hanke).
 
-    294 Tests
-    3.3 sec to complete
+    295 Tests
+    3.6 sec to complete
 
 
 ### Version 0.9.3  2011-02-22
