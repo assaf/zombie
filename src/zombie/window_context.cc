@@ -232,7 +232,7 @@ SetPrimitive *WindowContext::primitives[] = {
   new SetPrimitive("encodeURI"),
   new SetPrimitive("encodeURIComponent"),
   new SetPrimitive("escape"),
-  //new SetPrimitive("eval"),
+  new SetPrimitive("eval"),
   new SetPrimitive("isFinite"),
   new SetPrimitive("isNaN"),
   new SetPrimitive("parseFloat"),

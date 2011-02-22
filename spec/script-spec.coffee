@@ -28,7 +28,9 @@ brains.get "/script/order", (req, res)-> res.send """
     </body>
   </html>
   """
-brains.get "/script/order.js", (req, res)-> res.send "document.title = document.title + 'One'";
+brains.get "/script/order.js", (req, res)-> res.send "document.title = document.title + 'One'"
+
+brains.get "/script/eval", (req, res)-> res.send "<script>foo = 1; document.title = eval(foo + 2)</script>"
 
 brains.get "/script/dead", (req, res)-> res.send """
   <html>
@@ -153,6 +155,10 @@ vows.describe("Scripts").addBatch(
   "script order":
     zombie.wants "http://localhost:3003/script/order"
       "should run scripts in order regardless of source": (browser)-> assert.equal browser.text("title"), "ZeroOneTwo"
+
+  "using eval":
+    zombie.wants "http://localhost:3003/script/eval"
+      "should evaluate in global scope": (browser)-> assert.equal browser.document.title, "3"
 
   "adding script using document.write":
     zombie.wants "http://localhost:3003/script/write"

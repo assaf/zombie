@@ -1,6 +1,14 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+### Version 0.9.4  Pending
+
+Fixes `eval` to execute in the global scope.
+
+    294 Tests
+    3.3 sec to complete
+
+
 ### Version 0.9.3  2011-02-22
 
 Fixes seg fault when Zombie fails to compile a script.
