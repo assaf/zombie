@@ -152,7 +152,7 @@ class Cookies
     # debugging.  If you need to save/load, use comma as the line
     # separator and then call `cookies.update`.
     this.dump = (separator = "\n")->
-      (@serialize(browser, match[0], match[1], match[2], match[3]) for match in selected()).join(separator)
+      (serialize(browser, match[0], match[1], match[2], match[3]) for match in selected()).join(separator)
 
 
 # ### document.cookie => String
