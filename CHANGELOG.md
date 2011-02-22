@@ -1,7 +1,7 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-### Version 0.9.4  Pending
+### Version 0.9.4  2011-02-22
 
 Added preliminary support for Web sockets (Ben Ford).
 
@@ -11,8 +11,10 @@ Fixes error when dumping cookies (Christian Joudrey).
 
 Fixed some typos in the README (Jeff Hanke).
 
+Speed bump from running on Node 0.4.1.
+
     295 Tests
-    3.6 sec to complete
+    2.9 sec to complete
 
 
 ### Version 0.9.3  2011-02-22
