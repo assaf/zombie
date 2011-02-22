@@ -20,6 +20,7 @@ class Browser extends require("events").EventEmitter
     storage = require("./storage").use(this)
     interact = require("./interact").use(this)
     xhr = require("./xhr").use(cache)
+    ws = require("./websocket").use(this)
     resources = require("./resources")
 
 
@@ -116,6 +117,7 @@ class Browser extends require("events").EventEmitter
       history.extend newWindow
       interact.extend newWindow
       xhr.extend newWindow
+      ws.extend newWindow
       newWindow.screen = new Screen()
       newWindow.JSON = JSON
       # Default onerror handler.
