@@ -175,7 +175,7 @@ Let's combine all of that into one example:
     browser.
       fill("Your Name", "Arm Biter").
       fill("Profession", "Living dead").
-      select("Born", "1968")
+      select("Born", "1968").
       uncheck("Send me the newsletter").
       pressButton("Sign me up", function(err, browser, status) {
         // Make sure we got redirected to thank you page.
@@ -192,7 +192,7 @@ Zombie.js supports the following:
 - HTML5 parsing and dealing with tag soups
 - [DOM Level 3](http://www.w3.org/DOM/DOMTR) implementation
 - HTML5 form fields (`search`, `url`, etc)
-- C33 Selectors with [some extensions](http://sizzlejs.com/)
+- CSS3 Selectors with [some extensions](http://sizzlejs.com/)
 - Cookies and [Web Storage](http://dev.w3.org/html5/webstorage/)
 - `XMLHttpRequest` in all its glory
 - `setTimeout`/`setInterval` and messing with the system clock
