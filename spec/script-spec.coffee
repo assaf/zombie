@@ -14,6 +14,8 @@ brains.get "/script/window", (req, res)-> res.send "<script>document.title = [wi
 
 brains.get "/script/incomplete", (req, res)-> res.send "<script>1 +</script>"
 
+brains.get "/script/split", (req, res)-> res.send "<script>foo = foo ? 1 : 2; '&'; document.title = foo</script>"
+
 brains.get "/script/error", (req, res)-> res.send "<script>foo.bar</script>"
 
 brains.get "/script/order", (req, res)-> res.send """
@@ -155,6 +157,12 @@ vows.describe("Scripts").addBatch(
   "script order":
     zombie.wants "http://localhost:3003/script/order"
       "should run scripts in order regardless of source": (browser)-> assert.equal browser.text("title"), "ZeroOneTwo"
+
+  ###
+  "split script":
+    zombie.wants "http://localhost:3003/script/split"
+      "should run full script": (browser)-> assert.equal browser.text("title"), "1"
+  ###
 
   "using eval":
     zombie.wants "http://localhost:3003/script/eval"

@@ -292,17 +292,17 @@ class Browser extends require("events").EventEmitter
     #
     # Returns the status code of the request for loading the window.
     @__defineGetter__ "statusCode", ->
-      @window.resources.first?.response.statusCode
+      @window.resources.first?.response?.statusCode
     # ### browser.redirected => Boolean
     #
     # Returns true if the request for loading the window followed a
     # redirect.
     @__defineGetter__ "redirected", ->
-      @window.resources.first?.response.redirected
+      @window.resources.first?.response?.redirected
     # ### source => String
     #
     # Returns the unmodified source of the document loaded by the browser
-    @__defineGetter__ "source", => @window.resources.first?.response.body
+    @__defineGetter__ "source", => @window.resources.first?.response?.body
 
     # ### browser.cache => Cache
     #
