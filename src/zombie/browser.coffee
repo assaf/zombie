@@ -1,4 +1,5 @@
 jsdom = require("jsdom")
+core = jsdom.dom.level3.core
 html = jsdom.dom.level3.html
 vm = process.binding("evals")
 require "./jsdom_patches"
@@ -126,6 +127,7 @@ class Browser extends require("events").EventEmitter
       ws.extend newWindow
       newWindow.screen = new Screen()
       newWindow.JSON = JSON
+      newWindow.Image = core.HTMLImageElement
       # Default onerror handler.
       newWindow.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
 

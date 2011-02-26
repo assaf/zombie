@@ -1,5 +1,6 @@
 require "./helpers"
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
+domToHtml = require('jsdom/browser/domtohtml').domToHtml
 
 brains.get "/script/context", (req, res)-> res.send """
   <script>var foo = 1</script>
@@ -204,6 +205,11 @@ vows.describe("Scripts").addBatch(
       topic: (browser)->
         browser.evaluate "document.title"
       "should evaluate in context and return value": (title)-> assert.equal title, "The Living"
+
+  "new Image":
+    topic: ->
+      browser = new zombie.Browser()
+    "should construct an img tag": (browser)-> assert.equal domToHtml(browser.evaluate("new Image")), "<img>\r\n"
 
   ###
   "SSL":
