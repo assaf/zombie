@@ -110,6 +110,12 @@ class Browser extends require("events").EventEmitter
       newWindow.__defineGetter__ "title", => @window?.document?.title
       newWindow.__defineSetter__ "title", (title)=> @window?.document?.title = title
       newWindow.navigator.userAgent = @userAgent
+      
+      # Present in browsers, not in spec
+      # Used by Google Analytics
+      # see https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
+      newWindow.navigator.javaEnabled = ()-> false
+      
       resources.extend newWindow
       cookies.extend newWindow
       storage.extend newWindow
