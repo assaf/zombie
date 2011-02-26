@@ -372,24 +372,22 @@ vows.describe("Browser").addBatch(
       forked.window.history.back()
       assert.equal "http://localhost:3003/living", forked.location.href
 
-  ###
   "iframes":
     zombie.wants "http://localhost:3003/iframe"
       "should load": (browser)->
-        assert.equal "Whatever", browser.querySelector("iframe").window.document.title
-        assert.match browser.querySelector("iframe").window.document.querySelector("body").innerHTML, /Hello World/
-        assert.equal "http://localhost:3003/static", browser.querySelector("iframe").window.location
+        assert.equal browser.querySelector("iframe")?.window.document.title, "Whatever"
+        assert.match browser.querySelector("iframe")?.window.document.querySelector("body").innerHTML, /Hello World/
+        assert.equal browser.querySelector("iframe")?.window.location, "http://localhost:3003/static"
       "should reference the parent": (browser)->
-        assert.ok browser.window == browser.querySelector("iframe").window.parent
+        assert.ok browser.window == browser.querySelector("iframe")?.window.parent
       "should not alter the parent": (browser)->
-        assert.equal "http://localhost:3003/iframe", browser.window.location
+        assert.equal browser.window.location.href, "http://localhost:3003/iframe"
       "after a refresh":
         topic: (browser)->
           callback = @callback
-          browser.querySelector("iframe").window.location.reload(true)
+          browser.querySelector("iframe")?.window.location.reload(true)
           browser.wait -> callback null, browser
         "should still reference the parent": (browser)->
-          assert.ok browser.window == browser.querySelector("iframe").window.parent
-  ###
+          assert.ok browser.window == browser.querySelector("iframe")?.window.parent
 
 ).export(module)
