@@ -84,15 +84,6 @@ vows.describe("History").addBatch(
         "should load document": (browser)-> assert.match browser.html(), /Tap, Tap/
         "should set window location": (browser)-> assert.equal browser.window.location.href, "http://localhost:3003/"
         "should set document location": (browser)-> assert.equal browser.document.location.href, "http://localhost:3003/"
-    "change location":
-      zombie.wants "http://localhost:3003/"
-        topic: (browser)->
-          browser.window.location = "http://localhost:3003/history/boo"
-          browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
-          return
-        "should add page to history": (browser)-> assert.length browser.window.history, 2
-        "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
-        "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "change pathname":
       zombie.wants "http://localhost:3003/"
         topic: (browser)->
@@ -156,6 +147,26 @@ vows.describe("History").addBatch(
         "should include pathname": (location)-> assert.equal location.pathname, "/"
         "should include search": (location)-> assert.equal location.search, ""
         "should include hash": (location)-> assert.equal location.hash, ""
+
+  "set window.location":
+    zombie.wants "http://localhost:3003/"
+      topic: (browser)->
+        browser.window.location = "http://localhost:3003/history/boo"
+        browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
+        return
+      "should add page to history": (browser)-> assert.length browser.window.history, 2
+      "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
+      "should load document": (browser)-> assert.match browser.html(), /Eeek!/  
+
+  "set document.location":
+    zombie.wants "http://localhost:3003/"
+      topic: (browser)->
+        browser.window.document.location = "http://localhost:3003/history/boo"
+        browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
+        return
+      "should add page to history": (browser)-> assert.length browser.window.history, 2
+      "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
+      "should load document": (browser)-> assert.match browser.html(), /Eeek!/  
 
   "redirect":
     zombie.wants "http://localhost:3003/history/redirect"
