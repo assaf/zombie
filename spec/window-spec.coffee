@@ -108,4 +108,9 @@ vows.describe("Window").addBatch(
         assert.match browser.document.title, /colorDepth=24/
         assert.match browser.document.title, /pixelDepth=24/
 
+  ".navigator":
+    zombie.wants "http://localhost:3003/static"
+      "should exist": (browser)-> assert.isNotNull browser.window.navigator
+      ".javaEnabled should be false": (browser)-> assert.equal browser.window.navigator.javaEnabled(), false
+
 ).export(module)
