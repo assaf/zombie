@@ -207,9 +207,10 @@ vows.describe("Scripts").addBatch(
       "should evaluate in context and return value": (title)-> assert.equal title, "The Living"
 
   "new Image":
-    topic: ->
-      browser = new zombie.Browser()
-    "should construct an img tag": (browser)-> assert.equal domToHtml(browser.evaluate("new Image")), "<img>\r\n"
+    zombie.wants "http://localhost:3003/script/living"
+      "should construct an img tag": (browser)-> assert.equal domToHtml(browser.evaluate("new Image")), "<img>\r\n"
+      "should construct an img tag with width and height": (browser)->
+        assert.equal domToHtml(browser.evaluate("new Image(1, 1)")), "<img width=\"1\" height=\"1\">\r\n"
 
   ###
   "SSL":

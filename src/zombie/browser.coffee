@@ -127,7 +127,12 @@ class Browser extends require("events").EventEmitter
       ws.extend newWindow
       newWindow.screen = new Screen()
       newWindow.JSON = JSON
-      newWindow.Image = core.HTMLImageElement
+      newWindow.Image = (width, height)->
+        img = new core.HTMLImageElement(newWindow.document)
+        img.width = width
+        img.height = height
+        img
+      
       # Default onerror handler.
       newWindow.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
 
