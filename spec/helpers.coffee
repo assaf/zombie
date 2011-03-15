@@ -31,7 +31,11 @@ brains.use express.cookieParser()
 brains.get "/", (req, res)->
   res.send "<html><title>Tap, Tap</title></html>"
 brains.get "/jquery.js", (req, res)->
-  fs.readFile "#{__dirname}/scripts/jquery.js", (err, data)-> res.send data
+  fs.readFile "#{__dirname}/scripts/jquery-1.4.4.js", (err, data)-> res.send data
+brains.get "/jquery-1.4.4.js", (req, res)->
+  fs.readFile "#{__dirname}/scripts/jquery-1.4.4.js", (err, data)-> res.send data
+brains.get "/jquery-1.5.1.js", (req, res)->
+  fs.readFile "#{__dirname}/scripts/jquery-1.5.1.js", (err, data)-> res.send data
 brains.get "/sammy.js", (req, res)->
   fs.readFile "#{__dirname}/scripts/sammy.js", (err, data)->
     # Prevent sammy from polluting the output. Comment this if you need its
