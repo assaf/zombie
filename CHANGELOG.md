@@ -1,6 +1,15 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+
+### Version 0.9.5  Pending
+
+Fix type that broke compatibility with jQuery 1.5.1 (Chad Humphries)
+
+    302 Tests
+    4.2 sec to complete
+
+
 ### Version 0.9.4  2011-02-22
 
 Added preliminary support for Web sockets (Ben Ford).

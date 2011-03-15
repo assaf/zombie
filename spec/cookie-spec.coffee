@@ -3,17 +3,16 @@ require("./helpers")
 
 brains.get "/cookies", (req, res)->
   res.cookie "_name", "value"
-  res.cookie "_expires1", "3s", "Expires": new Date(Date.now() + 3000)
+  res.cookie "_expires1", "3s", expires: new Date(Date.now() + 3000)
   res.cookie "_expires2", "5s", "Max-Age": 5000
-  res.cookie "_expires3", "0s", "Expires": new Date(Date.now() - 100)
-  res.cookie "_expires4", "0s", "Max-Age": 0
-  res.cookie "_path1", "yummy", "Path": "/cookies"
-  res.cookie "_path2", "yummy", "Path": "/cookies/sub"
-  res.cookie "_path3", "wrong", "Path": "/wrong"
-  res.cookie "_path4", "yummy", "Path": "/"
-  res.cookie "_domain1", "here", "Domain": ".localhost"
-  res.cookie "_domain2", "not here", "Domain": "not.localhost"
-  res.cookie "_domain3", "wrong", "Domain": "notlocalhost"
+  res.cookie "_expires3", "0s", expires: new Date(Date.now() - 100)
+  res.cookie "_path1", "yummy", path: "/cookies"
+  res.cookie "_path2", "yummy", path: "/cookies/sub"
+  res.cookie "_path3", "wrong", path: "/wrong"
+  res.cookie "_path4", "yummy", path: "/"
+  res.cookie "_domain1", "here", domain: ".localhost"
+  res.cookie "_domain2", "not here", domain: "not.localhost"
+  res.cookie "_domain3", "wrong", domain: "notlocalhost"
   res.send "<html></html>"
 
 brains.get "/cookies/echo", (req,res)->
@@ -21,7 +20,7 @@ brains.get "/cookies/echo", (req,res)->
   res.send "<html>#{cookies}</html>"
 
 brains.get "/cookies_redirect", (req, res)->
-  res.cookie "_expires5", "3s", "Expires": new Date(Date.now() + 3000), "Path": "/"
+  res.cookie "_expires4", "3s", expires: new Date(Date.now() + 3000), "Path": "/"
   res.redirect "/"
 
 vows.describe("Cookies").addBatch(
@@ -37,7 +36,6 @@ vows.describe("Cookies").addBatch(
           assert.equal cookies.get("_expires2"), "5s"
         "should not have access to expired cookies": (cookies)->
           assert.isUndefined cookies.get("_expires3")
-          assert.isUndefined cookies.get("_expires4")
         "should have access to cookies for the path /cookies": (cookies)->
           assert.equal cookies.get("_path1"), "yummy"
         "should have access to cookies for paths which are ancestors of /cookies": (cookies)->
@@ -74,7 +72,7 @@ vows.describe("Cookies").addBatch(
         topic: (browser)->
           browser.cookies("localhost", "/")
         "should have access to persistent cookie": (cookies)->
-          assert.equal cookies.get("_expires5"), "3s"
+          assert.equal cookies.get("_expires4"), "3s"
 
   "send cookies":
     topic: ->
