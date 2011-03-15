@@ -117,6 +117,12 @@ public:
     for (int i = 0 ; (primitive = primitives[i]) ; ++i)
       if (primitive->InContext())
         global->Set(primitive->GetName(), primitive->GetValue());
+
+    // The eval function is special.
+    //Local<FunctionTemplate> eval_t = FunctionTemplate::New(Eval);
+    //Local<Function> eval = eval_t->GetFunction();
+    //global->Set(String::New("eval"), eval->NewInstance());
+
     context->Exit();
     // Copy primitivies outside context.
     for (int i = 0 ; (primitive = primitives[i]) ; ++i)
@@ -210,6 +216,12 @@ public:
     HandleScope scope;
     return scope.Close(Integer::New(None));
   }
+
+  static Handle<Value> Eval(const Arguments &args) {
+    HandleScope scope;
+    return scope.Close(String::New("HI"));
+  }
+  
   
 };
 
@@ -232,12 +244,12 @@ SetPrimitive *WindowContext::primitives[] = {
   new SetPrimitive("encodeURI"),
   new SetPrimitive("encodeURIComponent"),
   new SetPrimitive("escape"),
-  new SetPrimitive("eval"),
   new SetPrimitive("isFinite"),
   new SetPrimitive("isNaN"),
   new SetPrimitive("parseFloat"),
   new SetPrimitive("parseInt"),
   new SetPrimitive("unescape"),
+  new SetPrimitive("eval", "this.get_global_eval_fun", false),
   NULL // please don't remove
 };
 

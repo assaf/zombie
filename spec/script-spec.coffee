@@ -33,7 +33,17 @@ brains.get "/script/order", (req, res)-> res.send """
   """
 brains.get "/script/order.js", (req, res)-> res.send "document.title = document.title + 'One'"
 
-brains.get "/script/eval", (req, res)-> res.send "<script>foo = 1; document.title = eval(foo + 2)</script>"
+brains.get "/script/eval", (req, res)-> res.send """
+  <script>
+    var foo = 'One';
+    (function() {
+      var bar = 'Two'; // standard eval sees this
+      var e = eval; // this 'eval' only sees global scope
+      //var baz = e(bar);
+      document.title = eval('foo + bar + baz');
+    })();
+  </script>
+  """
 
 brains.get "/script/dead", (req, res)-> res.send """
   <html>
