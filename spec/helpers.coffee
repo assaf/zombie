@@ -24,8 +24,8 @@ vows.console.result = (results)->
 
 # An Express server we use to test the browser.
 brains = express.createServer()
-brains.use express.bodyDecoder()
-brains.use express.cookieDecoder()
+brains.use express.bodyParser()
+brains.use express.cookieParser()
 
 
 brains.get "/", (req, res)->
@@ -80,7 +80,7 @@ zombie.Browser.prototype.wants = (url, options, callback)->
 
 
 # Handle multipart/form-data so we can test file upload.
-express.bodyDecoder.decode["multipart/form-data"] = (body)->
+express.bodyParser.parse["multipart/form-data"] = (body)->
   # Find the boundary
   match = body.match(/^(--.*)\r\n(?:.|\n|\r)*\1--/m)
   if match && boundary = match[1]
