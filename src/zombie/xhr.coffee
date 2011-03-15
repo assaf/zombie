@@ -35,7 +35,7 @@ XMLHttpRequest = (window)->
     # These methods not applicable yet.
     @abort = -> # do nothing
     @setRequestHeader = @send = -> throw new core.DOMException(core.INVALID_STATE_ERR,  "Invalid state")
-    @getResponseHeader = @getAllResponseHeader = ->
+    @getResponseHeader = @getAllResponseHeaders = ->
     # Open method.
     @open = (method, url, async, user, password)->
       method = method.toUpperCase()
@@ -77,7 +77,7 @@ XMLHttpRequest = (window)->
           else
             # At this state, allow retrieving of headers and status code.
             @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
-            @getAllResponseHeader = -> response.headers
+            @getAllResponseHeaders = -> response.headers
             @__defineGetter__ "status", -> response.statusCode
             @__defineGetter__ "statusText", -> response.statusText
             stateChanged 2
