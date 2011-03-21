@@ -15,6 +15,7 @@ brains.get "/forms/form", (req, res)-> res.send """
         <input type="password" name="password" id="field-password">
         <input type="badtype" name="invalidtype" id="field-invalidtype" />
         <input type="text" name="email2" id="field-email2" />
+        <input type="text" name="email3" id="field-email3" />
 
         <label>Hungry</label>
         <label>You bet<input type="checkbox" name="hungry[]" value="you bet" id="field-hungry"></label>
@@ -23,6 +24,9 @@ brains.get "/forms/form", (req, res)-> res.send """
         <label for="field-brains">Brains?</label>
         <input type="checkbox" name="brains" value="yes" id="field-brains">
         <input type="checkbox" name="green" id="field-green" value="Super green!" checked="checked">
+        
+        <input type="checkbox" name="check" id="field-check" value="Huh?" checked="checked">
+        <input type="checkbox" name="uncheck" id="field-uncheck" value="Yeah!">
 
         <label>Looks
           <select name="looks" id="field-looks">
@@ -170,8 +174,8 @@ vows.describe("Forms").addBatch(
         "should fire change event": (browser)-> assert.ok browser.email2Changed
       "should callback":
         topic: (browser)->
-          browser.fill browser.querySelector("#field-email2"), "headchomper@example.com", @callback
-        "should fire the callback": (_, browser)-> assert.equal browser.querySelector("#field-email2").value, "headchomper@example.com"
+          browser.fill browser.querySelector("#field-email3"), "headchomper@example.com", @callback
+        "should fire the callback": (_, browser)-> assert.equal browser.querySelector("#field-email3").value, "headchomper@example.com"
   "check box":
     zombie.wants "http://localhost:3003/forms/form"
       topic: (browser)->
@@ -190,7 +194,7 @@ vows.describe("Forms").addBatch(
       "checkbox referenced from label":
         topic: (browser)->
           browser.check "Brains?"
-          browser.wait -> browser.wait @callback
+          browser.wait @callback
         "should check checkbox": (browser)-> assert.ok browser.querySelector("#field-brains").checked
         "should fire change event": (browser)-> assert.ok browser.brainsChanged
       "checkbox by name":
@@ -203,13 +207,12 @@ vows.describe("Forms").addBatch(
         "should fire change event": (browser)-> assert.ok browser.greenChanged
       "check callback":
         topic: (browser)->
-          browser.check "You bet", @callback
-        "should callback": (_, browser)-> assert.ok browser.querySelector("#field-hungry").checked
+          browser.check "uncheck", @callback
+        "should callback": (_, browser)-> assert.ok browser.querySelector("#field-uncheck").checked
       "uncheck callback":
         topic: (browser)->
-          browser.check "Brains?"
-          browser.uncheck "Brains?", @callback
-        "should callback": (_, browser)-> assert.ok !browser.querySelector("#field-brains").checked
+          browser.uncheck "check", @callback
+        "should callback": (_, browser)-> assert.ok !browser.querySelector("#field-check").checked
         
   "radio buttons":
     zombie.wants "http://localhost:3003/forms/form"
@@ -276,7 +279,7 @@ vows.describe("Forms").addBatch(
         "should fire change event": (browser)-> assert.ok browser.killsChanged
       "select callback":
         topic: (browser)->
-          browser.select "unselected_state", "dead"
+          browser.select "unselected_state", "dead", @callback
         "should callback": (_, browser)-> assert.equal browser.querySelector("#field-unselected-state").value, "dead"
       "select option callback":
         topic: (browser)->
