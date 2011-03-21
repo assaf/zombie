@@ -4,6 +4,8 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.9.5  Pending
 
+Callbacks on input/select changes (Julien Guimont)
+
 Fix type that broke compatibility with jQuery 1.5.1 (Chad Humphries)
 
 Enabled window.Image to accept height and width attributes [#35]
@@ -12,7 +14,7 @@ Implemented window.navigator.javaEnabled() [#35]
 
 Added setter for document.location [#90]
 
-    302 Tests
+    305 Tests
     4.2 sec to complete
 
 
