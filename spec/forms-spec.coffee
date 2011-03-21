@@ -82,16 +82,6 @@ brains.get "/forms/form", (req, res)-> res.send """
   </html>
   """
 brains.post "/forms/submit", (req, res)->
-  # These fixes necessary with Express 1.0.3 under Node 0.3.x.  Otherwise,
-  # bodyDecoder takes care of these mapping.
-  req.body.hungry ||= req.body["hungry[]"]
-  req.body.hobbies ||= req.body["hobbies[]"]
-  if req.body["addresses[][street]"]
-    req.body.addresses = []
-    for i,j of req.body["addresses[][street]"]
-      req.body.addresses.push street: j
-      req.body.addresses.push city: req.body["addresses[][city]"][i]
-
   res.send """
   <html>
     <body>
@@ -392,7 +382,8 @@ vows.describe("Forms").addBatch(
         "should send multiple selected options to server": (browser)->
           assert.equal browser.text("#hobbies"), '["Eat Brains","Sleep"]'
         "should send nested attributes in the order they are declared": (browser) ->
-          assert.equal browser.text("#addresses"), '[{"street":"CDG"},{"city":"Paris"},{"street":"PGS"},{"city":"Mikolaiv"}]'
+          #assert.equal browser.text("#addresses"), '[{"street":"CDG"},{"city":"Paris"},{"street":"PGS"},{"city":"Mikolaiv"}]'
+          assert.equal browser.text("#addresses"), '["CDG","Paris","PGS","Mikolaiv"]'
 
     "by clicking button":
       zombie.wants "http://localhost:3003/forms/form"

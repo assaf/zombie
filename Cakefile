@@ -36,13 +36,25 @@ task "setup", "Install development dependencies", ->
       log "Installing #{name} #{version}", green
       exec "npm bundle install \"#{name}@#{version}\"", onerror
 
+task "install", "Install Zombie in your local repository", ->
+  build (err)->
+    onerror err
+    generateMan (err)->
+      onerror err
+      log "Installing Zombie ...", green
+      exec "npm install", (err, stdout, stderr)->
+        process.stdout.write stderr
+        onerror err
+
 
 ## Building ##
 
 build = (callback)->
   log "Compiling CoffeeScript to JavaScript ...", green
   exec "rm -rf lib && coffee -c -l -b -o lib src", (err, stdout)->
-    callback err
+    onerror err
+    log "Compiling native extension ...", green
+    exec "node-waf configure build", callback
 task "build", "Compile CoffeeScript to JavaScript", -> build onerror
 
 task "watch", "Continously compile CoffeeScript to JavaScript", ->
@@ -60,7 +72,7 @@ task "clean", "Remove temporary files and such", -> clean onerror
 
 runTests = (callback)->
   log "Running test suite ...", green
-  exec "vows --spec spec/*.coffee", (err, stdout, stderr)->
+  exec "vows --spec spec/*-spec.coffee", (err, stdout, stderr)->
     process.stdout.write stdout
     process.binding('stdio').writeError stderr
     callback err if callback
@@ -185,27 +197,29 @@ task "publish", "Publish new version (Git, NPM, site)", ->
     # scratch, don't want generated files we no longer use, etc.
     clean (err)->
       onerror err
-      fs.readFile "package.json", "utf8", (err, package)->
-        package = JSON.parse(package)
+      exec "git push", (err)->
+        onerror err
+        fs.readFile "package.json", "utf8", (err, package)->
+          package = JSON.parse(package)
 
-        # Create a tag for this version and push changes to Github.
-        log "Tagging v#{package.version} ...", green
-        exec "git tag v#{package.version}", (err, stdout, stderr)->
-          log stdout, green
-          exec "git push --tags origin master", (err, stdout, stderr)->
-            log stdout, green
-
-        # Publish documentation, need these first to generate man pages,
-        # inclusion on NPM package.
-        generateDocs (err)->
-          onerror err
-
-          log "Publishing to NPM ...", green
-          build (err)->
+          # Publish documentation, need these first to generate man pages,
+          # inclusion on NPM package.
+          generateDocs (err)->
             onerror err
-            exec "npm publish", (err, stdout, stderr)->
-              log stdout, green
-              onerror err
 
-          # We can do this in parallel.
-          publishDocs onerror
+            log "Publishing to NPM ...", green
+            build (err)->
+              onerror err
+              exec "npm publish", (err, stdout, stderr)->
+                log stdout, green
+                onerror err
+
+                # Create a tag for this version and push changes to Github.
+                log "Tagging v#{package.version} ...", green
+                exec "git tag v#{package.version}", (err, stdout, stderr)->
+                  log stdout, green
+                  exec "git push --tags origin master", (err, stdout, stderr)->
+                    log stdout, green
+
+            # We can do this in parallel.
+            publishDocs onerror

@@ -1,11 +1,14 @@
 jsdom = require("jsdom")
+core = jsdom.dom.level3.core
 html = jsdom.dom.level3.html
 vm = process.binding("evals")
 require "./jsdom_patches"
 require "./forms"
 require "./xpath"
 History = require("./history").History
-
+EventLoop = require("./eventloop").EventLoop
+require.paths.push "../../build/default"
+WindowContext = require("../../build/default/window_context").WindowContext
 
 
 # Use the browser to open up new windows and load documents.
@@ -16,9 +19,9 @@ class Browser extends require("events").EventEmitter
     cache = require("./cache").use(this)
     cookies = require("./cookies").use(this)
     storage = require("./storage").use(this)
-    eventloop = require("./eventloop").use(this)
     interact = require("./interact").use(this)
     xhr = require("./xhr").use(cache)
+    ws = require("./websocket").use(this)
     resources = require("./resources")
 
 
@@ -87,9 +90,17 @@ class Browser extends require("events").EventEmitter
     this.open = (features = {})->
       features.interactive ?= true
 
-      history = features.history || new History
+      history = features.history || new History(this)
+
+      # Add context for evaluating scripts.
+      #context = new WindowContext(jsdom.createWindow(html))
+      #newWindow = context.global
+      #newWindow._evaluate = (code, filename)-> context.evaluate(code, filename)
+      #newWindow._evaluate "this.window = this"
 
       newWindow = jsdom.createWindow(html)
+      context = new WindowContext(newWindow)
+      newWindow._evaluate = (code, filename)-> context.evaluate(code, filename)
 
       # Switch to the newly created window if it's interactive.
       # Examples of non-interactive windows are frames.
@@ -100,19 +111,30 @@ class Browser extends require("events").EventEmitter
       newWindow.__defineGetter__ "title", => @window?.document?.title
       newWindow.__defineSetter__ "title", (title)=> @window?.document?.title = title
       newWindow.navigator.userAgent = @userAgent
+      
+      # Present in browsers, not in spec
+      # Used by Google Analytics
+      # see https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
+      newWindow.navigator.javaEnabled = ()-> false
+      
       resources.extend newWindow
       cookies.extend newWindow
       storage.extend newWindow
-      eventloop.extend newWindow
+      newWindow._eventloop = new EventLoop(newWindow)
       history.extend newWindow
       interact.extend newWindow
       xhr.extend newWindow
+      ws.extend newWindow
       newWindow.screen = new Screen()
       newWindow.JSON = JSON
+      newWindow.Image = (width, height)->
+        img = new core.HTMLImageElement(newWindow.document)
+        img.width = width
+        img.height = height
+        img
+      
       # Default onerror handler.
       newWindow.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
-      # TODO: Fix
-      newWindow.Image = ->
 
       return newWindow
 
@@ -156,7 +178,7 @@ class Browser extends require("events").EventEmitter
           callback null, this
         @on "error", onerror
         @on "done", ondone
-      eventloop.wait window, terminate
+      window._eventloop.wait window, terminate
       return
 
     # ### browser.fire(name, target, callback?)
@@ -195,7 +217,7 @@ class Browser extends require("events").EventEmitter
     #
     # You can change this to advance the system clock during tests.  It will
     # also advance when handling timeout/interval events.
-    @clock = new Date().getTime()
+    @clock = Date.now()
     # ### browser.now => Date
     #
     # The current system time according to the browser (see also
@@ -283,17 +305,17 @@ class Browser extends require("events").EventEmitter
     #
     # Returns the status code of the request for loading the window.
     @__defineGetter__ "statusCode", ->
-      @window.resources.first?.response.statusCode
+      @window.resources.first?.response?.statusCode
     # ### browser.redirected => Boolean
     #
     # Returns true if the request for loading the window followed a
     # redirect.
     @__defineGetter__ "redirected", ->
-      @window.resources.first?.response.redirected
+      @window.resources.first?.response?.redirected
     # ### source => String
     #
     # Returns the unmodified source of the document loaded by the browser
-    @__defineGetter__ "source", => @window.resources.first?.response.body
+    @__defineGetter__ "source", => @window.resources.first?.response?.body
 
     # ### browser.cache => Cache
     #
@@ -648,26 +670,7 @@ class Browser extends require("events").EventEmitter
     # You can also use this to evaluate a function in the context of the
     # window: for timers and asynchronous callbacks (e.g. XHR).
     this.evaluate = (code, filename)->
-      if typeof code == "function"
-        code.apply window
-      else
-        # Unfortunately, using the same context in multiple scripts
-        # doesn't agree with jQuery, Sammy and other scripts I tested,
-        # so each script gets a new context.
-        context = vm.Script.createContext(window)
-        # But we need to carry global variables from one script to the
-        # next, so we're going to store them in window._vars and add them
-        # back to the new context.
-        if window._vars
-          context[v[0]] = v[1] for v in @window._vars
-        script = new vm.Script(code, filename || "eval")
-        try
-          return script.runInContext context
-        catch ex
-          this.log ex.stack.split("\n").slice(0,2)
-          throw ex
-        finally
-          window._vars = ([n,v] for n, v of context).filter((v)-> !window[v[0]])
+      this.window._evaluate code, filename
 
 
     # Interaction
@@ -770,7 +773,7 @@ class Browser extends require("events").EventEmitter
       console.log "History:\n#{indent window.history.dump()}"
       console.log "Cookies:\n#{indent cookies.dump()}"
       console.log "Storage:\n#{indent storage.dump()}"
-      console.log "Eventloop:\n#{indent eventloop.dump()}"
+      console.log "Eventloop:\n#{indent window._eventloop.dump()}"
       if @document
         html = @document.outerHTML
         html = html.slice(0, 497) + "..." if html.length > 497

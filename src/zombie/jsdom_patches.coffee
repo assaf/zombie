@@ -54,7 +54,7 @@ core.languageProcessors =
     window = document.parentWindow
     window.browser.log -> "Running script from #{filename}" if filename
     try
-      window.browser.evaluate code, filename
+      window._evaluate code, filename
     catch error
       event = document.createEvent("HTMLEvents")
       event.initEvent "error", true, false
@@ -83,7 +83,7 @@ core.Document.prototype._elementBuilders["script"] = (doc, s)->
       code = event.target.nodeValue
       if code.trim().length > 0
         filename = @ownerDocument.URL
-        @ownerDocument.parentWindow.perform (done)=>
+        @ownerDocument.parentWindow._eventloop.perform (done)=>
           loaded = (code, filename)=>
             if core.languageProcessors[@language] && code == @text
               core.languageProcessors[@language](this, code, filename)

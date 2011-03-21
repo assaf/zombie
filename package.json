@@ -1,8 +1,13 @@
 { "name": "zombie",
-  "version": "0.8.12",
+  "version": "0.9.4",
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "http://zombie.labnotes.org/",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
+  "contributors": [
+    "Bob Lail <bob.lailfamily@gmail.com> (http://boblail.tumblr.com/)",
+    "Damian Janowski",
+    "José Valim <jose.valim@plataformatec.com.br> (http://blog.plataformatec.com.br/)"
+  ],
   "keywords": [ "test", "tests", "testing", "TDD", "spec", "specs", "BDD", "headless", "browser",
     "html", "html5", "dom", "css", "javascript", "integration", "ajax", "full-stack" ],
   "directories": {
@@ -11,48 +16,48 @@
     "man": "./man7"
   },
   "files": [
-    "README.md",
-    "CHANGELOG.md",
     "Cakefile",
-    "MIT-LICENSE",
-    "TODO.md",
-    "dep",
-    "src",
-    "spec",
+    "CHANGELOG.md",
     "doc",
     "lib",
     "man7",
-    "package.json"
+    "MIT-LICENSE",
+    "README.md",
+    "spec",
+    "src",
+    "TODO.md",
+    "xpath",
+    "wscript"
   ],
+  "main": "lib/zombie/index.js",
   "scripts": {
+    "install": "node-waf configure build",
     "build": "cake build",
-    "test": "vows"
+    "test": "cake test"
   },
   "engines": {
-    "node": ">= 0.2.5"
+    "node": ">= 0.2.6"
   },
   "dependencies": {
-    "html5": "0.2.13",
+    "html5": "0.2.14",
     "jsdom": "0.1.23",
-    "mime": "1.2.1"
+    "mime": "1.2.1",
+    "websocket-client": "1.0.0"
   },
   "devDependencies": {
     "coffee-script": ">= 1.0.1",
     "docco": "0.3.0",
-    "express": "1.0.3",
+    "express": "2.0.0rc",
     "ronn": "0.3.5",
-    "vows": "0.5.5"
+    "vows": "0.5.8"
   },
   "repository": {
     "type": "git",
     "url": "https://assaf@github.com/assaf/zombie.git"
   },
-  "bugs": {
-    "url": "http://github.com/assaf/zombie/issues"
-  },
+  "bugs": { "url": "http://github.com/assaf/zombie/issues" },
   "licenses": [
-    {
-      "type": "MIT",
+    { "type": "MIT",
       "url": "http://github.com/assaf/zombie/raw/master/MIT-LICENSE"
     }
   ]

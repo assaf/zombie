@@ -1,11 +1,23 @@
 require "./helpers"
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
+domToHtml = require('jsdom/browser/domtohtml').domToHtml
 
 brains.get "/script/context", (req, res)-> res.send """
-  <script>var foo = 1;</script>
-  <script>foo = foo + 1;</script>
-  <script>document.title = foo;</script>
+  <script>var foo = 1</script>
+  <script>window.foo = foo + 1</script>
+  <script>document.title = this.foo</script>
+  <script>setTimeout(function() {
+    document.title = foo + window.foo
+  })</script>
   """
+
+brains.get "/script/window", (req, res)-> res.send "<script>document.title = [window == this, this == window.window].join(',')</script>"
+
+brains.get "/script/incomplete", (req, res)-> res.send "<script>1 +</script>"
+
+brains.get "/script/split", (req, res)-> res.send "<script>foo = foo ? 1 : 2; '&'; document.title = foo</script>"
+
+brains.get "/script/error", (req, res)-> res.send "<script>foo.bar</script>"
 
 brains.get "/script/order", (req, res)-> res.send """
   <html>
@@ -19,9 +31,21 @@ brains.get "/script/order", (req, res)-> res.send """
     </body>
   </html>
   """
-brains.get "/script/order.js", (req, res)-> res.send "document.title = document.title + 'One'";
+brains.get "/script/order.js", (req, res)-> res.send "document.title = document.title + 'One'"
 
-brains.get "/dead", (req, res)-> res.send """
+brains.get "/script/eval", (req, res)-> res.send """
+  <script>
+    var foo = 'One';
+    (function() {
+      var bar = 'Two'; // standard eval sees this
+      var e = eval; // this 'eval' only sees global scope
+      //var baz = e(bar);
+      document.title = eval('foo + bar + baz');
+    })();
+  </script>
+  """
+
+brains.get "/script/dead", (req, res)-> res.send """
   <html>
     <head>
       <script src="/jquery.js"></script>
@@ -64,7 +88,7 @@ brains.get "/script/append", (req, res)-> res.send """
   </html>
   """
 
-brains.get "/living", (req, res)-> res.send """
+brains.get "/script/living", (req, res)-> res.send """
   <html>
     <head>
       <script src="/jquery.js"></script>
@@ -73,7 +97,7 @@ brains.get "/living", (req, res)-> res.send """
     </head>
     <body>
       <div id="main">
-        <a href="/dead">Kill</a>
+        <a href="/script/dead">Kill</a>
         <form action="#/dead" method="post">
           <label>Email <input type="text" name="email"></label>
           <label>Password <input type="password" name="password"></label>
@@ -121,11 +145,39 @@ brains.get "/app.js", (req, res)-> res.send """
 vows.describe("Scripts").addBatch(
   "script context":
     zombie.wants "http://localhost:3003/script/context"
-      "should be shared by all scripts": (browser)-> assert.equal browser.text("title"), "2"
+      "should be shared by all scripts": (browser)-> assert.equal browser.text("title"), "4"
+
+  ###
+  "script window":
+    zombie.wants "http://localhost:3003/script/window"
+      "should be the same as this and top": (browser)-> assert.equal browser.text("title"), "true,true"
+  ###
+
+  "script incomplete":
+    topic: ->
+      browser = new zombie.Browser
+      browser.wants "http://localhost:3003/script/incomplete", (err, browser)=> @callback null, err
+    "should propagate error to window": (error)-> assert.equal error.message, "Unexpected end of input"
+
+  "script error":
+    topic: ->
+      browser = new zombie.Browser
+      browser.wants "http://localhost:3003/script/error", (err, browser)=> @callback null, err
+    "should propagate error to window": (error)-> assert.equal error.message, "Cannot read property 'bar' of undefined"
 
   "script order":
     zombie.wants "http://localhost:3003/script/order"
       "should run scripts in order regardless of source": (browser)-> assert.equal browser.text("title"), "ZeroOneTwo"
+
+  ###
+  "split script":
+    zombie.wants "http://localhost:3003/script/split"
+      "should run full script": (browser)-> assert.equal browser.text("title"), "1"
+  ###
+
+  "using eval":
+    zombie.wants "http://localhost:3003/script/eval"
+      "should evaluate in global scope": (browser)-> assert.equal browser.document.title, "3"
 
   "adding script using document.write":
     zombie.wants "http://localhost:3003/script/write"
@@ -141,28 +193,34 @@ vows.describe("Scripts").addBatch(
     "should not run scripts": (browser)-> assert.equal browser.document.title, "Zero"
 
   "run app":
-    zombie.wants "http://localhost:3003/living"
+    zombie.wants "http://localhost:3003/script/living"
       "should execute route": (browser)-> assert.equal browser.document.title, "The Living"
-      "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
+      "should change location": (browser)-> assert.equal browser.location.href, "http://localhost:3003/script/living#/"
       "move around":
         topic: (browser)->
           browser.visit browser.location.href + "dead", @callback
         "should execute route": (browser)-> assert.equal browser.text("#main"), "The Living Dead"
-        "should change location": (browser)-> assert.equal browser.location.href, "http://localhost:3003/living#/dead"
+        "should change location": (browser)-> assert.equal browser.location.href, "http://localhost:3003/script/living#/dead"
 
   "live events":
-    zombie.wants "http://localhost:3003/living"
+    zombie.wants "http://localhost:3003/script/living"
       topic: (browser)->
         browser.fill("Email", "armbiter@zombies").fill("Password", "br41nz").
           pressButton "Sign Me Up", @callback
-      "should change location": (browser)-> assert.equal browser.location, "http://localhost:3003/living#/"
+      "should change location": (browser)-> assert.equal browser.location.href, "http://localhost:3003/script/living#/"
       "should process event": (browser)-> assert.equal browser.document.title, "Signed up"
 
   "evaluate":
-    zombie.wants "http://localhost:3003/living"
+    zombie.wants "http://localhost:3003/script/living"
       topic: (browser)->
         browser.evaluate "document.title"
       "should evaluate in context and return value": (title)-> assert.equal title, "The Living"
+
+  "new Image":
+    zombie.wants "http://localhost:3003/script/living"
+      "should construct an img tag": (browser)-> assert.equal domToHtml(browser.evaluate("new Image")), "<img>\r\n"
+      "should construct an img tag with width and height": (browser)->
+        assert.equal domToHtml(browser.evaluate("new Image(1, 1)")), "<img width=\"1\" height=\"1\">\r\n"
 
   ###
   "SSL":

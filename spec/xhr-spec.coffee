@@ -2,7 +2,7 @@ require("./helpers")
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 
 brains.get "/xhr", (req, res)->
-  res.cookie "xhr", "yes", "Path": "/"
+  res.cookie "xhr", "yes", path: "/"
   res.send """
   <html>
     <head><script src="/jquery.js"></script></head>
@@ -14,13 +14,13 @@ brains.get "/xhr", (req, res)->
   </html>
   """
 brains.get "/xhr/backend", (req, res)->
-  res.cookie "xml", "lol", "Path": "/"
+  res.cookie "xml", "lol", path: "/"
   response = req.cookies["xhr"] || ""
   response = "redirected: #{response}" if req.query.redirected
   res.send response
 
 brains.get "/xhr/redirect", (req, res)->
-  res.cookie "xhr", "yes", "Path": "/"
+  res.cookie "xhr", "yes", path: "/"
   res.send """
   <html>
     <head><script src="/jquery.js"></script></head>

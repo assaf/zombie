@@ -3,12 +3,12 @@ require("./helpers")
 jsdom = require("jsdom")
 
 
-brains.get "/boo", (req, res)->
+brains.get "/history/boo", (req, res)->
   response = if req.query.redirected then "Redirected" else "Eeek!"
   res.send "<html><title>#{response}</title></html>"
-brains.get "/redirect", (req, res)->
-  res.redirect "/boo?redirected=true"
-brains.get "/redirect_back", (req, res)->
+brains.get "/history/redirect", (req, res)->
+  res.redirect "/history/boo?redirected=true"
+brains.get "/history/redirect_back", (req, res)->
   res.redirect req.headers['referer']
 
 
@@ -84,23 +84,14 @@ vows.describe("History").addBatch(
         "should load document": (browser)-> assert.match browser.html(), /Tap, Tap/
         "should set window location": (browser)-> assert.equal browser.window.location.href, "http://localhost:3003/"
         "should set document location": (browser)-> assert.equal browser.document.location.href, "http://localhost:3003/"
-    "change location":
-      zombie.wants "http://localhost:3003/"
-        topic: (browser)->
-          browser.window.location = "http://localhost:3003/boo"
-          browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
-          return
-        "should add page to history": (browser)-> assert.length browser.window.history, 2
-        "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
-        "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "change pathname":
       zombie.wants "http://localhost:3003/"
         topic: (browser)->
-          browser.window.location.pathname = "/boo"
+          browser.window.location.pathname = "/history/boo"
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
           return
         "should add page to history": (browser)-> assert.length browser.window.history, 2
-        "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
+        "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "change hash":
       zombie.wants "http://localhost:3003/"
@@ -116,22 +107,22 @@ vows.describe("History").addBatch(
       zombie.wants "http://localhost:3003/"
         topic: (browser)->
           @window = browser.window
-          browser.window.location.assign "http://localhost:3003/boo"
+          browser.window.location.assign "http://localhost:3003/history/boo"
           browser.document.addEventListener "DOMContentLoaded", => @callback null, browser
           return
         "should add page to history": (browser)-> assert.length browser.window.history, 2
-        "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
+        "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
         "should load document in new window": (browser)-> assert.ok browser.window != @window
     "replace":
       zombie.wants "http://localhost:3003/"
         topic: (browser)->
           @window = browser.window
-          browser.window.location.replace "http://localhost:3003/boo"
+          browser.window.location.replace "http://localhost:3003/history/boo"
           browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
           return
         "should not add page to history": (browser)-> assert.length browser.window.history, 1
-        "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/boo"
+        "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
         "should load document in new window": (browser)-> assert.ok browser.window != @window
     "reload":
@@ -157,20 +148,40 @@ vows.describe("History").addBatch(
         "should include search": (location)-> assert.equal location.search, ""
         "should include hash": (location)-> assert.equal location.hash, ""
 
+  "set window.location":
+    zombie.wants "http://localhost:3003/"
+      topic: (browser)->
+        browser.window.location = "http://localhost:3003/history/boo"
+        browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
+        return
+      "should add page to history": (browser)-> assert.length browser.window.history, 2
+      "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
+      "should load document": (browser)-> assert.match browser.html(), /Eeek!/  
+
+  "set document.location":
+    zombie.wants "http://localhost:3003/"
+      topic: (browser)->
+        browser.window.document.location = "http://localhost:3003/history/boo"
+        browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
+        return
+      "should add page to history": (browser)-> assert.length browser.window.history, 2
+      "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
+      "should load document": (browser)-> assert.match browser.html(), /Eeek!/  
+
   "redirect":
-    zombie.wants "http://localhost:3003/redirect"
-      "should redirect to final destination": (browser)-> assert.equal browser.location, "http://localhost:3003/boo?redirected=true"
+    zombie.wants "http://localhost:3003/history/redirect"
+      "should redirect to final destination": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo?redirected=true"
       "should pass query parameter": (browser)-> assert.equal browser.text("title"), "Redirected"
       "should not add location in history": (browser)-> assert.length browser.window.history, 1
       "should indicate last request followed a redirect": (browser)-> assert.ok browser.redirected
 
   "redirect back":
-    zombie.wants "http://localhost:3003/boo"
+    zombie.wants "http://localhost:3003/history/boo"
       topic: (browser)->
-        browser.visit "http://localhost:3003/redirect_back"
+        browser.visit "http://localhost:3003/history/redirect_back"
         browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
         return
-      "should redirect to the previous path": (browser)-> assert.equal browser.location.href, "http://localhost:3003/boo"
+      "should redirect to the previous path": (browser)-> assert.equal browser.location.href, "http://localhost:3003/history/boo"
       "should pass query parameter": (browser)-> assert.match browser.text("title"), /Eeek!/
       "should not add location in history": (browser)-> assert.length browser.window.history, 2
       "should indicate last request followed a redirect": (browser)-> assert.ok browser.redirected

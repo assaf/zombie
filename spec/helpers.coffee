@@ -24,26 +24,20 @@ vows.console.result = (results)->
 
 # An Express server we use to test the browser.
 brains = express.createServer()
-brains.use express.bodyDecoder()
-brains.use express.cookieDecoder()
-
-
-# Patch Express to do the right thing when setting a cookie: create single
-# header with multiple cookie values separated by comma.
-require("http").ServerResponse.prototype.cookie = (name, val, options)->
-  cookie = require("connect/utils").serializeCookie(name, val, options)
-  if @headers['Set-Cookie']
-    @headers['Set-Cookie'] += ", #{cookie}"
-  else
-    @headers['Set-Cookie'] = cookie
+brains.use express.bodyParser()
+brains.use express.cookieParser()
 
 
 brains.get "/", (req, res)->
   res.send "<html><title>Tap, Tap</title></html>"
 brains.get "/jquery.js", (req, res)->
-  fs.readFile "#{__dirname}/.scripts/jquery.js", (err, data)-> res.send data
+  fs.readFile "#{__dirname}/scripts/jquery-1.4.4.js", (err, data)-> res.send data
+brains.get "/jquery-1.4.4.js", (req, res)->
+  fs.readFile "#{__dirname}/scripts/jquery-1.4.4.js", (err, data)-> res.send data
+brains.get "/jquery-1.5.1.js", (req, res)->
+  fs.readFile "#{__dirname}/scripts/jquery-1.5.1.js", (err, data)-> res.send data
 brains.get "/sammy.js", (req, res)->
-  fs.readFile "#{__dirname}/.scripts/sammy.js", (err, data)->
+  fs.readFile "#{__dirname}/scripts/sammy.js", (err, data)->
     # Prevent sammy from polluting the output. Comment this if you need its
     # messages for debugging.
     data = data + ";window.Sammy.log = function() {}"
@@ -90,7 +84,7 @@ zombie.Browser.prototype.wants = (url, options, callback)->
 
 
 # Handle multipart/form-data so we can test file upload.
-express.bodyDecoder.decode["multipart/form-data"] = (body)->
+express.bodyParser.parse["multipart/form-data"] = (body)->
   # Find the boundary
   match = body.match(/^(--.*)\r\n(?:.|\n|\r)*\1--/m)
   if match && boundary = match[1]

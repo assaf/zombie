@@ -15,10 +15,15 @@ XMLHttpRequest = (window)->
     @__defineGetter__ "readyState", -> state
     if @onreadystatechange
       # Since we want to wait on these events, put them in the event loop.
-      window.perform (done)=>
+      window._eventloop.perform (done)=>
         process.nextTick =>
           try
             @onreadystatechange.call(@)
+          catch error
+            evt = window.document.createEvent("HTMLEvents")
+            evt.initEvent "error", true, false
+            evt.error = error
+            window.dispatchEvent evt
           finally
             done()
   # Bring XHR to initial state (open/abort).
@@ -30,7 +35,7 @@ XMLHttpRequest = (window)->
     # These methods not applicable yet.
     @abort = -> # do nothing
     @setRequestHeader = @send = -> throw new core.DOMException(core.INVALID_STATE_ERR,  "Invalid state")
-    @getResponseHeader = @getAllResponseHeader = ->
+    @getResponseHeader = @getAllResponseHeaders = ->
     # Open method.
     @open = (method, url, async, user, password)->
       method = method.toUpperCase()
@@ -38,7 +43,7 @@ XMLHttpRequest = (window)->
       throw new core.DOMException(core.SYNTAX_ERR, "Unsupported HTTP method") unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
       url = URL.parse(URL.resolve(window.location.href, url))
       url.hostname ||= window.location.hostname
-      url.host = "#{url.hostname}:#{url.port}"
+      url.host = if url.port then "#{url.hostname}:#{url.port}" else url.hostname
       url.hash = null
       throw new core.DOMException(core.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
       throw new core.DOMException(core.NOT_SUPPORTED_ERR, "Only HTTP protocol supported") unless url.protocol == "http:"
@@ -72,7 +77,7 @@ XMLHttpRequest = (window)->
           else
             # At this state, allow retrieving of headers and status code.
             @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
-            @getAllResponseHeader = -> response.headers
+            @getAllResponseHeaders = -> response.headers
             @__defineGetter__ "status", -> response.statusCode
             @__defineGetter__ "statusText", -> response.statusText
             stateChanged 2

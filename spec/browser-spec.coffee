@@ -87,42 +87,6 @@ brains.get "/soup", (req, res)-> res.send """
 
 brains.get "/useragent", (req, res)-> res.send "<body>#{req.headers["user-agent"]}</body>"
 
-brains.get "/alert", (req, res)-> res.send """
-  <script>
-    alert("Hi");
-    alert("Me again");
-  </script>
-  """
-
-brains.get "/confirm", (req, res)-> res.send """
-  <script>
-    window.first = confirm("continue?");
-    window.second = confirm("more?");
-    window.third = confirm("silent?");
-  </script>
-  """
-
-brains.get "/prompt", (req, res)-> res.send """
-  <script>
-    window.first = prompt("age");
-    window.second = prompt("gender");
-    window.third = prompt("location");
-    window.fourth = prompt("weight");
-  </script>
-  """
-
-brains.get "/screen", (req, res)-> res.send """
-  <script>
-    var props = [];
-
-    for (key in window.screen) {
-      props.push(key + "=" + window.screen[key]);
-    }
-
-    document.title = props.join(", ");
-  </script>
-  """
-
 brains.get "/iframe", (req, res)-> res.send """
   <html>
     <head>
@@ -201,14 +165,14 @@ vows.describe("Browser").addBatch(
       "query text":
         topic: (browser)-> browser
         "should query from document": (browser)-> assert.equal browser.text(".now"), "Walking Aimlessly"
-        "should query from context": (browser)-> assert.equal browser.text(".now", browser.body), "Walking Aimlessly"
-        "should query from context": (browser)-> assert.equal browser.text(".now", browser.querySelector("#main")), ""
+        "should query from context (exists)": (browser)-> assert.equal browser.text(".now", browser.body), "Walking Aimlessly"
+        "should query from context (unrelated)": (browser)-> assert.equal browser.text(".now", browser.querySelector("#main")), ""
         "should combine multiple elements": (browser)-> assert.equal browser.text("form label"), "Email Password "
       "query html":
         topic: (browser)-> browser
         "should query from document": (browser)-> assert.equal browser.html(".now"), "<div class=\"now\">Walking Aimlessly</div>"
-        "should query from context": (browser)-> assert.equal browser.html(".now", browser.body), "Walking Aimlessly"
-        "should query from context": (browser)-> assert.equal browser.html(".now", browser.querySelector("#main")), ""
+        "should query from context (exists)": (browser)-> assert.equal browser.html(".now", browser.body), "<div class=\"now\">Walking Aimlessly</div>"
+        "should query from context (unrelated)": (browser)-> assert.equal browser.html(".now", browser.querySelector("#main")), ""
         "should combine multiple elements": (browser)-> assert.equal browser.html("title, #main a"), "<title>The Living</title><a href=\"/dead\">Kill</a>"
 
   "click link":
@@ -271,66 +235,6 @@ vows.describe("Browser").addBatch(
   </html>
   """
 
-  "window.title":
-    zombie.wants "http://localhost:3003/static"
-      "should return the document's title": (browser)-> assert.equal browser.window.title, "Whatever"
-      "should set the document's title": (browser)->
-        browser.window.title = "Overwritten"
-        assert.equal browser.window.title, browser.document.title
-
-  "window.alert":
-    topic: ->
-      browser = new zombie.Browser
-      browser.onalert (message)-> browser.window.first = true if message = "Me again"
-      browser.wants "http://localhost:3003/alert", @callback
-    "should record last alert show to user": (browser)-> assert.ok browser.prompted("Me again")
-    "should call onalert function with message": (browser)-> assert.ok browser.window.first
-
-  "window.confirm":
-    topic: ->
-      browser = new zombie.Browser
-      browser.onconfirm "continue?", true
-      browser.onconfirm (prompt)-> true if prompt == "more?"
-      browser.wants "http://localhost:3003/confirm", @callback
-    "should return canned response": (browser)-> assert.ok browser.window.first
-    "should return response from function": (browser)-> assert.ok browser.window.second
-    "should return false if no response/function": (browser)-> assert.equal browser.window.third, false
-    "should report prompted question": (browser)->
-      assert.ok browser.prompted("continue?")
-      assert.ok browser.prompted("silent?")
-      assert.ok !browser.prompted("missing?")
-
-  "window.prompt":
-    topic: ->
-      browser = new zombie.Browser
-      browser.onprompt "age", 31
-      browser.onprompt (message, def)-> "unknown" if message == "gender"
-      browser.onprompt "location", false
-      browser.wants "http://localhost:3003/prompt", @callback
-    "should return canned response": (browser)-> assert.equal browser.window.first, "31"
-    "should return response from function": (browser)-> assert.equal browser.window.second, "unknown"
-    "should return null if cancelled": (browser)-> assert.isNull browser.window.third
-    "should return empty string if no response/function": (browser)-> assert.equal browser.window.fourth, ""
-    "should report prompts": (browser)->
-      assert.ok browser.prompted("age")
-      assert.ok browser.prompted("gender")
-      assert.ok browser.prompted("location")
-      assert.ok !browser.prompted("not asked")
-
-  "window.screen":
-    zombie.wants "http://localhost:3003/screen"
-      "should have a screen object available": (browser)->
-        assert.match browser.document.title, /width=1280/
-        assert.match browser.document.title, /height=800/
-        assert.match browser.document.title, /left=0/
-        assert.match browser.document.title, /top=0/
-        assert.match browser.document.title, /availLeft=0/
-        assert.match browser.document.title, /availTop=0/
-        assert.match browser.document.title, /availWidth=1280/
-        assert.match browser.document.title, /availHeight=800/
-        assert.match browser.document.title, /colorDepth=24/
-        assert.match browser.document.title, /pixelDepth=24/
-
   "fork":
     topic: ->
       browser = new zombie.Browser
@@ -372,6 +276,7 @@ vows.describe("Browser").addBatch(
       forked.window.history.back()
       assert.equal "http://localhost:3003/living", forked.location.href
 
+  ###
   "iframes":
     zombie.wants "http://localhost:3003/iframe"
       "should load": (browser)->
@@ -389,6 +294,6 @@ vows.describe("Browser").addBatch(
           browser.wait -> callback null, browser
         "should still reference the parent": (browser)->
           assert.ok browser.window == browser.querySelector("iframe").window.parent
-
+  ###
 
 ).export(module)

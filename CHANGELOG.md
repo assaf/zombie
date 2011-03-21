@@ -1,7 +1,84 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-### Version 0.8.13  Pending
+
+### Version 0.9.5  Pending
+
+Fix type that broke compatibility with jQuery 1.5.1 (Chad Humphries)
+
+Enabled window.Image to accept height and width attributes [#35]
+
+Implemented window.navigator.javaEnabled() [#35]
+
+Added setter for document.location [#90]
+
+    302 Tests
+    4.2 sec to complete
+
+
+### Version 0.9.4  2011-02-22
+
+Added preliminary support for Web sockets (Ben Ford).
+
+Fixes `eval` to execute in the global scope.
+
+Fixes error when dumping cookies (Christian Joudrey).
+
+Fixed some typos in the README (Jeff Hanke).
+
+Speed bump from running on Node 0.4.1.
+
+    295 Tests
+    2.9 sec to complete
+
+
+### Version 0.9.3  2011-02-22
+
+Fixes seg fault when Zombie fails to compile a script.
+
+    293 Tests
+    3.3 sec to complete
+
+
+### Version 0.9.2  2011-02-21
+
+Fixes a couple of specs, plugs hole in array to prevent segfaults, and
+adds try/catch to leave context after executing script.
+
+    292 Tests
+    3.3 sec to complete
+
+
+### Version 0.9.1  2011-02-17
+
+Some internal changes to history. Breaks iframe.
+
+    289 Tests
+    3.3 sec to complete
+
+
+### Version 0.9.0  2011-02-17
+
+New isolated contexts for executing JavaScript.  This solves a long
+standing problems with pages that have more than one script.  Briefly
+speaking, each window gets it's own context/global scope that is shared
+by all scripts loaded for that page, but isolated from all other
+windows.
+
+Fixes error handling on timeout/XHR scripts, these now generate an
+`onerror` event.
+
+Eventloop is now associated with window instead of browser.
+
+Fixes URL resolution in XHR requests with no port.
+
+    293 Tests
+    3.3 sec to complete
+
+
+### Version 0.8.13  2011-02-11
+
+Tested with Node 0.4.0.
 
 Add support for IFRAMEs (Damian Janowski).
 
@@ -11,7 +88,15 @@ Fixes #71 cookie names now preserve case.
 
 Fixes #69 incorrectly resolving partial URLs in XHR requests.
 
-    299 Tests
+Fixes `browser.clock` to use `Date.now` instead of `new Date` (faster).
+
+Fixes `browser.dump`.
+
+In debug mode, show when firing timeout/interval.
+
+Added `cake install`.
+
+    293 Tests
     3.7 sec to complete
 
 
