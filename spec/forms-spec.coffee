@@ -15,6 +15,7 @@ brains.get "/forms/form", (req, res)-> res.send """
         <input type="password" name="password" id="field-password">
         <input type="badtype" name="invalidtype" id="field-invalidtype" />
         <input type="text" name="email2" id="field-email2" />
+        <input type="text" name="email3" id="field-email3" />
 
         <label>Hungry</label>
         <label>You bet<input type="checkbox" name="hungry[]" value="you bet" id="field-hungry"></label>
@@ -23,6 +24,9 @@ brains.get "/forms/form", (req, res)-> res.send """
         <label for="field-brains">Brains?</label>
         <input type="checkbox" name="brains" value="yes" id="field-brains">
         <input type="checkbox" name="green" id="field-green" value="Super green!" checked="checked">
+        
+        <input type="checkbox" name="check" id="field-check" value="Huh?" checked="checked">
+        <input type="checkbox" name="uncheck" id="field-uncheck" value="Yeah!">
 
         <label>Looks
           <select name="looks" id="field-looks">
@@ -168,13 +172,11 @@ vows.describe("Forms").addBatch(
           browser.fill browser.querySelector("#field-email2"), "headchomper@example.com"
         "should set email2 field": (browser)-> assert.equal browser.querySelector("#field-email2").value, "headchomper@example.com"
         "should fire change event": (browser)-> assert.ok browser.email2Changed
-        ###
-        "with callback":
-          topic: (browser)->
-            browser.fill browser.querySelector("#field-email2"), "headchomper@example.com", @callback
-          "should fire the callback": (_, browser)-> assert.equal browser.querySelector("#field-email2").value, "headchomper@example.com"
-        ###
-        
+      "should callback":
+        topic: (browser)->
+          browser.fill browser.querySelector("#field-email3"), "headchomper@example.com", @callback
+        "should fire the callback": (_, browser)-> assert.equal browser.querySelector("#field-email3").value, "headchomper@example.com"
+
 
   "check box":
     zombie.wants "http://localhost:3003/forms/form"
@@ -218,6 +220,15 @@ vows.describe("Forms").addBatch(
           browser.wait @callback
         "should uncheck checkbox": (browser)-> assert.ok !browser.querySelector("#field-green").checked
         "should fire change event": (browser)-> assert.ok browser.greenChanged
+      "check callback":
+        topic: (browser)->
+          browser.check "uncheck", @callback
+        "should callback": (_, browser)-> assert.ok browser.querySelector("#field-uncheck").checked
+      "uncheck callback":
+        topic: (browser)->
+          browser.uncheck "check", @callback
+        "should callback": (_, browser)-> assert.ok !browser.querySelector("#field-check").checked
+
         
   "radio buttons":
     zombie.wants "http://localhost:3003/forms/form"
@@ -285,13 +296,15 @@ vows.describe("Forms").addBatch(
           selected = (option.selected for option in browser.querySelector("#field-kills").options)
           assert.deepEqual selected, [false, false, true]
         "should fire change event": (browser)-> assert.ok browser.killsChanged
-        ###
-        "with callback":
-          topic: (browser)->
-            browser.selectOption browser.querySelectorAll("#field-kills option")[0]
-            browser.selectOption browser.querySelectorAll("#field-kills option")[1], @callback
-          "should callback": (_, browser)-> assert.equal browser.querySelector("#field-kills").value, "Seventeen"
-        ###
+      "select callback":
+        topic: (browser)->
+          browser.select "unselected_state", "dead", @callback
+        "should callback": (_, browser)-> assert.equal browser.querySelector("#field-unselected-state").value, "dead"
+      "select option callback":
+        topic: (browser)->
+          browser.selectOption browser.querySelector("#option-killed-thousands"), @callback
+        "should callback": (_, browser)-> assert.equal browser.querySelector("#field-kills").value, "Thousands"
+
 
   "multiple select option":
     zombie.wants "http://localhost:3003/forms/form"
