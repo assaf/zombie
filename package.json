@@ -47,8 +47,8 @@
   "devDependencies": {
     "coffee-script": ">= 1.0.1",
     "docco": "0.3.0",
-    "express": "2.0.0rc",
-    "ronn": "0.3.5",
+    "express": "2.0.0",
+    "ronn": "0.3.6",
     "vows": "0.5.8"
   },
   "repository": {
