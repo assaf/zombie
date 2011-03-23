@@ -342,7 +342,7 @@ class Browser extends require("events").EventEmitter
         @wait (error, browser)->
           reset()
           if callback && error
-            callback error
+            callback error, browser
           else if callback
             callback null, browser, browser.statusCode
       return
