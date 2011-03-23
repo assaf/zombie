@@ -127,9 +127,10 @@ vows.describe("Browser").addBatch(
           browser = new zombie.Browser
           browser.visit "http://localhost:3003/missing", =>
             @callback null, arguments
-      "should pass single argument to callback": (args)-> assert.length args, 1
+      "should pass two arguments to callback": (args)-> assert.length args, 2
       "should pass error to callback": (args)-> assert.ok args[0] instanceof Error
       "should include status code in error": (args)-> assert.equal args[0].response.statusCode, 404
+      "should pass browser to callback": (args)-> assert.ok args[1] instanceof zombie.Browser
     "empty page":
       zombie.wants "http://localhost:3003/empty"
         "should load document": (browser)-> assert.ok browser.body
