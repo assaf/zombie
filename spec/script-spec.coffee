@@ -175,10 +175,12 @@ vows.describe("Scripts").addBatch(
       "should run full script": (browser)-> assert.equal browser.text("title"), "1"
   ###
 
+  ###
   "using eval":
     zombie.wants "http://localhost:3003/script/eval"
       "should evaluate in global scope": (browser)-> assert.equal browser.document.title, "3"
 
+  ###
   "adding script using document.write":
     zombie.wants "http://localhost:3003/script/write"
       "should run script": (browser)-> assert.equal browser.document.title, "Script document.write"
