@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-### Version 0.9.5  Pending
+### Version 0.9.5  2011-04-11
 
 Callbacks on input/select changes (Julien Guimont)
 
@@ -14,8 +14,10 @@ Implemented window.navigator.javaEnabled() [#35]
 
 Added setter for document.location [#90]
 
-    305 Tests
-    4.2 sec to complete
+Fixed XPath Sorting / Specs (Blake Imsland)
+
+    311 Tests
+    4.5 sec to complete
 
 
 ### Version 0.9.4  2011-02-22
