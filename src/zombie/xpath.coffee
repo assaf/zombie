@@ -20,9 +20,10 @@ core.HTMLDocument.prototype.evaluate = (expr, node, nsResolver, type, result)->
   context = new engine.ExprContext(node || this)
   context.setCaseInsensitive true
   result = engine.xpathParse(expr).evaluate(context)
-  result.value = result.value.sort (a,b)->
-    value = a.compareDocumentPosition(b)
-    value == 2 || value == 8 || value == 10 ? -1 : 1
+  if result.type == 'node-set'
+    result.value = result.value.sort (a,b)->
+      value = a.compareDocumentPosition(b)
+      if value == 2 || value == 8 || value == 10 then 1 else -1
   result
 
 
