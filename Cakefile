@@ -29,12 +29,12 @@ onerror = (err)->
 task "setup", "Install development dependencies", ->
   fs.readFile "package.json", "utf8", (err, package)->
     log "Need runtime dependencies, installing into node_modules ...", green
-    exec "npm bundle", onerror
+    exec "npm install", onerror
 
     log "Need development dependencies, installing ...", green
     for name, version of JSON.parse(package).devDependencies
       log "Installing #{name} #{version}", green
-      exec "npm bundle install \"#{name}@#{version}\"", onerror
+      exec "npm install \"#{name}@#{version}\"", onerror
 
 task "install", "Install Zombie in your local repository", ->
   build (err)->
