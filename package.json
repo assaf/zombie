@@ -9,7 +9,7 @@
     "José Valim <jose.valim@plataformatec.com.br> (http://blog.plataformatec.com.br/)"
   ],
   "keywords": [ "test", "tests", "testing", "TDD", "spec", "specs", "BDD", "headless", "browser",
-    "html", "html5", "dom", "css", "javascript", "integration", "ajax", "full-stack" ],
+    "html", "html5", "dom", "css", "javascript", "integration", "ajax", "full-stack", "DSL" ],
   "directories": {
     "doc": "./doc",
     "lib": "./lib",
