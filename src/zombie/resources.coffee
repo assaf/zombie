@@ -10,6 +10,7 @@
 
 inspect = require("util").inspect
 HTTP = require("http")
+HTTPS = require("https")
 QS = require("querystring")
 URL = require("url")
 VM = process.binding("evals")
@@ -203,12 +204,6 @@ class Resources extends Array
       # We're going to use cookies later when recieving response.
       cookies = window.browser.cookies(url.hostname, url.pathname)
       cookies.addHeader headers
-      # Pathname for HTTP request needs to start with / and include query
-      # string.
-      secure = url.protocol == "https:"
-      url.port ||= if secure then 443 else 80
-      client = HTTP.createClient(url.port, url.hostname, secure)
-      request = client.request(method, "#{url.pathname}#{url.search || ""}", headers)
 
       # First request has not resource, so create it and add to
       # Resources.  After redirect, we have a resource we're using.
@@ -217,9 +212,19 @@ class Resources extends Array
         this.push resource
       window.browser.log -> "#{method} #{URL.format(url)}"
 
-      # Connection error wired directly to callback.
-      client.on "error", callback
-      request.on "response", (response)=>
+      # Pathname for HTTP request needs to start with / and include query
+      # string.
+      secure = url.protocol == "https:"
+      url.port ||= if secure then 443 else 80
+
+      clientArgs =
+        host: url.hostname
+        port: url.port
+        path: "#{url.pathname}#{url.search || ""}"
+        method: method
+        headers: headers
+
+      responseHandler = (response) =>
         response.setEncoding "utf8"
         body = ""
         response.on "data", (chunk)-> body += chunk
@@ -253,7 +258,11 @@ class Resources extends Array
             error.response = resource.response
             resource.error = error
             callback error
-      request.end body, "utf8"
+
+      client = (if secure then HTTPS else HTTP).request clientArgs, responseHandler
+      client.on "error", callback
+      client.write body
+      client.end()
 
     typeOf = (object)->
       return Object.prototype.toString.call(object)
