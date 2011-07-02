@@ -142,15 +142,14 @@ brains.get "/app.js", (req, res)-> res.send """
 
 brains.get "/script/types", (req, res)-> res.send """
   <script>
-    Function.prototype.test = function() {};
-    Date.test();
+    document.title = Function === (function () {}).constructor;
   </script>
   """
 
 vows.describe("Scripts").addBatch(
   "primitive types":
     zombie.wants "http://localhost:3003/script/types"
-      "should inherit from Function": (browser)-> assert.ok
+      "should inherit from Function": (browser)-> assert.equal browser.text("title"), "true"
 
   "script context":
     zombie.wants "http://localhost:3003/script/context"
