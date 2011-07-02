@@ -230,7 +230,7 @@ Persistent<FunctionTemplate> WindowContext::s_ct;
 SetPrimitive *WindowContext::primitives[] = {
   new SetPrimitive("Array", "[].constructor"),
   new SetPrimitive("Boolean", "true.constructor"),
-  new SetPrimitive("Function", "(function() {}).constructor"),
+  new SetPrimitive("Function"),
   new SetPrimitive("Number", "(1).constructor"),
   new SetPrimitive("Object", "({}).constructor"),
   new SetPrimitive("RegExp", "/./.constructor"),
