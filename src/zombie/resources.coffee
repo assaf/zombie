@@ -10,6 +10,7 @@
 
 inspect = require("util").inspect
 HTTP = require("http")
+FS = require("fs")
 QS = require("querystring")
 URL = require("url")
 VM = process.binding("evals")
@@ -137,6 +138,23 @@ class Resources extends Array
     # modifies it instead of recording a new one.
     makeRequest = (method, url, data, headers, resource, callback)=>
       url = URL.parse(url)
+
+      #
+      # If the request is for a file:// descriptor, just open directly from the
+      # file system rather than getting node's http (which handles file://
+      # poorly) involved.
+      #
+      if url.protocol == 'file:'
+        FS.readFile url.pathname, (err, data) =>
+          # Fallback with error -> callback
+          if err
+            window.browser.log -> "Error loading #{URL.format(url)}: #{err.message}"
+            callback err
+          # Turn body from string into a String, so we can add property getters.
+          response = new HTTPResponse(url, 200, {}, String(data))
+          callback null, response
+        return
+
       method = (method || "GET").toUpperCase()
       # Clone headers before we go and modify them.
       headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
