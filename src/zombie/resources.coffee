@@ -10,6 +10,7 @@
 
 inspect = require("util").inspect
 HTTP = require("http")
+HTTPS = require("https")
 FS = require("fs")
 QS = require("querystring")
 URL = require("url")
@@ -139,11 +140,9 @@ class Resources extends Array
     makeRequest = (method, url, data, headers, resource, callback)=>
       url = URL.parse(url)
 
-      #
       # If the request is for a file:// descriptor, just open directly from the
       # file system rather than getting node's http (which handles file://
       # poorly) involved.
-      #
       if url.protocol == 'file:'
         FS.readFile url.pathname, (err, data) =>
           # Fallback with error -> callback
@@ -225,8 +224,6 @@ class Resources extends Array
       # string.
       secure = url.protocol == "https:"
       url.port ||= if secure then 443 else 80
-      client = HTTP.createClient(url.port, url.hostname, secure)
-      request = client.request(method, "#{url.pathname}#{url.search || ""}", headers)
 
       # First request has not resource, so create it and add to
       # Resources.  After redirect, we have a resource we're using.
@@ -235,9 +232,13 @@ class Resources extends Array
         this.push resource
       window.browser.log -> "#{method} #{URL.format(url)}"
 
-      # Connection error wired directly to callback.
-      client.on "error", callback
-      request.on "response", (response)=>
+      request =
+        host: url.hostname
+        port: url.port
+        path: "#{url.pathname}#{url.search || ""}"
+        method: method
+        headers: headers
+      response_handler = (response)=>
         response.setEncoding "utf8"
         body = ""
         response.on "data", (chunk)-> body += chunk
@@ -271,7 +272,12 @@ class Resources extends Array
             error.response = resource.response
             resource.error = error
             callback error
-      request.end body, "utf8"
+      
+      client = (if secure then HTTPS else HTTP).request(request, response_handler)
+      # Connection error wired directly to callback.
+      client.on "error", callback
+      client.write body
+      client.end()
 
     typeOf = (object)->
       return Object.prototype.toString.call(object)

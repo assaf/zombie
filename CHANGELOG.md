@@ -8,6 +8,8 @@ leaning on its http module (Ryan Petrello)
 
 Added a basic infection/installation section to documentation (terryp)
 
+Modified resources and xhr to better work with SSL (Ken Sternberg)
+
 
 ### Version 0.9.5  2011-04-11
 

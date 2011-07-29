@@ -46,7 +46,7 @@ XMLHttpRequest = (window)->
       url.host = if url.port then "#{url.hostname}:#{url.port}" else url.hostname
       url.hash = null
       throw new core.DOMException(core.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
-      throw new core.DOMException(core.NOT_SUPPORTED_ERR, "Only HTTP protocol supported") unless url.protocol == "http:"
+      throw new core.DOMException(core.NOT_SUPPORTED_ERR, "Only HTTP/S protocol supported") unless url.protocol in ["http:", "https:"]
       [user, password] = url.auth.split(":") if url.auth
 
       # Aborting open request.
