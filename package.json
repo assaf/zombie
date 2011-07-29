@@ -10,6 +10,7 @@
   ],
   "keywords": [ "test", "tests", "testing", "TDD", "spec", "specs", "BDD", "headless", "browser",
     "html", "html5", "dom", "css", "javascript", "integration", "ajax", "full-stack", "DSL" ],
+  "main": "lib/zombie/index.js",
   "directories": {
     "doc": "./doc",
     "lib": "./lib",
@@ -29,7 +30,6 @@
     "xpath",
     "wscript"
   ],
-  "main": "lib/zombie/index.js",
   "scripts": {
     "install": "node-waf configure build",
     "build": "cake build",
@@ -39,17 +39,17 @@
     "node": ">= 0.4.0"
   },
   "dependencies": {
-    "html5": "0.2.16",
-    "jsdom": "0.1.23",
-    "mime": "1.2.2",
-    "websocket-client": "1.0.0"
+    "html5": "~0.2.16",
+    "jsdom": "~0.1.23",
+    "mime": "~1.2.2",
+    "websocket-client": "~1.0.0"
   },
   "devDependencies": {
-    "coffee-script": ">= 1.0.1",
-    "docco": "0.3.0",
-    "express": "2.4.3",
-    "ronn": "0.3.6",
-    "vows": "0.5.9"
+    "coffee-script": "~1.1.1",
+    "docco": "~0.3.0",
+    "express": "~2.4.3",
+    "ronn": "~0.3.6",
+    "vows": "~0.5.9"
   },
   "repository": {
     "type": "git",
