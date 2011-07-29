@@ -7,7 +7,11 @@ Fixed: require.paths is deprecated [#158]
 
 Fixed: missing pathname support for window.location.href [#156]
 
-Fixed: not running script specs due to bug in CoffeeScript (iPaul Covell) [#151]
+Fixed: not running script specs due to bug in CoffeeScript (iPaul
+Covell) [#151]
+
+Updated documentation to clarify installation instructions for OS X and
+Ubuntu.
 
     311 Tests
     4.5 sec to complete
