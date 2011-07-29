@@ -1,6 +1,11 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+### Version 0.9.7  2011-07-28
+
+Fixed: require.paths is deprecated [#158]
+
+
 ### Version 0.9.6  2011-07-28
 
 Implements file:// requests using node.js' native fs module rather than

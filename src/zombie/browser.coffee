@@ -7,7 +7,7 @@ require "./forms"
 require "./xpath"
 History = require("./history").History
 EventLoop = require("./eventloop").EventLoop
-require.paths.push "../../build/default"
+#require.paths.push "../../build/default"
 WindowContext = require("../../build/default/window_context").WindowContext
 
 
