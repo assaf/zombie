@@ -103,6 +103,15 @@ vows.describe("History").addBatch(
         "should add page to history": (browser)-> assert.length browser.window.history, 2
         "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
         "should load document": (browser)-> assert.match browser.html(), /Eeek!/
+    "change relative href":
+      zombie.wants "http://localhost:3003/"
+        topic: (browser)->
+          browser.window.location.href = "/history/boo"
+          browser.window.document.addEventListener "DOMContentLoaded", => @callback null, browser
+          return
+        "should add page to history": (browser)-> assert.length browser.window.history, 2
+        "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
+        "should load document": (browser)-> assert.match browser.html(), /Eeek!/
     "change hash":
       zombie.wants "http://localhost:3003/"
         topic: (browser)->

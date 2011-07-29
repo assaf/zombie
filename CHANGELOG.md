@@ -5,6 +5,8 @@ zombie.js-changelog(7) -- Changelog
 
 Fixed: require.paths is deprecated [#158]
 
+Fixd: missing pathname support for window.location.href [#156]
+
 
 ### Version 0.9.6  2011-07-28
 

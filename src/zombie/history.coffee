@@ -221,7 +221,8 @@ class Location
     # ### location.href => String
     @__defineGetter__ "href", -> url?.href
     # ### location.href = url
-    @__defineSetter__ "href", (url)-> history._assign url
+    @__defineSetter__ "href", (new_url)->
+      history._assign URL.resolve(url, new_url)
     # Getter/setter for location parts.
     for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search"]
       do (prop)=>
