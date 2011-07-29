@@ -33,6 +33,17 @@ Let's try to sign up to a page and see what happens:
 
 Well, that was easy.
 
+## Infection
+
+Installing zombie.js requires two items. Node.js and npm. 
+
+    > brew install node
+    > node --version
+    v0.4.5
+    > curl http://npmjs.org/install.sh | sudo sh
+    > npm --version
+    1.0.6
+    > npm install zombie
 
 ## Walking
 
