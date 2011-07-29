@@ -14,13 +14,9 @@ vows = require("vows")
 vows.vows = vows
 vows.assert = require("assert")
 
-# Hack Vows console to figure out when Vows is done running tests and shut down
-# the Web server.
-vows.console = require("vows/console")
-result = vows.console.result
-vows.console.result = (results)->
-  brains.close() if brains.active
-  result.call vows.console, results
+process.on "exit", ->
+  if brains.active
+    brains.close()
 
 # An Express server we use to test the browser.
 brains = express.createServer()
