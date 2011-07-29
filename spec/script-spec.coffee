@@ -146,11 +146,9 @@ vows.describe("Scripts").addBatch(
     zombie.wants "http://localhost:3003/script/context"
       "should be shared by all scripts": (browser)-> assert.equal browser.text("title"), "4"
 
-  ###
-  "script window":
-    zombie.wants "http://localhost:3003/script/window"
-      "should be the same as this and top": (browser)-> assert.equal browser.text("title"), "true,true"
-  ###
+  # "script window":
+  #  zombie.wants "http://localhost:3003/script/window"
+  #    "should be the same as this and top": (browser)-> assert.equal browser.text("title"), "true,true"
 
   "script incomplete":
     topic: ->
@@ -168,18 +166,14 @@ vows.describe("Scripts").addBatch(
     zombie.wants "http://localhost:3003/script/order"
       "should run scripts in order regardless of source": (browser)-> assert.equal browser.text("title"), "ZeroOneTwo"
 
-  ###
-  "split script":
-    zombie.wants "http://localhost:3003/script/split"
-      "should run full script": (browser)-> assert.equal browser.text("title"), "1"
-  ###
+  # "split script":
+  #   zombie.wants "http://localhost:3003/script/split"
+  #     "should run full script": (browser)-> assert.equal browser.text("title"), "1"
 
-  ###
-  "using eval":
-    zombie.wants "http://localhost:3003/script/eval"
-      "should evaluate in global scope": (browser)-> assert.equal browser.document.title, "3"
+  # "using eval":
+  #   zombie.wants "http://localhost:3003/script/eval"
+  #     "should evaluate in global scope": (browser)-> assert.equal browser.document.title, "3"
 
-  ###
   "adding script using document.write":
     zombie.wants "http://localhost:3003/script/write"
       "should run script": (browser)-> assert.equal browser.document.title, "Script document.write"
@@ -217,19 +211,15 @@ vows.describe("Scripts").addBatch(
         browser.evaluate "document.title"
       "should evaluate in context and return value": (title)-> assert.equal title, "The Living"
 
-  ###
-  "new Image":
-    zombie.wants "http://localhost:3003/script/living"
-      "should construct an img tag": (browser)-> assert.equal domToHtml(browser.evaluate("new Image")), "<img>\r\n"
-      "should construct an img tag with width and height": (browser)->
-        assert.equal domToHtml(browser.evaluate("new Image(1, 1)")), "<img width=\"1\" height=\"1\">\r\n"
-  ###
+  # "new Image":
+  #   zombie.wants "http://localhost:3003/script/living"
+  #     "should construct an img tag": (browser)-> assert.equal domToHtml(browser.evaluate("new Image")), "<img>\r\n"
+  #     "should construct an img tag with width and height": (browser)->
+  #       assert.equal domToHtml(browser.evaluate("new Image(1, 1)")), "<img width=\"1\" height=\"1\">\r\n"
 
-  ###
-  "SSL":
-    zombie.wants "http://localhost:3003/script/ssl"
-      "should load scripts over SSL": (browser)->
-        assert.equal browser.window.title, "MLA"
-  ###
+  # "SSL":
+  #   zombie.wants "http://localhost:3003/script/ssl"
+  #     "should load scripts over SSL": (browser)->
+  #       assert.equal browser.window.title, "MLA"
 
 ).export(module)
