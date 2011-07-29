@@ -6,6 +6,8 @@ zombie.js-changelog(7) -- Changelog
 Implements file:// requests using node.js' native fs module rather than
 leaning on its http module (Ryan Petrello)
 
+Added a basic infection/installation section to documentation (terryp)
+
 
 ### Version 0.9.5  2011-04-11
 
