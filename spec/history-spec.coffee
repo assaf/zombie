@@ -11,6 +11,7 @@ brains.get "/history/redirect", (req, res)->
 brains.get "/history/redirect_back", (req, res)->
   res.redirect req.headers['referer']
 
+readmefile = ['file://', process.cwd(), '/', 'README.md'].join('')
 
 vows.describe("History").addBatch(
   "new window":
@@ -84,6 +85,13 @@ vows.describe("History").addBatch(
         "should load document": (browser)-> assert.match browser.html(), /Tap, Tap/
         "should set window location": (browser)-> assert.equal browser.window.location.href, "http://localhost:3003/"
         "should set document location": (browser)-> assert.equal browser.document.location.href, "http://localhost:3003/"
+    "open from file system":
+      zombie.wants `readmefile`
+        "should add page to history": (browser)-> assert.length browser.window.history, 1
+        "should change location URL": (browser)-> assert.equal browser.location, `readmefile`
+        "should load document": (browser)-> assert.include browser.html(), "zombie.js(1) -- Insanely fast, headless full-stack testing using Node.js"
+        "should set window location": (browser)-> assert.equal browser.window.location.href, `readmefile`
+        "should set document location": (browser)-> assert.equal browser.document.location.href, `readmefile`
     "change pathname":
       zombie.wants "http://localhost:3003/"
         topic: (browser)->
