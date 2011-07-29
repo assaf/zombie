@@ -33,17 +33,36 @@ Let's try to sign up to a page and see what happens:
 
 Well, that was easy.
 
+
 ## Infection
 
-Installing zombie.js requires two items. Node.js and npm. 
+To install Zombie.js you need Node.js, NPM, a C++ compiler and Python.
 
-    > brew install node
-    > node --version
-    v0.4.5
-    > curl http://npmjs.org/install.sh | sudo sh
-    > npm --version
-    1.0.6
-    > npm install zombie
+On OS X start by installing XCode, that will get you the build
+toolchain.  Next, assuming you're using
+[Homebrew](http://mxcl.github.com/homebrew/):
+
+    $ brew install node
+    $ node --version
+    v0.4.10
+    $ curl http://npmjs.org/install.sh | sudo sh
+    $ npm --version
+    1.0.22
+    $ npm install zombie
+
+On Ubuntu try these steps:
+
+    $ apt-get install build-essential python node
+    $ node --version
+    v0.4.0
+    $ curl http://npmjs.org/install.sh | sudo sh
+    $ npm --version
+    1.0.22
+    $ npm install zombie
+
+I have no idea if you can get Zombie to install on Windows. Maybe with
+Cygwin. Good luck.
+
 
 ## Walking
 
