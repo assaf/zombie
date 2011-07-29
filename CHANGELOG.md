@@ -1,6 +1,11 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+### Version 0.9.6  2011-07-28
+
+Implements file:// requests using node.js' native fs module rather than
+leaning on its http module (Ryan Petrello)
+
 
 ### Version 0.9.5  2011-04-11
 
