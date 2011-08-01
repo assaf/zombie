@@ -1,6 +1,6 @@
 env:
-before_script: "npm install coffee-script"
-script: "./node_modules/.bin/cake test"
+before_script: "npm install coffee-script && npm link"
+script: "npm test"
 notifications:
   recipients:
   - assaf@labnotes.org
