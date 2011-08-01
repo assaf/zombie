@@ -1,5 +1,5 @@
 env:
-before_script: "npm install coffee-script && npm link --unsafe-perm true"
+before_script: "npm install coffee-script && ./node_modules/.bin/cake setup"
 script: "npm test"
 notifications:
   recipients:
