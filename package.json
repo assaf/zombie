@@ -31,7 +31,7 @@
     "wscript"
   ],
   "scripts": {
-    "preinstall": "node-waf clean || true; node-waf configure build",
+    "install": "node-waf clean || true; node-waf configure build",
     "test": "vows --spec"
   },
   "engines": {
