@@ -12,6 +12,7 @@ inspect = require("util").inspect
 HTTP = require("http")
 HTTPS = require("https")
 FS = require("fs")
+Path = require("path")
 QS = require("querystring")
 URL = require("url")
 VM = process.binding("evals")
@@ -144,7 +145,7 @@ class Resources extends Array
       # file system rather than getting node's http (which handles file://
       # poorly) involved.
       if url.protocol == "file:"
-        FS.readFile url.pathname, (err, data) =>
+        FS.readFile Path.normalize(url.pathname), (err, data) =>
           # Fallback with error -> callback
           if err
             window.browser.log -> "Error loading #{URL.format(url)}: #{err.message}"
