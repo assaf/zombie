@@ -1,1 +1,1 @@
-script: "npm link && npm test"
+script: "npm install --dev . && npm test"
