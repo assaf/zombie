@@ -32,7 +32,7 @@
   ],
   "scripts": {
     "preinstall": "node-waf clean || true; node-waf configure build",
-    "test": "vows"
+    "test": "vows --spec"
   },
   "engines": {
     "node": ">= 0.4.0"

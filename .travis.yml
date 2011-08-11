@@ -1,2 +1,1 @@
-env:
-script: "npm install --dev . && npm test"
+script: "npm install --dev . && npm build && npm test"
