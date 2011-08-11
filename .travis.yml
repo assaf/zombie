@@ -1,2 +1,2 @@
-before_script: "npm install --dev ."
+before_script: "npm install --dev . || true"
 script: "npm test"
