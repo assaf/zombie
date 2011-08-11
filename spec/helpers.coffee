@@ -2,7 +2,7 @@ require.paths.unshift __dirname + "/../node_modules"
 fs = require("fs")
 express = require("express")
 zombie = require("../src/index")
-debug = false # true
+debug = process.env.DEBUG || process.env.TRAVIS
 
 
 # When you run the vows command, it picks all the files in the spec directory

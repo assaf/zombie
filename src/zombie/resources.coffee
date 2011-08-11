@@ -143,10 +143,12 @@ class Resources extends Array
       # If the request is for a file:// descriptor, just open directly from the
       # file system rather than getting node's http (which handles file://
       # poorly) involved.
-      if url.protocol == 'file:'
+      if url.protocol == "file:"
+        console.log url
         FS.readFile url.pathname, (err, data) =>
           # Fallback with error -> callback
           if err
+            console.log err
             window.browser.log -> "Error loading #{URL.format(url)}: #{err.message}"
             callback err
           # Turn body from string into a String, so we can add property getters.
