@@ -1,3 +1,2 @@
 env:
-before_script: "npm install coffee-script && npm run-script setup && npm build"
-script: "npm test"
+script: "npm install --dev && npm test"

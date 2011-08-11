@@ -31,9 +31,9 @@
     "wscript"
   ],
   "scripts": {
-    "build": "./node_modules/.bin/cake build",
-    "test": "./node_modules/.bin/cake test",
-    "setup": "./node_modules/.bin/cake setup"
+    "install": "node ./postinstall",
+    "preinstall": "node-waf clean || true; node-waf configure build",
+    "test": "./node_modules/.bin/cake test"
   },
   "engines": {
     "node": ">= 0.4.0"
