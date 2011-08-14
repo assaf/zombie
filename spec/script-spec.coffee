@@ -140,8 +140,17 @@ brains.get "/app.js", (req, res)-> res.send """
   $(function() { Sammy("#main").run("#/") });
   """
 
+brains.get "/script/types", (req, res)-> res.send """
+  <script>
+    document.title = Function === (function () {}).constructor;
+  </script>
+  """
 
 vows.describe("Scripts").addBatch(
+  "primitive types":
+    zombie.wants "http://localhost:3003/script/types"
+      "should inherit from Function": (browser)-> assert.equal browser.text("title"), "true"
+
   "script context":
     zombie.wants "http://localhost:3003/script/context"
       "should be shared by all scripts": (browser)-> assert.equal browser.text("title"), "4"
