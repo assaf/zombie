@@ -44,11 +44,11 @@
     "websocket-client": "~1.0.0"
   },
   "devDependencies": {
-    "coffee-script": "~1.1.1",
+    "coffee-script": "~1.1.2",
     "docco": "~0.3.0",
-    "express": "~2.4.3",
+    "express": "~2.4.6",
     "ronn": "~0.3.6",
-    "vows": "~0.5.9"
+    "vows": "~0.5.11"
   },
   "repository": {
     "type": "git",
