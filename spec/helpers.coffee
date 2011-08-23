@@ -58,10 +58,10 @@ brains.ready = (callback)->
 zombie.wants = (url, context)->
   topic = context.topic
   context.topic = ->
-    new zombie.Browser().wants url, (err, browser)=>
+    new zombie.Browser().wants url, {}, (err, browser)=>
       if topic
         try
-          value = topic.call this, browser
+          value = topic.call(this, browser)
           @callback null, value if value
         catch err
           @callback err

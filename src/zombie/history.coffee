@@ -66,36 +66,36 @@ class History
       # point on the browser sees a new document, client register event
       # handler for DOMContentLoaded/error.
       options =
-        url: URL.format(url)
         deferClose: false
-        parser: require("html5").HTML5
         features:
           QuerySelector: true
+          MutationEvents: "2.0"
           ProcessExternalResources: []
-          FetchExternalResources: []
+          FetchExternalResources: ["css", "frame"]
+        parser: require("html5").HTML5
+        url: URL.format(url)
       if browser.runScripts
         options.features.ProcessExternalResources.push "script"
         options.features.FetchExternalResources.push "script"
-      options.features.FetchExternalResources.push "iframe"
-      document = jsdom.jsdom(false, jsdom.level3, options)
-      document.fixQueue()
+      document = jsdom.jsdom(null, jsdom.dom.level3.core, options)
       browser.window.document = document
+      document.window = document.parentWindow = browser.window
+      document.fixQueue()
 
       headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
       referer = stack[index-1]?.url
       headers["referer"] = referer.href if referer?
       browser.window.resources.request method, url, data, headers, (error, response)=>
         if error
-          event = document.createEvent("HTMLEvents")
-          event.initEvent "error", true, false
-          document.dispatchEvent event
+          document.write "<html><body>#{error}</body></html>"
+          document.close()
+          document.trigger "error", "Loading resource: #{error.message}", error
           browser.emit "error", error
         else
           browser.response = [response.statusCode, response.headers, response.body]
           stack[index].update response.url
-          body = if response.body.trim() == "" then "<html></html>" else response.body
-          document.open()
-          document.write body
+          html = if response.body.trim() == "" then "<html><body></body></html>" else response.body
+          document.write html
           document.close()
           if document.documentElement
             browser.emit "loaded", browser

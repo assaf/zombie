@@ -48,19 +48,7 @@ core.resourceLoader.load = (element, href, callback)->
 # Scripts
 # -------
 
-core.languageProcessors =
-  javascript: (element, code, filename)->
-    document = element.ownerDocument
-    window = document.parentWindow
-    window.browser.log -> "Running script from #{filename}" if filename
-    try
-      window._evaluate code, filename
-    catch error
-      event = document.createEvent("HTMLEvents")
-      event.initEvent "error", true, false
-      event.error = error
-      window.dispatchEvent event
-
+###
 # DOMCharacterDataModified event fired when text is added to a
 # TextNode.  This is a crappy implementation, a good one would old and
 # new values in the event.
@@ -99,6 +87,8 @@ core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   iframe.window.parent = window
 
   return iframe
+###
+#
 
 # Queue
 # -----

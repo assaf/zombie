@@ -7,8 +7,6 @@ require "./forms"
 require "./xpath"
 History = require("./history").History
 EventLoop = require("./eventloop").EventLoop
-#require.paths.push "../../build/default"
-WindowContext = require("../../build/default/window_context").WindowContext
 
 
 # Use the browser to open up new windows and load documents.
@@ -23,6 +21,12 @@ class Browser extends require("events").EventEmitter
     xhr = require("./xhr").use(cache)
     ws = require("./websocket").use(this)
     resources = require("./resources")
+
+    # Make sure we don't blow up Node when we get a JS error, but dump error to
+    # console. Ignore if there's any other error handler.
+    @on "error", (err)->
+      if @listeners("error").length == 1
+        console.error err
 
 
     # Options
@@ -93,14 +97,15 @@ class Browser extends require("events").EventEmitter
       history = features.history || new History(this)
 
       # Add context for evaluating scripts.
-      #context = new WindowContext(jsdom.createWindow(html))
-      #newWindow = context.global
-      #newWindow._evaluate = (code, filename)-> context.evaluate(code, filename)
-      #newWindow._evaluate "this.window = this"
+      newWindow = jsdom.createWindow()
 
-      newWindow = jsdom.createWindow(html)
-      context = new WindowContext(newWindow)
-      newWindow._evaluate = (code, filename)-> context.evaluate(code, filename)
+      # Evaulate in context of window. This can be called with a script (String)
+      # or a function.
+      newWindow._evaluate = (code, filename)->
+        if typeof code == "string" || code instanceof String
+          newWindow.run code, filename
+        else
+          code.call newWindow
 
       # Switch to the newly created window if it's interactive.
       # Examples of non-interactive windows are frames.
@@ -132,10 +137,11 @@ class Browser extends require("events").EventEmitter
         img.width = width
         img.height = height
         img
+      newWindow.console = console
       
       # Default onerror handler.
-      newWindow.onerror = (event)=> @emit "error", event.error || new Error("Error loading script")
-
+      newWindow.onerror = (event)=>
+        @emit "error", event.error || new Error("Error loading script")
       return newWindow
 
 
@@ -176,8 +182,8 @@ class Browser extends require("events").EventEmitter
           @removeListener "error", onerror
           @removeListener "done", ondone
           callback null, this
-        @on "error", onerror
-        @on "done", ondone
+        @once "error", onerror
+        @once "done", ondone
       window._eventloop.wait window, terminate
       return
 

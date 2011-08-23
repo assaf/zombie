@@ -1,3 +1,0 @@
-[submodule "cssom"]
-	path = cssom
-	url = git://github.com/NV/CSSOM.git

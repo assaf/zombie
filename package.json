@@ -31,15 +31,14 @@
     "wscript"
   ],
   "scripts": {
-    "install": "node-waf clean || true; node-waf configure build",
-    "test": "node-waf configure build && vows --spec"
+    "test": "vows --spec"
   },
   "engines": {
     "node": ">= 0.4.0"
   },
   "dependencies": {
-    "html5": "~0.2.16",
-    "jsdom": "~0.1.23",
+    "html5": "~0.3.0",
+    "jsdom": "~0.2.3",
     "mime": "~1.2.2",
     "websocket-client": "~1.0.0"
   },

@@ -61,7 +61,7 @@ brains.get "/app.js", (req, res)-> res.send """
       document.title = "Signed up";
     });
   });
-  $(function() { Sammy("#main").run("#/") });
+  $(function() { Sammy("#main").run("#/"); });
   """
 
 brains.get "/dead", (req, res)-> res.send """
@@ -99,6 +99,7 @@ brains.get "/iframe", (req, res)-> res.send """
   """
 
 vows.describe("Browser").addBatch(
+
   "open page":
     zombie.wants "http://localhost:3003/scripted"
       "should create HTML document": (browser)-> assert.instanceOf browser.document, jsdom.dom.level3.html.HTMLDocument
@@ -132,7 +133,8 @@ vows.describe("Browser").addBatch(
       "should include status code in error": (args)-> assert.equal args[0].response.statusCode, 404
     "empty page":
       zombie.wants "http://localhost:3003/empty"
-        "should load document": (browser)-> assert.ok browser.body
+        "should load document": (browser)->
+          assert.ok browser.body
 
   "event emitter":
     "successful":

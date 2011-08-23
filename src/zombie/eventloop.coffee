@@ -19,10 +19,7 @@ class EventLoop
           try
             window._evaluate fn
           catch error
-            evt = window.document.createEvent("HTMLEvents")
-            evt.initEvent "error", true, false
-            evt.error = error
-            window.dispatchEvent evt
+            window.document.trigger "error", "Timeout: #{error.message}", error
           finally
             delete timers[handle]
       handle = ++lastHandle
@@ -41,10 +38,7 @@ class EventLoop
           try
             window._evaluate fn
           catch error
-            evt = window.document.createEvent("HTMLEvents")
-            evt.initEvent "error", true, false
-            evt.error = error
-            window.dispatchEvent evt
+            window.document.trigger "error", "Interval: #{error.message}", error
           finally
             timer.when = window.browser.clock + delay
       handle = ++lastHandle

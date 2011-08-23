@@ -20,10 +20,7 @@ XMLHttpRequest = (window)->
           try
             @onreadystatechange.call(@)
           catch error
-            evt = window.document.createEvent("HTMLEvents")
-            evt.initEvent "error", true, false
-            evt.error = error
-            window.dispatchEvent evt
+            window.document.trigger "error", "State change: #{error.message}", error
           finally
             done()
   # Bring XHR to initial state (open/abort).
