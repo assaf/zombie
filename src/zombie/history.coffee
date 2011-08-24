@@ -71,16 +71,19 @@ class History
           QuerySelector: true
           MutationEvents: "2.0"
           ProcessExternalResources: []
-          FetchExternalResources: ["css", "frame"]
-        parser: require("html5").HTML5
+          FetchExternalResources: ["frame"]
+        parser: browser.htmlParser
         url: URL.format(url)
       if browser.runScripts
         options.features.ProcessExternalResources.push "script"
         options.features.FetchExternalResources.push "script"
+      if browser.loadCSS
+        options.features.FetchExternalResources.push "css"
       document = jsdom.jsdom(null, jsdom.dom.level3.core, options)
       browser.window.document = document
       document.window = document.parentWindow = browser.window
       document.fixQueue()
+      document.fixQuerySelector()
 
       headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
       referer = stack[index-1]?.url

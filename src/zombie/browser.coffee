@@ -32,12 +32,21 @@ class Browser extends require("events").EventEmitter
     # Options
     # -------
 
-    @OPTIONS = ["debug", "runScripts", "userAgent"]
+    OPTIONS = ["debug", "htmlParser", "loadCSS", "runScripts", "userAgent"]
 
     # ### debug
     #
     # True to have Zombie report what it's doing.
     @debug = false
+    # ### htmlParser
+    #
+    # Which parser to use (null for default). For example:
+    #   zombie.htmlParser = require("html5").HTML5
+    @htmlParser = null
+    # ### loadCSS
+    #
+    # True to load external stylesheets.
+    @loadCSS = true
     # ### runScripts
     #
     # Run scripts included in or loaded from the page. Defaults to true.
@@ -65,7 +74,7 @@ class Browser extends require("events").EventEmitter
     # Sets the browser options.
     if options
       for k,v of options
-        if @OPTIONS.indexOf(k) >= 0
+        if OPTIONS.indexOf(k) >= 0
           @[k] = v
         else
           throw "I don't recognize the option #{k}"

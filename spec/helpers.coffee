@@ -2,6 +2,7 @@ require.paths.unshift __dirname + "/../node_modules"
 fs = require("fs")
 express = require("express")
 zombie = require("../src/index")
+Browser = zombie.Browser
 debug = process.env.DEBUG || process.env.TRAVIS
 
 
@@ -58,7 +59,8 @@ brains.ready = (callback)->
 zombie.wants = (url, context)->
   topic = context.topic
   context.topic = ->
-    new zombie.Browser().wants url, {}, (err, browser)=>
+    browser = new Browser
+    browser.wants url, {}, (err, browser)=>
       if topic
         try
           value = topic.call(this, browser)
@@ -71,7 +73,7 @@ zombie.wants = (url, context)->
     return
   return context
 
-zombie.Browser.prototype.wants = (url, options, callback)->
+Browser.prototype.wants = (url, options, callback)->
   brains.ready =>
     options.debug = debug
     @visit url, options, (err, browser)=>

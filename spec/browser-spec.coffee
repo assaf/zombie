@@ -1,5 +1,6 @@
 require "./helpers"
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
+Browser = zombie.Browser
 jsdom = require("jsdom")
 
 brains.get "/static", (req, res)-> res.send """
@@ -85,7 +86,8 @@ brains.get "/soup", (req, res)-> res.send """
   <p>And another
   """
 
-brains.get "/useragent", (req, res)-> res.send "<body>#{req.headers["user-agent"]}</body>"
+brains.get "/useragent", (req, res)->
+  res.send "<html><body>#{req.headers["user-agent"]}</body></html>"
 
 brains.get "/iframe", (req, res)-> res.send """
   <html>
@@ -115,17 +117,17 @@ vows.describe("Browser").addBatch(
     "successful":
       topic: ->
         brains.ready =>
-          browser = new zombie.Browser
+          browser = new Browser
           browser.visit "http://localhost:3003/scripted", =>
             @callback null, arguments
       "should pass three arguments to callback": (args)-> assert.length args, 3
       "should not include an error": (args)-> assert.isNull args[0]
-      "should pass browser to callback": (args)-> assert.ok args[1] instanceof zombie.Browser
+      "should pass browser to callback": (args)-> assert.ok args[1] instanceof Browser
       "should pass status code to callback": (args)-> assert.equal args[2], 200
     "error":
       topic: ->
         brains.ready =>
-          browser = new zombie.Browser
+          browser = new Browser
           browser.visit "http://localhost:3003/missing", =>
             @callback null, arguments
       "should pass single argument to callback": (args)-> assert.length args, 1
@@ -140,14 +142,14 @@ vows.describe("Browser").addBatch(
     "successful":
       topic: ->
         brains.ready =>
-          browser = new zombie.Browser
+          browser = new Browser
           browser.on "loaded", (browser)=> @callback null, browser
           browser.window.location = "http://localhost:3003/"
       "should fire load event": (browser)-> assert.ok browser.visit
     "error":
       topic: ->
         brains.ready =>
-          browser = new zombie.Browser
+          browser = new Browser
           browser.on "error", (err)=> @callback null, err
           browser.window.location = "http://localhost:3003/deadend"
       "should fire onerror event": (err)->
@@ -156,7 +158,7 @@ vows.describe("Browser").addBatch(
     "wait over":
       topic: ->
         brains.ready =>
-          browser = new zombie.Browser
+          browser = new Browser
           browser.on "done", (browser)=> @callback null, browser
           browser.window.location = "http://localhost:3003/"
           browser.wait()
@@ -167,15 +169,17 @@ vows.describe("Browser").addBatch(
       "query text":
         topic: (browser)-> browser
         "should query from document": (browser)-> assert.equal browser.text(".now"), "Walking Aimlessly"
-        "should query from context (exists)": (browser)-> assert.equal browser.text(".now", browser.body), "Walking Aimlessly"
-        "should query from context (unrelated)": (browser)-> assert.equal browser.text(".now", browser.querySelector("#main")), ""
+        "should query from context (exists)": (browser)-> assert.equal browser.text(".now"), "Walking Aimlessly"
+        "should query from context (unrelated)": (browser)->
+          assert.equal browser.text(".now", browser.querySelector("#main")), ""
         "should combine multiple elements": (browser)-> assert.equal browser.text("form label"), "Email Password "
       "query html":
         topic: (browser)-> browser
         "should query from document": (browser)-> assert.equal browser.html(".now"), "<div class=\"now\">Walking Aimlessly</div>"
         "should query from context (exists)": (browser)-> assert.equal browser.html(".now", browser.body), "<div class=\"now\">Walking Aimlessly</div>"
         "should query from context (unrelated)": (browser)-> assert.equal browser.html(".now", browser.querySelector("#main")), ""
-        "should combine multiple elements": (browser)-> assert.equal browser.html("title, #main a"), "<title>The Living</title><a href=\"/dead\">Kill</a>"
+        "should combine multiple elements": (browser)->
+          assert.equal browser.html("title, #main a"), "<title>The Living</title><a href=\"/dead\">Kill</a>"
 
   "click link":
     zombie.wants "http://localhost:3003/living"
@@ -185,25 +189,27 @@ vows.describe("Browser").addBatch(
       "should run all events": (_, browser)-> assert.equal browser.document.title, "The Dead"
       "should return status code": (_, browser, status)-> assert.equal status, 200
 
-  "tag soup":
-    zombie.wants "http://localhost:3003/soup"
-      "should parse to complete HTML": (browser)->
-        assert.ok browser.querySelector("html head")
-        assert.equal browser.text("html body h1"), "Tag soup"
-      "should close tags": (browser)->
-        paras = browser.querySelectorAll("body p").toArray().map((e)-> e.textContent.trim())
-        assert.deepEqual paras, ["One paragraph", "And another"]
+  "tag soup using HTML5 parser":
+    topic: ->
+      browser = new Browser
+      browser.wants "http://localhost:3003/soup", { htmlParser: require("html5").HTML5 }, @callback
+    "should parse to complete HTML": (browser)->
+      assert.ok browser.querySelector("html head")
+      assert.equal browser.text("html body h1"), "Tag soup"
+    "should close tags": (browser)->
+      paras = browser.querySelectorAll("body p").toArray().map((e)-> e.textContent.trim())
+      assert.deepEqual paras, ["One paragraph", "And another"]
 
   "with options":
     topic: ->
-      browser = new zombie.Browser
+      browser = new Browser
       browser.wants "http://localhost:3003/scripted", { runScripts: false }, @callback
     "should set options for the duration of the request": (browser)-> assert.equal browser.document.title, "Whatever"
     "should reset options following the request": (browser)-> assert.isTrue browser.runScripts
 
   "user agent":
     topic: ->
-      browser = new zombie.Browser
+      browser = new Browser
       browser.wants "http://localhost:3003/useragent", @callback
     "should send own version to server": (browser)-> assert.match browser.text("body"), /Zombie.js\/\d\.\d/
     "should be accessible from navigator": (browser)-> assert.match browser.window.navigator.userAgent, /Zombie.js\/\d\.\d/
@@ -239,7 +245,7 @@ vows.describe("Browser").addBatch(
 
   "fork":
     topic: ->
-      browser = new zombie.Browser
+      browser = new Browser
       browser.visit("http://localhost:3003/living")
       browser.wait()
       browser.cookies("www.localhost").update("foo=bar; domain=.localhost")

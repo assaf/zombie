@@ -117,3 +117,11 @@ core.HTMLDocument.prototype.fixQueue = ->
       item.err = err
       item.data = data
       item.check()
+
+
+# JSDOM el.querySelectorAll selects from the parent.
+Sizzle = require("jsdom/lib/jsdom/selectors/sizzle").Sizzle
+core.HTMLDocument.prototype.fixQuerySelector = ->
+  core.Element.prototype.querySelectorAll = (selector)->
+    new core.NodeList(@ownerDocument, => Sizzle(selector, this))
+

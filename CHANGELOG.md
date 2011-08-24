@@ -1,6 +1,17 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+### Version 0.10.0  Pending
+
+Added `browser.loadCSS` option.  Set this to load external stylesheets.
+Defaults to `true`.
+
+Added `browser.htmlParser` option.  Tells JSDOM which HTML5 parser to
+use.  Use `null` for the default parser.
+
+Changed the default parser from `HTML5` to `htmlparser`.
+
+
 ### Version 0.9.7  2011-07-28
 
 Fixed: require.paths is deprecated [#158]
