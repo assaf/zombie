@@ -11,7 +11,7 @@ brains.get "/history/redirect", (req, res)->
 brains.get "/history/redirect_back", (req, res)->
   res.redirect req.headers['referer']
 
-readmefile = "file://#{__dirname}/../README.md"
+file_url = "file://#{__dirname}/data/index.html"
 
 
 vows.describe("History").addBatch(
@@ -79,7 +79,6 @@ vows.describe("History").addBatch(
           "should not fire popstate event": (window)-> assert.isUndefined window.popstate
 
   "location":
-      
     "open page":
       zombie.wants "http://localhost:3003/"
         "should add page to history": (browser)-> assert.length browser.window.history, 1
@@ -88,12 +87,12 @@ vows.describe("History").addBatch(
         "should set window location": (browser)-> assert.equal browser.window.location.href, "http://localhost:3003/"
         "should set document location": (browser)-> assert.equal browser.document.location.href, "http://localhost:3003/"
     "open from file system":
-      zombie.wants `readmefile`
+      zombie.wants `file_url`
         "should add page to history": (browser)-> assert.length browser.window.history, 1
-        "should change location URL": (browser)-> assert.equal browser.location, readmefile
-        "should load document": (browser)-> assert.include browser.html(), "zombie.js(1) -- Insanely fast, headless full-stack testing using Node.js"
-        "should set window location": (browser)-> assert.equal browser.window.location.href, readmefile
-        "should set document location": (browser)-> assert.equal browser.document.location.href, readmefile
+        "should change location URL": (browser)-> assert.equal browser.location, file_url
+        "should load document": (browser)-> assert.include browser.html("title"), "Insanely fast, headless full-stack testing using Node.js"
+        "should set window location": (browser)-> assert.equal browser.window.location.href, file_url
+        "should set document location": (browser)-> assert.equal browser.document.location.href, file_url
     "change pathname":
       zombie.wants "http://localhost:3003/"
         topic: (browser)->
@@ -175,7 +174,7 @@ vows.describe("History").addBatch(
         return
       "should add page to history": (browser)-> assert.length browser.window.history, 2
       "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
-      "should load document": (browser)-> assert.match browser.html(), /Eeek!/  
+      "should load document": (browser)-> assert.match browser.html(), /Eeek!/
 
   "set document.location":
     zombie.wants "http://localhost:3003/"
@@ -185,7 +184,7 @@ vows.describe("History").addBatch(
         return
       "should add page to history": (browser)-> assert.length browser.window.history, 2
       "should change location URL": (browser)-> assert.equal browser.location, "http://localhost:3003/history/boo"
-      "should load document": (browser)-> assert.match browser.html(), /Eeek!/  
+      "should load document": (browser)-> assert.match browser.html(), /Eeek!/
 
   "redirect":
     zombie.wants "http://localhost:3003/history/redirect"
