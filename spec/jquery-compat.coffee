@@ -1,12 +1,13 @@
 require "./helpers"
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
-jsdom = require("jsdom")
+Browser = zombie.Browser
+
 
 JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.2"]
 
+batch = {}
 for version in JQUERY_VERSIONS
   do (version)->
-    console.log version
     brains.get "/compat/jquery-#{version}", (req, res)-> res.send """
       <html>
         <head>
@@ -50,10 +51,10 @@ for version in JQUERY_VERSIONS
         key + "=" + value
       res.send lines.join("\n")
 
-
-vows.describe("Compatibility with jQuery").addBatch(
-  "1.4.4":
-    zombie.wants "http://localhost:3003/compat/jquery-1.4.4"
+    batch[version] =
+      topic: ->
+        browser = new Browser
+        browser.wants "http://localhost:3003/compat/jquery-#{version}", @callback
       "selecting an option in a select element":
         topic: (browser)->
           browser.select "select", "1"
@@ -65,32 +66,5 @@ vows.describe("Compatibility with jQuery").addBatch(
           browser.clickLink "Post", @callback
         "should perform an AJAX POST request": (browser)->
           assert.match browser.text("#response"), /foo=bar/
-).addBatch(
-  "1.5.1":
-    zombie.wants "http://localhost:3003/compat/jquery-1.5.1"
-      "selecting an option in a select element":
-        topic: (browser)->
-          browser.select "select", "1"
-          @callback null, browser
-        "should fire the change event": (browser)-> assert.equal browser.text("#option"), "1"
 
-      "jQuery.post":
-        topic: (browser)->
-          browser.clickLink "Post", @callback
-        "should perform an AJAX POST request": (browser)->
-          assert.match browser.text("#response"), /foo=bar/
-).addBatch(
-  "1.6.2":
-    zombie.wants "http://localhost:3003/compat/jquery-1.6.2"
-      "selecting an option in a select element":
-        topic: (browser)->
-          browser.select "select", "1"
-          @callback null, browser
-        "should fire the change event": (browser)-> assert.equal browser.text("#option"), "1"
-
-      "jQuery.post":
-        topic: (browser)->
-          browser.clickLink "Post", @callback
-        "should perform an AJAX POST request": (browser)->
-          assert.match browser.text("#response"), /foo=bar/
-).export(module)
+vows.describe("Compatibility with jQuery").addBatch(batch).export(module)

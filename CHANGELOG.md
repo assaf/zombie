@@ -19,6 +19,8 @@ Defaults to `true`.
 Added `browser.htmlParser` option.  Tells JSDOM which HTML5 parser to
 use.  Use `null` for the default parser.
 
+Tested for compatibility with jQuery 1.6.2.  Yes.  It works.
+
 
 ### Version 0.9.7  2011-07-28
 
