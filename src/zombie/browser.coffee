@@ -1,7 +1,6 @@
 jsdom = require("jsdom")
 core = jsdom.dom.level3.core
 html = jsdom.dom.level3.html
-vm = process.binding("evals")
 require "./jsdom_patches"
 require "./forms"
 require "./xpath"
@@ -106,7 +105,7 @@ class Browser extends require("events").EventEmitter
       history = features.history || new History(this)
 
       # Add context for evaluating scripts.
-      newWindow = jsdom.createWindow()
+      newWindow = jsdom.createWindow(core)
 
       # Evaulate in context of window. This can be called with a script (String)
       # or a function.

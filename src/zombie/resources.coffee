@@ -15,7 +15,6 @@ FS = require("fs")
 Path = require("path")
 QS = require("querystring")
 URL = require("url")
-VM = process.binding("evals")
 
 
 partial = (text, length = 250)->
@@ -89,7 +88,6 @@ class HTTPResponse
   constructor: (url, statusCode, headers, body)->
     @__defineGetter__ "body", -> body
     @__defineGetter__ "headers", -> headers
-    #@__defineGetter__ "script", -> body._script ||= VM.Script(body, url.pathname)
     @__defineGetter__ "statusCode", -> statusCode
     @__defineGetter__ "statusText", -> STATUS[statusCode]
     @__defineGetter__ "redirected", -> !!@resource.redirects

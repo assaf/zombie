@@ -78,6 +78,8 @@ core.Document.prototype._elementBuilders["script"] = (doc, s)->
             done()
           core.resourceLoader.enqueue(this, loaded, filename)(null, code)
   return script
+###
+
 
 core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   window = doc.parentWindow
@@ -87,7 +89,6 @@ core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   iframe.window.parent = window
 
   return iframe
-###
 #
 
 # Queue
@@ -119,9 +120,28 @@ core.HTMLDocument.prototype.fixQueue = ->
       item.check()
 
 
+
+
+#  Recently added:
+
+
 # JSDOM el.querySelectorAll selects from the parent.
 Sizzle = require("jsdom/lib/jsdom/selectors/sizzle").Sizzle
 core.HTMLDocument.prototype.fixQuerySelector = ->
   core.Element.prototype.querySelectorAll = (selector)->
     new core.NodeList(@ownerDocument, => Sizzle(selector, this))
 
+
+# If JSDOM encounters a JS error, it fires on the element.  We expect it to be
+# fires on the Window.
+core.languageProcessors.javascript = (element, code, filename)->
+  if doc = element.ownerDocument
+    window = doc.parentWindow
+    try
+      window.run code, filename
+    catch ex
+      event = doc.createEvent("Event")
+      event.initEvent "error", false, false
+      event.message = ex.message
+      event.error = ex
+      window.dispatchEvent event
