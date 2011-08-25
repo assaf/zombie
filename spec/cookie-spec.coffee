@@ -1,6 +1,7 @@
 require("./helpers")
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 
+
 brains.get "/cookies", (req, res)->
   res.cookie "_name", "value"
   res.cookie "_expires1", "3s", expires: new Date(Date.now() + 3000)

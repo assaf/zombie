@@ -124,4 +124,5 @@ express.bodyParser.parse["multipart/form-data"] = (body)->
 
 
 vows.zombie = zombie
+vows.Browser = zombie.Browser
 vows.brains = brains

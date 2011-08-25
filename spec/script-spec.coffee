@@ -1,6 +1,5 @@
 require "./helpers"
-{ vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
-Browser = zombie.Browser
+{ vows: vows, assert: assert, zombie: zombie, Browser: Browser, brains: brains } = require("vows")
 
 
 vows.describe("Scripts").addBatch(

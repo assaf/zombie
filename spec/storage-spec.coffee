@@ -1,11 +1,11 @@
 require("./helpers")
-{ vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
+{ vows: vows, assert: assert, Browser: Browser, brains: brains } = require("vows")
 
 
 withStorage = (scope, context)->
   topic = context.topic
   context.topic = ->
-    new zombie.Browser().wants "http://localhost:3003/", (err, browser)=>
+    new Browser().wants "http://localhost:3003/", (err, browser)=>
       storage = scope(browser.window)
       topic.call this, storage if topic
       @callback null, storage

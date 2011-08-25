@@ -1,6 +1,7 @@
 require("./helpers")
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 
+
 brains.get "/xhr", (req, res)->
   res.cookie "xhr", "yes", path: "/"
   res.send """
@@ -13,6 +14,7 @@ brains.get "/xhr", (req, res)->
     </body>
   </html>
   """
+
 brains.get "/xhr/backend", (req, res)->
   res.cookie "xml", "lol", path: "/"
   response = req.cookies["xhr"] || ""
@@ -31,6 +33,7 @@ brains.get "/xhr/redirect", (req, res)->
     </body>
   </html>
   """
+
 brains.get "/xhr/redirect/backend", (req, res)->
   res.redirect "/xhr/backend?redirected=true"
 

@@ -1,6 +1,5 @@
 require "./helpers"
-{ vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
-Browser = zombie.Browser
+{ vows: vows, assert: assert, Browser: Browser, brains: brains } = require("vows")
 
 
 JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.2"]
