@@ -2,15 +2,16 @@ require "./helpers"
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
 jsdom = require("jsdom")
 
-jqueryVersions = ['jquery-1.4.4.js', 'jquery-1.5.1.js']
+JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.2"]
 
-for jquery in jqueryVersions
-  do (jquery) ->
-    brains.get "/compat/#{jquery}", (req, res)-> res.send """
+for version in JQUERY_VERSIONS
+  do (version)->
+    console.log version
+    brains.get "/compat/jquery-#{version}", (req, res)-> res.send """
       <html>
         <head>
-          <title>#{jquery}</title>
-          <script src="/#{jquery}"></script>
+          <title>jQuery #{version}</title>
+          <script src="/jquery-#{version}.js"></script>
         </head>
         <body>
           <select>
@@ -33,7 +34,7 @@ for jquery in jqueryVersions
             });
 
             $("a[href='#post']").click(function() {
-              $.post("/compat/echo/#{jquery}", {"foo": "bar"}, function(response) {
+              $.post("/compat/echo/jquery-#{version}", {"foo": "bar"}, function(response) {
                 $("#response").text(response);
               });
 
@@ -44,15 +45,15 @@ for jquery in jqueryVersions
       </html>
       """
 
-    brains.post "/compat/echo/#{jquery}", (req, res)->
+    brains.post "/compat/echo/jquery-#{version}", (req, res)->
       lines = for key, value of req.body
         key + "=" + value
-
       res.send lines.join("\n")
 
-vows.describe("Compatibility with JavaScript libraries #{jquery}").addBatch(
-  "jQuery 1.4.4":
-    zombie.wants "http://localhost:3003/compat/jquery-1.4.4.js"
+
+vows.describe("Compatibility with jQuery").addBatch(
+  "1.4.4":
+    zombie.wants "http://localhost:3003/compat/jquery-1.4.4"
       "selecting an option in a select element":
         topic: (browser)->
           browser.select "select", "1"
@@ -65,8 +66,22 @@ vows.describe("Compatibility with JavaScript libraries #{jquery}").addBatch(
         "should perform an AJAX POST request": (browser)->
           assert.match browser.text("#response"), /foo=bar/
 ).addBatch(
-  "jQuery 1.5.1":
-    zombie.wants "http://localhost:3003/compat/jquery-1.5.1.js"
+  "1.5.1":
+    zombie.wants "http://localhost:3003/compat/jquery-1.5.1"
+      "selecting an option in a select element":
+        topic: (browser)->
+          browser.select "select", "1"
+          @callback null, browser
+        "should fire the change event": (browser)-> assert.equal browser.text("#option"), "1"
+
+      "jQuery.post":
+        topic: (browser)->
+          browser.clickLink "Post", @callback
+        "should perform an AJAX POST request": (browser)->
+          assert.match browser.text("#response"), /foo=bar/
+).addBatch(
+  "1.6.2":
+    zombie.wants "http://localhost:3003/compat/jquery-1.6.2"
       "selecting an option in a select element":
         topic: (browser)->
           browser.select "select", "1"

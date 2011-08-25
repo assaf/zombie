@@ -27,18 +27,18 @@ brains.use express.cookieParser()
 
 brains.get "/", (req, res)->
   res.send "<html><title>Tap, Tap</title></html>"
-brains.get "/jquery.js", (req, res)->
-  fs.readFile "#{__dirname}/scripts/jquery-1.4.4.js", (err, data)-> res.send data
-brains.get "/jquery-1.4.4.js", (req, res)->
-  fs.readFile "#{__dirname}/scripts/jquery-1.4.4.js", (err, data)-> res.send data
-brains.get "/jquery-1.5.1.js", (req, res)->
-  fs.readFile "#{__dirname}/scripts/jquery-1.5.1.js", (err, data)-> res.send data
+# Prevent sammy from polluting the output. Comment this if you need its
+# messages for debugging.
 brains.get "/sammy.js", (req, res)->
   fs.readFile "#{__dirname}/scripts/sammy.js", (err, data)->
-    # Prevent sammy from polluting the output. Comment this if you need its
-    # messages for debugging.
     data = data + ";window.Sammy.log = function() {}"
     res.send data
+brains.get "/jquery.js", (req, res)->
+  res.redirect "/jquery-1.6.2.js"
+fs.readdirSync(__dirname + "/scripts", "*.js").forEach (script)->
+  brains.get "/#{script}", (req, res)->
+    fs.readFile "#{__dirname}/scripts/#{script}", (err, data)-> res.send data
+
 brains.ready = (callback)->
   if @active
     process.nextTick callback
