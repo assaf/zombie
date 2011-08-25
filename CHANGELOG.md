@@ -3,13 +3,21 @@ zombie.js-changelog(7) -- Changelog
 
 ### Version 0.10.0  Pending
 
+This release uses `htmlparser` as the default parser, at least until we
+can get HTML5 working again.  The new default is both stricter and
+somewhat limited.
+
+Known not to work at all/well:
+- CDATA sections. But then again, who's using CDATA anymore?
+- Documents without `html`, `head` and `body` elements.
+- Any form of tag soup.
+- Scripts that use `document.write`.
+
 Added `browser.loadCSS` option.  Set this to load external stylesheets.
 Defaults to `true`.
 
 Added `browser.htmlParser` option.  Tells JSDOM which HTML5 parser to
 use.  Use `null` for the default parser.
-
-Changed the default parser from `HTML5` to `htmlparser`.
 
 
 ### Version 0.9.7  2011-07-28
