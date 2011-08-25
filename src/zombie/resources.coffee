@@ -165,11 +165,11 @@ class Resources extends Array
         # Construct body from request parameters.
         switch headers["content-type"]
           when "application/x-www-form-urlencoded"
-            body = stringify(data)
+            body = stringify(data || {})
           when "multipart/form-data"
             boundary = "#{new Date().getTime()}#{Math.random()}"
             lines = ["--#{boundary}"]
-            data.map((item) ->
+            (data || {}).map((item) ->
               name   = item[0]
               values = item[1]
               values = [values] unless typeof values == "array"
@@ -209,7 +209,7 @@ class Resources extends Array
           else
             # Fallback on sending text. (XHR falls-back on this)
             headers["content-type"] ||= "text/plain;charset=UTF-8"
-            body = data.toString()
+            body = if data then data.toString() else ""
         headers["content-length"] = body.length
 
       # Pre 0.3 we need to specify the host name.

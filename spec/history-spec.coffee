@@ -1,5 +1,6 @@
 require("./helpers")
 { vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
+jsdom = require("jsdom")
 
 
 brains.get "/history/boo", (req, res)->
