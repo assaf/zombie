@@ -2,7 +2,6 @@
 core = require("jsdom").dom.level3.core
 URL = require("url")
 http = require("http")
-html5 = require("html5").HTML5
 
 
 core.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
