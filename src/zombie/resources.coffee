@@ -138,22 +138,27 @@ class Resources extends Array
     # modifies it instead of recording a new one.
     makeRequest = (method, url, data, headers, resource, callback)=>
       url = URL.parse(url)
+      method = (method || "GET").toUpperCase()
 
       # If the request is for a file:// descriptor, just open directly from the
       # file system rather than getting node's http (which handles file://
       # poorly) involved.
       if url.protocol == "file:"
-        FS.readFile Path.normalize(url.pathname), (err, data) =>
-          # Fallback with error -> callback
-          if err
-            window.browser.log -> "Error loading #{URL.format(url)}: #{err.message}"
-            callback err
-          # Turn body from string into a String, so we can add property getters.
-          response = new HTTPResponse(url, 200, {}, String(data))
-          callback null, response
+        window.browser.log -> "#{method} #{url.pathname}"
+        if method == "GET"
+          FS.readFile Path.normalize(url.pathname), (err, data) =>
+            console.log err
+            # Fallback with error -> callback
+            if err
+              window.browser.log -> "Error loading #{URL.format(url)}: #{err.message}"
+              callback err
+            # Turn body from string into a String, so we can add property getters.
+            response = new HTTPResponse(url, 200, {}, String(data))
+            callback null, response
+        else
+          callback new Error("Cannot #{method} a file: URL")
         return
 
-      method = (method || "GET").toUpperCase()
       # Clone headers before we go and modify them.
       headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
       headers["User-Agent"] = window.navigator.userAgent
@@ -191,7 +196,9 @@ class Resources extends Array
                   when "base64" then content = content.toString("base64")
                   when "7bit" then content = content.toString("ascii")
                   when null
-                  else throw new Error("Unsupported transfer encoding #{encoding}")
+                  else
+                    callback new Error("Unsupported transfer encoding #{encoding}")
+                    return
 
                 lines.push disp
                 lines.push "Content-Type: #{mime}"
