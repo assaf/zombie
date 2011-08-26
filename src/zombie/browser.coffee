@@ -183,13 +183,13 @@ class Browser extends require("events").EventEmitter
         [callback, terminate] = [terminate, null]
       if callback
         onerror = (error)=>
-          @removeListener "error", onerror
-          @removeListener "done", ondone
-          callback error
+          if callback
+            callback error
+            callback = null
         ondone = (error)=>
-          @removeListener "error", onerror
-          @removeListener "done", ondone
-          callback null, this
+          if callback
+            callback null, this
+            callback = null
         @once "error", onerror
         @once "done", ondone
       window._eventloop.wait window, terminate
@@ -208,12 +208,9 @@ class Browser extends require("events").EventEmitter
       [callback, options] = [options, null] if typeof options is "function"
       options ?= {}
 
-      klass = options.klass || if (name in mouseEventNames) then "MouseEvents" else "HTMLEvents"
-      bubbles = options.bubbles ? true
-      cancelable = options.cancelable ? true
-
-      event = window.document.createEvent(klass)
-      event.initEvent(name, bubbles, cancelable)
+      type = options.type || (if name in mouseEventNames then "MouseEvents" else "HTMLEvents")
+      event = window.document.createEvent(type)
+      event.initEvent(name, !!options.bubbles, !!options.cancelable)
 
       if options.attributes?
         for key, value of options.attributes
@@ -457,7 +454,8 @@ class Browser extends require("events").EventEmitter
         field.value = value
         @fire "change", field, callback
         return this
-      throw new Error("No INPUT matching '#{selector}'")
+      else
+        throw new Error("No INPUT matching '#{selector}'")
 
     setCheckbox = (selector, value, callback)=>
       field = @field(selector)
@@ -466,6 +464,8 @@ class Browser extends require("events").EventEmitter
         throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
         if field.checked ^ value
           @fire "click", field, callback
+        else if callback
+          callback null, false
         return this
       else
         throw new Error("No checkbox INPUT matching '#{selector}'")
@@ -496,18 +496,20 @@ class Browser extends require("events").EventEmitter
     #
     # Returns this
     this.choose = (selector, callback)->
-      field = @field(selector)
-      if field.tagName == "INPUT" && field.type == "radio" && field.form
-        if(!field.checked)
+      field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
+      if field && field.tagName == "INPUT" && field.type == "radio" && field.form
+        if !field.checked
           radios = @querySelectorAll(":radio[name='#{field.getAttribute("name")}']", field.form)
           for radio in radios
             radio.checked = false unless radio.getAttribute("disabled") || radio.getAttribute("readonly")
           field.checked = true
+          @fire "click", field
           @fire "change", field, callback
-
-        @fire "click", field, callback
+        else
+          @fire "click", field, callback
         return this
-      throw new Error("No radio INPUT matching '#{selector}'")
+      else
+        throw new Error("No radio INPUT matching '#{selector}'")
 
     findOption = (selector, value)=>
       field = @field(selector)
@@ -558,10 +560,12 @@ class Browser extends require("events").EventEmitter
     #
     # Returns this
     this.selectOption = (option, callback)->
-      if(option && !option.selected)
+      if option && !option.getAttribute("selected")
         select = @xpath("./ancestor::select", option).value[0]
-        option.selected = true
+        option.setAttribute("selected", "selected")
         @fire "change", select, callback
+      else if callback
+        callback null, false
       return this
 
     # ### browser.unselect(selector, value) => this
@@ -585,11 +589,14 @@ class Browser extends require("events").EventEmitter
     #
     # Returns this
     this.unselectOption = (option, callback)->
-      if(option && option.selected)
+      if option && option.getAttribute("selected")
         select = @xpath("./ancestor::select", option).value[0]
-        throw new Error("Cannot unselect in single select") unless select.multiple
-        option.removeAttribute('selected')
+        unless select.multiple
+          throw new Error("Cannot unselect in single select")
+        option.removeAttribute("selected")
         @fire "change", select, callback
+      else if callback
+        callback null, false
       return this
 
     # ### browser.button(selector) : Element
@@ -623,7 +630,7 @@ class Browser extends require("events").EventEmitter
         if button.getAttribute("disabled")
           callback new Error("This button is disabled")
         else
-           @fire "click", button, callback
+          @fire "click", button, callback
       else
         callback new Error("No BUTTON '#{selector}'")
 
