@@ -147,7 +147,6 @@ class Resources extends Array
         window.browser.log -> "#{method} #{url.pathname}"
         if method == "GET"
           FS.readFile Path.normalize(url.pathname), (err, data) =>
-            console.log err
             # Fallback with error -> callback
             if err
               window.browser.log -> "Error loading #{URL.format(url)}: #{err.message}"

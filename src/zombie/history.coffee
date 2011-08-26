@@ -53,7 +53,8 @@ class History
     # submit forms, see _loadPage and _submit.
     resource = (url, method, data, headers)=>
       method = (method || "GET").toUpperCase()
-      throw new Error("Cannot load resource: #{URL.format(url)}") unless url.protocol && url.hostname != undefined
+      unless url.protocol == "file:" || (url.protocol && url.hostname)
+        throw new Error("Cannot load resource: #{URL.format(url)}")
 
       # If the browser has a new window, use it. If a document was already
       # loaded into that window it would have state information we don't want
