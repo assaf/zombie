@@ -1,17 +1,27 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-### Version 0.10.0  Pending
+### Version 0.10.0  2011-08-27
 
-This release uses `htmlparser` as the default parser, at least until we
-can get HTML5 working again.  The new default is both stricter and
-somewhat limited.
+Upgraded to [JSDOM](https://github.com/tmpvar/jsdom) 0.2.3 which brings
+us a Window context that works for asynchronous invocations (that would
+be timers, XHR and browser.evaluate), and many many other improvements.
 
-Known not to work at all/well:
-- CDATA sections. But then again, who's using CDATA anymore?
-- Documents without `html`, `head` and `body` elements.
-- Any form of tag soup.
-- Scripts that use `document.write`.
+Tested for compatibility with jQuery 1.6.2.  Yes.  It works.
+
+
+*NOTE*: This release uses
+[htmlparser](https://github.com/gmosx/htmlparser) as the default parser,
+while waiting for some bug fixes on
+[HTML5](https://github.com/aredridel/html5).  Unfortunately, htmlparser
+is limited in what it can accept and properly parse.  Be aware of the
+following issues:
+
+- Your document *must* have `html`, `head` and `body` elements.
+- No CDATAs. But then again, CDATA is so 1999.
+- Tag soups break the parser.
+- Scripts can't use `document.write`.  Again, it's not 1999.
+
 
 Added `browser.loadCSS` option.  Set this to load external stylesheets.
 Defaults to `true`.
@@ -19,7 +29,7 @@ Defaults to `true`.
 Added `browser.htmlParser` option.  Tells JSDOM which HTML5 parser to
 use.  Use `null` for the default parser.
 
-Tested for compatibility with jQuery 1.6.2.  Yes.  It works.
+Fixed handling of `file` protocol.
 
 
 ### Version 0.9.7  2011-07-28
