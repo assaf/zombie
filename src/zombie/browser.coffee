@@ -119,7 +119,6 @@ class Browser extends require("events").EventEmitter
       # Examples of non-interactive windows are frames.
       window = newWindow if features.interactive
 
-      newWindow.parent = newWindow
       newWindow.__defineGetter__ "browser", => this
       newWindow.__defineGetter__ "title", => @window?.document?.title
       newWindow.__defineSetter__ "title", (title)=> @window?.document?.title = title

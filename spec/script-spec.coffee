@@ -86,12 +86,13 @@ vows.describe("Scripts").addBatch(
     topic: ->
       brains.get "/script/window", (req, res)-> res.send """
         <html>
-          <script>document.title = [window == this, this == window.window].join(',')</script>
+        consoe.log(window.parent);
+          <script>document.title = [window == this, this == window.window, this == top, top == window.top, top == window.parent].join(',')</script>
         </html>
         """
       browser = new Browser
       browser.wants "http://localhost:3003/script/window", @callback
-    "should be the same as this and top": (browser)-> assert.equal browser.text("title"), "true,true"
+    "should be the same as this, top and parent": (browser)-> assert.equal browser.text("title"), "true,true,true,true,true"
 
   "incomplete":
     topic: ->
