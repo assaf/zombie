@@ -1,5 +1,4 @@
 # Window history and location.
-http = require("http")
 jsdom = require("jsdom")
 html = jsdom.dom.level3.html
 qs = require("querystring")
