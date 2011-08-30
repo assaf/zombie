@@ -60,7 +60,7 @@ class History
       # loaded into that window it would have state information we don't want
       # (e.g. window.$) so open a new window.
       if browser.window.document
-        browser.open history: this, interactive: browser.window.parent == browser.window
+        browser.open history: this, interactive: browser.evaluate("window.top == this")
 
       # Create new DOM Level 3 document, add features (load external
       # resources, etc) and associate it with current document. From this

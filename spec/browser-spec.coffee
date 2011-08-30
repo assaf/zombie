@@ -32,7 +32,7 @@ vows.describe("Browser").addBatch(
           assert.typeOf jQuery.ajax, "function"
         "should run jQuery.onready": (browser)-> assert.equal browser.document.title, "Awesome"
         "should return status code of last request": (browser)-> assert.equal browser.statusCode, 200
-        "should have a parent": (browser)-> assert.ok browser.window.parent == browser.window
+        "should have a parent": (browser)-> assert.ok browser.window.parent
 
     "visit":
       "successful":
