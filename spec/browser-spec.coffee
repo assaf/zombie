@@ -168,7 +168,14 @@ vows.describe("Browser").addBatch(
       "should query from context (unrelated)": (browser)-> assert.equal browser.html(".now", browser.querySelector("#main")), ""
       "should combine multiple elements": (browser)->
         assert.equal browser.html("title, #main a"), "<title>The Living</title><a href=\"/browser/dead\">Kill</a>"
-
+    "jQuery":
+      topic: (browser)-> browser.evaluate('window.jQuery')
+      "should query by id": ($)-> assert.equal $('#main').size(), 1
+      "should query by element name": ($)-> assert.equal $('form').attr('action'), '#/dead'
+      "should query by element name (multiple)": ($)-> assert.equal $('label').size(), 2
+      "should query with descendant selectors": ($)-> assert.equal $('body #main a').text(), 'Kill'
+      "should query in context": ($)-> assert.equal $('body').find('#main a', 'body').text(), 'Kill'
+      "should query in context with find()": ($)-> assert.equal $('body').find('#main a').text(), 'Kill'
 
   "click link":
     topic: ->
