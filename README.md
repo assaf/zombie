@@ -237,6 +237,10 @@ Zombie.js supports the following:
 
 **[zombie-jasmine-spike](https://github.com/mileskin/zombie-jasmine-spike)** -- Spike project for trying out Zombie.js with Jasmine
 
+**[Vows BDD](https://github.com/jmreidy/vows-bdd)** -- A BDD wrapper for Vows, allowing for easy writing of tests in a given-when-then format
+
+**[Mink](https://github.com/Behat/Mink)** -- PHP 5.3 acceptance test framework for web applications
+
 
 ## Reporting Glitches
 

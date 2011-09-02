@@ -27,8 +27,7 @@
     "spec",
     "src",
     "TODO.md",
-    "xpath",
-    "wscript"
+    "xpath"
   ],
   "scripts": {
     "test": "vows --spec"
@@ -38,7 +37,7 @@
   },
   "dependencies": {
     "contextify": "~0.0.4",
-    "jsdom": "~0.2.3",
+    "jsdom": "~0.2.4",
     "mime": "~1.2.2",
     "websocket-client": "~1.0.0"
   },
