@@ -38,8 +38,11 @@ Well, that was easy.
 
 To install Zombie.js you need Node.js, NPM, a C++ compiler and Python.
 
-On OS X start by installing XCode, that will get you the build
-toolchain.  Next, assuming you're using
+On OS X start by installing XCode, or use the [OSX GCC
+installer](https://github.com/kennethreitz/osx-gcc-installer) (less to
+download).
+
+Next, assuming you're using the mighty
 [Homebrew](http://mxcl.github.com/homebrew/):
 
     $ brew install node
@@ -60,8 +63,9 @@ On Ubuntu try these steps:
     1.0.22
     $ npm install zombie
 
-I have no idea if you can get Zombie to install on Windows. Maybe with
-Cygwin. Good luck.
+On Windows you'll need Cygwin to get access to GCC, Python, etc.  [Read
+this](https://github.com/joyent/node/wiki/Building-node.js-on-Cygwin-(Windows))
+for detailed instructions and troubleshooting.
 
 
 ## Walking
