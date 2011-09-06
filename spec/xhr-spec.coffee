@@ -29,6 +29,37 @@ vows.describe("XMLHttpRequest").addBatch(
     "should run callback in global context": (browser)->
       assert.equal browser.window.foo, "barbar"
 
+  "response headers":
+    topic: ->
+      brains.get "/xhr/headers", (req, res)->
+        console.log('getting %s', req.url);
+        res.send """
+        <html>
+          <head><script src="/jquery.js"></script></head>
+          <body>
+            <script>
+              console.log('running inner script');
+              $.get("/xhr/headers/backend", function(data, textStatus, jqXHR) {
+                document.allHeaders = jqXHR.getAllResponseHeaders();
+                document.headerOne = jqXHR.getResponseHeader('Header-One');
+                document.headerThree = jqXHR.getResponseHeader('header-three');
+              });
+            </script>
+          </body>
+        </html>
+        """
+      brains.get "/xhr/headers/backend", (req, res)->
+        res.setHeader "Header-One", "value1"
+        res.setHeader "Header-Two", "value2"
+        res.setHeader "Header-Three", "value3"
+        res.send ""
+      browser = new Browser
+      browser.wants "http://localhost:3003/xhr/headers", @callback
+    "should return all headers as string": (browser)->
+      assert.include browser.document.allHeaders, "header-one: value1\nheader-two: value2\nheader-three: value3"
+    "should return individual headers": (browser)->
+      assert.equal browser.document.headerOne, "value1"
+      assert.equal browser.document.headerThree, "value3"
   "cookies":
     topic: ->
       brains.get "/xhr/cookies", (req, res)->
@@ -54,7 +85,7 @@ vows.describe("XMLHttpRequest").addBatch(
       browser.wants "http://localhost:3003/xhr/cookies", @callback
     "should send cookies to XHR request": (browser)-> assert.include browser.document.values, "send"
     "should return cookies from XHR request": (browser)-> assert.include browser.document.values, "return"
-     
+  
   "redirect":
     topic: ->
       brains.get "/xhr/redirect", (req, res)-> res.send """
