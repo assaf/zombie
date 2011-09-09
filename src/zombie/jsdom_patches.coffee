@@ -1,7 +1,6 @@
 # Fix things that JSDOM doesn't do quite right.
 core = require("jsdom").dom.level3.core
 URL = require("url")
-http = require("http")
 
 
 core.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
@@ -9,9 +8,6 @@ core.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
 core.HTMLElement.prototype.__defineGetter__ "offsetWidth",  -> 100
 core.HTMLElement.prototype.__defineGetter__ "offsetHeight", -> 100
 
-
-# Links/Resources
-# ---------------
 
 # Default behavior for clicking on links: navigate to new URL is specified.
 core.HTMLAnchorElement.prototype._eventDefaults =
@@ -44,7 +40,7 @@ core.resourceLoader.load = (element, href, callback)->
           @readFile file, @enqueue(element, loaded, file)
 
 
-
+###
 core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   window = doc.parentWindow
 
@@ -53,6 +49,7 @@ core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   iframe.window.parent = window
 
   return iframe
+###
 
 
 
