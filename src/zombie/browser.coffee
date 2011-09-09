@@ -23,9 +23,9 @@ class Browser extends require("events").EventEmitter
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to
     # console. Ignore if there's any other error handler.
-    @on "error", (err)->
-      if @listeners("error").length == 1
-        console.error err
+    @on "error", (err)=>
+      if @listeners("error").length == 1 || @debug
+        console.error err.message, err.stack
 
 
     # Options
@@ -99,7 +99,7 @@ class Browser extends require("events").EventEmitter
     # Open new browser window.  Takes a single argument that determines
     # which features are supported by this Window.  At the moment all
     # features are undocumented, use at your own peril.
-    this.open = (features = {})->
+    this.open = (features = {})=>
       features.interactive ?= true
 
       history = features.history || new History(this)
@@ -148,7 +148,9 @@ class Browser extends require("events").EventEmitter
       
       # Default onerror handler.
       newWindow.onerror = (event)=>
-        @emit "error", event.error || new Error("Error loading script")
+        try
+          @emit "error", event.error || new Error("Error loading script")
+        catch ex
       return newWindow
 
 
@@ -286,7 +288,8 @@ class Browser extends require("events").EventEmitter
     # Evaluates the CSS selector against the document (or context node) and
     # return a node list.  Shortcut for `document.querySelectorAll`.
     this.css = (selector, context)->
-      if selector then (context || @document).querySelectorAll(selector).toArray() else [@document]
+      context ||= @document
+      if selector then context.querySelectorAll(selector).toArray() else [context]
 
     # ### browser.xpath(expression, context?) => XPathResult
     #

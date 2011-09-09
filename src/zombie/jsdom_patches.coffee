@@ -44,41 +44,6 @@ core.resourceLoader.load = (element, href, callback)->
           @readFile file, @enqueue(element, loaded, file)
 
 
-# Scripts
-# -------
-
-###
-# DOMCharacterDataModified event fired when text is added to a
-# TextNode.  This is a crappy implementation, a good one would old and
-# new values in the event.
-core.CharacterData.prototype.__defineSetter__ "_nodeValue", (newValue)->
-  oldValue = @_text || ""
-  @_text = newValue
-  if @ownerDocument && @parentNode
-    ev = @ownerDocument.createEvent("MutationEvents")
-    ev.initMutationEvent("DOMCharacterDataModified", true, false, this, oldValue, newValue, null, null)
-    @dispatchEvent ev
-core.CharacterData.prototype.__defineGetter__ "_nodeValue", -> @_text
-
-# Add support for DOMCharacterDataModified, so we can execute a script
-# when its text contents is changed.  Safari and Firefox support that.
-core.Document.prototype._elementBuilders["script"] = (doc, s)->
-  script = new core.HTMLScriptElement(doc, s)
-  script.sourceLocation ||= { line: 0, col: 0 }
-  if doc.implementation.hasFeature("ProcessExternalResources", "script")
-    script.addEventListener "DOMCharacterDataModified", (event)->
-      code = event.target.nodeValue
-      if code.trim().length > 0
-        filename = @ownerDocument.URL
-        @ownerDocument.parentWindow._eventloop.perform (done)=>
-          loaded = (code, filename)=>
-            if core.languageProcessors[@language] && code == @text
-              core.languageProcessors[@language](this, code, filename)
-            done()
-          core.resourceLoader.enqueue(this, loaded, filename)(null, code)
-  return script
-###
-
 
 core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   window = doc.parentWindow
@@ -88,7 +53,7 @@ core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   iframe.window.parent = window
 
   return iframe
-#
+
 
 # Queue
 # -----
@@ -120,15 +85,12 @@ core.HTMLDocument.prototype.fixQueue = ->
 
 
 
-
 #  Recently added:
 
 
 # JSDOM el.querySelectorAll selects from the parent.
 Sizzle = require("jsdom/lib/jsdom/selectors/sizzle").Sizzle
 core.HTMLDocument.prototype.fixQuerySelector = ->
-  core.Element.prototype.querySelectorAll = (selector)->
-    new core.NodeList(@ownerDocument, => Sizzle(selector, this))
 
 
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
@@ -138,9 +100,19 @@ core.languageProcessors.javascript = (element, code, filename)->
     window = doc.parentWindow
     try
       window.run code, filename
-    catch ex
+    catch error
+      # Deconstruct the stack trace and strip the Zombie part of it
+      # (anything leading to this file).  Add the document location at
+      # the end.
+      partial = []
+      for line in error.stack.split("\n")
+        break if ~line.indexOf(__filename)
+        partial.push line
+      partial.push "    in #{doc.location.href}"
+      error.stack = partial.join("\n")
+      
       event = doc.createEvent("Event")
       event.initEvent "error", false, false
-      event.message = ex.message
-      event.error = ex
+      event.message = error.message
+      event.error = error
       window.dispatchEvent event
