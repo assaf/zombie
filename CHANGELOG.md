@@ -1,7 +1,7 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-### Version 0.10.1  Pending
+### Version 0.10.1  2011-09-08
 
 Tests that this == window == top == parent.  True when evaluated within
 the context of the browser, not necessarily when using browser.window.
