@@ -6,6 +6,21 @@ zombie.js-changelog(7) -- Changelog
 Tests that this == window == top == parent.  True when evaluated within
 the context of the browser, not necessarily when using browser.window.
 
+Removed JSDOM patch for iframes, no tests failing, let's see what
+happens ...
+
+Fixes #164 jQuery selectors with explicit context fail.
+
+Better stack traces for client-side JS.  This will help in debugging and
+filing issues.
+    
+Updated installation instructions for OS X/Windows.
+
+Upgraded to JSDOM 0.2.4 and testing with jQuery 1.6.3.
+
+    329 Tests
+    2.9 sec to complete
+
 
 ### Version 0.10.0  2011-08-27
 
