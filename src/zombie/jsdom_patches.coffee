@@ -55,46 +55,9 @@ core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   return iframe
 
 
-# Queue
-# -----
-
-# Fixes two bugs in ResourceQueue:
-# - Queue doesn't process items that have empty data (this.data == "")
-# - Should change tail to null if current item is tail, but should not
-#   change tail to next, since item.next may be few items before tail
-core.HTMLDocument.prototype.fixQueue = ->
-  @_queue.push = (callback)->
-    q = this
-    item =
-      prev: q.tail
-      check: ()->
-        if !q.paused && (this.data != undefined || this.err) && !this.prev # fix #1
-          callback(this.err, this.data)
-          if q.tail == this # fix #2
-            q.tail = null
-          if this.next
-            this.next.prev = null
-            this.next.check()
-    if q.tail
-      q.tail.next = item
-    q.tail = item
-    return (err, data)->
-      item.err = err
-      item.data = data
-      item.check()
-
-
-
-#  Recently added:
-
-
-# JSDOM el.querySelectorAll selects from the parent.
-Sizzle = require("jsdom/lib/jsdom/selectors/sizzle").Sizzle
-core.HTMLDocument.prototype.fixQuerySelector = ->
-
 
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
-# fires on the Window.
+# fires on the Window.  We also want better stack traces.
 core.languageProcessors.javascript = (element, code, filename)->
   if doc = element.ownerDocument
     window = doc.parentWindow

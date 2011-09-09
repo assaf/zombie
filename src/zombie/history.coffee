@@ -82,8 +82,6 @@ class History
       document = jsdom.jsdom(null, jsdom.dom.level3.core, options)
       browser.window.document = document
       document.window = document.parentWindow = browser.window
-      document.fixQueue()
-      document.fixQuerySelector()
 
       headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
       referer = stack[index-1]?.url

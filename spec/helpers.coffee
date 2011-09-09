@@ -34,7 +34,7 @@ brains.get "/sammy.js", (req, res)->
     data = data + ";window.Sammy.log = function() {}"
     res.send data
 brains.get "/jquery.js", (req, res)->
-  res.redirect "/jquery-1.6.2.js"
+  res.redirect "/jquery-1.6.3.js"
 fs.readdirSync(__dirname + "/scripts", "*.js").forEach (script)->
   brains.get "/#{script}", (req, res)->
     fs.readFile "#{__dirname}/scripts/#{script}", (err, data)-> res.send data
