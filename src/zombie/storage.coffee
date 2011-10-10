@@ -117,9 +117,9 @@ class Storages
     # Extend window with local/session storage support.
     this.extend = (window)->
       window.__defineGetter__ "sessionStorage", ->
-        @document._sessionStorage ||= browser.sessionStorage(@location.host)
+        @document?._sessionStorage ||= browser.sessionStorage(@location.host)
       window.__defineGetter__ "localStorage", ->
-        @document._localStorage ||= browser.localStorage(@location.host)
+        @document?._localStorage ||= browser.localStorage(@location.host)
 
     # Used to dump state to console (debuggin)
     this.dump = ->
