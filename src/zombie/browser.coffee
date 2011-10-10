@@ -283,10 +283,10 @@ class Browser extends require("events").EventEmitter
       return "" unless @document.documentElement
       @css(selector, context).map((e)-> e.outerHTML.trim()).join("")
 
-    # ### browser.css(selector, context?) => NodeList
+    # ### browser.css(selector, context?) => Array
     #
     # Evaluates the CSS selector against the document (or context node) and
-    # return a node list.  Shortcut for `document.querySelectorAll`.
+    # return array of nodes.  Shortcut for `document.querySelectorAll`.
     this.css = (selector, context)->
       context ||= @document
       if selector then context.querySelectorAll(selector).toArray() else [context]
