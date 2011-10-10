@@ -1,5 +1,5 @@
 # See [Web Storage](http://dev.w3.org/html5/webstorage/)
-core = require("jsdom").dom.level3.core
+html = require("jsdom").dom.level3.html
 events = require("jsdom").dom.level3.events
 
 
@@ -98,7 +98,7 @@ Storage.prototype.__proto__ = events.Event.prototype
 
 
 # Additional error codes defines for Web Storage and not in JSDOM.
-core.SECURITY_ERR = 18
+html.SECURITY_ERR = 18
 
 
 # Combined local/session storage.

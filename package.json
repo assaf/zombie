@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "contextify": "~0.0.6",
-    "jsdom": "~0.2.4",
+    "jsdom": "~0.2.6",
     "mime": "~1.2.3",
     "websocket-client": "~1.0.0"
   },

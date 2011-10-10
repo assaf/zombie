@@ -79,7 +79,7 @@ class History
         options.features.FetchExternalResources.push "script"
       if browser.loadCSS
         options.features.FetchExternalResources.push "css"
-      document = jsdom.jsdom(null, jsdom.dom.level3.core, options)
+      document = jsdom.jsdom(null, jsdom.dom.level3.html, options)
       browser.window.document = document
       document.window = document.parentWindow = browser.window
 

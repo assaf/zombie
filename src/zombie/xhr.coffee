@@ -1,13 +1,13 @@
 # window.XMLHttpRequest
-core = require("jsdom").dom.level3.core
+html = require("jsdom").dom.level3.html
 http = require("http")
 URL = require("url")
 
 
 # Additional error codes defines for XHR and not in JSDOM.
-core.SECURITY_ERR = 18
-core.NETWORK_ERR = 19
-core.ABORT_ERR = 20
+html.SECURITY_ERR = 18
+html.NETWORK_ERR = 19
+html.ABORT_ERR = 20
 
 XMLHttpRequest = (window)->
   # Fire onreadystatechange event
@@ -31,19 +31,19 @@ XMLHttpRequest = (window)->
     @__defineGetter__ "statusText", ->
     # These methods not applicable yet.
     @abort = -> # do nothing
-    @setRequestHeader = @send = -> throw new core.DOMException(core.INVALID_STATE_ERR,  "Invalid state")
+    @setRequestHeader = @send = -> throw new html.DOMException(html.INVALID_STATE_ERR,  "Invalid state")
     @getResponseHeader = @getAllResponseHeaders = ->
     # Open method.
     @open = (method, url, async, user, password)->
       method = method.toUpperCase()
-      throw new core.DOMException(core.SECURITY_ERR, "Unsupported HTTP method") if /^(CONNECT|TRACE|TRACK)$/.test(method)
-      throw new core.DOMException(core.SYNTAX_ERR, "Unsupported HTTP method") unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
+      throw new html.DOMException(html.SECURITY_ERR, "Unsupported HTTP method") if /^(CONNECT|TRACE|TRACK)$/.test(method)
+      throw new html.DOMException(html.SYNTAX_ERR, "Unsupported HTTP method") unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
       url = URL.parse(URL.resolve(window.location.href, url))
       url.hostname ||= window.location.hostname
       url.host = if url.port then "#{url.hostname}:#{url.port}" else url.hostname
       url.hash = null
-      throw new core.DOMException(core.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
-      throw new core.DOMException(core.NOT_SUPPORTED_ERR, "Only HTTP/S protocol supported") unless url.protocol in ["http:", "https:"]
+      throw new html.DOMException(html.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
+      throw new html.DOMException(html.NOT_SUPPORTED_ERR, "Only HTTP/S protocol supported") unless url.protocol in ["http:", "https:"]
       [user, password] = url.auth.split(":") if url.auth
 
       # Aborting open request.
@@ -60,7 +60,7 @@ XMLHttpRequest = (window)->
         # Aborting request in progress.
         @abort = ->
           aborted = true
-          @_error = new core.DOMException(core.ABORT_ERR, "Request aborted")
+          @_error = new html.DOMException(html.ABORT_ERR, "Request aborted")
           stateChanged 4
           reset()
 
@@ -68,7 +68,7 @@ XMLHttpRequest = (window)->
         window.resources.request method, url, data, headers, (error, response)=>
           if error
             console.error "XHR error", error
-            @_error = new core.DOMException(core.NETWORK_ERR, error.message)
+            @_error = new html.DOMException(html.NETWORK_ERR, error.message)
             stateChanged 4
             reset()
           else

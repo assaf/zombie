@@ -1,4 +1,3 @@
-core = require("jsdom").dom.level3.core
 WebSocket = require('websocket-client').WebSocket
 
 exports.use = ->

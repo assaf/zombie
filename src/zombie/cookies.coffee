@@ -1,7 +1,7 @@
 # See [RFC 2109](http://tools.ietf.org/html/rfc2109.html) and
 # [document.cookie](http://developer.mozilla.org/en/document.cookie)
 URL = require("url")
-core = require("jsdom").dom.level3.core
+html = require("jsdom").dom.level3.html
 
 
 # Serialize cookie object into RFC2109 representation.
@@ -158,12 +158,12 @@ class Cookies
 # ### document.cookie => String
 #
 # Returns name=value pairs
-core.HTMLDocument.prototype.__defineGetter__ "cookie", -> @parentWindow.cookies.pairs
+html.HTMLDocument.prototype.__defineGetter__ "cookie", -> @parentWindow.cookies.pairs
 # ### document.cookie = String
 #
 # Accepts serialized form (same as Set-Cookie header) and updates cookie from
 # new values.
-core.HTMLDocument.prototype.__defineSetter__ "cookie", (cookie)-> @parentWindow.cookies.update cookie
+html.HTMLDocument.prototype.__defineSetter__ "cookie", (cookie)-> @parentWindow.cookies.update cookie
 
 
 exports.use = (browser)->

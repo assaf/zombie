@@ -1,5 +1,5 @@
 # Patches to JSDOM for properly handling forms.
-core = require("jsdom").dom.level3.core
+html = require("jsdom").dom.level3.html
 path = require("path")
 fs   = require("fs")
 mime = require("mime")
@@ -25,7 +25,7 @@ UploadedFile = (filename) ->
 
 # Implement form.submit such that it actually submits a request to the server.
 # This method takes the submitting button so we can send the button name/value.
-core.HTMLFormElement.prototype.submit = (button)->
+html.HTMLFormElement.prototype.submit = (button)->
   document = @ownerDocument
   params = []
 
@@ -63,7 +63,7 @@ core.HTMLFormElement.prototype.submit = (button)->
   process 0
 
 # Implement form.reset to reset all form fields.
-core.HTMLFormElement.prototype.reset = ->
+html.HTMLFormElement.prototype.reset = ->
   for field in @elements
     if field.nodeName == "SELECT"
       for option in field.options
@@ -74,7 +74,7 @@ core.HTMLFormElement.prototype.reset = ->
       field.value = field._defaultValue
 
 # Replace dispatchEvent so we can send the button along the event.
-core.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
+html.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "submit", true, true
   event._button = button
@@ -82,7 +82,7 @@ core.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
 
 # Default behavior for submit events is to call the form's submit method, but we
 # also pass the submitting button.
-core.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
+html.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
   event.target.submit event._button
 
 
@@ -90,7 +90,7 @@ core.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
 # -------
 
 # Default behavior for clicking on inputs.
-core.HTMLInputElement.prototype._eventDefaults =
+html.HTMLInputElement.prototype._eventDefaults =
   click: (event)->
     input = event.target
     change = ->
@@ -116,13 +116,13 @@ core.HTMLInputElement.prototype._eventDefaults =
 # Current INPUT behavior on click is to capture sumbit and handle it, but
 # ignore all other clicks. We need those other clicks to occur, so we're going
 # to dispatch them all.
-core.HTMLInputElement.prototype.click = ->
+html.HTMLInputElement.prototype.click = ->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "click", true, true
   @dispatchEvent event
 
 # Default behavior for form BUTTON: submit form.
-core.HTMLButtonElement.prototype._eventDefaults =
+html.HTMLButtonElement.prototype._eventDefaults =
   click: (event)->
     button = event.target
     return if button.getAttribute("disabled")
@@ -131,7 +131,7 @@ core.HTMLButtonElement.prototype._eventDefaults =
 
 # Default type for button is submit. jQuery live submit handler looks
 # for the type attribute, so we've got to make sure it's there.
-core.Document.prototype._elementBuilders["button"] = (doc, s)->
-  button = new core.HTMLButtonElement(doc, s)
+html.Document.prototype._elementBuilders["button"] = (doc, s)->
+  button = new html.HTMLButtonElement(doc, s)
   button.type ||= "submit"
   return button

@@ -1,5 +1,4 @@
 jsdom = require("jsdom")
-core = jsdom.dom.level3.core
 html = jsdom.dom.level3.html
 require "./jsdom_patches"
 require "./forms"
@@ -105,7 +104,7 @@ class Browser extends require("events").EventEmitter
       history = features.history || new History(this)
 
       # Add context for evaluating scripts.
-      newWindow = jsdom.createWindow(core)
+      newWindow = jsdom.createWindow(html)
 
       # Evaulate in context of window. This can be called with a script (String)
       # or a function.
@@ -140,7 +139,7 @@ class Browser extends require("events").EventEmitter
       newWindow.screen = new Screen()
       newWindow.JSON = JSON
       newWindow.Image = (width, height)->
-        img = new core.HTMLImageElement(newWindow.document)
+        img = new html.HTMLImageElement(newWindow.document)
         img.width = width
         img.height = height
         img

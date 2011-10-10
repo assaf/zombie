@@ -1,16 +1,16 @@
 # Fix things that JSDOM doesn't do quite right.
-core = require("jsdom").dom.level3.core
+html = require("jsdom").dom.level3.html
 URL = require("url")
 
 
-core.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
-core.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
-core.HTMLElement.prototype.__defineGetter__ "offsetWidth",  -> 100
-core.HTMLElement.prototype.__defineGetter__ "offsetHeight", -> 100
+html.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
+html.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
+html.HTMLElement.prototype.__defineGetter__ "offsetWidth",  -> 100
+html.HTMLElement.prototype.__defineGetter__ "offsetHeight", -> 100
 
 
 # Default behavior for clicking on links: navigate to new URL is specified.
-core.HTMLAnchorElement.prototype._eventDefaults =
+html.HTMLAnchorElement.prototype._eventDefaults =
   click: (event)->
     anchor = event.target
     anchor.ownerDocument.parentWindow.location = anchor.href if anchor.href
@@ -18,7 +18,7 @@ core.HTMLAnchorElement.prototype._eventDefaults =
 # Fix resource loading to keep track of in-progress requests. Need this to wait
 # for all resources (mainly JavaScript) to complete loading before terminating
 # browser.wait.
-core.resourceLoader.load = (element, href, callback)->
+html.resourceLoader.load = (element, href, callback)->
   document = element.ownerDocument
   window = document.parentWindow
   ownerImplementation = document.implementation
@@ -41,10 +41,10 @@ core.resourceLoader.load = (element, href, callback)->
 
 
 ###
-core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
+html.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   window = doc.parentWindow
 
-  iframe = new core.HTMLIFrameElement(doc, s)
+  iframe = new html.HTMLIFrameElement(doc, s)
   iframe.window = window.browser.open(interactive: false)
   iframe.window.parent = window
 
@@ -55,7 +55,7 @@ core.Document.prototype._elementBuilders["iframe"] = (doc, s)->
 
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
 # fires on the Window.  We also want better stack traces.
-core.languageProcessors.javascript = (element, code, filename)->
+html.languageProcessors.javascript = (element, code, filename)->
   if doc = element.ownerDocument
     window = doc.parentWindow
     try

@@ -1,7 +1,7 @@
 # See http://www.w3.org/TR/DOM-Level-3-XPath/
 vm = process.binding("evals")
 fs = require("fs")
-core = require("jsdom").dom.level3.core
+html = require("jsdom").dom.level3.html
 
 # Cache the XPath engine so we only load it if we need it and only load
 # it once.
@@ -15,7 +15,7 @@ xpath = ->
     new vm.Script(fs.readFileSync(__dirname + "/../../xpath/xpath.js")).runInContext engine
   return engine
 
-core.HTMLDocument.prototype.evaluate = (expr, node, nsResolver, type, result)->
+html.HTMLDocument.prototype.evaluate = (expr, node, nsResolver, type, result)->
   engine = xpath()
   context = new engine.ExprContext(node || this)
   context.setCaseInsensitive true
@@ -37,15 +37,15 @@ core.HTMLDocument.prototype.evaluate = (expr, node, nsResolver, type, result)->
 
 
 # Compare Document Position
-DOCUMENT_POSITION_DISCONNECTED = core.Node.prototype.DOCUMENT_POSITION_DISCONNECTED = 0x01
-DOCUMENT_POSITION_PRECEDING    = core.Node.prototype.DOCUMENT_POSITION_PRECEDING    = 0x02
-DOCUMENT_POSITION_FOLLOWING    = core.Node.prototype.DOCUMENT_POSITION_FOLLOWING    = 0x04
-DOCUMENT_POSITION_CONTAINS     = core.Node.prototype.DOCUMENT_POSITION_CONTAINS     = 0x08
-DOCUMENT_POSITION_CONTAINED_BY = core.Node.prototype.DOCUMENT_POSITION_CONTAINED_BY = 0x10
-DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = core.Node.prototype.DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20
+DOCUMENT_POSITION_DISCONNECTED = html.Node.prototype.DOCUMENT_POSITION_DISCONNECTED = 0x01
+DOCUMENT_POSITION_PRECEDING    = html.Node.prototype.DOCUMENT_POSITION_PRECEDING    = 0x02
+DOCUMENT_POSITION_FOLLOWING    = html.Node.prototype.DOCUMENT_POSITION_FOLLOWING    = 0x04
+DOCUMENT_POSITION_CONTAINS     = html.Node.prototype.DOCUMENT_POSITION_CONTAINS     = 0x08
+DOCUMENT_POSITION_CONTAINED_BY = html.Node.prototype.DOCUMENT_POSITION_CONTAINED_BY = 0x10
+DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = html.Node.prototype.DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20
 
-core.Node.prototype.compareDocumentPosition = (otherNode)->
-  if !(otherNode instanceof core.Node)
+html.Node.prototype.compareDocumentPosition = (otherNode)->
+  if !(otherNode instanceof html.Node)
     throw Error("Comparing position against non-Node values is not allowed")
 
   if this.nodeType == this.DOCUMENT_NODE
