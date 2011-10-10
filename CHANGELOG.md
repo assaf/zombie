@@ -1,6 +1,11 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+### Version 0.10.2  Pending
+
+Fixed #173 browser.open() causes Segmentation fault (Brian McDaniel)
+
+
 ### Version 0.10.1  2011-09-08
 
 Tests that this == window == top == parent.  True when evaluated within
