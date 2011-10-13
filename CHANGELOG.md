@@ -1,9 +1,11 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-### Version 0.10.2  Pending
+### Version 0.10.2  2011-10-13
 
 Fixed #173 browser.open() causes Segmentation fault (Brian McDaniel)
+
+Upgraded to JSDOM 0.2.7.
 
 
 ### Version 0.10.1  2011-09-08
