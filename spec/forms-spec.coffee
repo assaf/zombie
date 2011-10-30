@@ -359,7 +359,7 @@ vows.describe("Forms").addBatch(
             browser.querySelector("form").submit()
             browser.wait @callback
           "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/forms/submit"
-          "should add location to history": (browser)-> assert.length browser.window.history, 2
+          "should add location to history": (browser)-> assert.lengthOf browser.window.history, 2
           "should send text input values to server": (browser)-> assert.equal browser.text("#name"), "ArmBiter"
           "should send textarea values to server": (browser)-> assert.equal browser.text("#likes"), "Arm Biting"
           "should send radio button to server": (browser)-> assert.equal browser.text("#scary"), "yes"
@@ -385,7 +385,7 @@ vows.describe("Forms").addBatch(
           topic: (browser)->
             browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").pressButton "Hit Me", @callback
           "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/forms/submit"
-          "should add location to history": (browser)-> assert.length browser.window.history, 2
+          "should add location to history": (browser)-> assert.lengthOf browser.window.history, 2
           "should send button value to server": (browser)-> assert.equal browser.text("#clicked"), "hit-me"
           "should send input values to server": (browser)->
             assert.equal browser.text("#name"), "ArmBiter"
@@ -398,7 +398,7 @@ vows.describe("Forms").addBatch(
           topic: (browser)->
             browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").pressButton "#image_submit", @callback
           "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/forms/submit"
-          "should add location to history": (browser)-> assert.length browser.window.history, 2
+          "should add location to history": (browser)-> assert.lengthOf browser.window.history, 2
           "should send image value to server": (browser)-> assert.equal browser.text("#image_clicked"), "Image Submit"
           "should send input values to server": (browser)->
             assert.equal browser.text("#name"), "ArmBiter"
@@ -411,7 +411,7 @@ vows.describe("Forms").addBatch(
           topic: (browser)->
             browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").pressButton "Submit", @callback
           "should open new page": (browser)-> assert.equal browser.location, "http://localhost:3003/forms/submit"
-          "should add location to history": (browser)-> assert.length browser.window.history, 2
+          "should add location to history": (browser)-> assert.lengthOf browser.window.history, 2
           "should send submit value to server": (browser)-> assert.equal browser.text("#clicked"), "Submit"
           "should send input values to server": (browser)->
             assert.equal browser.text("#name"), "ArmBiter"

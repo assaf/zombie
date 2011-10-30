@@ -60,7 +60,7 @@ vows.describe("XPath").addBatch(
       "should return third anchor": (result)-> assert.equal result.value[2].textContent, "Third anchor"
     "evaluate with id":
       topic: (browser)-> browser.xpath('//*[@id="post-2"]/h2')
-      "should return one node": (result)-> assert.length result.value, 1
+      "should return one node": (result)-> assert.lengthOf result.value, 1
       "should return second post title": (result)-> assert.equal result.value[0].textContent, "Second post"
     "evaluate number":
       topic: (browser)-> browser.xpath("count(//a)")
