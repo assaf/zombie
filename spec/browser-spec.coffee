@@ -41,7 +41,7 @@ vows.describe("Browser").addBatch(
             browser = new Browser
             browser.visit "http://localhost:3003/browser/scripted", =>
               @callback null, arguments
-        "should pass three arguments to callback": (args)-> assert.length args, 3
+        "should pass three arguments to callback": (args)-> assert.lengthOf args, 3
         "should not include an error": (args)-> assert.isNull args[0]
         "should pass browser to callback": (args)-> assert.ok args[1] instanceof Browser
         "should pass status code to callback": (args)-> assert.equal args[2], 200
@@ -51,7 +51,7 @@ vows.describe("Browser").addBatch(
             browser = new Browser
             browser.visit "http://localhost:3003/browser/missing", =>
               @callback null, arguments
-        "should pass single argument to callback": (args)-> assert.length args, 1
+        "should pass single argument to callback": (args)-> assert.lengthOf args, 1
         "should pass error to callback": (args)-> assert.ok args[0] instanceof Error
         "should include status code in error": (args)-> assert.equal args[0].response.statusCode, 404
       "empty page":
