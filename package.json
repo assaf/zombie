@@ -46,7 +46,7 @@
     "docco": "~0.3.0",
     "express": "~2.4.6",
     "ronn": "~0.3.6",
-    "vows": "~0.5.11"
+    "vows": "~0.5.12"
   },
   "repository": {
     "type": "git",

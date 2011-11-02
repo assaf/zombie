@@ -14,7 +14,7 @@ withStorage = (scope, context)->
 accessTests = (scope)->
   "initial":
     withStorage scope,
-      "should start with no keys": (storage)-> assert.length storage, 0
+      "should start with no keys": (storage)-> assert.lengthOf storage, 0
       "should handle key() with no key": (storage)-> assert.isUndefined storage.key(1)
       "should handle getItem() with no item": (storage)-> assert.isUndefined storage.getItem("nosuch")
       "should handle removeItem() with no item": (storage)-> assert.doesNotThrow -> storage.removeItem("nosuch")
@@ -24,7 +24,7 @@ accessTests = (scope)->
       topic: (storage)->
         storage.setItem "is", "hungry"
         storage.setItem "wants", "brains"
-      "should count all items in length": (storage)-> assert.length storage, 2
+      "should count all items in length": (storage)-> assert.lengthOf storage, 2
       "should make key available": (storage)->
         keys = [storage.key(0), storage.key(1)].sort()
         assert.deepEqual keys, ["is", "wants"]
@@ -38,7 +38,7 @@ accessTests = (scope)->
         storage.setItem "wants", "brains"
         storage.setItem "is", "dead"
         @keys = [storage.key(0), storage.key(1)].sort()
-      "should leave length intact": (storage)-> assert.length storage, 2
+      "should leave length intact": (storage)-> assert.lengthOf storage, 2
       "should keep key position": (storage)-> assert.deepEqual [storage.key(0), storage.key(1)].sort(), @keys
       "should change value": (storage)-> assert.equal storage.getItem("is"), "dead"
       "should not change other values": (storage)-> assert.equal storage.getItem("wants"), "brains"
@@ -48,7 +48,7 @@ accessTests = (scope)->
         storage.setItem "is", "hungry"
         storage.setItem "wants", "brains"
         storage.removeItem "is"
-      "should drop item from length": (storage)-> assert.length storage, 1
+      "should drop item from length": (storage)-> assert.lengthOf storage, 1
       "should forget key": (storage)->
         assert.equal storage.key(0), "wants"
         assert.isUndefined storage.key(1)
@@ -61,7 +61,7 @@ accessTests = (scope)->
         storage.setItem "is", "hungry"
         storage.setItem "wants", "brains"
         storage.clear()
-      "should reset length to zero": (storage)-> assert.length storage, 0
+      "should reset length to zero": (storage)-> assert.lengthOf storage, 0
       "should forget all keys": (storage)->
         assert.isUndefined storage.key(0)
       "should forget all values": (storage)->
@@ -71,7 +71,7 @@ accessTests = (scope)->
     withStorage scope,
       topic: (storage)->
         storage.setItem "null", null
-      "should store that item": (storage)-> assert.length storage, 1
+      "should store that item": (storage)-> assert.lengthOf storage, 1
       "should return null for key": (storage)-> assert.isNull storage.getItem("null")
 
 
