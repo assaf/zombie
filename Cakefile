@@ -159,10 +159,12 @@ generateMan = (callback)->
 generatePDF = (callback)->
   log "Generating PDF documentation ...", green
   files = "index api selectors troubleshoot".split(" ").map((f)-> "html/#{f}.html")
-  options = "--disable-javascript --outline --print-media-type --title Zombie.js --header-html doc/layout/header.html"
-  toc = "--toc --toc-depth 2 --toc-no-dots --cover doc/layout/cover.html --allow doc/images --outline"
+  options = "--disable-javascript --outline --print-media-type --title Zombie.js --header-html doc/layout/header.html --allow doc/images"
   margins = "--margin-left 30 --margin-right 30 --margin-top 30 --margin-bottom 30 --header-spacing 5"
-  exec "wkhtmltopdf #{options} #{margins} #{toc} #{files.join(" ")} html/zombie.pdf", callback
+  outline = " --outline --outline-depth 2"
+  toc = "toc --disable-dotted-lines"
+  cover = "cover doc/layout/cover.html"
+  exec "wkhtmltopdf #{options} #{margins} #{cover} #{toc} #{files.join(" ")} html/zombie.pdf", callback
 
 generateDocs = (callback)->
   log "Generating documentation ...", green

@@ -16,6 +16,10 @@ pre, code {
   color: #060;
 }
 
+.toc {
+  display: none;
+}
+
 
 #header .title {
   text-align: right;
