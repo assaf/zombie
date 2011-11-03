@@ -170,6 +170,7 @@ class Resources extends Array
         switch headers["content-type"]
           when "application/x-www-form-urlencoded"
             body = stringify(data || {})
+            headers["content-length"] = body.length
           when "multipart/form-data"
             boundary = "#{new Date().getTime()}#{Math.random()}"
             lines = ["--#{boundary}"]
@@ -216,7 +217,7 @@ class Resources extends Array
             # Fallback on sending text. (XHR falls-back on this)
             headers["content-type"] ||= "text/plain;charset=UTF-8"
             body = if data then data.toString() else ""
-        headers["content-length"] = body.length
+            headers["content-length"] = body.length
 
       # Pre 0.3 we need to specify the host name.
       headers["Host"] = url.host
