@@ -171,52 +171,47 @@ class Resources extends Array
           when "application/x-www-form-urlencoded"
             body = stringify(data || {})
           when "multipart/form-data"
+            body = new Array()
             boundary = "#{new Date().getTime()}#{Math.random()}"
-            lines = ["--#{boundary}"]
+
             (data || {}).map((item) ->
+              body.push new Buffer("--#{boundary}\r\n", "ascii")
               name   = item[0]
               values = item[1]
               values = [values] unless typeof values == "array"
 
               for value in values
                 disp = "Content-Disposition: form-data; name=\"#{name}\""
-                encoding = null
 
                 if value.read
                   content = value.read()
                   disp += "; filename=\"#{value}\""
                   mime = value.mime
-                  encoding = "base64" unless value.mime == "text/plain"
                 else
-                  content = value
-                  mime = "text/plain"
+                  content = new Buffer(value)
+                  mime = null
 
-                switch encoding
-                  when "base64" then content = content.toString("base64")
-                  when "7bit" then content = content.toString("ascii")
-                  when null
-                  else
-                    callback new Error("Unsupported transfer encoding #{encoding}")
-                    return
-
-                lines.push disp
-                lines.push "Content-Type: #{mime}"
-                lines.push "Content-Length: #{content.length}"
-                lines.push "Content-Transfer-Encoding: #{encoding}" if encoding
-                lines.push ""
-                lines.push content
-                lines.push "--#{boundary}"
+                body.push new Buffer(disp + "\r\n", "ascii")
+                body.push new Buffer("Content-Type: #{mime}\r\n", "ascii") if mime
+                body.push new Buffer("\r\n", "ascii")
+                body.push content
+                body.push new Buffer("\r\n", "ascii")
             )
-            if lines.length < 2
+            if body.length < 2
               body = ""
             else
-              body = lines.join("\r\n") + "--\r\n"
+              body.push new Buffer("--#{boundary}--", "ascii")
             headers["content-type"] += "; boundary=#{boundary}"
           else
             # Fallback on sending text. (XHR falls-back on this)
             headers["content-type"] ||= "text/plain;charset=UTF-8"
             body = if data then data.toString() else ""
-        headers["content-length"] = body.length
+
+        content_length = 0
+        if Array.isArray(body)
+          content_length += line.length for line in body
+        else
+          content_length = body.length
 
       # Pre 0.3 we need to specify the host name.
       headers["Host"] = url.host
@@ -281,7 +276,11 @@ class Resources extends Array
       client = (if secure then HTTPS else HTTP).request(request, response_handler)
       # Connection error wired directly to callback.
       client.on "error", callback
-      client.write body
+      if Array.isArray(body)
+        for line in body
+          client.write line
+      else
+        client.write body
       client.end()
 
     typeOf = (object)->

@@ -51,7 +51,7 @@ html.HTMLFormElement.prototype.submit = (button)->
         else if field.nodeName == "INPUT" && field.type == "file"
           value = new UploadedFile(field.value) if field.value
         else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
-          if field.value && field.type != "submit" && field.type != "image"
+          if field.type != "submit" && field.type != "image"
             value = field.value
 
       params.push [name, value] if value?
