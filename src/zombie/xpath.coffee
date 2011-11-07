@@ -1,5 +1,5 @@
 # See http://www.w3.org/TR/DOM-Level-3-XPath/
-vm = process.binding("evals")
+vm = require("vm")
 fs = require("fs")
 html = require("jsdom").dom.level3.html
 

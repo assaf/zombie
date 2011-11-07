@@ -37,16 +37,16 @@
   },
   "dependencies": {
     "contextify": "~0.0.6",
-    "jsdom": "~0.2.7",
-    "mime": "~1.2.3",
+    "jsdom": "~0.2.9",
+    "mime": "~1.2.4",
     "websocket-client": "~1.0.0"
   },
   "devDependencies": {
     "coffee-script": "~1.1.2",
     "docco": "~0.3.0",
-    "express": "~2.4.6",
-    "ronn": "~0.3.6",
-    "vows": "~0.5.12"
+    "express": "~2.5.0",
+    "ronn": "~0.3.7",
+    "vows": "~0.5.13"
   },
   "repository": {
     "type": "git",

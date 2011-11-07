@@ -42,4 +42,5 @@ vows.describe("Compatibility with WebSockets").addBatch(
         @callback null, browser
       "should be possible": (browser)-> assert.equal browser.text("#ws"), "ws://localhost/some/url"
 
-).export(module)
+) # Disabled. Not compatible with Node 0.6.0.
+#).export(module)
