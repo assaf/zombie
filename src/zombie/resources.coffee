@@ -139,9 +139,10 @@ class Resources extends Array
     # resource.  Initially the resource is null, but when following a
     # redirect this function is called again with a resource and
     # modifies it instead of recording a new one.
-    makeRequest = (method, url, data, headers, encoding, resource, callback)=>
+    makeRequest = (method, url, data, headers, response_encoding, resource, callback)=>
       url = URL.parse(url)
       method = (method || "GET").toUpperCase()
+      response_encoding = response_encoding || "utf8"
 
       # If the request is for a file:// descriptor, just open directly from the
       # file system rather than getting node's http (which handles file://
@@ -247,7 +248,7 @@ class Resources extends Array
         method: method
         headers: headers
       response_handler = (response)=>
-        response.setEncoding "utf8"
+        response.setEncoding response_encoding
         body = ""
         response.on "data", (chunk)-> body += chunk
         response.on "end", =>
@@ -269,7 +270,7 @@ class Resources extends Array
                   error = new Error("Too many redirects, from #{URL.format(url)} to #{redirect}")
                 else
                   process.nextTick =>
-                    makeRequest "GET", redirect, null, null, encoding, resource, callback
+                    makeRequest "GET", redirect, null, null, response_encoding, resource, callback
               else
                 error = new Error("Redirect with no Location header, cannot follow")
             else
