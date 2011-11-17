@@ -30,7 +30,7 @@ class Browser extends require("events").EventEmitter
     # Options
     # -------
 
-    OPTIONS = ["debug", "htmlParser", "loadCSS", "runScripts", "userAgent"]
+    OPTIONS = ["debug", "htmlParser", "loadCSS", "runScripts", "userAgent", "credentials"]
 
     # ### debug
     #
@@ -53,6 +53,10 @@ class Browser extends require("events").EventEmitter
     #
     # User agent string sent to server.
     @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{exports.version}"
+    # ### authentication credentials
+    #
+    # Object containing authorisation credentials
+    @credentials = false
 
 
     # ### withOptions(options, fn)
