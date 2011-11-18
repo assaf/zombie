@@ -164,59 +164,18 @@ class Resources extends Array
       if method == "GET" || method == "HEAD"
         # Request paramters go in query string
         url.search = "?" + stringify(data) if data
-        body = ""
       else
         # Construct body from request parameters.
         switch headers["content-type"]
-          when "application/x-www-form-urlencoded"
-            body = stringify(data || {})
           when "multipart/form-data"
-            boundary = "#{new Date().getTime()}#{Math.random()}"
-            lines = ["--#{boundary}"]
-            (data || {}).map((item) ->
-              name   = item[0]
-              values = item[1]
-              values = [values] unless typeof values == "array"
-
-              for value in values
-                disp = "Content-Disposition: form-data; name=\"#{name}\""
-                encoding = null
-
-                if value.read
-                  content = value.read()
-                  disp += "; filename=\"#{value}\""
-                  mime = value.mime
-                  encoding = "base64" unless value.mime == "text/plain"
-                else
-                  content = value
-                  mime = "text/plain"
-
-                switch encoding
-                  when "base64" then content = content.toString("base64")
-                  when "7bit" then content = content.toString("ascii")
-                  when null
-                  else
-                    callback new Error("Unsupported transfer encoding #{encoding}")
-                    return
-
-                lines.push disp
-                lines.push "Content-Type: #{mime}"
-                lines.push "Content-Length: #{content.length}"
-                lines.push "Content-Transfer-Encoding: #{encoding}" if encoding
-                lines.push ""
-                lines.push content
-                lines.push "--#{boundary}"
-            )
-            if lines.length < 2
-              body = ""
+            if Object.keys(data).length > 0
+              boundary = "#{new Date().getTime()}#{Math.random()}"
+              headers["content-type"] += "; boundary=#{boundary}"
             else
-              body = lines.join("\r\n") + "--\r\n"
-            headers["content-type"] += "; boundary=#{boundary}"
+              headers["content-type"] = "text/plain;charset=UTF-8"
           else
             # Fallback on sending text. (XHR falls-back on this)
             headers["content-type"] ||= "text/plain;charset=UTF-8"
-            body = if data then data.toString() else ""
-        headers["content-length"] = body.length
 
       # Pre 0.3 we need to specify the host name.
       headers["Host"] = url.host
@@ -233,7 +192,7 @@ class Resources extends Array
       # First request has not resource, so create it and add to
       # Resources.  After redirect, we have a resource we're using.
       unless resource
-        resource = new Resource(new HTTPRequest(method, url, headers, body))
+        resource = new Resource(new HTTPRequest(method, url, headers, null))
         this.push resource
       window.browser.log -> "#{method} #{URL.format(url)}"
 
@@ -281,7 +240,43 @@ class Resources extends Array
       client = (if secure then HTTPS else HTTP).request(request, response_handler)
       # Connection error wired directly to callback.
       client.on "error", callback
-      client.write body
+
+      if method == "PUT" || method == "POST"
+        # Construct body from request parameters.
+        switch headers["content-type"].split(";")[0]
+          when "application/x-www-form-urlencoded"
+            client.write stringify(data), "utf8"
+          when "multipart/form-data"
+            remaining = Object.keys(data).length
+            if remaining > 0
+              boundary = headers["content-type"].match(/boundary=(.*)/)[1]
+              for field in data
+                [name, content] = field
+                client.write "--#{boundary}\r\n"
+                disp = "Content-Disposition: form-data; name=\"#{name}\""
+                if content.read
+                  disp += "; filename=\"#{content}\""
+                  mime = content.mime || "application/octet-stream"
+                else
+                  mime = "text/plain"
+
+                client.write "#{disp}\r\n"
+                client.write "Content-Type: #{mime}\r\n"
+                if content.read
+                  buffer = content.read()
+                  client.write "Content-Length: #{buffer.length}\r\n"
+                  client.write "\r\n"
+                  client.write buffer
+                else
+                  client.write "Content-Length: #{content.length}\r\n"
+                  client.write "Content-Transfer-Encoding: utf8\r\n\r\n"
+                  client.write content, "utf8"
+                if --remaining == 0
+                  client.write "\r\n--#{boundary}--\r\n"
+                else
+                  client.write "\r\n--#{boundary}\r\n"
+          else
+            client.write (data || "").toString(), "utf8"
       client.end()
 
     typeOf = (object)->

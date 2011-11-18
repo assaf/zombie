@@ -439,13 +439,22 @@ vows.describe("Forms").addBatch(
         """
       brains.post "/forms/upload", (req, res)->
         [text, image] = [req.body.text, req.body.image]
-        digest = crypto.createHash("md5").update(image).digest("hex") if image
-        res.send """
-        <html>
-          <head><title>#{text?.filename || image?.filename}</title></head>
-          <body>#{text || digest}</body>
-        </html>
-        """
+        if text || image
+          data = fs.readFileSync((text || image).path)
+          if image
+            digest = crypto.createHash("md5").update(data).digest("hex")
+          res.send """
+          <html>
+            <head><title>#{(text || image).filename}</title></head>
+            <body>#{digest || data}</body>
+          </html>
+          """
+        else
+          res.send """
+          <html>
+            <body>nothing</body>
+          </html>
+          """
 
     "text":
       zombie.wants "http://localhost:3003/forms/upload"
@@ -470,13 +479,13 @@ vows.describe("Forms").addBatch(
         topic: (browser)->
           browser.attach "text", ""
           browser.pressButton "Upload", @callback
-        "should not upload any file": (browser)-> assert.equal browser.text("body").trim(), "undefined"
+        "should not upload any file": (browser)-> assert.equal browser.text("body").trim(), "nothing"
 
     "not set":
       zombie.wants "http://localhost:3003/forms/upload"
         topic: (browser)->
           browser.pressButton "Upload", @callback
-        "should not send inputs without names": (browser)-> assert.equal browser.text("body").trim(), "undefined"
+        "should not send inputs without names": (browser)-> assert.equal browser.text("body").trim(), "nothing"
 
     "get":
       zombie.wants "http://localhost:3003/forms/upload"

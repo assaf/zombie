@@ -3,6 +3,7 @@ fs = require("fs")
 express = require("express")
 zombie = require("../src/index")
 Browser = zombie.Browser
+
 debug = process.env.DEBUG || process.env.TRAVIS
 
 
@@ -79,48 +80,6 @@ Browser.prototype.wants = (url, options, callback)->
     @visit url, options, (err, browser)=>
       callback err, this if callback
   return
-
-
-# Handle multipart/form-data so we can test file upload.
-express.bodyParser.parse["multipart/form-data"] = (body)->
-  # Find the boundary
-  match = body.match(/^(--.*)\r\n(?:.|\n|\r)*\1--/m)
-  if match && boundary = match[1]
-    # Split body at boundary, ignore first (opening) and last (closing)
-    # boundaries, and map the rest into name/value pairs.
-    body.split("#{boundary}").slice(1,-1).reduce (parts, part)->
-      # Each part consists of headers followed by the contents.
-      split = part.trim().split("\r\n\r\n")
-      heading = split[0]
-      contents = split.slice(1).join("\r\n")
-      # Now let's split the header into name/value pairs.
-      headers = heading.split(/\r\n/).reduce (headers, line)->
-        split = line.split(":")
-        headers[split[0].toLowerCase()] = split.slice(1).join(":").trim()
-        headers
-      , {}
-
-      contents = new Buffer(contents, "base64") if headers["content-transfer-encoding"] == "base64"
-      contents.mime = headers["content-type"].split(/;/)[0]
-
-      # We're looking for the content-disposition header, which has
-      # form-data follows by name/value pairs, including the field name.
-      if disp = headers["content-disposition"]
-        pairs = disp.split(/;\s*/).slice(1).reduce (pairs, pair)->
-          match = pair.match(/^(.*)="(.*)"$/)
-          pairs[match[1]] = match[2]
-          pairs
-        , {}
-        # From content disposition we can tell the field name, if it's a
-        # file upload, also the file name. Content type is separate
-        # header.
-        contents = new String(contents) if typeof contents is "string"
-        contents.filename = pairs.filename if pairs.filename
-        parts[pairs.name] = contents if pairs.name
-      parts
-    , {}
-  else
-    {}
 
 
 vows.zombie = zombie

@@ -3,14 +3,17 @@ html = jsdom.dom.level3.html
 require "./jsdom_patches"
 require "./forms"
 require "./xpath"
-History = require("./history").History
-EventLoop = require("./eventloop").EventLoop
+{ History } = require("./history")
+{ EventEmitter } = require("events")
+{ EventLoop } = require("./eventloop")
+{ HTML5 } = require("html5")
+URL = require("url")
 
 
 # Use the browser to open up new windows and load documents.
 #
 # The browser maintains state for cookies and localStorage.
-class Browser extends require("events").EventEmitter
+class Browser extends EventEmitter
   constructor: (options) ->
     cache = require("./cache").use(this)
     cookies = require("./cookies").use(this)

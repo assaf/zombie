@@ -30,23 +30,24 @@
     "xpath"
   ],
   "scripts": {
-    "test": "vows --spec"
+    "test":   "vows --spec"
   },
   "engines": {
     "node": ">= 0.4.0"
   },
   "dependencies": {
-    "contextify": "~0.0.6",
-    "jsdom": "~0.2.9",
-    "mime": "~1.2.4",
+    "contextify":       "~0.0.6",
+    "jsdom":            "~0.2.9",
+    "mime":             "~1.2.4",
     "websocket-client": "~1.0.0"
   },
   "devDependencies": {
-    "coffee-script": "~1.1.2",
-    "docco": "~0.3.0",
-    "express": "~2.5.0",
-    "ronn": "~0.3.7",
-    "vows": "~0.5.13"
+    "coffee-script":    "~1.1.3",
+    "connect":          "~1.8.0",
+    "docco":            "~0.3.0",
+    "express":          "~2.5.1",
+    "ronn":             "~0.3.8",
+    "vows":             "~0.5.13"
   },
   "repository": {
     "type": "git",
