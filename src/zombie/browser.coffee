@@ -3,11 +3,21 @@ html = jsdom.dom.level3.html
 require "./jsdom_patches"
 require "./forms"
 require "./xpath"
-{ History } = require("./history")
+Cache = require("./cache")
+Cookies = require("./cookies")
 { EventEmitter } = require("events")
 { EventLoop } = require("./eventloop")
+{ History } = require("./history")
 { HTML5 } = require("html5")
-URL = require("url")
+Interact = require("./interact")
+Resources = require("./resources")
+Storage = require("./storage")
+Url = require("url")
+WebSocket = require("./websocket")
+Xhr = require("./xhr")
+
+
+MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 
 
 # Use the browser to open up new windows and load documents.
@@ -15,18 +25,17 @@ URL = require("url")
 # The browser maintains state for cookies and localStorage.
 class Browser extends EventEmitter
   constructor: (options) ->
-    cache = require("./cache").use(this)
-    cookies = require("./cookies").use(this)
-    storage = require("./storage").use(this)
-    interact = require("./interact").use(this)
-    xhr = require("./xhr").use(cache)
-    ws = require("./websocket").use(this)
-    resources = require("./resources")
+    cache = Cache.use(this)
+    @_cookies = Cookies.use(this)
+    @_storage = Storage.use(this)
+    @_interact = Interact.use(this)
+    @_xhr = Xhr.use(cache)
+    @_ws = WebSocket.use(this)
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to
     # console. Ignore if there's any other error handler.
     @on "error", (err)=>
-      if @listeners("error").length == 1 || @debug
+      if @debug
         console.error err.message, err.stack
 
 
@@ -66,21 +75,6 @@ class Browser extends EventEmitter
     # You can use visit with a path, and it will make a request relative to this host/URL.
     @site = null
 
-
-    # ### withOptions(options, fn)
-    #
-    # Changes the browser options, and calls the function with a
-    # callback (reset).  When you're done processing, call the reset
-    # function to bring options back to their previous values.
-    #
-    # See `visit` if you want to see this method in action.
-    @withOptions = (options, fn)->
-      if options
-        restore = {}
-        [restore[k], @[k]] = [@[k], v] for k,v of options
-      fn =>
-        @[k] = v for k,v of restore if restore
-
     # Sets the browser options.
     if options
       for k,v of options
@@ -88,150 +82,6 @@ class Browser extends EventEmitter
           @[k] = v
         else
           throw "I don't recognize the option #{k}"
-
-    # ### browser.fork() => Browser
-    #
-    # Return a new browser with a snapshot of this browser's state.
-    # Any changes to the forked browser's state do not affect this browser.
-    this.fork = ->
-      forked = new Browser()
-      forked.loadCookies this.saveCookies()
-      forked.loadStorage this.saveStorage()
-      forked.loadHistory this.saveHistory()
-      return forked
-
-
-    # Windows
-    # -------
-
-    window = null
-    # ### browser.open() => Window
-    #
-    # Open new browser window.  Takes a single argument that determines
-    # which features are supported by this Window.  At the moment all
-    # features are undocumented, use at your own peril.
-    this.open = (features = {})=>
-      features.interactive ?= true
-
-      history = features.history || new History(this)
-
-      # Add context for evaluating scripts.
-      newWindow = jsdom.createWindow(html)
-
-      # Evaulate in context of window. This can be called with a script (String)
-      # or a function.
-      newWindow._evaluate = (code, filename)->
-        if typeof code == "string" || code instanceof String
-          newWindow.run code, filename
-        else
-          code.call newWindow
-
-      # Switch to the newly created window if it's interactive.
-      # Examples of non-interactive windows are frames.
-      window = newWindow if features.interactive
-
-      newWindow.__defineGetter__ "browser", => this
-      newWindow.__defineGetter__ "title", => @window?.document?.title
-      newWindow.__defineSetter__ "title", (title)=> @window?.document?.title = title
-      newWindow.navigator.userAgent = @userAgent
-      
-      # Present in browsers, not in spec
-      # Used by Google Analytics
-      # see https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
-      newWindow.navigator.javaEnabled = ()-> false
-      
-      resources.extend newWindow
-      cookies.extend newWindow
-      storage.extend newWindow
-      newWindow._eventloop = new EventLoop(newWindow)
-      history.extend newWindow
-      interact.extend newWindow
-      xhr.extend newWindow
-      ws.extend newWindow
-      newWindow.screen = new Screen()
-      newWindow.JSON = JSON
-      newWindow.Image = (width, height)->
-        img = new html.HTMLImageElement(newWindow.document)
-        img.width = width
-        img.height = height
-        img
-      newWindow.console = console
-      
-      # Default onerror handler.
-      newWindow.onerror = (event)=>
-        try
-          @emit "error", event.error || new Error("Error loading script")
-        catch ex
-      return newWindow
-
-
-    # Events
-    # ------
-
-    # ### browser.wait(callback?)
-    # ### browser.wait(terminator, callback)
-    #
-    # Process all events from the queue. This method returns immediately, events
-    # are processed in the background. When all events are exhausted, it calls
-    # the callback with `null, browser`; if any event fails, it calls the
-    # callback with the exception.
-    #
-    # With one argument, that argument is the callback. With two arguments, the
-    # first argument is a terminator and the last argument is the callback. The
-    # terminator is one of:
-    #
-    # * null -- process all events
-    # * number -- process that number of events
-    # * function -- called after each event, stop processing when function
-    #   returns false
-    #
-    # You can call this method with no arguments and simply listen to the `done`
-    # and `error` events.
-    #
-    # Events include timeout, interval and XHR `onreadystatechange`. DOM events
-    # are handled synchronously.
-    this.wait = (terminate, callback)->
-      if !callback
-        [callback, terminate] = [terminate, null]
-      if callback
-        onerror = (error)=>
-          if callback
-            callback error
-            callback = null
-        ondone = (error)=>
-          if callback
-            callback null, this
-            callback = null
-        @once "error", onerror
-        @once "done", ondone
-      window._eventloop.wait window, terminate
-      return
-
-    # ### browser.fire(name, target, callback?)
-    #
-    # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a
-    # link.  These events will bubble up and can be cancelled.  With a callback, this
-    # method will call `wait`.
-    #
-    # * name -- Even name (e.g `click`)
-    # * target -- Target element (e.g a link)
-    # * callback -- Wait for events to be processed, then call me (optional)
-    this.fire = (name, target, options, callback)->
-      [callback, options] = [options, null] if typeof options is "function"
-      options ?= {}
-
-      type = options.type || (if name in mouseEventNames then "MouseEvents" else "HTMLEvents")
-      event = window.document.createEvent(type)
-      event.initEvent(name, !!options.bubbles, !!options.cancelable)
-
-      if options.attributes?
-        for key, value of options.attributes
-          event[key] = value
-
-      target.dispatchEvent event
-      @wait callback if callback
-
-    mouseEventNames = ['mousedown', 'mousemove', 'mouseup']
 
     # ### browser.clock => Number
     #
@@ -241,596 +91,790 @@ class Browser extends EventEmitter
     # You can change this to advance the system clock during tests.  It will
     # also advance when handling timeout/interval events.
     @clock = Date.now()
-    # ### browser.now => Date
-    #
-    # The current system time according to the browser (see also
-    # `browser.clock`).
-    @__defineGetter__ "now", -> new Date(@clock)
-
-
-    # Accessors
-    # ---------
-
-    # ### browser.querySelector(selector) => Element
-    #
-    # Select a single element (first match) and return it.
-    #
-    # * selector -- CSS selector
-    #
-    # Returns an Element or null
-    this.querySelector = (selector)->
-      window.document?.querySelector(selector)
-
-    # ### browser.querySelectorAll(selector) => NodeList
-    #
-    # Select multiple elements and return a static node list.
-    #
-    # * selector -- CSS selector
-    #
-    # Returns a NodeList or null
-    this.querySelectorAll = (selector)-> window.document?.querySelectorAll(selector)
-
-    # ### browser.text(selector, context?) => String
-    #
-    # Returns the text contents of the selected elements.
-    #
-    # * selector -- CSS selector (if missing, entire document)
-    # * context -- Context element (if missing, uses document)
-    #
-    # Returns a string
-    this.text = (selector, context)->
-      return "" unless @document.documentElement
-      @css(selector, context).map((e)-> e.textContent).join("")
-
-    # ### browser.html(selector?, context?) => String
-    #
-    # Returns the HTML contents of the selected elements.
-    #
-    # * selector -- CSS selector (if missing, entire document)
-    # * context -- Context element (if missing, uses document)
-    #
-    # Returns a string
-    this.html = (selector, context)->
-      return "" unless @document.documentElement
-      @css(selector, context).map((e)-> e.outerHTML.trim()).join("")
-
-    # ### browser.css(selector, context?) => Array
-    #
-    # Evaluates the CSS selector against the document (or context node) and
-    # return array of nodes.  Shortcut for `document.querySelectorAll`.
-    this.css = (selector, context)->
-      context ||= @document
-      if selector then context.querySelectorAll(selector).toArray() else [context]
-
-    # ### browser.xpath(expression, context?) => XPathResult
-    #
-    # Evaluates the XPath expression against the document (or context node) and
-    # return the XPath result.  Shortcut for `document.evaluate`.
-    this.xpath = (expression, context)->
-      @document.evaluate(expression, context || @document)
-
-
-    # ### browser.window => Window
-    #
-    # Returns the main window.
-    @__defineGetter__ "window", -> window
-    # ### browser.document => Document
-    #
-    # Returns the main window's document. Only valid after opening a document
-    # (see `browser.open`).
-    @__defineGetter__ "document", -> window?.document
-    # ### browser.body => Element
-    #
-    # Returns the body Element of the current document.
-    @__defineGetter__ "body", -> window.document?.querySelector("body")
-
-
-    # ### browser.statusCode => Number
-    #
-    # Returns the status code of the request for loading the window.
-    @__defineGetter__ "statusCode", ->
-      @window.resources.first?.response?.statusCode
-    # ### browser.redirected => Boolean
-    #
-    # Returns true if the request for loading the window followed a
-    # redirect.
-    @__defineGetter__ "redirected", ->
-      @window.resources.first?.response?.redirected
-    # ### source => String
-    #
-    # Returns the unmodified source of the document loaded by the browser
-    @__defineGetter__ "source", => @window.resources.first?.response?.body
-
-    # ### browser.cache => Cache
-    #
-    # Returns the browser's cache.
-    @__defineGetter__ "cache", -> cache
-
-
-    # Navigation
-    # ----------
-
-    # ### browser.visit(url, callback?)
-    # ### browser.visit(url, options, callback)
-    #
-    # Loads document from the specified URL, processes events and calls the
-    # callback.  If the second argument are options, uses these options
-    # for the duration of the request and resets the options afterwards.
-    #
-    # If it fails to download, calls the callback with the error.
-    this.visit = (url, options, callback)->
-      if typeof options is "function"
-        [callback, options] = [options, null]
-      @withOptions options, (reset)=>
-        if site = @site
-          site = "http://#{site}" unless /^https?:/i.test(site)
-          url = URL.resolve(site, URL.parse(URL.format(url)))
-        window.history._assign url
-        @wait (error, browser)->
-          reset()
-          if callback && error
-            callback error
-          else if callback
-            callback null, browser, browser.statusCode
-      return
-
-    # ### browser.location => Location
-    #
-    # Return the location of the current document (same as `window.location`).
-    @__defineGetter__ "location", -> window.location
-    # ### browser.location = url
-    #
-    # Changes document location, loads new document if necessary (same as
-    # setting `window.location`).
-    @__defineSetter__ "location", (url)-> window.location = url
-
-    # ### browser.link(selector) : Element
-    #
-    # Finds and returns a link by its text content or selector.
-    this.link = (selector)->
-      if link = @querySelector(selector)
-        return link if link.tagName == "A"
-      for link in @querySelectorAll("body a")
-        if link.textContent.trim() == selector
-          return link
-      return
-
-    # ### browser.clickLink(selector, callback)
-    #
-    # Clicks on a link. Clicking on a link can trigger other events, load new
-    # page, etc: use a callback to be notified of completion.  Finds link by
-    # text content or selector.
-    #
-    # * selector -- CSS selector or link text
-    # * callback -- Called with two arguments: error and browser
-    this.clickLink = (selector, callback)->
-      if link = @link(selector)
-        @fire "click", link, =>
-          callback null, this, this.statusCode
-      else
-        callback new Error("No link matching '#{selector}'")
-
-    # ### browser.saveHistory() => String
-    #
-    # Save history to a text string.  You can use this to load the data
-    # later on using `browser.loadHistory`.
-    this.saveHistory = -> window.history.save()
-    # ### browser.loadHistory(String)
-    #
-    # Load history from a text string (e.g. previously created using
-    # `browser.saveHistory`.
-    this.loadHistory = (serialized)-> window.history.load serialized
-
-
-    # Forms
-    # -----
-
-    # ### browser.field(selector) : Element
-    #
-    # Find and return an input field (`INPUT`, `TEXTAREA` or `SELECT`) based on
-    # a CSS selector, field name (its `name` attribute) or the text value of a
-    # label associated with that field (case sensitive, but ignores
-    # leading/trailing spaces).
-    this.field = (selector)->
-      # If the field has already been queried, return itself
-      if selector instanceof html.Element
-        return selector
-      # Try more specific selector first.
-      if field = @querySelector(selector)
-        return field if field.tagName == "INPUT" || field.tagName == "TEXTAREA" || field.tagName == "SELECT"
-      # Use field name (case sensitive).
-      if field = @querySelector(":input[name='#{selector}']")
-        return field
-      # Try finding field from label.
-      for label in @querySelectorAll("label")
-        if label.textContent.trim() == selector
-          # Label can either reference field or enclose it
-          if for_attr = label.getAttribute("for")
-            return @document.getElementById(for_attr)
-          else
-            return label.querySelector(":input")
-      return
-
-    # HTML5 field types that you can "fill in".
-    TEXT_TYPES = "email number password range search text url".split(" ")
-
-    # ### browser.fill(selector, value) => this
-    #
-    # Fill in a field: input field or text area.
-    #
-    # * selector -- CSS selector, field name or text of the field label
-    # * value -- Field value
-    #
-    # Returns this
-    this.fill = (selector, value, callback)->
-      field = @field(selector)
-      if field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT")) # && TEXT_TYPES.indexOf(field.type) >= 0))
-        throw new Error("This INPUT field is disabled") if field.getAttribute("input")
-        throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
-        field.value = value
-        @fire "change", field, callback
-        return this
-      else
-        throw new Error("No INPUT matching '#{selector}'")
-
-    setCheckbox = (selector, value, callback)=>
-      field = @field(selector)
-      if field && field.tagName == "INPUT" && field.type == "checkbox"
-        throw new Error("This INPUT field is disabled") if field.getAttribute("input")
-        throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
-        if field.checked ^ value
-          @fire "click", field, callback
-        else if callback
-          callback null, false
-        return this
-      else
-        throw new Error("No checkbox INPUT matching '#{selector}'")
-
-    # ### browser.check(selector) => this
-    #
-    # Checks a checkbox.
-    #
-    # * selector -- CSS selector, field name or text of the field label
-    #
-    # Returns this
-    this.check = (selector, callback)-> setCheckbox(selector, true, callback)
-
-    # ### browser.uncheck(selector) => this
-    #
-    # Unchecks a checkbox.
-    #
-    # * selector -- CSS selector, field name or text of the field label
-    #
-    # Returns this
-    this.uncheck = (selector, callback)-> setCheckbox(selector, false, callback)
-
-    # ### browser.choose(selector) => this
-    #
-    # Selects a radio box option.
-    #
-    # * selector -- CSS selector, field value or text of the field label
-    #
-    # Returns this
-    this.choose = (selector, callback)->
-      field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
-      if field && field.tagName == "INPUT" && field.type == "radio" && field.form
-        if !field.checked
-          radios = @querySelectorAll(":radio[name='#{field.getAttribute("name")}']", field.form)
-          for radio in radios
-            radio.checked = false unless radio.getAttribute("disabled") || radio.getAttribute("readonly")
-          field.checked = true
-          @fire "click", field
-          @fire "change", field, callback
-        else
-          @fire "click", field, callback
-        return this
-      else
-        throw new Error("No radio INPUT matching '#{selector}'")
-
-    findOption = (selector, value)=>
-      field = @field(selector)
-      if field && field.tagName == "SELECT"
-        throw new Error("This SELECT field is disabled") if field.getAttribute("disabled")
-        throw new Error("This SELECT field is readonly") if field.getAttribute("readonly")
-        for option in field.options
-          if option.value == value
-            return option
-        for option in field.options
-          if option.label == value
-            return option
-        throw new Error("No OPTION '#{value}'")
-      else
-        throw new Error("No SELECT matching '#{selector}'")
-
-    # ### browser.attach(selector, filename) => this
-    #
-    # Attaches a file to the specified input field.  The second argument is the
-    # file name.
-    this.attach = (selector, filename, callback)->
-      field = @field(selector)
-      if field && field.tagName == "INPUT" && field.type == "file"
-        field.value = filename
-        @fire "change", field, callback
-        return this
-      else
-        throw new Error("No file INPUT matching '#{selector}'")
-
-    # ### browser.select(selector, value) => this
-    #
-    # Selects an option.
-    #
-    # * selector -- CSS selector, field name or text of the field label
-    # * value -- Value (or label) or option to select
-    #
-    # Returns this
-    this.select = (selector, value, callback)->
-      option = findOption(selector, value)
-      @selectOption option, callback
-      return this
-
-    # ### browser.selectOption(option) => this
-    #
-    # Selects an option.
-    #
-    # * option -- option to select
-    #
-    # Returns this
-    this.selectOption = (option, callback)->
-      if option && !option.getAttribute("selected")
-        select = @xpath("./ancestor::select", option).value[0]
-        option.setAttribute("selected", "selected")
-        @fire "change", select, callback
-      else if callback
-        callback null, false
-      return this
-
-    # ### browser.unselect(selector, value) => this
-    #
-    # Unselects an option.
-    #
-    # * selector -- CSS selector, field name or text of the field label
-    # * value -- Value (or label) or option to unselect
-    #
-    # Returns this
-    this.unselect = (selector, value, callback)->
-      option = findOption(selector, value)
-      @unselectOption option, callback
-      return this
-
-    # ### browser.unselectOption(option) => this
-    #
-    # Unselects an option.
-    #
-    # * option -- option to unselect
-    #
-    # Returns this
-    this.unselectOption = (option, callback)->
-      if option && option.getAttribute("selected")
-        select = @xpath("./ancestor::select", option).value[0]
-        unless select.multiple
-          throw new Error("Cannot unselect in single select")
-        option.removeAttribute("selected")
-        @fire "change", select, callback
-      else if callback
-        callback null, false
-      return this
-
-    # ### browser.button(selector) : Element
-    #
-    # Finds a button using CSS selector, button name or button text (`BUTTON` or
-    # `INPUT` element).
-    #
-    # * selector -- CSS selector, button name or text of BUTTON element
-    this.button = (selector)->
-      if button = @querySelector(selector)
-        return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
-      for button in @querySelectorAll("form button")
-        return button if button.textContent.trim() == selector
-      inputs = @querySelectorAll("form :submit, form :reset, form :button")
-      for input in inputs
-        return input if input.name == selector
-      for input in inputs
-        return input if input.value == selector
-      return
-
-    # ### browser.pressButton(selector, callback)
-    #
-    # Press a button (button element or input of type `submit`).  Typically
-    # this will submit the form.  Use the callback to wait for the from
-    # submission, page to load and all events run their course.
-    #
-    # * selector -- CSS selector, button name or text of BUTTON element
-    # * callback -- Called with two arguments: error and browser
-    this.pressButton = (selector, callback)->
-      if button = @button(selector)
-        if button.getAttribute("disabled")
-          callback new Error("This button is disabled")
-        else
-          @fire "click", button, callback
-      else
-        callback new Error("No BUTTON '#{selector}'")
-
-
-    # Cookies and storage
-    # -------------------
-
-    # ### browser.cookies(domain, path) => Cookies
-    #
-    # Returns all the cookies for this domain/path. Path defaults to "/".
-    this.cookies = (domain, path)-> cookies.access(domain, path)
-    # ### browser.saveCookies() => String
-    #
-    # Save cookies to a text string.  You can use this to load them back
-    # later on using `browser.loadCookies`.
-    this.saveCookies = -> cookies.save()
-    # ### browser.loadCookies(String)
-    #
-    # Load cookies from a text string (e.g. previously created using
-    # `browser.saveCookies`.
-    this.loadCookies = (serialized)-> cookies.load serialized
-
-    # ### brower.localStorage(host) => Storage
-    #
-    # Returns local Storage based on the document origin (hostname/port). This
-    # is the same storage area you can access from any document of that origin.
-    this.localStorage = (host)-> storage.local(host)
-    # ### brower.sessionStorage(host) => Storage
-    #
-    # Returns session Storage based on the document origin (hostname/port). This
-    # is the same storage area you can access from any document of that origin.
-    this.sessionStorage = (host)-> storage.session(host)
-    # ### browser.saveStorage() => String
-    #
-    # Save local/session storage to a text string.  You can use this to
-    # load the data later on using `browser.loadStorage`.
-    this.saveStorage = -> storage.save()
-    # ### browser.loadStorage(String)
-    #
-    # Load local/session stroage from a text string (e.g. previously
-    # created using `browser.saveStorage`.
-    this.loadStorage = (serialized)-> storage.load serialized
-
-
-    # Scripts
-    # -------
-
-    # ### browser.evaluate(function) : Object
-    # ### browser.evaluate(code, filename) : Object
-    #
-    # Evaluates a JavaScript expression in the context of the current window
-    # and returns the result.  When evaluating external script, also include
-    # filename.
-    #
-    # You can also use this to evaluate a function in the context of the
-    # window: for timers and asynchronous callbacks (e.g. XHR).
-    this.evaluate = (code, filename)->
-      this.window._evaluate code, filename
-
-
-    # Interaction
-    # -----------
-
-    # ### browser.onalert(fn)
-    #
-    # Called by `window.alert` with the message.
-    this.onalert = (fn)-> interact.onalert fn
-
-    # ### browser.onconfirm(question, response)
-    # ### browser.onconfirm(fn)
-    #
-    # The first form specifies a canned response to return when
-    # `window.confirm` is called with that question.  The second form
-    # will call the function with the question and use the respone of
-    # the first function to return a value (true or false).
-    #
-    # The response to the question can be true or false, so all canned
-    # responses are converted to either value.  If no response
-    # available, returns false.
-    this.onconfirm = (question, response)-> interact.onconfirm question, response
-
-    # ### browser.onprompt(message, response)
-    # ### browser.onprompt(fn)
-    #
-    # The first form specifies a canned response to return when
-    # `window.prompt` is called with that message.  The second form will
-    # call the function with the message and default value and use the
-    # response of the first function to return a value or false.
-    #
-    # The response to a prompt can be any value (converted to a string),
-    # false to indicate the user cancelled the prompt (returning null),
-    # or nothing to have the prompt return the default value or an empty
-    # string.
-    this.onprompt = (message, response)-> interact.onprompt message, response
-
-    # ### browser.prompted(message) => boolean
-    #
-    # Returns true if user was prompted with that message
-    # (`window.alert`, `window.confirm` or `window.prompt`)
-    this.prompted = (message)-> interact.prompted(message)
-
-
-    # Debugging
-    # ---------
-
-    # ### browser.viewInBrowser(name?)
-    #
-    # Views the current document in a real Web browser.  Uses the default
-    # system browser on OS X, BSD and Linux.  Probably errors on Windows.
-    this.viewInBrowser = (browser)->
-      require("./bcat").bcat @html()
-
-    # ### browser.lastRequest => HTTPRequest
-    #
-    # Returns the last request sent by this browser. The object will have the
-    # properties url, method, headers, and body.
-    @__defineGetter__ "lastRequest", -> @window.resources.last?.request
-    # ### browser.lastResponse => HTTPResponse
-    #
-    # Returns the last response received by this browser. The object will have the
-    # properties url, status, headers and body. Long bodies may be truncated.
-    @__defineGetter__ "lastResponse", -> @window.resources.last?.response
-    # ### browser.lastError => Object
-    #
-    # Returns the last error received by this browser in lieu of response.
-    @__defineGetter__ "lastError", -> @window.resources.last?.error
-
-    # Zombie can spit out messages to help you figure out what's going
-    # on as your code executes.
-    #
-    # To spit a message to the console when running in debug mode, call
-    # this method with one or more values (same as `console.log`).  You
-    # can also call it with a function that will be evaluated only when
-    # running in debug mode.
-    #
-    # For example:
-    #     browser.log("Opening page:", url);
-    #     browser.log(function() { return "Opening page: " + url });
-    this.log = ->
-      if @debug
-        values = ["Zombie:"]
-        if typeof arguments[0] == "function"
-          try
-            values.push arguments[0]()
-          catch ex
-            values.push ex
-        else
-          values.push arg for arg in arguments
-        console.log.apply null, values
-
-    # Dump information to the consolt: Zombie version, current URL,
-    # history, cookies, event loop, etc.  Useful for debugging and
-    # submitting error reports.
-    this.dump = ->
-      indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
-      console.log "Zombie: #{exports.version}\n"
-      console.log "URL: #{@window.location.href}"
-      console.log "History:\n#{indent window.history.dump()}"
-      console.log "Cookies:\n#{indent cookies.dump()}"
-      console.log "Storage:\n#{indent storage.dump()}"
-      console.log "Eventloop:\n#{indent window._eventloop.dump()}"
-      if @document
-        html = @document.outerHTML
-        html = html.slice(0, 497) + "..." if html.length > 497
-        console.log "Document:\n#{indent html.split("\n")}"
-      else
-        console.log "No document" unless @document
-
-    class Screen
-      constructor: ->
-        @width = 1280
-        @height = 800
-        @left = 0
-        @top = 0
-
-        @__defineGetter__ "availLeft", -> 0
-        @__defineGetter__ "availTop", -> 0
-        @__defineGetter__ "availWidth", -> @width
-        @__defineGetter__ "availHeight", -> @height
-        @__defineGetter__ "colorDepth", -> 24
-        @__defineGetter__ "pixelDepth", -> 24
-
+    
     # Always start with an open window.
     @open()
+
+
+  # ### withOptions(options, fn)
+  #
+  # Changes the browser options, and calls the function with a
+  # callback (reset).  When you're done processing, call the reset
+  # function to bring options back to their previous values.
+  #
+  # See `visit` if you want to see this method in action.
+  withOptions: (options, fn)->
+    if options
+      restore = {}
+      [restore[k], @[k]] = [@[k], v] for k,v of options
+    fn =>
+      @[k] = v for k,v of restore if restore
+
+  # ### browser.fork() => Browser
+  #
+  # Return a new browser with a snapshot of this browser's state.
+  # Any changes to the forked browser's state do not affect this browser.
+  fork: ->
+    forked = new Browser()
+    forked.loadCookies @saveCookies()
+    forked.loadStorage @saveStorage()
+    forked.loadHistory @saveHistory()
+    return forked
+
+
+  # Windows
+  # -------
+
+  # ### browser.open() => Window
+  #
+  # Open new browser window.  Takes a single argument that determines
+  # which features are supported by this Window.  At the moment all
+  # features are undocumented, use at your own peril.
+  open: (features = {})->
+    features.interactive ?= true
+
+    @history = features.history || new History(this)
+
+    # Add context for evaluating scripts.
+    newWindow = jsdom.createWindow(html)
+
+    # Evaulate in context of window. This can be called with a script (String)
+    # or a function.
+    newWindow._evaluate = (code, filename)->
+      if typeof code == "string" || code instanceof String
+        newWindow.run code, filename
+      else
+        code.call newWindow
+
+    # Switch to the newly created window if it's interactive.
+    # Examples of non-interactive windows are frames.
+    if features.interactive || !@window
+      @window = newWindow
+
+    newWindow.__defineGetter__ "browser", =>
+      return this
+    newWindow.__defineGetter__ "title", ->
+      return newWindow?.document?.title
+    newWindow.__defineSetter__ "title", (title)->
+      return newWindow?.document?.title = title
+    newWindow.navigator.userAgent = @userAgent
+    
+    # Present in browsers, not in spec
+    # Used by Google Analytics
+    # see https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
+    newWindow.navigator.javaEnabled = ->
+      return false
+    
+    newWindow._eventloop = new EventLoop(newWindow)
+    newWindow.resources = Resources.extend(newWindow)
+    @history.extend newWindow
+    @_cookies.extend newWindow
+    @_storage.extend newWindow
+    @_interact.extend newWindow
+    @_xhr.extend newWindow
+    @_ws.extend newWindow
+    newWindow.screen = new Screen()
+    newWindow.JSON = JSON
+    newWindow.Image = (width, height)->
+      img = new html.HTMLImageElement(newWindow.document)
+      img.width = width
+      img.height = height
+      Return img
+    newWindow.console = console
+    
+    # Default onerror handler.
+    newWindow.onerror = (event)=>
+      try
+        @emit "error", event.error || new Error("Error loading script")
+      catch ex
+    return newWindow
+
+  
+  # Events
+  # ------
+
+  # ### browser.wait(callback?)
+  # ### browser.wait(terminator, callback)
+  #
+  # Process all events from the queue. This method returns immediately, events
+  # are processed in the background. When all events are exhausted, it calls
+  # the callback with `null, browser`; if any event fails, it calls the
+  # callback with the exception.
+  #
+  # With one argument, that argument is the callback. With two arguments, the
+  # first argument is a terminator and the last argument is the callback. The
+  # terminator is one of:
+  #
+  # * null -- process all events
+  # * number -- process that number of events
+  # * function -- called after each event, stop processing when function
+  #   returns false
+  #
+  # You can call this method with no arguments and simply listen to the `done`
+  # and `error` events.
+  #
+  # Events include timeout, interval and XHR `onreadystatechange`. DOM events
+  # are handled synchronously.
+  wait: (terminate, callback)->
+    if !callback
+      [callback, terminate] = [terminate, null]
+    if callback
+      onerror = (error)->
+        if callback
+          callback error
+          callback = null
+      ondone = (error)=>
+        if callback
+          callback null, this
+          callback = null
+      @once "error", onerror
+      @once "done", ondone
+    @window._eventloop.wait @window, terminate
+    return
+
+  # ### browser.fire(name, target, callback?)
+  #
+  # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a
+  # link.  These events will bubble up and can be cancelled.  With a callback, this
+  # method will call `wait`.
+  #
+  # * name -- Even name (e.g `click`)
+  # * target -- Target element (e.g a link)
+  # * callback -- Wait for events to be processed, then call me (optional)
+  fire: (name, target, options, callback)->
+    [callback, options] = [options, null] if typeof options is "function"
+    options ?= {}
+
+    type = options.type || (if name in MOUSE_EVENT_NAMES then "MouseEvents" else "HTMLEvents")
+    event = @window.document.createEvent(type)
+    event.initEvent(name, !!options.bubbles, !!options.cancelable)
+
+    if options.attributes?
+      for key, value of options.attributes
+        event[key] = value
+
+    target.dispatchEvent event
+    @wait callback if callback
+
+  # ### browser.now => Date
+  #
+  # The current system time according to the browser (see also
+  # `browser.clock`).
+  @prototype.__defineGetter__ "now", ->
+    return new Date(@clock)
+
+
+  # Accessors
+  # ---------
+
+  # ### browser.querySelector(selector) => Element
+  #
+  # Select a single element (first match) and return it.
+  #
+  # * selector -- CSS selector
+  #
+  # Returns an Element or null
+  querySelector: (selector)->
+    return @window.document?.querySelector(selector)
+
+  # ### browser.querySelectorAll(selector) => NodeList
+  #
+  # Select multiple elements and return a static node list.
+  #
+  # * selector -- CSS selector
+  #
+  # Returns a NodeList or null
+  querySelectorAll: (selector)->
+    return @window.document?.querySelectorAll(selector)
+
+  # ### browser.text(selector, context?) => String
+  #
+  # Returns the text contents of the selected elements.
+  #
+  # * selector -- CSS selector (if missing, entire document)
+  # * context -- Context element (if missing, uses document)
+  #
+  # Returns a string
+  text: (selector, context)->
+    if @document.documentElement
+      return @css(selector, context).map((e)-> e.textContent).join("")
+    else
+      return ""
+
+  # ### browser.html(selector?, context?) => String
+  #
+  # Returns the HTML contents of the selected elements.
+  #
+  # * selector -- CSS selector (if missing, entire document)
+  # * context -- Context element (if missing, uses document)
+  #
+  # Returns a string
+  html: (selector, context)->
+    if @document.documentElement
+      return @css(selector, context).map((e)-> e.outerHTML.trim()).join("")
+    else
+      return ""
+
+  # ### browser.css(selector, context?) => Array
+  #
+  # Evaluates the CSS selector against the document (or context node) and
+  # return array of nodes.  Shortcut for `document.querySelectorAll`.
+  css: (selector, context)->
+    context ||= @document
+    if selector
+      return context.querySelectorAll(selector).toArray()
+    else
+      return [context]
+
+  # ### browser.xpath(expression, context?) => XPathResult
+  #
+  # Evaluates the XPath expression against the document (or context node) and
+  # return the XPath result.  Shortcut for `document.evaluate`.
+  xpath: (expression, context)->
+    return @document.evaluate(expression, context || @document)
+
+  # ### browser.document => Document
+  #
+  # Returns the main window's document. Only valid after opening a document
+  # (see `browser.open`).
+  @prototype.__defineGetter__ "document", ->
+    return @window?.document
+
+  # ### browser.body => Element
+  #
+  # Returns the body Element of the current document.
+  @prototype.__defineGetter__ "body", ->
+    return @window.document?.querySelector("body")
+
+  # ### browser.statusCode => Number
+  #
+  # Returns the status code of the request for loading the window.
+  @prototype.__defineGetter__ "statusCode", ->
+    return @window.resources.first?.response?.statusCode
+
+  # ### browser.redirected => Boolean
+  #
+  # Returns true if the request for loading the window followed a
+  # redirect.
+  @prototype.__defineGetter__ "redirected", ->
+    return @window.resources.first?.response?.redirected
+
+  # ### source => String
+  #
+  # Returns the unmodified source of the document loaded by the browser
+  @prototype.__defineGetter__ "source", ->
+    return @window.resources.first?.response?.body
+
+
+  # Navigation
+  # ----------
+
+  # ### browser.visit(url, callback?)
+  # ### browser.visit(url, options, callback)
+  #
+  # Loads document from the specified URL, processes events and calls the
+  # callback.  If the second argument are options, uses these options
+  # for the duration of the request and resets the options afterwards.
+  #
+  # If it fails to download, calls the callback with the error.
+  visit: (url, options, callback)->
+    if typeof options is "function"
+      [callback, options] = [options, null]
+    @withOptions options, (reset)=>
+      if site = @site
+        site = "http://#{site}" unless /^https?:/i.test(site)
+        url = Url.resolve(site, Url.parse(Url.format(url)))
+      @window.history._assign url
+      @wait (error, browser)->
+        reset()
+        if callback && error
+          callback error
+        else if callback
+          callback null, browser, browser.statusCode
+    return
+
+  # ### browser.location => Location
+  #
+  # Return the location of the current document (same as `window.location`).
+  @prototype.__defineGetter__ "location", ->
+    return @window.location
+  #
+  # ### browser.location = url
+  #
+  # Changes document location, loads new document if necessary (same as
+  # setting `window.location`).
+  @prototype.__defineSetter__ "location", (url)->
+    @window.location = url
+
+  # ### browser.link(selector) : Element
+  #
+  # Finds and returns a link by its text content or selector.
+  link: (selector)->
+    if link = @querySelector(selector)
+      return link if link.tagName == "A"
+    for link in @querySelectorAll("body a")
+      if link.textContent.trim() == selector
+        return link
+    return
+
+  # ### browser.clickLink(selector, callback)
+  #
+  # Clicks on a link. Clicking on a link can trigger other events, load new
+  # page, etc: use a callback to be notified of completion.  Finds link by
+  # text content or selector.
+  #
+  # * selector -- CSS selector or link text
+  # * callback -- Called with two arguments: error and browser
+  clickLink: (selector, callback)->
+    if link = @link(selector)
+      @fire "click", link, =>
+        callback null, this, @statusCode
+    else
+      callback new Error("No link matching '#{selector}'")
+
+  # ### browser.saveHistory() => String
+  #
+  # Save history to a text string.  You can use this to load the data
+  # later on using `browser.loadHistory`.
+  saveHistory: ->
+    @window.history.save()
+
+  # ### browser.loadHistory(String)
+  #
+  # Load history from a text string (e.g. previously created using
+  # `browser.saveHistory`.
+  loadHistory: (serialized)->
+    @window.history.load serialized
+
+
+  # Forms
+  # -----
+
+  # ### browser.field(selector) : Element
+  #
+  # Find and return an input field (`INPUT`, `TEXTAREA` or `SELECT`) based on
+  # a CSS selector, field name (its `name` attribute) or the text value of a
+  # label associated with that field (case sensitive, but ignores
+  # leading/trailing spaces).
+  field: (selector)->
+    # If the field has already been queried, return itself
+    if selector instanceof html.Element
+      return selector
+    # Try more specific selector first.
+    if field = @querySelector(selector)
+      return field if field.tagName == "INPUT" || field.tagName == "TEXTAREA" || field.tagName == "SELECT"
+    # Use field name (case sensitive).
+    if field = @querySelector(":input[name='#{selector}']")
+      return field
+    # Try finding field from label.
+    for label in @querySelectorAll("label")
+      if label.textContent.trim() == selector
+        # Label can either reference field or enclose it
+        if for_attr = label.getAttribute("for")
+          return @document.getElementById(for_attr)
+        else
+          return label.querySelector(":input")
+    return
+
+  # ### browser.fill(selector, value) => this
+  #
+  # Fill in a field: input field or text area.
+  #
+  # * selector -- CSS selector, field name or text of the field label
+  # * value -- Field value
+  #
+  # Returns this
+  fill: (selector, value, callback)->
+    field = @field(selector)
+    if field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT"))
+      throw new Error("This INPUT field is disabled") if field.getAttribute("input")
+      throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
+      field.value = value
+      @fire "change", field, callback
+      return this
+    else
+      throw new Error("No INPUT matching '#{selector}'")
+
+  _setCheckbox: (selector, value, callback)->
+    field = @field(selector)
+    if field && field.tagName == "INPUT" && field.type == "checkbox"
+      throw new Error("This INPUT field is disabled") if field.getAttribute("input")
+      throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
+      if field.checked ^ value
+        @fire "click", field, callback
+      else if callback
+        callback null, false
+      return this
+    else
+      throw new Error("No checkbox INPUT matching '#{selector}'")
+
+  # ### browser.check(selector) => this
+  #
+  # Checks a checkbox.
+  #
+  # * selector -- CSS selector, field name or text of the field label
+  #
+  # Returns this
+  check: (selector, callback)->
+    @_setCheckbox selector, true, callback
+
+  # ### browser.uncheck(selector) => this
+  #
+  # Unchecks a checkbox.
+  #
+  # * selector -- CSS selector, field name or text of the field label
+  #
+  # Returns this
+  uncheck: (selector, callback)->
+    @_setCheckbox selector, false, callback
+
+  # ### browser.choose(selector) => this
+  #
+  # Selects a radio box option.
+  #
+  # * selector -- CSS selector, field value or text of the field label
+  #
+  # Returns this
+  choose: (selector, callback)->
+    field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
+    if field && field.tagName == "INPUT" && field.type == "radio" && field.form
+      if !field.checked
+        radios = @querySelectorAll(":radio[name='#{field.getAttribute("name")}']", field.form)
+        for radio in radios
+          radio.checked = false unless radio.getAttribute("disabled") || radio.getAttribute("readonly")
+        field.checked = true
+        @fire "click", field
+        @fire "change", field, callback
+      else
+        @fire "click", field, callback
+      return this
+    else
+      throw new Error("No radio INPUT matching '#{selector}'")
+
+  _findOption: (selector, value)->
+    field = @field(selector)
+    if field && field.tagName == "SELECT"
+      throw new Error("This SELECT field is disabled") if field.getAttribute("disabled")
+      throw new Error("This SELECT field is readonly") if field.getAttribute("readonly")
+      for option in field.options
+        if option.value == value
+          return option
+      for option in field.options
+        if option.label == value
+          return option
+      throw new Error("No OPTION '#{value}'")
+    else
+      throw new Error("No SELECT matching '#{selector}'")
+
+  # ### browser.attach(selector, filename) => this
+  #
+  # Attaches a file to the specified input field.  The second argument is the
+  # file name.
+  attach: (selector, filename, callback)->
+    field = @field(selector)
+    if field && field.tagName == "INPUT" && field.type == "file"
+      field.value = filename
+      @fire "change", field, callback
+      return this
+    else
+      throw new Error("No file INPUT matching '#{selector}'")
+
+  # ### browser.select(selector, value) => this
+  #
+  # Selects an option.
+  #
+  # * selector -- CSS selector, field name or text of the field label
+  # * value -- Value (or label) or option to select
+  #
+  # Returns this
+  select: (selector, value, callback)->
+    option = @_findOption(selector, value)
+    @selectOption option, callback
+    return this
+
+  # ### browser.selectOption(option) => this
+  #
+  # Selects an option.
+  #
+  # * option -- option to select
+  #
+  # Returns this
+  selectOption: (option, callback)->
+    if option && !option.getAttribute("selected")
+      select = @xpath("./ancestor::select", option).value[0]
+      option.setAttribute("selected", "selected")
+      @fire "change", select, callback
+    else if callback
+      callback null, false
+    return this
+
+  # ### browser.unselect(selector, value) => this
+  #
+  # Unselects an option.
+  #
+  # * selector -- CSS selector, field name or text of the field label
+  # * value -- Value (or label) or option to unselect
+  #
+  # Returns this
+  unselect: (selector, value, callback)->
+    option = @_findOption(selector, value)
+    @unselectOption option, callback
+    return this
+
+  # ### browser.unselectOption(option) => this
+  #
+  # Unselects an option.
+  #
+  # * option -- option to unselect
+  #
+  # Returns this
+  unselectOption: (option, callback)->
+    if option && option.getAttribute("selected")
+      select = @xpath("./ancestor::select", option).value[0]
+      unless select.multiple
+        throw new Error("Cannot unselect in single select")
+      option.removeAttribute("selected")
+      @fire "change", select, callback
+    else if callback
+      callback null, false
+    return this
+
+  # ### browser.button(selector) : Element
+  #
+  # Finds a button using CSS selector, button name or button text (`BUTTON` or
+  # `INPUT` element).
+  #
+  # * selector -- CSS selector, button name or text of BUTTON element
+  button: (selector)->
+    if button = @querySelector(selector)
+      return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
+    for button in @querySelectorAll("form button")
+      return button if button.textContent.trim() == selector
+    inputs = @querySelectorAll("form :submit, form :reset, form :button")
+    for input in inputs
+      return input if input.name == selector
+    for input in inputs
+      return input if input.value == selector
+    return
+
+  # ### browser.pressButton(selector, callback)
+  #
+  # Press a button (button element or input of type `submit`).  Typically
+  # this will submit the form.  Use the callback to wait for the from
+  # submission, page to load and all events run their course.
+  #
+  # * selector -- CSS selector, button name or text of BUTTON element
+  # * callback -- Called with two arguments: error and browser
+  pressButton: (selector, callback)->
+    if button = @button(selector)
+      if button.getAttribute("disabled")
+        callback new Error("This button is disabled")
+      else
+        @fire "click", button, callback
+    else
+      callback new Error("No BUTTON '#{selector}'")
+
+
+  # Cookies and storage
+  # -------------------
+
+  # ### browser.cookies(domain, path) => Cookies
+  #
+  # Returns all the cookies for this domain/path. Path defaults to "/".
+  cookies: (domain, path)->
+    return @_cookies.access(domain, path)
+  
+  # ### browser.saveCookies() => String
+  #
+  # Save cookies to a text string.  You can use this to load them back
+  # later on using `browser.loadCookies`.
+  saveCookies: ->
+    @_cookies.save()
+
+  # ### browser.loadCookies(String)
+  #
+  # Load cookies from a text string (e.g. previously created using
+  # `browser.saveCookies`.
+  loadCookies: (serialized)->
+    @_cookies.load serialized
+
+  # ### brower.localStorage(host) => Storage
+  #
+  # Returns local Storage based on the document origin (hostname/port). This
+  # is the same storage area you can access from any document of that origin.
+  localStorage: (host)->
+    return @_storage.local(host)
+
+  # ### brower.sessionStorage(host) => Storage
+  #
+  # Returns session Storage based on the document origin (hostname/port). This
+  # is the same storage area you can access from any document of that origin.
+  sessionStorage: (host)->
+    return @_storage.session(host)
+
+  # ### browser.saveStorage() => String
+  #
+  # Save local/session storage to a text string.  You can use this to
+  # load the data later on using `browser.loadStorage`.
+  saveStorage: ->
+    @_storage.save()
+  
+  # ### browser.loadStorage(String)
+  #
+  # Load local/session stroage from a text string (e.g. previously
+  # created using `browser.saveStorage`.
+  loadStorage: (serialized)->
+    @_storage.load serialized
+
+
+  # Scripts
+  # -------
+
+  # ### browser.evaluate(function) : Object
+  # ### browser.evaluate(code, filename) : Object
+  #
+  # Evaluates a JavaScript expression in the context of the current window
+  # and returns the result.  When evaluating external script, also include
+  # filename.
+  #
+  # You can also use this to evaluate a function in the context of the
+  # window: for timers and asynchronous callbacks (e.g. XHR).
+  evaluate: (code, filename)->
+    return @window._evaluate code, filename
+
+
+  # Interaction
+  # -----------
+
+  # ### browser.onalert(fn)
+  #
+  # Called by `window.alert` with the message.
+  onalert: (fn)->
+    @_interact.onalert fn
+
+  # ### browser.onconfirm(question, response)
+  # ### browser.onconfirm(fn)
+  #
+  # The first form specifies a canned response to return when
+  # `window.confirm` is called with that question.  The second form
+  # will call the function with the question and use the respone of
+  # the first function to return a value (true or false).
+  #
+  # The response to the question can be true or false, so all canned
+  # responses are converted to either value.  If no response
+  # available, returns false.
+  onconfirm: (question, response)->
+    @_interact.onconfirm question, response
+
+  # ### browser.onprompt(message, response)
+  # ### browser.onprompt(fn)
+  #
+  # The first form specifies a canned response to return when
+  # `window.prompt` is called with that message.  The second form will
+  # call the function with the message and default value and use the
+  # response of the first function to return a value or false.
+  #
+  # The response to a prompt can be any value (converted to a string),
+  # false to indicate the user cancelled the prompt (returning null),
+  # or nothing to have the prompt return the default value or an empty
+  # string.
+  onprompt: (message, response)->
+    @_interact.onprompt message, response
+
+  # ### browser.prompted(message) => boolean
+  #
+  # Returns true if user was prompted with that message
+  # (`window.alert`, `window.confirm` or `window.prompt`)
+  prompted: (message)->
+    @_interact.prompted(message)
+
+
+  # Debugging
+  # ---------
+
+  # ### browser.viewInBrowser(name?)
+  #
+  # Views the current document in a real Web browser.  Uses the default
+  # system browser on OS X, BSD and Linux.  Probably errors on Windows.
+  @viewInBrowser = (browser)->
+    require("./bcat").bcat @html()
+
+  # ### browser.lastRequest => HTTPRequest
+  #
+  # Returns the last request sent by this browser. The object will have the
+  # properties url, method, headers, and body.
+  @prototype.__defineGetter__ "lastRequest", ->
+    return @window.resources.last?.request
+  
+  # ### browser.lastResponse => HTTPResponse
+  #
+  # Returns the last response received by this browser. The object will have the
+  # properties url, status, headers and body. Long bodies may be truncated.
+  @prototype.__defineGetter__ "lastResponse", ->
+    return @window.resources.last?.response
+  
+  # ### browser.lastError => Object
+  #
+  # Returns the last error received by this browser in lieu of response.
+  @prototype.__defineGetter__ "lastError", ->
+    return @window.resources.last?.error
+
+  # Zombie can spit out messages to help you figure out what's going
+  # on as your code executes.
+  #
+  # To spit a message to the console when running in debug mode, call
+  # this method with one or more values (same as `console.log`).  You
+  # can also call it with a function that will be evaluated only when
+  # running in debug mode.
+  #
+  # For example:
+  #     browser.log("Opening page:", url);
+  #     browser.log(function() { return "Opening page: " + url });
+  log: ->
+    if @debug
+      values = ["Zombie:"]
+      if typeof arguments[0] == "function"
+        try
+          values.push arguments[0]()
+        catch ex
+          values.push ex
+      else
+        values.push arg for arg in arguments
+      console.log.apply null, values
+
+  # Dump information to the consolt: Zombie version, current URL,
+  # history, cookies, event loop, etc.  Useful for debugging and
+  # submitting error reports.
+  dump: ->
+    indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
+    console.log "Zombie: #{exports.version}\n"
+    console.log "URL: #{@window.location.href}"
+    console.log "History:\n#{indent @window.history.dump()}"
+    console.log "Cookies:\n#{indent @_cookies.dump()}"
+    console.log "Storage:\n#{indent @_storage.dump()}"
+    console.log "Eventloop:\n#{indent @window._eventloop.dump()}"
+    if @document
+      html = @document.outerHTML
+      html = html.slice(0, 497) + "..." if html.length > 497
+      console.log "Document:\n#{indent html.split("\n")}"
+    else
+      console.log "No document" unless @document
+
+
+class Screen
+  constructor: ->
+    @width = 1280
+    @height = 800
+    @left = 0
+    @top = 0
+
+  @prototype.__defineGetter__ "availLeft", -> 0
+  @prototype.__defineGetter__ "availTop", -> 0
+  @prototype.__defineGetter__ "availWidth", -> @width
+  @prototype.__defineGetter__ "availHeight", -> @height
+  @prototype.__defineGetter__ "colorDepth", -> 24
+  @prototype.__defineGetter__ "pixelDepth", -> 24
+
 
 exports.Browser = Browser
 

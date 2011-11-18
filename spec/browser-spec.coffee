@@ -90,7 +90,8 @@ vows.describe("Browser").addBatch(
 
     "source":
       zombie.wants "http://localhost:3003/browser/scripted"
-        "should return the unmodified page": (browser)-> assert.equal browser.source, """
+        "should return the unmodified page": (browser)->
+          assert.equal browser.source, """
     <html>
       <head>
         <title>Whatever</title>
