@@ -179,7 +179,7 @@ class Browser extends EventEmitter
       img = new html.HTMLImageElement(newWindow.document)
       img.width = width
       img.height = height
-      Return img
+      return img
     newWindow.console = console
     
     # Default onerror handler.
@@ -219,16 +219,12 @@ class Browser extends EventEmitter
     if !callback
       [callback, terminate] = [terminate, null]
     if callback
-      onerror = (error)->
-        if callback
-          callback error
-          callback = null
-      ondone = (error)=>
-        if callback
-          callback null, this
-          callback = null
-      @once "error", onerror
-      @once "done", ondone
+      onerror = (next)=>
+        [next.previous, @error] = [@error, next]
+      @on "error", onerror
+      @once "done", =>
+        @removeListener "error", onerror
+        callback null, this
     @window._eventloop.wait @window, terminate
     return
 
@@ -385,12 +381,10 @@ class Browser extends EventEmitter
         site = "http://#{site}" unless /^https?:/i.test(site)
         url = Url.resolve(site, Url.parse(Url.format(url)))
       @window.history._assign url
-      @wait (error, browser)->
+      @wait (error, browser)=>
         reset()
-        if callback && error
-          callback error
-        else if callback
-          callback null, browser, browser.statusCode
+        if callback
+          callback error, this, @statusCode
     return
 
   # ### browser.location => Location

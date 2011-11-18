@@ -1,7 +1,7 @@
 #require.paths.unshift __dirname + "/../node_modules"
 fs = require("fs")
 express = require("express")
-zombie = require("../src/index")
+zombie = require("../lib/index")
 Browser = zombie.Browser
 
 debug = process.env.DEBUG || process.env.TRAVIS

@@ -51,25 +51,18 @@ task "setup", "Install development dependencies", ->
       install dependencies
 
 task "install", "Install Zombie in your local repository", ->
-  build (err)->
+  generateMan (err)->
     onerror err
-    generateMan (err)->
+    log "Installing Zombie ...", green
+    exec "npm install", (err, stdout, stderr)->
+      process.stdout.write stderr
       onerror err
-      log "Installing Zombie ...", green
-      exec "npm install", (err, stdout, stderr)->
-        process.stdout.write stderr
-        onerror err
 
 
 ## Building ##
 
-build = (callback)->
-  log "Compiling CoffeeScript to JavaScript ...", green
-  exec "rm -rf lib && coffee -c -l -b -o lib src", callback
-task "build", "Compile CoffeeScript to JavaScript", -> build onerror
-
 task "watch", "Continously compile CoffeeScript to JavaScript", ->
-  cmd = spawn("coffee", ["-cw", "-o", "lib", "src"])
+  cmd = spawn("coffee", ["-cw", "-o", "lib"])
   cmd.stdout.on "data", (data)-> process.stdout.write green + data + reset
   cmd.on "error", onerror
 
@@ -131,7 +124,7 @@ documentPages = (callback)->
 
 documentSource = (callback)->
   log "Documenting source files ...", green
-  exec "docco src/*.coffee src/**/*.coffee", (err, stdout, stderr)->
+  exec "docco lib/*.coffee lib/**/*.coffee", (err, stdout, stderr)->
     log stdout, green
     onerror err
     log "Copying to html/source", green
@@ -221,18 +214,16 @@ task "publish", "Publish new version (Git, NPM, site)", ->
             onerror err
 
             log "Publishing to NPM ...", green
-            build (err)->
+            exec "npm publish", (err, stdout, stderr)->
+              log stdout, green
               onerror err
-              exec "npm publish", (err, stdout, stderr)->
-                log stdout, green
-                onerror err
 
-                # Create a tag for this version and push changes to Github.
-                log "Tagging v#{package.version} ...", green
-                exec "git tag v#{package.version}", (err, stdout, stderr)->
+              # Create a tag for this version and push changes to Github.
+              log "Tagging v#{package.version} ...", green
+              exec "git tag v#{package.version}", (err, stdout, stderr)->
+                log stdout, green
+                exec "git push --tags origin master", (err, stdout, stderr)->
                   log stdout, green
-                  exec "git push --tags origin master", (err, stdout, stderr)->
-                    log stdout, green
 
             # We can do this in parallel.
             publishDocs onerror
