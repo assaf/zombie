@@ -33,29 +33,38 @@ class Browser extends EventEmitter
     # Options
     # -------
 
-    OPTIONS = ["debug", "htmlParser", "loadCSS", "runScripts", "userAgent"]
+    OPTIONS = ["site", "debug", "htmlParser", "loadCSS", "runScripts", "userAgent"]
 
     # ### debug
     #
     # True to have Zombie report what it's doing.
     @debug = false
+
     # ### htmlParser
     #
-    # Which parser to use (null for default). For example:
+    # Which parser to use (HTML5 by default). For example:
     #   zombie.htmlParser = require("html5").HTML5
     @htmlParser = null
+
     # ### loadCSS
     #
     # True to load external stylesheets.
     @loadCSS = true
+
     # ### runScripts
     #
     # Run scripts included in or loaded from the page. Defaults to true.
     @runScripts = true
+
     # ### userAgent
     #
     # User agent string sent to server.
     @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{exports.version}"
+
+    # ### site
+    #
+    # You can use visit with a path, and it will make a request relative to this host/URL.
+    @site = null
 
 
     # ### withOptions(options, fn)
@@ -353,6 +362,9 @@ class Browser extends EventEmitter
       if typeof options is "function"
         [callback, options] = [options, null]
       @withOptions options, (reset)=>
+        if site = @site
+          site = "http://#{site}" unless /^https?:/i.test(site)
+          url = URL.resolve(site, URL.parse(URL.format(url)))
         window.history._assign url
         @wait (error, browser)->
           reset()

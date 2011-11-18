@@ -1,6 +1,25 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.10.3
+
+Added site option allowing you to call `visit` with a relative path.
+Example:
+
+    browser = new Browser(site: "localhost:3000")
+    browser.visit("/testing", function(error, browser) {
+    })
+
+Fixed uploading of attachments to work with Connect/Express (and
+possibly other servers).  Formidable (used by Connect) does not support
+Base64 encoding.  Sending binary instead.
+
+Tested on Node 0.6.1.
+
+    330 Tests
+    2.1 sec to complete
+
+
 ### Version 0.10.2  2011-10-13
 
 Fixed #173 browser.open() causes Segmentation fault (Brian McDaniel)
