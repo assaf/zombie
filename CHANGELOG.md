@@ -1,7 +1,7 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-## Version 0.10.3
+## Version 0.10.3  2011-11-18
 
 Added site option allowing you to call `visit` with a relative path.
 Example:
