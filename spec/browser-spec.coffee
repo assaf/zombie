@@ -256,6 +256,39 @@ vows.describe("Browser").addBatch(
       "should send user agent to server": (browser)-> assert.equal browser.text("body"), "imposter"
       "should be accessible from navigator": (browser)-> assert.equal browser.window.navigator.userAgent, "imposter"
 
+  "basic authentication":
+    topic: ->
+      brains.get "/protected", (req, res) ->
+        auth = req.headers.authorization
+        if auth
+          if auth == "Basic dXNlcm5hbWU6cGFzczEyMw=="         
+            res.send "<html><body>#{req.headers["authorization"]}</body></html>"
+          else
+            res.send "Invalid credentials", 401
+        else
+          res.send "Missing credentials", 401
+    "without credentials":
+      topic: -> 
+        browser = new Browser
+        browser.visit "http://localhost:3003/protected", =>
+          @callback null, arguments
+      "should pass single argument to callback": (args)-> assert.lengthOf args, 1
+      "should pass error to callback": (args)-> assert.ok args[0] instanceof Error
+      "should include status code of 401 in error": (args)-> assert.equal args[0].response.statusCode, 401
+    "with invalid credentials":
+      topic: -> 
+        browser = new Browser
+        browser.visit "http://localhost:3003/protected", {credentials:{method: "Basic", user: 'username', password: 'wrong'}}, =>
+          @callback null, arguments
+      "should pass single argument to callback": (args)-> assert.lengthOf args, 1
+      "should pass error to callback": (args)-> assert.ok args[0] instanceof Error
+      "should include status code of 401 in error": (args)-> assert.equal args[0].response.statusCode, 401
+    "with valid credentials":
+      topic: ->
+        browser = new Browser
+        browser.visit "http://localhost:3003/protected", {credentials:{method: "Basic", user: 'username', password: 'pass123'}}, @callback
+      "should have the authentication header": (browser)-> assert.equal browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
+
   "URL without path":
     zombie.wants "http://localhost:3003"
       "should resolve URL": (browser)-> assert.equal browser.location.href, "http://localhost:3003/"
