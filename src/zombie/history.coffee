@@ -86,7 +86,7 @@ class History
       headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
       referer = stack[index-1]?.url
       headers["referer"] = referer.href if referer?
-      browser.window.resources.request method, url, data, headers, (error, response)=>
+      browser.window.resources.request method, url, data, headers, null, (error, response)=>
         if error
           document.write "<html><body>#{error}</body></html>"
           document.close()

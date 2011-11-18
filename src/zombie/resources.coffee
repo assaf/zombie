@@ -110,7 +110,7 @@ class Resources extends Array
 
     # Makes a GET request.  See `request` for more details about
     # callback and response object.
-    this.get = (url, callback)-> this.request "GET", url, null, null, callback
+    this.get = (url, callback)-> this.request "GET", url, null, null, null, callback
 
     # Makes a request.  Requires HTTP method and resource URL.
     #
@@ -120,10 +120,13 @@ class Resources extends Array
     # Optional headers are passed to the server.  When making a POST/PUT
     # request, you probably want specify the `content-type` header.
     #
+    # Pass the encoding string for customizing the encoding of the response
+    # body. Defaults to `utf8`.
+    #
     # The callback is called with error and response (see `HTTPResponse`).
-    this.request = (method, url, data, headers, callback)->
+    this.request = (method, url, data, headers, encoding, callback)->
       window._eventloop.perform (done)->
-        makeRequest method, url, data, headers, null, (error, response)->
+        makeRequest method, url, data, headers, encoding, null, (error, response)->
           done()
           callback error, response
 
@@ -136,9 +139,10 @@ class Resources extends Array
     # resource.  Initially the resource is null, but when following a
     # redirect this function is called again with a resource and
     # modifies it instead of recording a new one.
-    makeRequest = (method, url, data, headers, resource, callback)=>
+    makeRequest = (method, url, data, headers, response_encoding, resource, callback)=>
       url = URL.parse(url)
       method = (method || "GET").toUpperCase()
+      response_encoding = response_encoding || "utf8"
 
       # If the request is for a file:// descriptor, just open directly from the
       # file system rather than getting node's http (which handles file://
@@ -203,7 +207,7 @@ class Resources extends Array
         method: method
         headers: headers
       response_handler = (response)=>
-        response.setEncoding "utf8"
+        response.setEncoding response_encoding
         body = ""
         response.on "data", (chunk)-> body += chunk
         response.on "end", =>
@@ -225,7 +229,7 @@ class Resources extends Array
                   error = new Error("Too many redirects, from #{URL.format(url)} to #{redirect}")
                 else
                   process.nextTick =>
-                    makeRequest "GET", redirect, null, null, resource, callback
+                    makeRequest "GET", redirect, null, null, response_encoding, resource, callback
               else
                 error = new Error("Redirect with no Location header, cannot follow")
             else
@@ -308,9 +312,9 @@ class Cache
     #resources = new Resources(browser.window)
     # Makes a GET request using the cache.  See `request` for more
     # details about callback and response object.
-    this.get = (url, callback)-> this.request "GET", url, null, null, callback
-    this.request = (method, url, data, headers, callback)->
-      resources.request method, url, data, headers, callback
+    this.get = (url, callback)-> this.request "GET", url, null, null, null, callback
+    this.request = (method, url, data, headers, encoding, callback)->
+      resources.request method, url, data, headers, encoding, callback
 
 # HTTP status code to status text
 STATUS =
