@@ -1,6 +1,22 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.11.0  2011-11-18
+
+Changed error handling for the better.
+    
+Calling browser.wait or browser.visit no longer passed the
+resource/JavaScript error as the first argument, and will continue
+processing if there are multiple errors.
+    
+Instead, an array of errors is passed as the fourth argument.  You can
+also access `browser.errors` and to get just the last one, e.g.  to
+check if any errors were reported, use `browser.error`.
+
+    333 Tests
+    1.7 sec to complete
+
+
 ## Version 0.10.3  2011-11-18
 
 Added site option allowing you to call `visit` with a relative path.

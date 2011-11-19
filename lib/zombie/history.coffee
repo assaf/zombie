@@ -90,7 +90,6 @@ class History
         if error
           document.write "<html><body>#{error}</body></html>"
           document.close()
-          document.trigger "error", "Loading resource: #{error.message}", error
           browser.emit "error", error
         else
           browser.response = [response.statusCode, response.headers, response.body]

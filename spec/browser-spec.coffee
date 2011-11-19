@@ -41,20 +41,33 @@ vows.describe("Browser").addBatch(
             browser = new Browser
             browser.visit "http://localhost:3003/browser/scripted", =>
               @callback null, arguments
-        "should pass three arguments to callback": (args)-> assert.lengthOf args, 3
-        "should not include an error": (args)-> assert.isNull args[0]
-        "should pass browser to callback": (args)-> assert.ok args[1] instanceof Browser
-        "should pass status code to callback": (args)-> assert.equal args[2], 200
+        "should not include an error": (args)->
+          assert.isNull args[0]
+        "should pass browser to callback": (args)->
+          assert.instanceOf args[1], Browser
+        "should pass status code to callback": (args)->
+          assert.equal args[2], 200
+        "should pass zero errors to callback": (args)->
+          assert.lengthOf args[3], 0
+        "should reset browser errors": (args)->
+          assert.lengthOf args[1].errors, 0
       "error":
         topic: ->
           brains.ready =>
             browser = new Browser
             browser.visit "http://localhost:3003/browser/missing", =>
               @callback null, arguments
-        "should pass error to callback": (args)-> assert.instanceOf args[0], Error
-        "should pass browser to callback": (args)-> assert.instanceOf args[1], Browser
-        "should pass status code to callback": (args)-> assert.equal args[2], 404
-        "should include status code in error": (args)-> assert.equal args[0].response.statusCode, 404
+        "should not include an error": (args)->
+          assert.isNull args[0]
+        "should pass browser to callback": (args)->
+          assert.instanceOf args[1], Browser
+        "should pass status code to callback": (args)->
+          assert.equal args[2], 404
+        "should pass errors to callback": (args)->
+          assert.lengthOf args[3], 1
+          assert.instanceOf args[3][0], Error
+        "should set browser errors": (args)->
+          assert.lengthOf args[1].errors, 1
       "empty page":
         topic: ->
           brains.get "/browser/empty", (req, res)-> res.send ""

@@ -86,7 +86,6 @@ vows.describe("Scripts").addBatch(
     topic: ->
       brains.get "/script/window", (req, res)-> res.send """
         <html>
-        consoe.log(window.parent);
           <script>document.title = [window == this, this == window.window, this == top, top == window.top, top == window.parent].join(',')</script>
         </html>
         """
@@ -98,15 +97,17 @@ vows.describe("Scripts").addBatch(
     topic: ->
       brains.get "/script/incomplete", (req, res)-> res.send "<script>1+</script>"
       browser = new Browser
-      browser.wants "http://localhost:3003/script/incomplete", (err, browser)=> @callback null, err
-    "should propagate error to window": (error)-> assert.equal error.message, "Unexpected end of input"
+      browser.wants "http://localhost:3003/script/incomplete", @callback
+    "should propagate error to window": (browser)->
+      assert.equal browser.error.message, "Unexpected end of input"
 
   "error":
     topic: ->
       brains.get "/script/error", (req, res)-> res.send "<script>(function(foo) { foo.bar })()</script>"
       browser = new Browser
-      browser.wants "http://localhost:3003/script/error", (err, browser)=> @callback null, err
-    "should propagate error to window": (error)-> assert.equal error.message, "Cannot read property 'bar' of undefined"
+      browser.wants "http://localhost:3003/script/error", @callback
+    "should propagate error to window": (browser)->
+      assert.equal browser.error.message, "Cannot read property 'bar' of undefined"
 
   "order":
     topic: ->

@@ -32,11 +32,12 @@ class Browser extends EventEmitter
     @_xhr = Xhr.use(cache)
     @_ws = WebSocket.use(this)
 
-    # Make sure we don't blow up Node when we get a JS error, but dump error to
-    # console. Ignore if there's any other error handler.
-    @on "error", (err)=>
+    # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
+    # reported while processing resources/JavaScript.
+    @on "error", (error)=>
+      @errors.push error
       if @debug
-        console.error err.message, err.stack
+        console.error error.message, error.stack
 
 
     # Options
@@ -85,22 +86,25 @@ class Browser extends EventEmitter
 
     # ### browser.clock => Number
     #
-    # The current system time according to the browser (see also
-    # `browser.clock`).
+    # The current system time according to the browser (see also `browser.clock`).
     #
-    # You can change this to advance the system clock during tests.  It will
-    # also advance when handling timeout/interval events.
+    # You can change this to advance the system clock during tests.  It will also advance when handling timeout/interval
+    # events.
     @clock = Date.now()
-    
+
+    # ### browser.errors => Array
+    #
+    # Returns all errors reported while loading this window.
+    @errors = []
+
     # Always start with an open window.
     @open()
 
 
   # ### withOptions(options, fn)
   #
-  # Changes the browser options, and calls the function with a
-  # callback (reset).  When you're done processing, call the reset
-  # function to bring options back to their previous values.
+  # Changes the browser options, and calls the function with a callback (reset).  When you're done processing, call the
+  # reset function to bring options back to their previous values.
   #
   # See `visit` if you want to see this method in action.
   withOptions: (options, fn)->
@@ -127,9 +131,8 @@ class Browser extends EventEmitter
 
   # ### browser.open() => Window
   #
-  # Open new browser window.  Takes a single argument that determines
-  # which features are supported by this Window.  At the moment all
-  # features are undocumented, use at your own peril.
+  # Open new browser window.  Takes a single argument that determines which features are supported by this Window.  At
+  # the moment all features are undocumented, use at your own peril.
   open: (features = {})->
     features.interactive ?= true
 
@@ -138,18 +141,17 @@ class Browser extends EventEmitter
     # Add context for evaluating scripts.
     newWindow = jsdom.createWindow(html)
 
-    # Evaulate in context of window. This can be called with a script (String)
-    # or a function.
+    # Evaulate in context of window. This can be called with a script (String) or a function.
     newWindow._evaluate = (code, filename)->
       if typeof code == "string" || code instanceof String
         newWindow.run code, filename
       else
         code.call newWindow
 
-    # Switch to the newly created window if it's interactive.
-    # Examples of non-interactive windows are frames.
+    # Switch to the newly created window if it's interactive.  Examples of non-interactive windows are frames.
     if features.interactive || !@window
       @window = newWindow
+      @errors = []
 
     newWindow.__defineGetter__ "browser", =>
       return this
@@ -159,9 +161,8 @@ class Browser extends EventEmitter
       return newWindow?.document?.title = title
     newWindow.navigator.userAgent = @userAgent
     
-    # Present in browsers, not in spec
-    # Used by Google Analytics
-    # see https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
+    # Present in browsers, not in spec Used by Google Analytics see
+    # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
     newWindow.navigator.javaEnabled = ->
       return false
     
@@ -182,61 +183,57 @@ class Browser extends EventEmitter
       return img
     newWindow.console = console
     
+    newWindow.errors = []
     # Default onerror handler.
     newWindow.onerror = (event)=>
-      try
-        @emit "error", event.error || new Error("Error loading script")
-      catch ex
+      error = event.error || new Error("Error loading script")
+      @emit "error", error
     return newWindow
 
+  # ### browser.error => Error
+  #
+  # Returns the last error reported while loading this window.
+  @prototype.__defineGetter__ "error", ->
+    return @errors[@errors.length - 1]
   
+
   # Events
   # ------
 
   # ### browser.wait(callback?)
   # ### browser.wait(terminator, callback)
   #
-  # Process all events from the queue. This method returns immediately, events
-  # are processed in the background. When all events are exhausted, it calls
-  # the callback with `null, browser`; if any event fails, it calls the
-  # callback with the exception.
+  # Process all events from the queue. This method returns immediately, events are processed in the background. When all
+  # events are exhausted, it calls the callback with `null, browser`.
   #
-  # With one argument, that argument is the callback. With two arguments, the
-  # first argument is a terminator and the last argument is the callback. The
-  # terminator is one of:
+  # With one argument, that argument is the callback. With two arguments, the first argument is a terminator and the
+  # last argument is the callback. The terminator is one of:
   #
-  # * null -- process all events
-  # * number -- process that number of events
-  # * function -- called after each event, stop processing when function
-  #   returns false
+  # null - process all events
+  # number - process that number of events
+  # function - called after each event, stop processing when function returns false
   #
   # You can call this method with no arguments and simply listen to the `done`
-  # and `error` events.
+  # and `error` events.  Note that resource and JavaScript errors are colleced in `browser.errors`.
   #
-  # Events include timeout, interval and XHR `onreadystatechange`. DOM events
-  # are handled synchronously.
+  # Events include timeout, interval and XHR `onreadystatechange`. DOM events are handled synchronously.
   wait: (terminate, callback)->
     if !callback
       [callback, terminate] = [terminate, null]
     if callback
-      onerror = (next)=>
-        [next.previous, @error] = [@error, next]
-      @on "error", onerror
       @once "done", =>
-        @removeListener "error", onerror
         callback null, this
     @window._eventloop.wait @window, terminate
     return
 
   # ### browser.fire(name, target, callback?)
   #
-  # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a
-  # link.  These events will bubble up and can be cancelled.  With a callback, this
-  # method will call `wait`.
+  # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
+  # can be cancelled.  With a callback, this method will call `wait`.
   #
-  # * name -- Even name (e.g `click`)
-  # * target -- Target element (e.g a link)
-  # * callback -- Wait for events to be processed, then call me (optional)
+  # name - Even name (e.g `click`)
+  # target - Target element (e.g a link)
+  # callback - Wait for events to be processed, then call me (optional)
   fire: (name, target, options, callback)->
     [callback, options] = [options, null] if typeof options is "function"
     options ?= {}
@@ -254,8 +251,7 @@ class Browser extends EventEmitter
 
   # ### browser.now => Date
   #
-  # The current system time according to the browser (see also
-  # `browser.clock`).
+  # The current system time according to the browser (see also `browser.clock`).
   @prototype.__defineGetter__ "now", ->
     return new Date(@clock)
 
@@ -267,7 +263,7 @@ class Browser extends EventEmitter
   #
   # Select a single element (first match) and return it.
   #
-  # * selector -- CSS selector
+  # selector - CSS selector
   #
   # Returns an Element or null
   querySelector: (selector)->
@@ -277,7 +273,7 @@ class Browser extends EventEmitter
   #
   # Select multiple elements and return a static node list.
   #
-  # * selector -- CSS selector
+  # selector - CSS selector
   #
   # Returns a NodeList or null
   querySelectorAll: (selector)->
@@ -287,8 +283,8 @@ class Browser extends EventEmitter
   #
   # Returns the text contents of the selected elements.
   #
-  # * selector -- CSS selector (if missing, entire document)
-  # * context -- Context element (if missing, uses document)
+  # selector - CSS selector (if missing, entire document)
+  # context - Context element (if missing, uses document)
   #
   # Returns a string
   text: (selector, context)->
@@ -301,8 +297,8 @@ class Browser extends EventEmitter
   #
   # Returns the HTML contents of the selected elements.
   #
-  # * selector -- CSS selector (if missing, entire document)
-  # * context -- Context element (if missing, uses document)
+  # selector - CSS selector (if missing, entire document)
+  # context - Context element (if missing, uses document)
   #
   # Returns a string
   html: (selector, context)->
@@ -313,8 +309,8 @@ class Browser extends EventEmitter
 
   # ### browser.css(selector, context?) => Array
   #
-  # Evaluates the CSS selector against the document (or context node) and
-  # return array of nodes.  Shortcut for `document.querySelectorAll`.
+  # Evaluates the CSS selector against the document (or context node) and return array of nodes.  Shortcut for
+  # `document.querySelectorAll`.
   css: (selector, context)->
     context ||= @document
     if selector
@@ -324,15 +320,14 @@ class Browser extends EventEmitter
 
   # ### browser.xpath(expression, context?) => XPathResult
   #
-  # Evaluates the XPath expression against the document (or context node) and
-  # return the XPath result.  Shortcut for `document.evaluate`.
+  # Evaluates the XPath expression against the document (or context node) and return the XPath result.  Shortcut for
+  # `document.evaluate`.
   xpath: (expression, context)->
     return @document.evaluate(expression, context || @document)
 
   # ### browser.document => Document
   #
-  # Returns the main window's document. Only valid after opening a document
-  # (see `browser.open`).
+  # Returns the main window's document. Only valid after opening a document (see `browser.open`).
   @prototype.__defineGetter__ "document", ->
     return @window?.document
 
@@ -350,8 +345,7 @@ class Browser extends EventEmitter
 
   # ### browser.redirected => Boolean
   #
-  # Returns true if the request for loading the window followed a
-  # redirect.
+  # Returns true if the request for loading the window followed a redirect.
   @prototype.__defineGetter__ "redirected", ->
     return @window.resources.first?.response?.redirected
 
@@ -368,11 +362,10 @@ class Browser extends EventEmitter
   # ### browser.visit(url, callback?)
   # ### browser.visit(url, options, callback)
   #
-  # Loads document from the specified URL, processes events and calls the
-  # callback.  If the second argument are options, uses these options
-  # for the duration of the request and resets the options afterwards.
+  # Loads document from the specified URL, processes events and calls the callback.  If the second argument are options,
+  # uses these options for the duration of the request and resets the options afterwards.
   #
-  # If it fails to download, calls the callback with the error.
+  # The callback is called with null, the browser, status code and array of resource/JavaScript errors.
   visit: (url, options, callback)->
     if typeof options is "function"
       [callback, options] = [options, null]
@@ -384,7 +377,7 @@ class Browser extends EventEmitter
       @wait (error, browser)=>
         reset()
         if callback
-          callback error, this, @statusCode
+          callback error, this, @statusCode, @errors
     return
 
   # ### browser.location => Location
@@ -395,8 +388,7 @@ class Browser extends EventEmitter
   #
   # ### browser.location = url
   #
-  # Changes document location, loads new document if necessary (same as
-  # setting `window.location`).
+  # Changes document location, loads new document if necessary (same as setting `window.location`).
   @prototype.__defineSetter__ "location", (url)->
     @window.location = url
 
@@ -413,12 +405,11 @@ class Browser extends EventEmitter
 
   # ### browser.clickLink(selector, callback)
   #
-  # Clicks on a link. Clicking on a link can trigger other events, load new
-  # page, etc: use a callback to be notified of completion.  Finds link by
-  # text content or selector.
+  # Clicks on a link. Clicking on a link can trigger other events, load new page, etc: use a callback to be notified of
+  # completion.  Finds link by text content or selector.
   #
-  # * selector -- CSS selector or link text
-  # * callback -- Called with two arguments: error and browser
+  # selector - CSS selector or link text
+  # callback - Called with two arguments: error and browser
   clickLink: (selector, callback)->
     if link = @link(selector)
       @fire "click", link, =>
@@ -428,15 +419,13 @@ class Browser extends EventEmitter
 
   # ### browser.saveHistory() => String
   #
-  # Save history to a text string.  You can use this to load the data
-  # later on using `browser.loadHistory`.
+  # Save history to a text string.  You can use this to load the data later on using `browser.loadHistory`.
   saveHistory: ->
     @window.history.save()
 
   # ### browser.loadHistory(String)
   #
-  # Load history from a text string (e.g. previously created using
-  # `browser.saveHistory`.
+  # Load history from a text string (e.g. previously created using `browser.saveHistory`.
   loadHistory: (serialized)->
     @window.history.load serialized
 
@@ -446,10 +435,9 @@ class Browser extends EventEmitter
 
   # ### browser.field(selector) : Element
   #
-  # Find and return an input field (`INPUT`, `TEXTAREA` or `SELECT`) based on
-  # a CSS selector, field name (its `name` attribute) or the text value of a
-  # label associated with that field (case sensitive, but ignores
-  # leading/trailing spaces).
+  # Find and return an input field (`INPUT`, `TEXTAREA` or `SELECT`) based on a CSS selector, field name (its `name`
+  # attribute) or the text value of a label associated with that field (case sensitive, but ignores leading/trailing
+  # spaces).
   field: (selector)->
     # If the field has already been queried, return itself
     if selector instanceof html.Element
@@ -474,8 +462,8 @@ class Browser extends EventEmitter
   #
   # Fill in a field: input field or text area.
   #
-  # * selector -- CSS selector, field name or text of the field label
-  # * value -- Field value
+  # selector - CSS selector, field name or text of the field label
+  # value - Field value
   #
   # Returns this
   fill: (selector, value, callback)->
@@ -506,7 +494,7 @@ class Browser extends EventEmitter
   #
   # Checks a checkbox.
   #
-  # * selector -- CSS selector, field name or text of the field label
+  # selector - CSS selector, field name or text of the field label
   #
   # Returns this
   check: (selector, callback)->
@@ -516,7 +504,7 @@ class Browser extends EventEmitter
   #
   # Unchecks a checkbox.
   #
-  # * selector -- CSS selector, field name or text of the field label
+  # selector - CSS selector, field name or text of the field label
   #
   # Returns this
   uncheck: (selector, callback)->
@@ -526,7 +514,7 @@ class Browser extends EventEmitter
   #
   # Selects a radio box option.
   #
-  # * selector -- CSS selector, field value or text of the field label
+  # selector - CSS selector, field value or text of the field label
   #
   # Returns this
   choose: (selector, callback)->
@@ -562,8 +550,7 @@ class Browser extends EventEmitter
 
   # ### browser.attach(selector, filename) => this
   #
-  # Attaches a file to the specified input field.  The second argument is the
-  # file name.
+  # Attaches a file to the specified input field.  The second argument is the file name.
   attach: (selector, filename, callback)->
     field = @field(selector)
     if field && field.tagName == "INPUT" && field.type == "file"
@@ -577,8 +564,8 @@ class Browser extends EventEmitter
   #
   # Selects an option.
   #
-  # * selector -- CSS selector, field name or text of the field label
-  # * value -- Value (or label) or option to select
+  # selector - CSS selector, field name or text of the field label
+  # value - Value (or label) or option to select
   #
   # Returns this
   select: (selector, value, callback)->
@@ -590,7 +577,7 @@ class Browser extends EventEmitter
   #
   # Selects an option.
   #
-  # * option -- option to select
+  # option - option to select
   #
   # Returns this
   selectOption: (option, callback)->
@@ -606,8 +593,8 @@ class Browser extends EventEmitter
   #
   # Unselects an option.
   #
-  # * selector -- CSS selector, field name or text of the field label
-  # * value -- Value (or label) or option to unselect
+  # selector - CSS selector, field name or text of the field label
+  # value - Value (or label) or option to unselect
   #
   # Returns this
   unselect: (selector, value, callback)->
@@ -619,7 +606,7 @@ class Browser extends EventEmitter
   #
   # Unselects an option.
   #
-  # * option -- option to unselect
+  # option - option to unselect
   #
   # Returns this
   unselectOption: (option, callback)->
@@ -635,10 +622,9 @@ class Browser extends EventEmitter
 
   # ### browser.button(selector) : Element
   #
-  # Finds a button using CSS selector, button name or button text (`BUTTON` or
-  # `INPUT` element).
+  # Finds a button using CSS selector, button name or button text (`BUTTON` or `INPUT` element).
   #
-  # * selector -- CSS selector, button name or text of BUTTON element
+  # selector - CSS selector, button name or text of BUTTON element
   button: (selector)->
     if button = @querySelector(selector)
       return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
@@ -653,12 +639,11 @@ class Browser extends EventEmitter
 
   # ### browser.pressButton(selector, callback)
   #
-  # Press a button (button element or input of type `submit`).  Typically
-  # this will submit the form.  Use the callback to wait for the from
-  # submission, page to load and all events run their course.
+  # Press a button (button element or input of type `submit`).  Typically this will submit the form.  Use the callback
+  # to wait for the from submission, page to load and all events run their course.
   #
-  # * selector -- CSS selector, button name or text of BUTTON element
-  # * callback -- Called with two arguments: error and browser
+  # selector - CSS selector, button name or text of BUTTON element
+  # callback - Called with two arguments: error and browser
   pressButton: (selector, callback)->
     if button = @button(selector)
       if button.getAttribute("disabled")
@@ -680,43 +665,40 @@ class Browser extends EventEmitter
   
   # ### browser.saveCookies() => String
   #
-  # Save cookies to a text string.  You can use this to load them back
-  # later on using `browser.loadCookies`.
+  # Save cookies to a text string.  You can use this to load them back later on using `browser.loadCookies`.
   saveCookies: ->
     @_cookies.save()
 
   # ### browser.loadCookies(String)
   #
-  # Load cookies from a text string (e.g. previously created using
-  # `browser.saveCookies`.
+  # Load cookies from a text string (e.g. previously created using `browser.saveCookies`.
   loadCookies: (serialized)->
     @_cookies.load serialized
 
   # ### brower.localStorage(host) => Storage
   #
-  # Returns local Storage based on the document origin (hostname/port). This
-  # is the same storage area you can access from any document of that origin.
+  # Returns local Storage based on the document origin (hostname/port). This is the same storage area you can access
+  # from any document of that origin.
   localStorage: (host)->
     return @_storage.local(host)
 
   # ### brower.sessionStorage(host) => Storage
   #
-  # Returns session Storage based on the document origin (hostname/port). This
-  # is the same storage area you can access from any document of that origin.
+  # Returns session Storage based on the document origin (hostname/port). This is the same storage area you can access
+  # from any document of that origin.
   sessionStorage: (host)->
     return @_storage.session(host)
 
   # ### browser.saveStorage() => String
   #
-  # Save local/session storage to a text string.  You can use this to
-  # load the data later on using `browser.loadStorage`.
+  # Save local/session storage to a text string.  You can use this to load the data later on using
+  # `browser.loadStorage`.
   saveStorage: ->
     @_storage.save()
   
   # ### browser.loadStorage(String)
   #
-  # Load local/session stroage from a text string (e.g. previously
-  # created using `browser.saveStorage`.
+  # Load local/session stroage from a text string (e.g. previously created using `browser.saveStorage`.
   loadStorage: (serialized)->
     @_storage.load serialized
 
@@ -727,12 +709,11 @@ class Browser extends EventEmitter
   # ### browser.evaluate(function) : Object
   # ### browser.evaluate(code, filename) : Object
   #
-  # Evaluates a JavaScript expression in the context of the current window
-  # and returns the result.  When evaluating external script, also include
-  # filename.
+  # Evaluates a JavaScript expression in the context of the current window and returns the result.  When evaluating
+  # external script, also include filename.
   #
-  # You can also use this to evaluate a function in the context of the
-  # window: for timers and asynchronous callbacks (e.g. XHR).
+  # You can also use this to evaluate a function in the context of the window: for timers and asynchronous callbacks
+  # (e.g. XHR).
   evaluate: (code, filename)->
     return @window._evaluate code, filename
 
@@ -749,36 +730,30 @@ class Browser extends EventEmitter
   # ### browser.onconfirm(question, response)
   # ### browser.onconfirm(fn)
   #
-  # The first form specifies a canned response to return when
-  # `window.confirm` is called with that question.  The second form
-  # will call the function with the question and use the respone of
-  # the first function to return a value (true or false).
+  # The first form specifies a canned response to return when `window.confirm` is called with that question.  The second
+  # form will call the function with the question and use the respone of the first function to return a value (true or
+  # false).
   #
-  # The response to the question can be true or false, so all canned
-  # responses are converted to either value.  If no response
-  # available, returns false.
+  # The response to the question can be true or false, so all canned responses are converted to either value.  If no
+  # response available, returns false.
   onconfirm: (question, response)->
     @_interact.onconfirm question, response
 
   # ### browser.onprompt(message, response)
   # ### browser.onprompt(fn)
   #
-  # The first form specifies a canned response to return when
-  # `window.prompt` is called with that message.  The second form will
-  # call the function with the message and default value and use the
-  # response of the first function to return a value or false.
+  # The first form specifies a canned response to return when `window.prompt` is called with that message.  The second
+  # form will call the function with the message and default value and use the response of the first function to return
+  # a value or false.
   #
-  # The response to a prompt can be any value (converted to a string),
-  # false to indicate the user cancelled the prompt (returning null),
-  # or nothing to have the prompt return the default value or an empty
-  # string.
+  # The response to a prompt can be any value (converted to a string), false to indicate the user cancelled the prompt
+  # (returning null), or nothing to have the prompt return the default value or an empty string.
   onprompt: (message, response)->
     @_interact.onprompt message, response
 
   # ### browser.prompted(message) => boolean
   #
-  # Returns true if user was prompted with that message
-  # (`window.alert`, `window.confirm` or `window.prompt`)
+  # Returns true if user was prompted with that message (`window.alert`, `window.confirm` or `window.prompt`)
   prompted: (message)->
     @_interact.prompted(message)
 
@@ -788,22 +763,21 @@ class Browser extends EventEmitter
 
   # ### browser.viewInBrowser(name?)
   #
-  # Views the current document in a real Web browser.  Uses the default
-  # system browser on OS X, BSD and Linux.  Probably errors on Windows.
+  # Views the current document in a real Web browser.  Uses the default system browser on OS X, BSD and Linux.  Probably
+  # errors on Windows.
   @viewInBrowser = (browser)->
     require("./bcat").bcat @html()
 
   # ### browser.lastRequest => HTTPRequest
   #
-  # Returns the last request sent by this browser. The object will have the
-  # properties url, method, headers, and body.
+  # Returns the last request sent by this browser. The object will have the properties url, method, headers, and body.
   @prototype.__defineGetter__ "lastRequest", ->
     return @window.resources.last?.request
   
   # ### browser.lastResponse => HTTPResponse
   #
-  # Returns the last response received by this browser. The object will have the
-  # properties url, status, headers and body. Long bodies may be truncated.
+  # Returns the last response received by this browser. The object will have the properties url, status, headers and
+  # body. Long bodies may be truncated.
   @prototype.__defineGetter__ "lastResponse", ->
     return @window.resources.last?.response
   
@@ -813,13 +787,10 @@ class Browser extends EventEmitter
   @prototype.__defineGetter__ "lastError", ->
     return @window.resources.last?.error
 
-  # Zombie can spit out messages to help you figure out what's going
-  # on as your code executes.
+  # Zombie can spit out messages to help you figure out what's going on as your code executes.
   #
-  # To spit a message to the console when running in debug mode, call
-  # this method with one or more values (same as `console.log`).  You
-  # can also call it with a function that will be evaluated only when
-  # running in debug mode.
+  # To spit a message to the console when running in debug mode, call this method with one or more values (same as
+  # `console.log`).  You can also call it with a function that will be evaluated only when running in debug mode.
   #
   # For example:
   #     browser.log("Opening page:", url);
@@ -836,9 +807,8 @@ class Browser extends EventEmitter
         values.push arg for arg in arguments
       console.log.apply null, values
 
-  # Dump information to the consolt: Zombie version, current URL,
-  # history, cookies, event loop, etc.  Useful for debugging and
-  # submitting error reports.
+  # Dump information to the consolt: Zombie version, current URL, history, cookies, event loop, etc.  Useful for
+  # debugging and submitting error reports.
   dump: ->
     indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
     console.log "Zombie: #{exports.version}\n"
@@ -871,7 +841,6 @@ class Screen
 
 
 exports.Browser = Browser
-
 # ### zombie.version : String
 exports.package = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
 exports.version = exports.package.version

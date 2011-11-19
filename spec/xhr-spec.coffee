@@ -32,13 +32,11 @@ vows.describe("XMLHttpRequest").addBatch(
   "response headers":
     topic: ->
       brains.get "/xhr/headers", (req, res)->
-        console.log('getting %s', req.url);
         res.send """
         <html>
           <head><script src="/jquery.js"></script></head>
           <body>
             <script>
-              console.log('running inner script');
               $.get("/xhr/headers/backend", function(data, textStatus, jqXHR) {
                 document.allHeaders = jqXHR.getAllResponseHeaders();
                 document.headerOne = jqXHR.getResponseHeader('Header-One');
