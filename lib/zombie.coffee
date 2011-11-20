@@ -1,9 +1,10 @@
-zombie = require("./browser")
+Zombie = require("./zombie/browser")
+Sys = require("sys")
 
 # Constructor for a new Browser. Takes no arguments.
-exports.Browser = zombie.Browser
-exports.package = zombie.package
-exports.version = zombie.version
+exports.Browser = Browser = Zombie.Browser
+exports.package = Zombie.package
+exports.version = Zombie.version
 
 
 # ### zombie.visit(url, callback)
@@ -27,7 +28,7 @@ exports.version = zombie.version
 # * options -- Initialize the browser with these options
 # * callback -- Called with error, browser
 exports.visit = (url, options, callback)->
-  new zombie.Browser(options).visit(url, options, callback)
+  new Browser(options).visit(url, options, callback)
 
 
 # ### listen port, callback
@@ -39,3 +40,16 @@ exports.visit = (url, options, callback)->
 # invoked once Zombie is ready to accept new connections.
 exports.listen = (port, callback)->
   require("./protocol").listen(port, callback)
+
+
+# console.log(browser) pukes over the terminal, so we apply some sane
+# defaults.  You can override these:
+# console.depth -       How many time to recurse while formatting the
+#                       object (default to zero)
+# console.showHidden -  True to show non-enumerable properties (defaults
+#                       to false)
+console.depth = 0
+console.showHidden = false
+console.log = ->
+  formatted = ((if typeof arg == "string" then arg else Sys.inspect(arg, console.showHidden, console.depth)) for arg in arguments)
+  process.stdout.write formatted.join(" ") + "\n"

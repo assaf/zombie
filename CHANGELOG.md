@@ -1,7 +1,7 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-## Version 0.11.0  2011-11-18
+## Version 0.11.0  2011-11-19
 
 Changed error handling for the better.
     
@@ -12,6 +12,17 @@ processing if there are multiple errors.
 Instead, an array of errors is passed as the fourth argument.  You can
 also access `browser.errors` and to get just the last one, e.g.  to
 check if any errors were reported, use `browser.error`.
+
+
+Using `console.log(browser)` will puke over your terminal, so we add
+global defaults for sanity.
+
+Set `console.depth` to specify how many times to recurse while
+formatting the object (default is zero).
+
+Set `console.showHidden` to show non-enumerable properties (defaults to
+false).
+
 
     333 Tests
     1.7 sec to complete

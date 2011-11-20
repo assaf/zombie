@@ -1,10 +1,4 @@
-.npm
-build
-clean
+docs
 html
-lib
 man7
 node_modules
-build
-.lock-wscript
-tags

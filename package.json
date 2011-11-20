@@ -10,7 +10,7 @@
   ],
   "keywords": [ "test", "tests", "testing", "TDD", "spec", "specs", "BDD", "headless", "browser",
     "html", "html5", "dom", "css", "javascript", "integration", "ajax", "full-stack", "DSL" ],
-  "main": "lib/zombie/index.coffee",
+  "main": "lib/zombie",
   "directories": {
     "doc": "./doc",
     "lib": "./lib",

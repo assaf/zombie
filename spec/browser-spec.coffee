@@ -100,7 +100,8 @@ vows.describe("Browser").addBatch(
             browser.on "done", (browser)=> @callback null, browser
             browser.window.location = "http://localhost:3003/browser/scripted"
             browser.wait()
-        "should fire done event": (browser)-> assert.ok browser.visit
+        "should fire done event": (browser)->
+          assert.ok browser.visit
 
     "source":
       zombie.wants "http://localhost:3003/browser/scripted"

@@ -59,16 +59,8 @@ task "install", "Install Zombie in your local repository", ->
       onerror err
 
 
-## Building ##
-
-task "watch", "Continously compile CoffeeScript to JavaScript", ->
-  cmd = spawn("coffee", ["-cw", "-o", "lib"])
-  cmd.stdout.on "data", (data)-> process.stdout.write green + data + reset
-  cmd.on "error", onerror
-
-
 clean = (callback)->
-  exec "rm -rf lib build html man7", callback
+  exec "rm -rf build html man7", callback
 task "clean", "Remove temporary files and such", -> clean onerror
 
 
