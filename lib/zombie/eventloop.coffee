@@ -1,4 +1,5 @@
 URL = require("url")
+{ raise } = require("./util")
 
 
 # Handles the Window event loop, timers and pending requests.
@@ -6,6 +7,16 @@ class EventLoop
   constructor: (@_window)->
     @_timers = {}
     lastHandle = 0
+
+    execute = (scope, handle, value, code)=>
+      try
+        @_window.browser.log "#{scope}: firing #{handle} with #{value}"
+        if typeof code == "string" || code instanceof String
+          @_window.run code, filename
+        else
+          code.call @_window
+      catch error
+        raise @_window.document, __filename, scope, error
 
     # ### window.setTimeout(fn, delay) => Number
     #
@@ -15,11 +26,8 @@ class EventLoop
         when: @_window.browser.clock + delay
         timeout: true
         fire: =>
-          @_window.browser.log "Firing timeout #{handle}, delay: #{delay}"
           try
-            @_window._evaluate fn
-          catch error
-            @_window.document.trigger "error", "Timeout: #{error.message}", error
+            execute "Timeout", handle, delay, fn
           finally
             delete @_timers[handle]
       handle = ++lastHandle
@@ -29,18 +37,15 @@ class EventLoop
     # ### window.setInterval(fn, delay) => Number
     #
     # Implements window.setInterval using event queue
-    @_window.setInterval = (fn, delay)=>
+    @_window.setInterval = (fn, interval)=>
       timer =
-        when: @_window.browser.clock + delay
+        when: @_window.browser.clock + interval
         interval: true
         fire: =>
-          @_window.browser.log "Firing interval #{handle}, interval: #{delay}"
           try
-            @_window._evaluate fn
-          catch error
-            @_window.document.trigger "error", "Interval: #{error.message}", error
+            execute "Interval", handle, interval, fn
           finally
-            timer.when = @_window.browser.clock + delay
+            timer.when = @_window.browser.clock + interval
       handle = ++lastHandle
       @_timers[handle] = timer
       handle

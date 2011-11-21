@@ -1,6 +1,7 @@
 # Fix things that JSDOM doesn't do quite right.
 html = require("jsdom").dom.level3.html
 URL = require("url")
+{ raise } = require("./util")
 
 
 html.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
@@ -61,18 +62,4 @@ html.languageProcessors.javascript = (element, code, filename)->
     try
       window.run code, filename
     catch error
-      # Deconstruct the stack trace and strip the Zombie part of it
-      # (anything leading to this file).  Add the document location at
-      # the end.
-      partial = []
-      for line in error.stack.split("\n")
-        break if ~line.indexOf(__filename)
-        partial.push line
-      partial.push "    in #{doc.location.href}"
-      error.stack = partial.join("\n")
-      
-      event = doc.createEvent("Event")
-      event.initEvent "error", false, false
-      event.message = error.message
-      event.error = error
-      window.dispatchEvent event
+      raise element, __filename, null, error

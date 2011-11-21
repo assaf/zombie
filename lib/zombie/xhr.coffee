@@ -2,6 +2,7 @@
 html = require("jsdom").dom.level3.html
 http = require("http")
 URL = require("url")
+{ raise } = require("./util")
 
 
 # Additional error codes defines for XHR and not in JSDOM.
@@ -20,7 +21,7 @@ XMLHttpRequest = (window)->
           try
             @onreadystatechange.call(@)
           catch error
-            window.document.trigger "error", "State change: #{error.message}", error
+            raise window.document, __filename, "XHR", error
           finally
             done()
   # Bring XHR to initial state (open/abort).
