@@ -223,7 +223,7 @@ class Browser extends EventEmitter
     if callback
       @once "done", =>
         callback null, this
-    @window._eventloop.wait @window, terminate
+    @window._eventloop.wait terminate
     return
 
   # ### browser.fire(name, target, callback?)

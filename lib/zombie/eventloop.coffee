@@ -3,128 +3,136 @@ URL = require("url")
 
 # Handles the Window event loop, timers and pending requests.
 class EventLoop
-  constructor: (window)->
-    timers = {}
+  constructor: (@_window)->
+    @_timers = {}
     lastHandle = 0
 
     # ### window.setTimeout(fn, delay) => Number
     #
     # Implements window.setTimeout using event queue
-    window.setTimeout = (fn, delay)->
+    @_window.setTimeout = (fn, delay)=>
       timer =
-        when: window.browser.clock + delay
+        when: @_window.browser.clock + delay
         timeout: true
         fire: =>
-          window.browser.log "Firing timeout #{handle}, delay: #{delay}"
+          @_window.browser.log "Firing timeout #{handle}, delay: #{delay}"
           try
-            window._evaluate fn
+            @_window._evaluate fn
           catch error
-            window.document.trigger "error", "Timeout: #{error.message}", error
+            @_window.document.trigger "error", "Timeout: #{error.message}", error
           finally
-            delete timers[handle]
+            delete @_timers[handle]
       handle = ++lastHandle
-      timers[handle] = timer
+      @_timers[handle] = timer
       handle
 
     # ### window.setInterval(fn, delay) => Number
     #
     # Implements window.setInterval using event queue
-    window.setInterval = (fn, delay)->
+    @_window.setInterval = (fn, delay)=>
       timer =
-        when: window.browser.clock + delay
+        when: @_window.browser.clock + delay
         interval: true
         fire: =>
-          window.browser.log "Firing interval #{handle}, interval: #{delay}"
+          @_window.browser.log "Firing interval #{handle}, interval: #{delay}"
           try
-            window._evaluate fn
+            @_window._evaluate fn
           catch error
-            window.document.trigger "error", "Interval: #{error.message}", error
+            @_window.document.trigger "error", "Interval: #{error.message}", error
           finally
-            timer.when = window.browser.clock + delay
+            timer.when = @_window.browser.clock + delay
       handle = ++lastHandle
-      timers[handle] = timer
+      @_timers[handle] = timer
       handle
 
     # ### window.clearTimeout(timeout)
     #
     # Implements window.clearTimeout using event queue
-    window.clearTimeout = (handle)-> delete timers[handle] if timers[handle]?.timeout
+    @_window.clearTimeout = (handle)=>
+      delete @_timers[handle]
+
     # ### window.clearInterval(interval)
     #
     # Implements window.clearInterval using event queue
-    window.clearInterval = (handle)-> delete timers[handle] if timers[handle]?.interval
+    @_window.clearInterval = (handle)=>
+      delete @_timers[handle]
 
     # Size of processing queue (number of ongoing tasks).
-    processing = 0
+    @_processing = 0
     # Requests on wait that cannot be handled yet: there's no event in the
     # queue, but we anticipate one (in-progress XHR request).
-    waiting = []
+    @_waiting = []
     # Called when done processing a request, and if we're done processing all
     # requests, wake up any waiting callbacks.
-    wakeUp = ->
-      if --processing == 0
-        process.nextTick waiter while waiter = waiting.pop()
 
-    # ### perform(fn)
-    #
-    # Run the function as part of the event queue (calls to `wait` will wait for
-    # this function to complete).  Function can be anything and is called
-    # synchronous with a `done` function; when it's done processing, it lets the
-    # event loop know by calling the done function.
-    this.perform = (fn)->
-      ++processing
-      fn wakeUp
-      return
+  # ### perform(fn)
+  #
+  # Run the function as part of the event queue (calls to `wait` will wait for this function to complete).  Function can
+  # be anything and is called synchronous with a `done` function; when it's done processing, it lets the event loop know
+  # by calling the done function.
+  perform: (fn)->
+    ++@_processing
+    fn =>
+      if --@_processing == 0
+        while waiter = @_waiting.pop()
+          process.nextTick waiter
+    return
 
-    # ### wait(window, terminate, callback, intervals)
-    #
-    # Process all events from the queue. This method returns immediately, events
-    # are processed in the background. When all events are exhausted, it calls
-    # the callback with null, window; if any event fails, it calls the callback
-    # with the exception.
-    #
-    # Events include timeout, interval and XHR onreadystatechange. DOM events
-    # are handled synchronously.
-    this.wait = (window, terminate, callback, intervals)->
-      process.nextTick =>
-        earliest = null
-        for handle, timer of timers
-          continue if timer.interval && intervals == false
-          earliest = timer if !earliest || timer.when < earliest.when
-        if earliest
-          intervals = false
-          event = ->
-            window.browser.clock = earliest.when if window.browser.clock < earliest.when
-            earliest.fire()
-        if event
-          try
-            event()
-            done = false
-            if typeof terminate is "number"
-              --terminate
-              done = true if terminate <= 0
-            else if typeof terminate is "function"
-              done = true if terminate.call(window) == false
-            if done
-              process.nextTick ->
-                window.browser.emit "done", window.browser
-                callback null, window if callback
-            else
-              @wait window, terminate, callback, intervals
-          catch err
-            window.browser.emit "error", err
-            callback err, window if callback
-        else if processing > 0
-          waiting.push => @wait window, terminate, callback, intervals
-        else
-          window.browser.emit "done", window.browser
-          callback null, window if callback
+  # ### wait(window, terminate, callback, intervals)
+  #
+  # Process all events from the queue. This method returns immediately, events are processed in the background. When all
+  # events are exhausted, it calls the callback with null, window; if any event fails, it calls the callback with the
+  # exception.
+  #
+  # Events include timeout, interval and XHR onreadystatechange. DOM events are handled synchronously.
+  wait: (terminate, callback, intervals)->
+    process.nextTick =>
+      earliest = null
+      for handle, timer of @_timers
+        if timer.interval && intervals == false
+          continue
+        if !earliest || timer.when < earliest.when
+          earliest = timer
+      if earliest
+        intervals = false
+        event = =>
+          if @_window.browser.clock < earliest.when
+            @_window.browser.clock = earliest.when
+          earliest.fire()
+      if event
+        try
+          event()
+          done = false
+          if typeof terminate == "number"
+            --terminate
+            if terminate <= 0
+              done = true
+          else if typeof terminate == "function"
+            if terminate.call(@_window) == false
+              done = true
+          if done
+            process.nextTick =>
+              @_window.browser.emit "done", @_window.browser
+              if callback
+                callback null, @_window
+          else
+            @wait terminate, callback, intervals
+        catch error
+          @_window.browser.emit "error", error
+          @wait terminate, callback, intervals
+      else if @_processing > 0
+        @_waiting.push =>
+          @wait terminate, callback, intervals
+      else
+        @_window.browser.emit "done", @_window.browser
+        if callback
+          callback null, @_window
 
-    this.dump = ()->
-      [ "The time:   #{window.browser.clock}",
-        "Timers:     #{Object.keys(timers).length}",
-        "Processing: #{processing}",
-        "Waiting:    #{waiting.length}" ]
+  dump: ->
+    return [ "The time:   #{@_window.browser.clock}",
+             "Timers:     #{Object.keys(@_timers).length}",
+             "Processing: #{@_processing}",
+             "Waiting:    #{@_waiting.length}" ]
 
 
 exports.EventLoop = EventLoop
