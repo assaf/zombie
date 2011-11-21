@@ -1,7 +1,7 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-## Version 0.11.0  2011-11-19
+## Version 0.11.0  2011-11-20
 
 Changed error handling for the better.
     
