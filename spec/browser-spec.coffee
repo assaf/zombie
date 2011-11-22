@@ -256,38 +256,68 @@ vows.describe("Browser").addBatch(
       "should send user agent to server": (browser)-> assert.equal browser.text("body"), "imposter"
       "should be accessible from navigator": (browser)-> assert.equal browser.window.navigator.userAgent, "imposter"
 
-  "basic authentication":
-    topic: ->
-      brains.get "/protected", (req, res) ->
-        auth = req.headers.authorization
-        if auth
-          if auth == "Basic dXNlcm5hbWU6cGFzczEyMw=="         
-            res.send "<html><body>#{req.headers["authorization"]}</body></html>"
-          else
-            res.send "Invalid credentials", 401
-        else
-          res.send "Missing credentials", 401
-    "without credentials":
-      topic: -> 
-        browser = new Browser
-        browser.visit "http://localhost:3003/protected", =>
-          @callback null, arguments
-      "should pass single argument to callback": (args)-> assert.lengthOf args, 1
-      "should pass error to callback": (args)-> assert.ok args[0] instanceof Error
-      "should include status code of 401 in error": (args)-> assert.equal args[0].response.statusCode, 401
-    "with invalid credentials":
-      topic: -> 
-        browser = new Browser
-        browser.visit "http://localhost:3003/protected", {credentials:{method: "Basic", user: 'username', password: 'wrong'}}, =>
-          @callback null, arguments
-      "should pass single argument to callback": (args)-> assert.lengthOf args, 1
-      "should pass error to callback": (args)-> assert.ok args[0] instanceof Error
-      "should include status code of 401 in error": (args)-> assert.equal args[0].response.statusCode, 401
-    "with valid credentials":
+  "authentication":
+    "basic":
       topic: ->
-        browser = new Browser
-        browser.visit "http://localhost:3003/protected", {credentials:{method: "Basic", user: 'username', password: 'pass123'}}, @callback
-      "should have the authentication header": (browser)-> assert.equal browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
+        brains.get "/auth/basic", (req, res) ->
+          if auth = req.headers.authorization
+            if auth == "Basic dXNlcm5hbWU6cGFzczEyMw=="
+              res.send "<html><body>#{req.headers["authorization"]}</body></html>"
+            else
+              res.send "Invalid credentials", 401
+          else
+            res.send "Missing credentials", 401
+      "without credentials":
+        topic: ->
+          browser = new Browser
+          browser.visit "http://localhost:3003/auth/basic", @callback
+        "should return status code 401": (browser)->
+          assert.equal browser.statusCode, 401
+      "with invalid credentials":
+        topic: ->
+          browser = new Browser
+          credentials = { method: "basic", user: "username", password: "wrong" }
+          browser.visit "http://localhost:3003/auth/basic", credentials: credentials, @callback
+        "should return status code 401": (browser)->
+          assert.equal browser.statusCode, 401
+      "with valid credentials":
+        topic: ->
+          browser = new Browser
+          credentials = { method: "basic", user: "username", password: "pass123" }
+          browser.visit "http://localhost:3003/auth/basic", credentials: credentials, @callback
+        "should have the authentication header": (browser)->
+          assert.equal browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
+
+    "bearer":
+      topic: ->
+        brains.get "/auth/oauth2", (req, res) ->
+          if auth = req.headers.authorization
+            if auth == "Bearer 12345"
+              res.send "<html><body>#{req.headers["authorization"]}</body></html>"
+            else
+              res.send "Invalid token", 401
+          else
+            res.send "Missing token", 401
+      "without credentials":
+        topic: ->
+          browser = new Browser
+          browser.visit "http://localhost:3003/auth/oauth2", @callback
+        "should return status code 401": (browser)->
+          assert.equal browser.statusCode, 401
+      "with invalid credentials":
+        topic: ->
+          browser = new Browser
+          credentials = { method: "bearer", token: "wrong" }
+          browser.visit "http://localhost:3003/auth/oauth2", credentials: credentials, @callback
+        "should return status code 401": (browser)->
+          assert.equal browser.statusCode, 401
+      "with valid credentials":
+        topic: ->
+          browser = new Browser
+          credentials = { method: "bearer", token: "12345" }
+          browser.visit "http://localhost:3003/auth/oauth2", credentials: credentials, @callback
+        "should have the authentication header": (browser)->
+          assert.equal browser.text("body"), "Bearer 12345"
 
   "URL without path":
     zombie.wants "http://localhost:3003"
