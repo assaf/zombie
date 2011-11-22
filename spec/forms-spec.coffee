@@ -507,7 +507,7 @@ vows.describe("Forms").addBatch(
             </form>
           </body>
         </html>
-        """        
+        """
       brains.post "/forms/urlencoded", (req, res)->
         text = req.body.text
         res.send """

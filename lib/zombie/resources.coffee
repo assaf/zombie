@@ -173,12 +173,13 @@ class Resources extends Array
               headers["content-type"] += "; boundary=#{boundary}"
             else
               headers["content-type"] = "text/plain;charset=UTF-8"
-          when "application/x-www-form-urlencoded" 
-            if not headers["Transfer-Encoding"]
-              headers["content-length"] ||= stringify(data).length  
+          when "application/x-www-form-urlencoded"
+            data = stringify(data)
+            unless headers["transfer-encoding"]
+              headers["content-length"] ||= data.length
           else
             # Fallback on sending text. (XHR falls-back on this)
-            headers["content-type"] ||= "text/plain;charset=UTF-8"        
+            headers["content-type"] ||= "text/plain;charset=UTF-8"
 
       # Pre 0.3 we need to specify the host name.
       headers["Host"] = url.host
@@ -248,7 +249,7 @@ class Resources extends Array
         # Construct body from request parameters.
         switch headers["content-type"].split(";")[0]
           when "application/x-www-form-urlencoded"
-            client.write stringify(data), "utf8"
+            client.write data, "utf8"
           when "multipart/form-data"
             remaining = Object.keys(data).length
             if remaining > 0
