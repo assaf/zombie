@@ -85,6 +85,12 @@ class History
 
       headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
       referer = stack[index-1]?.url
+
+      if browser.credentials
+        if browser.credentials.method == "Basic"
+          auth = "Basic " + new Buffer(browser.credentials.user + ":" + browser.credentials.password).toString('base64');          
+      headers["Authorization"] = auth if auth?
+      
       headers["referer"] = referer.href if referer?
       browser.window.resources.request method, url, data, headers, (error, response)=>
         if error
