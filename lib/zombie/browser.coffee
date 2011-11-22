@@ -18,6 +18,7 @@ Xhr = require("./xhr")
 
 
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
+BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "runScripts", "site", "userAgent"]
 
 
 # Use the browser to open up new windows and load documents.
@@ -43,7 +44,22 @@ class Browser extends EventEmitter
     # Options
     # -------
 
-    OPTIONS = ["site", "debug", "htmlParser", "loadCSS", "runScripts", "userAgent"]
+
+    # ### credentials
+    #
+    # Object containing authorization credentials.  Supported schemes include
+    # `basic` (HTTP Basic), `oauth` (OAuth 2.0 draft 10) and `bearer` (OAuth
+    # 2.0 draft 20).  Scheme name is case insensitive.
+    #
+    # Example
+    #   creadentials = { scheme: "basic", username: "bloody", password: "hungry" }
+    #   browser.visit("/basic/auth", { creadentials: creadentials }, function(error, browser) {
+    #   })
+    #
+    #   creadentials = { scheme: "bearer", token: "b1004a8" }
+    #   browser.visit("/oauth/2", { creadentials: creadentials }, function(error, browser) {
+    #   })
+    @credentials = false
 
     # ### debug
     #
@@ -79,7 +95,7 @@ class Browser extends EventEmitter
     # Sets the browser options.
     if options
       for k,v of options
-        if OPTIONS.indexOf(k) >= 0
+        if BROWSER_OPTIONS.indexOf(k) >= 0
           @[k] = v
         else
           throw "I don't recognize the option #{k}"

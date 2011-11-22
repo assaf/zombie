@@ -87,7 +87,7 @@ class History
       referer = stack[index-1]?.url
 
       if credentials = browser.credentials
-        switch credentials.method.toLowerCase()
+        switch credentials.scheme.toLowerCase()
           when "basic"
             base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
             headers["authorization"] = "Basic #{base64}"

@@ -276,14 +276,14 @@ vows.describe("Browser").addBatch(
       "with invalid credentials":
         topic: ->
           browser = new Browser
-          credentials = { method: "basic", user: "username", password: "wrong" }
+          credentials = { scheme: "basic", user: "username", password: "wrong" }
           browser.visit "http://localhost:3003/auth/basic", credentials: credentials, @callback
         "should return status code 401": (browser)->
           assert.equal browser.statusCode, 401
       "with valid credentials":
         topic: ->
           browser = new Browser
-          credentials = { method: "basic", user: "username", password: "pass123" }
+          credentials = { scheme: "basic", user: "username", password: "pass123" }
           browser.visit "http://localhost:3003/auth/basic", credentials: credentials, @callback
         "should have the authentication header": (browser)->
           assert.equal browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
@@ -307,14 +307,14 @@ vows.describe("Browser").addBatch(
       "with invalid credentials":
         topic: ->
           browser = new Browser
-          credentials = { method: "bearer", token: "wrong" }
+          credentials = { scheme: "bearer", token: "wrong" }
           browser.visit "http://localhost:3003/auth/oauth2", credentials: credentials, @callback
         "should return status code 401": (browser)->
           assert.equal browser.statusCode, 401
       "with valid credentials":
         topic: ->
           browser = new Browser
-          credentials = { method: "bearer", token: "12345" }
+          credentials = { scheme: "bearer", token: "12345" }
           browser.visit "http://localhost:3003/auth/oauth2", credentials: credentials, @callback
         "should have the authentication header": (browser)->
           assert.equal browser.text("body"), "Bearer 12345"
