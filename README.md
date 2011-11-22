@@ -88,18 +88,18 @@ that, just like a real browser, happens asynchronously.
 To wait for the page to fully load and all events to fire, you pass
 `visit` a callback function.  This function takes two arguments.  If
 everything is successful (page loaded, events run), the callback is
-called with `null` and a reference to the browser.  If anything went
-wrong (page not loaded, event errors), the callback is called with an
-error.
+called with `null` and a reference to the browser.
+
+Most errors that occur – resource loading and JavaScript execution – are
+not fatal, so rather the stopping processing, they are collected in
+`browser.errors`.  The error list is passed to the callback as the
+fourth argument (the third argument is the status code).
 
 If you worked with Node.js before you're familiar with this callback
 pattern.  Every time you see a callback in the Zombie.js API, it works
 that way: the first argument is an error, or null if there is no error.
-And if there are no errors, the remaining arguments may hold interesting
-values.
-
-For example, the callback you pass to `visit` receives the browser as
-the second argument and HTTP status code as the third argument.
+And if there are no fatal errors, the remaining arguments may hold
+interesting values.
 
 Whenever you want to wait for all events to be processed, just call
 `browser.wait` with a callback.
