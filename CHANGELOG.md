@@ -1,6 +1,16 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.11.1  2011-11-21
+
+Better error reporting when executing JS asynchronoulsy (timers, XHR).
+
+Event loop keeps processing past errors.
+
+    333 Tests
+    1.8 sec to complete
+
+
 ## Version 0.11.0  2011-11-20
 
 Changed error handling for the better.
