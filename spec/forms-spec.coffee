@@ -494,5 +494,46 @@ vows.describe("Forms").addBatch(
           browser.attach("get_file", filename).pressButton "Get Upload", @callback
         "should send just the file basename": (browser)->
           assert.equal browser.location.search, "?get_file=random.txt"
+          
+          
+  "content length":
+    topic: ->
+      brains.get "/forms/urlencoded", (req, res)-> res.send """
+        <html>
+          <body>
+            <form method="post">
+              <input name="text" type="text">
+              <input type="submit" value="submit">
+            </form>
+          </body>
+        </html>
+        """        
+      brains.post "/forms/urlencoded", (req, res)->
+        text = req.body.text
+        res.send """
+          <html>
+            <head><title>bite back</title></head>
+            <body>#{text}</body>
+          </html>
+          """
+    "post form urlencoded having content":
+      zombie.wants "http://localhost:3003/forms/urlencoded"
+        topic: (browser)->
+          browser.fill("text", "bite").pressButton "submit", @callback
+        "should send content-length header": (browser) ->
+          assert.include browser.lastRequest.headers, "content-length"
+        "should match expected content-length": (browser) ->
+          assert.equal browser.lastRequest.headers["content-length"], "text=bite".length
+        "should have body with content of input field": (browser) ->
+          assert.equal browser.text("body"), "bite"
+          
+    "post form urlencoded being empty":
+      zombie.wants "http://localhost:3003/forms/urlencoded"
+        topic: (browser)->
+          browser.pressButton "submit", @callback
+        "should send content-length header": (browser) ->
+          assert.include browser.lastRequest.headers, "content-length"
+        "should have size of 0": (browser) ->
+          assert.equal browser.lastRequest.headers["content-length"], 0          
 
 ).export(module)
