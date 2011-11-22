@@ -173,9 +173,12 @@ class Resources extends Array
               headers["content-type"] += "; boundary=#{boundary}"
             else
               headers["content-type"] = "text/plain;charset=UTF-8"
+          when "application/x-www-form-urlencoded" 
+            if not headers["Transfer-Encoding"]
+              headers["content-length"] ||= stringify(data).length  
           else
             # Fallback on sending text. (XHR falls-back on this)
-            headers["content-type"] ||= "text/plain;charset=UTF-8"
+            headers["content-type"] ||= "text/plain;charset=UTF-8"        
 
       # Pre 0.3 we need to specify the host name.
       headers["Host"] = url.host
