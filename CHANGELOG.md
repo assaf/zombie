@@ -7,6 +7,9 @@ Send Content-Length in URL-encoded form requests (Sven Bange).
 
 Added support for HTTP Basic and OAuth 2.0 authorization (Paul Dixon).
 
+    344 Tests
+    1.9 sec to complete
+
 
 ## Version 0.11.1  2011-11-21
 
