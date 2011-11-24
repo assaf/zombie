@@ -51,12 +51,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://assaf@github.com/assaf/zombie.git"
+    "url": "http://github.com/assaf/zombie"
   },
-  "bugs": { "url": "http://github.com/assaf/zombie/issues" },
+  "bugs": {
+    "url": "http://github.com/assaf/zombie/issues"
+  },
   "licenses": [
     { "type": "MIT",
-      "url": "http://github.com/assaf/zombie/raw/master/MIT-LICENSE"
+      "url": "http://github.com/assaf/zombie/blob/master/MIT-LICENSE"
     }
   ]
 }

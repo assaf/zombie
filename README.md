@@ -47,20 +47,22 @@ Next, assuming you're using the mighty
 
     $ brew install node
     $ node --version
-    v0.4.10
+    v0.6.2
     $ curl http://npmjs.org/install.sh | sudo sh
     $ npm --version
-    1.0.22
+    1.0.106
     $ npm install zombie
 
 On Ubuntu try these steps:
 
-    $ apt-get install build-essential python node
+    $ sudo apt-get install python-software-properties
+    $ sudo add-apt-repository ppa:chris-lea/node.js
+    $ sudo apt-get update
+    $ sudo apt-get install nodejs nodejs-dev npm
     $ node --version
-    v0.4.0
-    $ curl http://npmjs.org/install.sh | sudo sh
+    v0.6.2
     $ npm --version
-    1.0.22
+    1.0.106
     $ npm install zombie
 
 On Windows you'll need Cygwin to get access to GCC, Python, etc.  [Read
