@@ -1,6 +1,16 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.11.3 2011-11-26
+
+Iframes will now load their content when setting src attribute.
+
+Internal changes: resources, event loop associated with browser, history
+associated with window.
+
+Updated installation instructions for Ubuntu.
+
+
 ## Version 0.11.2  2011-11-22
 
 Send Content-Length in URL-encoded form requests (Sven Bange).
