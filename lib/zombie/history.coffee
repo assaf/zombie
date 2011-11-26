@@ -98,7 +98,7 @@ class History extends Accessors
         when "oauth"
           headers["authorization"] = "OAuth #{credentials.token}"
     
-    @_browser.window.resources.request method, url, data, headers, (error, response)=>
+    @_browser.resources.request method, url, data, headers, (error, response)=>
       if error
         document.write "<html><body>#{error}</body></html>"
         document.close()

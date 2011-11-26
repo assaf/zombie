@@ -10,7 +10,7 @@ Cookies = require("./cookies")
 { History } = require("./history")
 { HTML5 } = require("html5")
 Interact = require("./interact")
-Resources = require("./resources")
+{ Resources } = require("./resources")
 Storage = require("./storage")
 Url = require("url")
 WebSocket = require("./websocket")
@@ -32,6 +32,7 @@ class Browser extends EventEmitter
     @_interact = Interact.use(this)
     @_xhr = Xhr.use(cache)
     @_ws = WebSocket.use(this)
+    @resources = new Resources(this)
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.
@@ -169,6 +170,7 @@ class Browser extends EventEmitter
     else
       @window = newWindow
       @errors = []
+      @resources.clear()
       newWindow._eventloop = new EventLoop(newWindow)
 
     newWindow.__defineGetter__ "browser", =>
@@ -184,7 +186,6 @@ class Browser extends EventEmitter
     newWindow.navigator.javaEnabled = ->
       return false
     
-    newWindow.resources = Resources.extend(newWindow)
     @history.extend newWindow
     @_cookies.extend newWindow
     @_storage.extend newWindow
@@ -358,19 +359,19 @@ class Browser extends EventEmitter
   #
   # Returns the status code of the request for loading the window.
   @prototype.__defineGetter__ "statusCode", ->
-    return @window.resources.first?.response?.statusCode
+    return @resources.first?.response?.statusCode
 
   # ### browser.redirected => Boolean
   #
   # Returns true if the request for loading the window followed a redirect.
   @prototype.__defineGetter__ "redirected", ->
-    return @window.resources.first?.response?.redirected
+    return @resources.first?.response?.redirected
 
   # ### source => String
   #
   # Returns the unmodified source of the document loaded by the browser
   @prototype.__defineGetter__ "source", ->
-    return @window.resources.first?.response?.body
+    return @resources.first?.response?.body
 
 
   # Navigation
@@ -789,20 +790,20 @@ class Browser extends EventEmitter
   #
   # Returns the last request sent by this browser. The object will have the properties url, method, headers, and body.
   @prototype.__defineGetter__ "lastRequest", ->
-    return @window.resources.last?.request
+    return @resources.last?.request
   
   # ### browser.lastResponse => HTTPResponse
   #
   # Returns the last response received by this browser. The object will have the properties url, status, headers and
   # body. Long bodies may be truncated.
   @prototype.__defineGetter__ "lastResponse", ->
-    return @window.resources.last?.response
+    return @resources.last?.response
   
   # ### browser.lastError => Object
   #
   # Returns the last error received by this browser in lieu of response.
   @prototype.__defineGetter__ "lastError", ->
-    return @window.resources.last?.error
+    return @resources.last?.error
 
   # Zombie can spit out messages to help you figure out what's going on as your code executes.
   #

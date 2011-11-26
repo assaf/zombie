@@ -34,7 +34,7 @@ HTML.resourceLoader.load = (element, href, callback)->
         loaded = (response, filename)->
           callback.call this, response.body, URL.parse(response.url).pathname
         if url.hostname
-          window.resources.get url, @enqueue(element, loaded, url.pathname)
+          window.browser.resources.get url, @enqueue(element, loaded, url.pathname)
         else
           file = @resolve(document, url.pathname)
           @readFile file, @enqueue(element, loaded, file)
