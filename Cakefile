@@ -68,7 +68,7 @@ task "clean", "Remove temporary files and such", -> clean onerror
 
 runTests = (callback)->
   log "Running test suite ...", green
-  exec "vows --spec spec/*-spec.coffee", (err, stdout, stderr)->
+  exec "vows --spec spec/*_spec.coffee", (err, stdout, stderr)->
     process.stdout.write stdout
     process.stderr.write stderr
     callback err if callback

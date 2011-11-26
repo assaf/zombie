@@ -10,6 +10,9 @@ associated with window.
 
 Updated installation instructions for Ubuntu.
 
+    347 Tests
+    2.2 sec to complete
+
 
 ## Version 0.11.2  2011-11-22
 
