@@ -2,7 +2,8 @@
 html = require("jsdom").dom.level3.html
 http = require("http")
 URL = require("url")
-{ raise } = require("./util")
+{ raise } = require("./helpers")
+console.log raise
 
 
 # Additional error codes defines for XHR and not in JSDOM.

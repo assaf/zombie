@@ -1,7 +1,7 @@
 # Fix things that JSDOM doesn't do quite right.
 HTML = require("jsdom").dom.level3.html
 URL = require("url")
-{ raise } = require("./util")
+{ raise } = require("./helpers")
 
 
 HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0

@@ -1,5 +1,5 @@
 URL = require("url")
-{ raise } = require("./util")
+{ raise } = require("./helpers")
 
 
 # Handles the Window event loop, timers and pending requests.

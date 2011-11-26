@@ -1,4 +1,3 @@
-require "./helpers"
 { vows: vows, assert: assert, zombie: zombie, Browser: Browser, brains: brains } = require("vows")
 
 
