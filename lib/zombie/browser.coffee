@@ -147,12 +147,9 @@ class Browser extends EventEmitter
 
   # ### browser.open() => Window
   #
-  # Open new browser window.  Takes a single argument that determines which features are supported by this Window.  At
-  # the moment all features are undocumented, use at your own peril.
-  open: (features = {})->
-    features.interactive ?= true
-
-    @history = features.history || new History(this)
+  # Open new browser window.  Options are undocumented, use at your own peril.
+  open: (options)->
+    @history = options?.history || new History(this)
 
     # Add context for evaluating scripts.
     newWindow = jsdom.createWindow(html)
@@ -164,10 +161,15 @@ class Browser extends EventEmitter
       else
         code.call newWindow
 
-    # Switch to the newly created window if it's interactive.  Examples of non-interactive windows are frames.
-    if features.interactive || !@window
+    # Switch to the newly created window if top window.
+    if parent = options?.parent
+      newWindow.parent = parent
+      newWindow.top = parent.top
+      newWindow._eventloop = parent._eventloop
+    else
       @window = newWindow
       @errors = []
+      newWindow._eventloop = new EventLoop(newWindow)
 
     newWindow.__defineGetter__ "browser", =>
       return this
@@ -182,7 +184,6 @@ class Browser extends EventEmitter
     newWindow.navigator.javaEnabled = ->
       return false
     
-    newWindow._eventloop = new EventLoop(newWindow)
     newWindow.resources = Resources.extend(newWindow)
     @history.extend newWindow
     @_cookies.extend newWindow

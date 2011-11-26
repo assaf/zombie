@@ -39,35 +39,33 @@ vows.describe("Browser").addBatch(
         topic: ->
           brains.ready =>
             browser = new Browser
-            browser.visit "http://localhost:3003/browser/scripted", =>
-              @callback null, arguments
-        "should not include an error": (args)->
-          assert.isNull args[0]
-        "should pass browser to callback": (args)->
-          assert.instanceOf args[1], Browser
-        "should pass status code to callback": (args)->
-          assert.equal args[2], 200
-        "should pass zero errors to callback": (args)->
-          assert.lengthOf args[3], 0
-        "should reset browser errors": (args)->
-          assert.lengthOf args[1].errors, 0
+            browser.visit "http://localhost:3003/browser/scripted", @callback
+        "should not include an error": ->
+          assert true
+        "should pass browser to callback": (_, browser, status, errors)->
+          assert.instanceOf browser, Browser
+        "should pass status code to callback": (_, browser, status, errors)->
+          assert.equal status, 200
+        "should pass zero errors to callback": (_, browser, status, errors)->
+          assert.lengthOf errors, 0
+        "should reset browser errors": (_, browser, status, errors)->
+          assert.lengthOf browser.errors, 0
       "error":
         topic: ->
           brains.ready =>
             browser = new Browser
-            browser.visit "http://localhost:3003/browser/missing", =>
-              @callback null, arguments
-        "should not include an error": (args)->
-          assert.isNull args[0]
-        "should pass browser to callback": (args)->
-          assert.instanceOf args[1], Browser
-        "should pass status code to callback": (args)->
-          assert.equal args[2], 404
-        "should pass errors to callback": (args)->
-          assert.lengthOf args[3], 1
-          assert.instanceOf args[3][0], Error
-        "should set browser errors": (args)->
-          assert.lengthOf args[1].errors, 1
+            browser.visit "http://localhost:3003/browser/missing", @callback
+        "should not include an error": ->
+          assert true
+        "should pass browser to callback": (_, browser, status, errors)->
+          assert.instanceOf browser, Browser
+        "should pass status code to callback": (_, browser, status, errors)->
+          assert.equal status, 404
+        "should pass errors to callback": (_, browser, status, errors)->
+          assert.lengthOf errors, 1
+          assert.instanceOf errors[0], Error
+        "should set browser errors": (_, browser, status, errors)->
+          assert.lengthOf browser.errors, 1
       "empty page":
         topic: ->
           brains.get "/browser/empty", (req, res)-> res.send ""
@@ -81,14 +79,16 @@ vows.describe("Browser").addBatch(
         topic: ->
           brains.ready =>
             browser = new Browser
-            browser.on "loaded", (browser)=> @callback null, browser
+            browser.on "loaded", (browser)=>
+              @callback null, browser
             browser.window.location = "http://localhost:3003/browser/scripted"
         "should fire load event": (browser)-> assert.ok browser.visit
       "error":
         topic: ->
           brains.ready =>
             browser = new Browser
-            browser.on "error", (err)=> @callback null, err
+            browser.on "error", (error)=>
+              @callback null, error
             browser.window.location = "http://localhost:3003/browser/deadend"
         "should fire onerror event": (err)->
           assert.ok err.message && err.stack
@@ -97,7 +97,8 @@ vows.describe("Browser").addBatch(
         topic: ->
           brains.ready =>
             browser = new Browser
-            browser.on "done", (browser)=> @callback null, browser
+            browser.on "done", (browser)=>
+              @callback null, browser
             browser.window.location = "http://localhost:3003/browser/scripted"
             browser.wait()
         "should fire done event": (browser)->
@@ -372,42 +373,46 @@ vows.describe("Browser").addBatch(
       forked.window.history.back()
       assert.equal "http://localhost:3003/browser/living", forked.location.href
 
-  ###
   "iframes":
-    brains.get "/iframe", (req, res)-> res.send """
-      <html>
-        <head>
-          <script src="/jquery.js"></script>
-        </head>
-        <body>
-          <iframe src="/static" />
-        </body>
-      </html>
-      """
-    brains.get "/static", (req, res)-> res.send """
-      <html>
-        <head>
-          <title>Whatever</title>
-        </head>
-        <body>Hello World</body>
-      </html>
-      """
-    zombie.wants "http://localhost:3003/iframe"
-      "should load": (browser)->
+    topic: ->
+      brains.get "/iframe", (req, res)-> res.send """
+        <html>
+          <head>
+            <script src="/jquery.js"></script>
+          </head>
+          <body>
+            <iframe src="/static" />
+          </body>
+        </html>
+        """
+      brains.get "/static", (req, res)-> res.send """
+        <html>
+          <head>
+            <title>Whatever</title>
+          </head>
+          <body>Hello World</body>
+        </html>
+        """
+      browser = new Browser
+      browser.wants "http://localhost:3003/iframe", @callback
+    "should load": (browser)->
+      iframe = browser.querySelector("iframe").window
+      iframe._eventloop.wait ->
         assert.equal "Whatever", browser.querySelector("iframe").window.document.title
         assert.match browser.querySelector("iframe").window.document.querySelector("body").innerHTML, /Hello World/
         assert.equal "http://localhost:3003/static", browser.querySelector("iframe").window.location
-      "should reference the parent": (browser)->
+  ###
+    "should reference the parent": (browser)->
+      assert.ok browser.window == browser.querySelector("iframe").window.parent
+    "should not alter the parent": (browser)->
+      assert.equal "http://localhost:3003/iframe", browser.window.location
+    "after a refresh":
+      topic: (browser)->
+        callback = @callback
+        browser.querySelector("iframe").window.location.reload(true)
+        browser.wait -> callback null, browser
+      "should still reference the parent": (browser)->
         assert.ok browser.window == browser.querySelector("iframe").window.parent
-      "should not alter the parent": (browser)->
-        assert.equal "http://localhost:3003/iframe", browser.window.location
-      "after a refresh":
-        topic: (browser)->
-          callback = @callback
-          browser.querySelector("iframe").window.location.reload(true)
-          browser.wait -> callback null, browser
-        "should still reference the parent": (browser)->
-          assert.ok browser.window == browser.querySelector("iframe").window.parent
   ###
 
 ).export(module)

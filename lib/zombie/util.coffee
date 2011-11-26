@@ -1,10 +1,9 @@
-
 # Triggers an error event on the specified element.  Accepts:
 # element - Element/document associated wit this error
 # skip    - Filename of the caller (__filename), we use this to trim the stack trace
 # scope   - Execution scope, e.g. "XHR", "Timeout"
 # error   - Actual Error object
-exports.raise = (element, from, scope, error)->
+raise = (element, from, scope, error)->
   document = element.ownerDocument || element
   window = document.parentWindow
   message = if scope then "#{scope}: #{error.message}" else error.message
@@ -23,3 +22,6 @@ exports.raise = (element, from, scope, error)->
   event.message = error.message
   event.error = error
   window.dispatchEvent event
+
+
+exports.raise = raise
