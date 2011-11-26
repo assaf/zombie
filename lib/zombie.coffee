@@ -39,7 +39,7 @@ exports.visit = (url, options, callback)->
 # port is 8091, or you can specify a socket name.  The callback is
 # invoked once Zombie is ready to accept new connections.
 exports.listen = (port, callback)->
-  require("./protocol").listen(port, callback)
+  require("./zombie/protocol").listen(port, callback)
 
 
 # console.log(browser) pukes over the terminal, so we apply some sane

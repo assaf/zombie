@@ -83,11 +83,7 @@ execute = (tests)->
 
 
 vows.describe("Protocol").addBatch(
-  "echo":
-    execute
-      commands: ["ECHO", "Hello"]
-      "should echo Hello": (client)-> assert.equal client.response, "Hello"
-
+  ###
   "visit":
     execute
       commands: ["VISIT", "http://localhost:3003/"]
@@ -101,5 +97,6 @@ vows.describe("Protocol").addBatch(
         execute
           commands: "STATUS"
           "should return status code": (client)-> assert.equal client.response, 200
-
+  ###
+  "broken": {}
 ).export(module)
