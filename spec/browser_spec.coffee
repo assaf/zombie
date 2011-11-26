@@ -394,25 +394,16 @@ vows.describe("Browser").addBatch(
         </html>
         """
       browser = new Browser
-      browser.wants "http://localhost:3003/iframe", @callback
-    "should load": (browser)->
-      iframe = browser.querySelector("iframe").window
-      iframe._eventloop.wait ->
-        assert.equal "Whatever", browser.querySelector("iframe").window.document.title
-        assert.match browser.querySelector("iframe").window.document.querySelector("body").innerHTML, /Hello World/
-        assert.equal "http://localhost:3003/static", browser.querySelector("iframe").window.location
-  ###
-    "should reference the parent": (browser)->
-      assert.ok browser.window == browser.querySelector("iframe").window.parent
-    "should not alter the parent": (browser)->
+      browser.wants "http://localhost:3003/iframe", =>
+        iframe = browser.querySelector("iframe").window
+        @callback browser, iframe
+    "should load iframe document": (browser, iframe)->
+      assert.equal "Whatever", iframe.document.title
+      assert.match iframe.document.querySelector("body").innerHTML, /Hello World/
+      assert.equal iframe.location, "http://localhost:3003/static"
+    "should reference parent window from iframe": (browser, iframe)->
+      assert.equal iframe.parent, browser.window.top
+    "should not alter the parent": (browser, iframe)->
       assert.equal "http://localhost:3003/iframe", browser.window.location
-    "after a refresh":
-      topic: (browser)->
-        callback = @callback
-        browser.querySelector("iframe").window.location.reload(true)
-        browser.wait -> callback null, browser
-      "should still reference the parent": (browser)->
-        assert.ok browser.window == browser.querySelector("iframe").window.parent
-  ###
 
 ).export(module)

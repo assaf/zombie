@@ -4,63 +4,10 @@ URL = require("url")
 
 # Handles the Window event loop, timers and pending requests.
 class EventLoop
-  constructor: (@_window)->
+  constructor: (@_browser)->
+    # All active timers, keyed by handle.
     @_timers = {}
-    lastHandle = 0
-
-    execute = (scope, handle, value, code)=>
-      try
-        @_window.browser.log "#{scope}: firing #{handle} with #{value}"
-        if typeof code == "string" || code instanceof String
-          @_window.run code, filename
-        else
-          code.call @_window
-      catch error
-        raise @_window.document, __filename, scope, error
-
-    # ### window.setTimeout(fn, delay) => Number
-    #
-    # Implements window.setTimeout using event queue
-    @_window.setTimeout = (fn, delay)=>
-      timer =
-        when: @_window.browser.clock + delay
-        timeout: true
-        fire: =>
-          try
-            execute "Timeout", handle, delay, fn
-          finally
-            delete @_timers[handle]
-      handle = ++lastHandle
-      @_timers[handle] = timer
-      handle
-
-    # ### window.setInterval(fn, delay) => Number
-    #
-    # Implements window.setInterval using event queue
-    @_window.setInterval = (fn, interval)=>
-      timer =
-        when: @_window.browser.clock + interval
-        interval: true
-        fire: =>
-          try
-            execute "Interval", handle, interval, fn
-          finally
-            timer.when = @_window.browser.clock + interval
-      handle = ++lastHandle
-      @_timers[handle] = timer
-      handle
-
-    # ### window.clearTimeout(timeout)
-    #
-    # Implements window.clearTimeout using event queue
-    @_window.clearTimeout = (handle)=>
-      delete @_timers[handle]
-
-    # ### window.clearInterval(interval)
-    #
-    # Implements window.clearInterval using event queue
-    @_window.clearInterval = (handle)=>
-      delete @_timers[handle]
+    @_lastHandle = 0
 
     # Size of processing queue (number of ongoing tasks).
     @_processing = 0
@@ -69,6 +16,51 @@ class EventLoop
     @_waiting = []
     # Called when done processing a request, and if we're done processing all
     # requests, wake up any waiting callbacks.
+  
+  # ### apply(window)
+  #
+  # Add event-loop features to window (mainly timers).
+  apply: (window)->
+    execute = (scope, handle, value, code)=>
+      try
+        @_browser.log "#{scope}: firing #{handle} with #{value}"
+        if typeof code == "string" || code instanceof String
+          return window.run code, filename
+        else
+          return code.call window
+      catch error
+        raise window.document, __filename, scope, error
+
+    window.setTimeout = (fn, delay)=>
+      handle = ++@_lastHandle
+      @_timers[handle] =
+        when:     @_browser.clock + delay
+        timeout:  true
+        fire:     =>
+          try
+            execute "Timeout", handle, delay, fn
+          finally
+            delete @_timers[handle]
+      return handle
+
+    window.setInterval = (fn, interval)=>
+      handle = ++@_lastHandle
+      @_timers[handle] =
+        when:     @_browser.clock + interval
+        interval: true
+        fire:     =>
+          try
+            execute "Interval", handle, interval, fn
+          finally
+            @_timers[handle].when = @_browser.clock + interval
+      return handle
+
+    window.clearTimeout = (handle)=>
+      delete @_timers[handle]
+
+    window.clearInterval = (handle)=>
+      delete @_timers[handle]
+
 
   # ### perform(fn)
   #
@@ -90,7 +82,7 @@ class EventLoop
   # exception.
   #
   # Events include timeout, interval and XHR onreadystatechange. DOM events are handled synchronously.
-  wait: (terminate, callback, intervals)->
+  wait: (window, terminate, callback, intervals)->
     process.nextTick =>
       earliest = null
       for handle, timer of @_timers
@@ -101,8 +93,8 @@ class EventLoop
       if earliest
         intervals = false
         event = =>
-          if @_window.browser.clock < earliest.when
-            @_window.browser.clock = earliest.when
+          if @_browser.clock < earliest.when
+            @_browser.clock = earliest.when
           earliest.fire()
       if event
         try
@@ -113,28 +105,22 @@ class EventLoop
             if terminate <= 0
               done = true
           else if typeof terminate == "function"
-            if terminate.call(@_window) == false
+            if terminate.call(window) == false
               done = true
-          if done
-            process.nextTick =>
-              @_window.browser.emit "done", @_window.browser
-              if callback
-                callback null, @_window
-          else
-            @wait terminate, callback, intervals
+          @wait window, terminate, callback, intervals
         catch error
-          @_window.browser.emit "error", error
-          @wait terminate, callback, intervals
+          @_browser.emit "error", error
+          @wait window, terminate, callback, intervals
       else if @_processing > 0
         @_waiting.push =>
-          @wait terminate, callback, intervals
+          @wait window, terminate, callback, intervals
       else
-        @_window.browser.emit "done", @_window.browser
+        @_browser.emit "done", @_browser
         if callback
-          callback null, @_window
+          callback null, window
 
   dump: ->
-    return [ "The time:   #{@_window.browser.clock}",
+    return [ "The time:   #{@_browser.clock}",
              "Timers:     #{Object.keys(@_timers).length}",
              "Processing: #{@_processing}",
              "Waiting:    #{@_waiting.length}" ]

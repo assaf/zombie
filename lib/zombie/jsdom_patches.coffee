@@ -49,8 +49,8 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   iframe._attributes.setNamedItem = (node)->
     HTML.NamedNodeMap.prototype.setNamedItem.call iframe._attributes, node
     if node._nodeName == "src" && node._nodeValue
-      iframe.window.location.href = node._nodeValue
-
+      url = URL.resolve(parent.location.href, URL.parse(node._nodeValue))
+      iframe.window.location.href = url
   return iframe
 
 

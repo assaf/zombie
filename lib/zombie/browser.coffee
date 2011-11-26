@@ -32,6 +32,8 @@ class Browser extends EventEmitter
     @_interact = Interact.use(this)
     @_xhr = Xhr.use(cache)
     @_ws = WebSocket.use(this)
+
+    @_eventloop = new EventLoop(this)
     @resources = new Resources(this)
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
@@ -150,10 +152,9 @@ class Browser extends EventEmitter
   #
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
-    @history = options?.history || new History(this)
-
     # Add context for evaluating scripts.
     newWindow = jsdom.createWindow(html)
+    Object.defineProperty newWindow, "browser", value: this
 
     # Evaulate in context of window. This can be called with a script (String) or a function.
     newWindow._evaluate = (code, filename)->
@@ -162,31 +163,29 @@ class Browser extends EventEmitter
       else
         code.call newWindow
 
-    # Switch to the newly created window if top window.
+    # If top window, switch browser to new window, clear any resources and errors.
     if parent = options?.parent
       newWindow.parent = parent
       newWindow.top = parent.top
-      newWindow._eventloop = parent._eventloop
     else
       @window = newWindow
       @errors = []
       @resources.clear()
-      newWindow._eventloop = new EventLoop(newWindow)
 
-    newWindow.__defineGetter__ "browser", =>
-      return this
+    @_eventloop.apply newWindow
+    Object.defineProperty newWindow, "history", value: options?.history || new History(newWindow)
+
     newWindow.__defineGetter__ "title", ->
       return newWindow?.document?.title
     newWindow.__defineSetter__ "title", (title)->
       return newWindow?.document?.title = title
-    newWindow.navigator.userAgent = @userAgent
     
     # Present in browsers, not in spec Used by Google Analytics see
     # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
     newWindow.navigator.javaEnabled = ->
       return false
+    newWindow.navigator.userAgent = @userAgent
     
-    @history.extend newWindow
     @_cookies.extend newWindow
     @_storage.extend newWindow
     @_interact.extend newWindow
@@ -201,7 +200,6 @@ class Browser extends EventEmitter
       return img
     newWindow.console = console
     
-    newWindow.errors = []
     # Default onerror handler.
     newWindow.onerror = (event)=>
       error = event.error || new Error("Error loading script")
@@ -238,10 +236,10 @@ class Browser extends EventEmitter
   wait: (terminate, callback)->
     if !callback
       [callback, terminate] = [terminate, null]
-    if callback
-      @once "done", =>
+    @_eventloop.wait @window, terminate, =>
+      @emit "done", this
+      if callback
         callback null, this
-    @window._eventloop.wait terminate
     return
 
   # ### browser.fire(name, target, callback?)
@@ -834,7 +832,7 @@ class Browser extends EventEmitter
     console.log "History:\n#{indent @window.history.dump()}"
     console.log "Cookies:\n#{indent @_cookies.dump()}"
     console.log "Storage:\n#{indent @_storage.dump()}"
-    console.log "Eventloop:\n#{indent @window._eventloop.dump()}"
+    console.log "Eventloop:\n#{indent @_eventloop.dump()}"
     if @document
       html = @document.outerHTML
       html = html.slice(0, 497) + "..." if html.length > 497

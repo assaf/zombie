@@ -29,29 +29,40 @@ class Entry
 #
 # Represents window.history.
 class History extends Accessors
-  constructor: (@_browser)->
+  constructor: (window)->
+    @_apply window
     # History is a stack of Entry objects.
     @_stack = []
     @_index = -1
 
+  # Apply to window.
+  _apply: (@_window)->
+    @_browser = @_window.browser
+    # Add Location/History to window.
+    Object.defineProperty @_window, "location",
+      get: =>
+        return @_stack[@_index]?.location || new Location(this, {})
+      set: (url)=>
+        @_assign URL.resolve(@_stack[@_index]?.url, url)
+
   # Called when we switch to a new page with the URL of the old page.
-  _pageChanged: (was)=>
+  _pageChanged: (was)->
     url = @_stack[@_index]?.url
     if !was || was.host != url.host || was.pathname != url.pathname || was.query != url.query
       # We're on a different site or different page, load it
       @_resource url
     else if was.hash != url.hash
       # Hash changed. Do not reload page, but do send hashchange
-      evt = @_browser.window.document.createEvent("HTMLEvents")
+      evt = @_window.document.createEvent("HTMLEvents")
       evt.initEvent "hashchange", true, false
-      @_browser.window.dispatchEvent evt
+      @_window.dispatchEvent evt
     else
       # Load new page for now (but later on use caching).
       @_resource url
 
   # Make a request to external resource. We use this to fetch pages and
   # submit forms, see _loadPage and _submit.
-  _resource: (url, method, data, headers)=>
+  _resource: (url, method, data, headers)->
     method = (method || "GET").toUpperCase()
     unless url.protocol == "file:" || (url.protocol && url.hostname)
       throw new Error("Cannot load resource: #{URL.format(url)}")
@@ -59,8 +70,9 @@ class History extends Accessors
     # If the browser has a new window, use it. If a document was already
     # loaded into that window it would have state information we don't want
     # (e.g. window.$) so open a new window.
-    if @_browser.window.document
-      @_browser.open history: this
+    if @_window.top == @_window.parent && @_window.document
+      newWindow = @_browser.open(history: this)
+      @_apply newWindow
 
     # Create new DOM Level 3 document, add features (load external
     # resources, etc) and associate it with current document. From this
@@ -81,8 +93,8 @@ class History extends Accessors
     if @_browser.loadCSS
       options.features.FetchExternalResources.push "css"
     document = JSDOM.jsdom(null, HTML, options)
-    @_browser.window.document = document
-    document.window = document.parentWindow = @_browser.window
+    @_window.document = document
+    document.window = document.parentWindow = @_window
 
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
     referer = @_stack[@_index-1]?.url
@@ -130,12 +142,12 @@ class History extends Accessors
     if new_index != @_index && entry = @_stack[new_index]
       @_index = new_index
       if entry.pop
-        if @_browser.window.document
+        if @_window.document
           # Created with pushState/replaceState, send popstate event
-          evt = @_browser.window.document.createEvent("HTMLEvents")
+          evt = @_window.document.createEvent("HTMLEvents")
           evt.initEvent "popstate", false, false
           evt.state = entry.state
-          @_browser.window.dispatchEvent evt
+          @_window.dispatchEvent evt
         # Do not load different page unless we're on a different host
         if was.host != @_stack[@_index].host
           @_resource @_stack[@_index]
@@ -180,7 +192,6 @@ class History extends Accessors
   _loadPage: (force)->
     @_resource @_stack[@_index].url if @_stack[@_index]
   
-  #
   # Form submission. Makes request and loads response in the background.
   #
   # * url -- Same as form action, can be relative to current document
@@ -193,15 +204,6 @@ class History extends Accessors
     url = URL.resolve(@_stack[@_index]?.url, url)
     @_stack[++@_index] = new Entry(this, url)
     @_resource @_stack[@_index].url, method, data, headers
-
-  # Add Location/History to window.
-  extend: (new_window)->
-    new_window.__defineGetter__ "history", =>
-      return this
-    new_window.__defineGetter__ "location", =>
-      return @_stack[@_index]?.location || new Location(this, {})
-    new_window.__defineSetter__ "location", (url)=>
-      @_assign URL.resolve(@_stack[@_index]?.url, url)
 
   # Used to dump state to console (debuggin)
   dump: ->
@@ -275,8 +277,10 @@ class Location extends Accessors
 # ## document.location => Location
 #
 # document.location is same as window.location
-HTML.HTMLDocument.prototype.__defineGetter__ "location", -> @parentWindow.location
-HTML.HTMLDocument.prototype.__defineSetter__ "location", (value)-> @parentWindow.location = value
+HTML.HTMLDocument.prototype.__defineGetter__ "location", ->
+  @parentWindow.location
+HTML.HTMLDocument.prototype.__defineSetter__ "location", (url)->
+  @parentWindow.location = url
 
 
 exports.History = History

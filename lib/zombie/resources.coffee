@@ -123,7 +123,7 @@ class Resources extends Array
   #
   # The callback is called with error and response (see `HTTPResponse`).
   request: (method, url, data, headers, callback)->
-    @_browser.window._eventloop.perform (done)=>
+    @_browser._eventloop.perform (done)=>
       @_makeRequest method, url, data, headers, null, (error, response)->
         done()
         callback error, response
