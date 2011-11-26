@@ -1,13 +1,13 @@
-require "./helpers"
-{ vows: vows, assert: assert, Browser: Browser, brains: brains } = require("vows")
+{ vows: vows, assert: assert, brains: brains, Browser: Browser } = require("./helpers")
 
 
-JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.2"]
+JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.3", "1.7.1"]
 
 batch = {}
 for version in JQUERY_VERSIONS
   do (version)->
-    brains.get "/compat/jquery-#{version}", (req, res)-> res.send """
+    brains.get "/compat/jquery-#{version}", (req, res)->
+      res.send """
       <html>
         <head>
           <title>jQuery #{version}</title>
@@ -46,8 +46,7 @@ for version in JQUERY_VERSIONS
       """
 
     brains.post "/compat/echo/jquery-#{version}", (req, res)->
-      lines = for key, value of req.body
-        key + "=" + value
+      lines = ([key, value].join("=") for key, value of req.body)
       res.send lines.join("\n")
 
     batch[version] =
@@ -58,7 +57,8 @@ for version in JQUERY_VERSIONS
         topic: (browser)->
           browser.select "select", "1"
           @callback null, browser
-        "should fire the change event": (browser)-> assert.equal browser.text("#option"), "1"
+        "should fire the change event": (browser)->
+          assert.equal browser.text("#option"), "1"
 
       "jQuery.post":
         topic: (browser)->

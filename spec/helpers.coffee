@@ -1,44 +1,35 @@
 #require.paths.unshift __dirname + "/../node_modules"
-fs = require("fs")
-express = require("express")
-zombie = require("../lib/zombie")
-Browser = zombie.Browser
+File = require("fs")
+Express = require("express")
+Zombie = require("../lib/zombie")
+Browser = Zombie.Browser
 
 debug = process.env.DEBUG || process.env.TRAVIS
 
 
-# When you run the vows command, it picks all the files in the spec directory
-# and attempts to run their exports. If we wanted to export brains or zombie,
-# Vows would try to run them, even though they're not test suites. So we hack
-# around it by, instead of exporting, assigning them as instance variables on
-# the Vows object. And for convenience we also include assert in there.
-vows = require("vows")
-vows.vows = vows
-vows.assert = require("assert")
-
-process.on "exit", ->
-  if brains.active
-    brains.close()
-
-# An Express server we use to test the browser.
-brains = express.createServer()
-brains.use express.bodyParser()
-brains.use express.cookieParser()
+# An express server we use to test the browser.
+brains = Express.createServer()
+brains.use Express.bodyParser()
+brains.use Express.cookieParser()
 
 
 brains.get "/", (req, res)->
   res.send "<html><title>Tap, Tap</title></html>"
+
 # Prevent sammy from polluting the output. Comment this if you need its
 # messages for debugging.
 brains.get "/sammy.js", (req, res)->
-  fs.readFile "#{__dirname}/scripts/sammy.js", (err, data)->
+  File.readFile "#{__dirname}/scripts/sammy.js", (err, data)->
     data = data + ";window.Sammy.log = function() {}"
     res.send data
+
 brains.get "/jquery.js", (req, res)->
-  res.redirect "/jquery-1.6.3.js"
-fs.readdirSync(__dirname + "/scripts", "*.js").forEach (script)->
-  brains.get "/#{script}", (req, res)->
-    fs.readFile "#{__dirname}/scripts/#{script}", (err, data)-> res.send data
+  res.redirect "/jquery-1.7.1.js"
+brains.get "/jquery-:version.js", (req, res)->
+  version = req.params.version
+  File.readFile "#{__dirname}/scripts/jquery-#{version}.js", (err, data)->
+    res.send data
+
 
 brains.ready = (callback)->
   if @active
@@ -57,7 +48,7 @@ brains.ready = (callback)->
 # topic passed to all tests is the browser window after loading the document.
 # However, you can (and often need to) supply a ready function that will be
 # called with err and window; the ready function can then call this.callback.
-zombie.wants = (url, context)->
+Zombie.wants = (url, context)->
   topic = context.topic
   context.topic = ->
     browser = new Browser
@@ -83,6 +74,8 @@ Browser.prototype.wants = (url, options, callback)->
   return
 
 
-vows.zombie = zombie
-vows.Browser = zombie.Browser
-vows.brains = brains
+exports.assert  = require("assert")
+exports.brains  = brains
+exports.vows    = require("vows")
+exports.Zombie  = Zombie
+exports.Browser = Browser

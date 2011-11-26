@@ -1,5 +1,4 @@
-require "./helpers"
-{ vows: vows, assert: assert, Browser: Browser, brains: brains } = require("vows")
+{ vows: vows, assert: assert, brains: brains, Browser: Browser } = require("./helpers")
 
 
 vows.describe("XPath").addBatch(
@@ -52,26 +51,49 @@ vows.describe("XPath").addBatch(
         """
       browser = new Browser
       browser.wants "http://localhost:3003/xpath", @callback
+
     "evaluate nodes":
-      topic: (browser)-> browser.xpath("//a")
-      "should return result type node-set": (result)-> assert.equal result.type, "node-set"
-      "should return eleven nodes": (result)-> assert.equal result.value.length, 11
-      "should return first anchor": (result)-> assert.equal result.value[0].textContent, "First anchor"
-      "should return third anchor": (result)-> assert.equal result.value[2].textContent, "Third anchor"
+      topic: (browser)->
+        browser.xpath("//a")
+      "should return result type node-set": (result)->
+        assert.equal result.type, "node-set"
+      "should return eleven nodes": (result)->
+        assert.lengthOf result.value, 11
+      "should return first anchor": (result)->
+        assert.equal result.value[0].textContent, "First anchor"
+      "should return third anchor": (result)->
+        assert.equal result.value[2].textContent, "Third anchor"
+
     "evaluate with id":
-      topic: (browser)-> browser.xpath('//*[@id="post-2"]/h2')
-      "should return one node": (result)-> assert.lengthOf result.value, 1
-      "should return second post title": (result)-> assert.equal result.value[0].textContent, "Second post"
+      topic: (browser)->
+        browser.xpath('//*[@id="post-2"]/h2')
+      "should return one node": (result)->
+        assert.lengthOf result.value, 1
+      "should return second post title": (result)->
+        assert.equal result.value[0].textContent, "Second post"
+
     "evaluate number":
-      topic: (browser)-> browser.xpath("count(//a)")
-      "should return result type number": (result)-> assert.equal result.type, "number"
-      "should return number of nodes": (result)-> assert.equal result.value, 11
+      topic: (browser)->
+        browser.xpath("count(//a)")
+      "should return result type number": (result)->
+        assert.equal result.type, "number"
+      "should return number of nodes": (result)->
+        assert.equal result.value, 11
+
     "evaluate string":
-      topic: (browser)-> browser.xpath("'foobar'")
-      "should return result type string": (result)-> assert.equal result.type, "string"
-      "should return number of nodes": (result)-> assert.equal result.value, "foobar"
+      topic: (browser)->
+        browser.xpath("'foobar'")
+      "should return result type string": (result)->
+        assert.equal result.type, "string"
+      "should return number of nodes": (result)->
+        assert.equal result.value, "foobar"
+
     "evaluate boolean":
-      topic: (browser)-> browser.xpath("2 + 2 = 4")
-      "should return result type boolean": (result)-> assert.equal result.type, "boolean"
-      "should return number of nodes": (result)-> assert.equal result.value, true
+      topic: (browser)->
+        browser.xpath("2 + 2 = 4")
+      "should return result type boolean": (result)->
+        assert.equal result.type, "boolean"
+      "should return number of nodes": (result)->
+        assert.equal result.value, true
+
 ).export(module)

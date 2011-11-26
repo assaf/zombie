@@ -1,5 +1,4 @@
-require "./helpers"
-{ vows: vows, assert: assert, zombie: zombie, brains: brains } = require("vows")
+{ vows: vows, assert: assert, brains: brains, Zombie: Zombie } = require("./helpers")
 NET = require("net")
 
 
@@ -8,7 +7,7 @@ listen = (callback)=>
     process.nextTick callback
   else
     @active = true
-    zombie.listen 8091, (error)=>
+    Zombie.listen 8091, (error)=>
       brains.ready =>
         process.nextTick -> callback error
 
