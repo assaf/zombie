@@ -47,7 +47,7 @@ vows.describe("Browser").addBatch(
             browser = new Browser
             browser.visit "http://localhost:3003/browser/scripted", @callback
         "should not include an error": ->
-          assert true
+          assert.ok true
         "should pass browser to callback": (_, browser, status, errors)->
           assert.instanceOf browser, Browser
         "should pass status code to callback": (_, browser, status, errors)->
@@ -63,7 +63,7 @@ vows.describe("Browser").addBatch(
             browser = new Browser
             browser.visit "http://localhost:3003/browser/missing", @callback
         "should not include an error": ->
-          assert true
+          assert.ok true
         "should pass browser to callback": (_, browser, status, errors)->
           assert.instanceOf browser, Browser
         "should pass status code to callback": (_, browser, status, errors)->
