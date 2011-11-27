@@ -37,10 +37,11 @@ class EventLoop
         when:     @_browser.clock + delay
         timeout:  true
         fire:     =>
-          try
-            execute "Timeout", handle, delay, fn
-          finally
-            delete @_timers[handle]
+          if timer = @_timers[handle]
+            try
+              execute "Timeout", handle, delay, fn
+            finally
+              delete @_timers[handle]
       return handle
 
     window.setInterval = (fn, interval)=>
@@ -49,10 +50,11 @@ class EventLoop
         when:     @_browser.clock + interval
         interval: true
         fire:     =>
-          try
-            execute "Interval", handle, interval, fn
-          finally
-            @_timers[handle].when = @_browser.clock + interval
+          if timer = @_timers[handle]
+            try
+              execute "Interval", handle, interval, fn
+            finally
+              @_timers[handle].when = @_browser.clock + interval
       return handle
 
     window.clearTimeout = (handle)=>
