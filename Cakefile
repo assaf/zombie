@@ -116,7 +116,7 @@ documentPages = (callback)->
 
 documentSource = (callback)->
   log "Documenting source files ...", green
-  exec "docco lib/*.coffee lib/**/*.coffee", (err, stdout, stderr)->
+  exec "docco lib/**/*.coffee", (err, stdout, stderr)->
     log stdout, green
     onerror err
     log "Copying to html/source", green
