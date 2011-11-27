@@ -21,7 +21,7 @@ XMLHttpRequest = (window)->
           try
             @onreadystatechange.call(@)
           catch error
-            raise window.document, __filename, "XHR", error
+            raise window.document, null, __filename, "XHR", error
           finally
             done()
   # Bring XHR to initial state (open/abort).

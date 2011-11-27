@@ -29,7 +29,7 @@ class EventLoop
         else
           return code.call window
       catch error
-        raise window.document, __filename, scope, error
+        raise window.document, null, __filename, scope, error
 
     window.setTimeout = (fn, delay)=>
       handle = ++@_lastHandle

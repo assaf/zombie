@@ -64,4 +64,4 @@ HTML.languageProcessors.javascript = (element, code, filename)->
     try
       window.run code, filename
     catch error
-      raise element, __filename, null, error
+      raise element, filename, __filename, null, error
