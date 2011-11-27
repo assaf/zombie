@@ -1,6 +1,14 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.11.5 2011-11-27
+
+Fixes `Browser is not defined` error.
+
+    347 Tests
+    2.0 sec to complete
+
+
 ## Version 0.11.4 2011-11-27
 
 Added missing zombie.js.

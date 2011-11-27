@@ -1,5 +1,6 @@
-Zombie = require("./browser")
 Sys = require("sys")
+Zombie = require("./browser")
+Browser = Zombie.Browser
 
 
 # ### zombie.visit(url, callback)
