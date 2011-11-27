@@ -5,10 +5,10 @@ HTML = require("jsdom").dom.level3.html
 
 
 # Serialize cookie object into RFC2109 representation.
-serialize = (browser, domain, path, name, cookie)->
+serialize = (domain, path, name, cookie)->
   str = "#{name}=#{cookie.value}; domain=#{domain}; path=#{path}"
   if cookie.expires
-    str = "#{str}; max-age=#{cookie.expires - browser.clock}"
+    str = "#{str}; max-age=#{cookie.expires - +new Date}"
   if cookie.secure
     str = "#{str}; secure"
   str
@@ -43,7 +43,7 @@ domainMatch = (domain, hostname)->
 
 # Domain/path specific scope around the global cookies collection.
 class Access
-  constructor: (@_browser, @_cookies, @_hostname, @_pathname)->
+  constructor: (@_cookies, @_hostname, @_pathname)->
     if !@_pathname || @_pathname == ""
       @_pathname = "/"
 
@@ -60,7 +60,7 @@ class Access
         continue unless @_pathname.indexOf(path) == 0
         for name, cookie of in_path
           # Delete expired cookies.
-          if typeof cookie.expires == "number" && cookie.expires <= @_browser.clock
+          if typeof cookie.expires == "number" && cookie.expires <= +new Date
             delete in_path[name]
           else
             matching.push [domain, path, name, cookie]
@@ -96,11 +96,11 @@ class Access
     else
       maxage = options["max-age"]
       if typeof maxage == "number"
-        state.expires = @_browser.clock + maxage
+        state.expires = +new Date + maxage
     if options.secure
       state.secure = true
 
-    if typeof state.expires == "number" && state.expires <= @_browser.clock
+    if typeof state.expires == "number" && state.expires <= +new Date
       @remove(name, options)
     else
       path_without_resource = @_pathname.match(/.*\//) # everything but what trails the last /
@@ -163,16 +163,16 @@ class Access
   # debugging.  If you need to save/load, use comma as the line
   # separator and then call `cookies.update`.
   dump: (separator = "\n")->
-    return (serialize(@_browser, match[0], match[1], match[2], match[3]) for match in @_selected()).join(separator)
+    return (serialize(match[0], match[1], match[2], match[3]) for match in @_selected()).join(separator)
 
 
 class Cookies
-  constructor: (@_browser)->
+  constructor: ->
     @_cookies = {}
 
   # Creates and returns cookie access scopes to given host/path.
   access: (hostname, pathname)->
-    return new Access(@_browser, @_cookies, hostname, pathname)
+    return new Access(@_cookies, hostname, pathname)
 
   # Add cookies accessor to window: documents need this.
   extend: (window)->
@@ -186,7 +186,7 @@ class Cookies
     for domain, in_domain of @_cookies
       for path, in_path of in_domain
         for name, cookie of in_path
-          serialized.push serialize(@_browser, domain, path, name, cookie)
+          serialized.push serialize(domain, path, name, cookie)
     return serialized
 
   # browser.saveCookies uses this
@@ -195,7 +195,7 @@ class Cookies
     for domain, in_domain of @_cookies
       for path, in_path of in_domain
         for name, cookie of in_path
-          serialized.push serialize(@_browser, domain, path, name, cookie)
+          serialized.push serialize(domain, path, name, cookie)
     return serialized.join("\n") + "\n"
 
   # browser.loadCookies uses this
@@ -204,7 +204,7 @@ class Cookies
       line = line.trim()
       continue if line[0] == "#" || line == ""
       cookie = deserialize(line)
-      new Access(@_browser, @_cookies, cookie.domain, cookie.path).set(cookie.name, cookie.value, cookie)
+      new Access(@_cookies, cookie.domain, cookie.path).set(cookie.name, cookie.value, cookie)
 
 
 # ### document.cookie => String

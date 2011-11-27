@@ -11,7 +11,7 @@ Cache = require("./cache")
 { HTML5 } = require("html5")
 Interact = require("./interact")
 { Resources } = require("./resources")
-Storage = require("./storage")
+{ Storages } = require("./storage")
 Url = require("url")
 WebSocket = require("./websocket")
 Xhr = require("./xhr")
@@ -30,14 +30,13 @@ version = package.version
 # The browser maintains state for cookies and localStorage.
 class Browser extends EventEmitter
   constructor: (options) ->
-    cache = Cache.use(this)
-    @_cookies = new Cookies(this)
-    @_storage = Storage.use(this)
-    @_interact = Interact.use(this)
-    @_xhr = Xhr.use(cache)
-    @_ws = WebSocket.use(this)
-
+    @_cache = Cache.use(this)
+    @_cookies = new Cookies()
     @_eventloop = new EventLoop(this)
+    @_storages = new Storages()
+    @_interact = Interact.use(this)
+    @_xhr = Xhr.use(@_cache)
+    @_ws = WebSocket.use(this)
     @resources = new Resources(this)
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
@@ -191,7 +190,7 @@ class Browser extends EventEmitter
     newWindow.navigator.userAgent = @userAgent
     
     @_cookies.extend newWindow
-    @_storage.extend newWindow
+    @_storages.extend newWindow
     @_interact.extend newWindow
     @_xhr.extend newWindow
     @_ws.extend newWindow
@@ -700,27 +699,27 @@ class Browser extends EventEmitter
   # Returns local Storage based on the document origin (hostname/port). This is the same storage area you can access
   # from any document of that origin.
   localStorage: (host)->
-    return @_storage.local(host)
+    return @_storages.local(host)
 
   # ### brower.sessionStorage(host) => Storage
   #
   # Returns session Storage based on the document origin (hostname/port). This is the same storage area you can access
   # from any document of that origin.
   sessionStorage: (host)->
-    return @_storage.session(host)
+    return @_storages.session(host)
 
   # ### browser.saveStorage() => String
   #
   # Save local/session storage to a text string.  You can use this to load the data later on using
   # `browser.loadStorage`.
   saveStorage: ->
-    @_storage.save()
+    @_storages.save()
   
   # ### browser.loadStorage(String)
   #
   # Load local/session stroage from a text string (e.g. previously created using `browser.saveStorage`.
   loadStorage: (serialized)->
-    @_storage.load serialized
+    @_storages.load serialized
 
 
   # Scripts
@@ -835,7 +834,7 @@ class Browser extends EventEmitter
     console.log "URL: #{@window.location.href}"
     console.log "History:\n#{indent @window.history.dump()}"
     console.log "Cookies:\n#{indent @_cookies.dump()}"
-    console.log "Storage:\n#{indent @_storage.dump()}"
+    console.log "Storage:\n#{indent @_storages.dump()}"
     console.log "Eventloop:\n#{indent @_eventloop.dump()}"
     if @document
       html = @document.outerHTML

@@ -223,11 +223,13 @@ class History extends Accessors
       line = URL.format(entry.url)
       line += " #{JSON.stringify(entry.state)}" if entry.pop
       serialized.push line
-    serialized.join("\n")
+    return serialized.join("\n") + "\n"
 
   # browser.loadHistory uses this
   load: (serialized) ->
     for line in serialized.split(/\n+/)
+      line = line.trim()
+      continue if line[0] == "#" || line == ""
       [url, state] = line.split(/\s/)
       options = state && { state: JSON.parse(state), title: null, pop: true }
       @_stack[++@_index] = new Entry(this, url, state)
