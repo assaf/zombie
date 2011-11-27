@@ -9,7 +9,6 @@
 # the same thing.
 
 inspect = require("util").inspect
-{ Accessors } = require("./helpers")
 HTTP = require("http")
 HTTPS = require("https")
 FS = require("fs")
@@ -35,19 +34,19 @@ indent = (text)->
 # - response -- Represents the response, see HTTPResponse
 # - size -- Response size in bytes
 # - url -- Resource URL
-class Resource extends Accessors
+class Resource
   constructor: (@request)->
     @request.resource = this
     @redirects = 0
     @start = new Date().getTime()
     @time = 0
-  @get "size", ->
+  @prototype.__defineGetter__ "size", ->
     return @response?.body.length || 0
-  @get "url", ->
+  @prototype.__defineGetter__ "url", ->
     return @response?.url || @request.url
-  @get "response", ->
+  @prototype.__defineGetter__ "response", ->
     return @_response
-  @set "response", (response)->
+  @prototype.__defineSetter__ "response", (response)->
     @time = new Date().getTime() - @start
     response.resource = this
     @_response = response
@@ -83,12 +82,12 @@ class HTTPRequest
 # - statusCode -- Status code returned from the server
 # - statusText -- Text string associated with status code
 # - url -- URL of the resource (after redirect)
-class HTTPResponse extends Accessors
+class HTTPResponse
   constructor: (url, @statusCode, @headers, @body)->
     @url = URL.format(url)
-  @get "statusText", ->
+  @prototype.__defineGetter__ "statusText", ->
     return STATUS[@statusCode]
-  @get "redirected", ->
+  @prototype.__defineGetter__ "redirected", ->
     return !!@resource.redirects
   toString: ->
     return "#{@statusCode} #{@statusText}\n#{inspect @headers}\n#{partial @body}"

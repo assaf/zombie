@@ -1,2 +1,4 @@
 # Simple HTTP cache.
-exports.use = (browser)->
+class Cache
+
+exports.Cache = Cache

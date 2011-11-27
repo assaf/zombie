@@ -3,7 +3,6 @@ util = require("util")
 JSDOM = require("jsdom")
 HTML = JSDOM.dom.level3.html
 URL = require("url")
-{ Accessors } = require("./helpers")
 
 
 # History entry. Consists of:
@@ -28,7 +27,7 @@ class Entry
 # ## window.history
 #
 # Represents window.history.
-class History extends Accessors
+class History
   constructor: (window)->
     @_apply window
     # History is a stack of Entry objects.
@@ -157,7 +156,7 @@ class History extends Accessors
   # ### history.length => Number
   #
   # Number of states/URLs in the history.
-  @get "length", ->
+  @prototype.__defineGetter__ "length", ->
     return @_stack.length
 
   # ### history.pushState(state, title, url)
@@ -238,7 +237,7 @@ class History extends Accessors
 # ## window.location
 #
 # Represents window.location and document.location.
-class Location extends Accessors
+class Location
   constructor: (@_history, @_url)->
 
   # ### location.assign(url)
@@ -258,19 +257,19 @@ class Location extends Accessors
     return URL.format(@_url)
 
   # ### location.href => String
-  @get "href", ->
+  @prototype.__defineGetter__ "href", ->
     return @_url?.href
 
   # ### location.href = url
-  @set "href", (new_url)->
+  @prototype.__defineSetter__ "href", (new_url)->
     @_history._assign URL.resolve(@_url, new_url)
 
   # Getter/setter for location parts.
   for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search"]
     do (prop)=>
-      @get prop, ->
+      @prototype.__defineGetter__ prop, ->
         @_url?[prop] || ""
-      @set prop, (value)->
+      @prototype.__defineSetter__ prop, (value)->
         newUrl = URL.parse(@_url?.href)
         newUrl[prop] = value
         @_history._assign URL.format(newUrl)

@@ -1,11 +1,3 @@
-class Accessors
-  @get: (name, fn)->
-    @prototype.__defineGetter__ name, fn
-
-  @set: (name, fn)->
-    @prototype.__defineSetter__ name, fn
-
-
 # Triggers an error event on the specified element.  Accepts:
 # element - Element/document associated wit this error
 # skip    - Filename of the caller (__filename), we use this to trim the stack trace
@@ -34,4 +26,3 @@ raise = (element, location, from, scope, error)->
 
 
 exports.raise = raise
-exports.Accessors = Accessors

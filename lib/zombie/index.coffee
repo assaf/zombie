@@ -51,7 +51,6 @@ console.log = ->
   process.stdout.write formatted.join(" ") + "\n"
 
 
-
 # Constructor for a new Browser. Takes no arguments.
 exports.Browser = Zombie.Browser
 exports.listen  = listen

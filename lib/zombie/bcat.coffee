@@ -3,6 +3,7 @@
 { exec, spawn } = require("child_process")
 http = require("http")
 
+
 COMMANDS =
   "Darwin":
     "default":  "open",
@@ -26,6 +27,7 @@ ALIASES =
   "google chrome": "chrome"
   "gnome"        : "epiphany"
 
+
 class BCat
   # Open browser to this url.
   open: (browser, port)->
@@ -42,7 +44,8 @@ class BCat
       # Figure out which browser to use.
       browser = ALIASES[browser] || browser || "default"
       command = COMMANDS[env][browser]
-      throw new Error("Sorry, don't know how to run #{browser}") unless command
+      unless command
+        throw new Error("Sorry, don't know how to run #{browser}")
 
       # Launch the browser
       cmd = spawn(command, ["http://localhost:#{port}/"])
@@ -60,7 +63,8 @@ class BCat
       # Resume the stream and hand chunks over to the client.
       if input.resume && input.on
         input.resume()
-        input.on "data", (chunk)-> res.write chunk, "utf8"
+        input.on "data", (chunk)->
+          res.write chunk, "utf8"
         input.on "end", ->
           res.end()
           # Close the server and exit gracefully

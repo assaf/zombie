@@ -3,7 +3,7 @@ html = jsdom.dom.level3.html
 require "./jsdom_patches"
 require "./forms"
 require "./xpath"
-Cache = require("./cache")
+{ Cache } = require("./cache")
 { Cookies } = require("./cookies")
 { EventEmitter } = require("events")
 { EventLoop } = require("./eventloop")
@@ -30,7 +30,7 @@ version = package.version
 # The browser maintains state for cookies and localStorage.
 class Browser extends EventEmitter
   constructor: (options) ->
-    @_cache = Cache.use(this)
+    @_cache = new Cache()
     @_cookies = new Cookies()
     @_eventloop = new EventLoop(this)
     @_storages = new Storages()

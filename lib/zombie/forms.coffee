@@ -1,8 +1,8 @@
 # Patches to JSDOM for properly handling forms.
-html = require("jsdom").dom.level3.html
-path = require("path")
-fs   = require("fs")
-mime = require("mime")
+HTML = require("jsdom").dom.level3.html
+Path = require("path")
+File = require("fs")
+Mime = require("mime")
 
 
 # The Form
@@ -16,16 +16,16 @@ mime = require("mime")
 # the full filename (`filename`) and the `read` method that returns the file
 # contents.
 UploadedFile = (filename) ->
-  file = new String(path.basename(filename))
+  file = new String(Path.basename(filename))
   file.filename = filename
-  file.mime = mime.lookup(filename)
-  file.read = -> fs.readFileSync(filename)
+  file.mime = Mime.lookup(filename)
+  file.read = ->
+    return File.readFileSync(filename)
   return file
-
 
 # Implement form.submit such that it actually submits a request to the server.
 # This method takes the submitting button so we can send the button name/value.
-html.HTMLFormElement.prototype.submit = (button)->
+HTML.HTMLFormElement.prototype.submit = (button)->
   document = @ownerDocument
   params = []
 
@@ -37,7 +37,8 @@ html.HTMLFormElement.prototype.submit = (button)->
         if field.nodeName == "SELECT"
           selected = []
           for option in field.options
-            selected.push(option.value) if option.selected
+            if option.selected
+              selected.push(option.value)
 
           if field.multiple
             value = selected
@@ -45,25 +46,28 @@ html.HTMLFormElement.prototype.submit = (button)->
             value = selected.shift()
             if !value? && option = field.options[0]
               value = option.value
-
         else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
-          value = field.value if field.checked
+          if field.checked
+            value = field.value
         else if field.nodeName == "INPUT" && field.type == "file"
-          value = new UploadedFile(field.value) if field.value
+          if field.value
+            value = new UploadedFile(field.value)
         else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
           if field.value && field.type != "submit" && field.type != "image"
             value = field.value
 
-      params.push [name, value] if value?
+      if value?
+        params.push [name, value]
       process index + 1
     else
-      params.push [button.name, button.value] if button && button.name
+      if button && button.name
+        params.push [button.name, button.value]
       history = document.parentWindow.history
       history._submit @getAttribute("action"), @getAttribute("method"), params, @getAttribute("enctype")
   process 0
 
 # Implement form.reset to reset all form fields.
-html.HTMLFormElement.prototype.reset = ->
+HTML.HTMLFormElement.prototype.reset = ->
   for field in @elements
     if field.nodeName == "SELECT"
       for option in field.options
@@ -74,7 +78,7 @@ html.HTMLFormElement.prototype.reset = ->
       field.value = field._defaultValue
 
 # Replace dispatchEvent so we can send the button along the event.
-html.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
+HTML.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "submit", true, true
   event._button = button
@@ -82,7 +86,7 @@ html.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
 
 # Default behavior for submit events is to call the form's submit method, but we
 # also pass the submitting button.
-html.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
+HTML.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
   event.target.submit event._button
 
 
@@ -90,7 +94,7 @@ html.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
 # -------
 
 # Default behavior for clicking on inputs.
-html.HTMLInputElement.prototype._eventDefaults =
+HTML.HTMLInputElement.prototype._eventDefaults =
   click: (event)->
     input = event.target
     change = ->
@@ -116,22 +120,25 @@ html.HTMLInputElement.prototype._eventDefaults =
 # Current INPUT behavior on click is to capture sumbit and handle it, but
 # ignore all other clicks. We need those other clicks to occur, so we're going
 # to dispatch them all.
-html.HTMLInputElement.prototype.click = ->
+HTML.HTMLInputElement.prototype.click = ->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "click", true, true
   @dispatchEvent event
 
 # Default behavior for form BUTTON: submit form.
-html.HTMLButtonElement.prototype._eventDefaults =
+HTML.HTMLButtonElement.prototype._eventDefaults =
   click: (event)->
     button = event.target
-    return if button.getAttribute("disabled")
-    if form = button.form
-      form._dispatchSubmitEvent button
+    if button.getAttribute("disabled")
+      return
+    else
+      form = button.form
+      if form
+        form._dispatchSubmitEvent button
 
 # Default type for button is submit. jQuery live submit handler looks
 # for the type attribute, so we've got to make sure it's there.
-html.Document.prototype._elementBuilders["button"] = (doc, s)->
-  button = new html.HTMLButtonElement(doc, s)
+HTML.Document.prototype._elementBuilders["button"] = (doc, s)->
+  button = new HTML.HTMLButtonElement(doc, s)
   button.type ||= "submit"
   return button
