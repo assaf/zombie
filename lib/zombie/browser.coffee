@@ -4,7 +4,7 @@ require "./jsdom_patches"
 require "./forms"
 require "./xpath"
 Cache = require("./cache")
-Cookies = require("./cookies")
+{ Cookies } = require("./cookies")
 { EventEmitter } = require("events")
 { EventLoop } = require("./eventloop")
 { History } = require("./history")
@@ -31,7 +31,7 @@ version = package.version
 class Browser extends EventEmitter
   constructor: (options) ->
     cache = Cache.use(this)
-    @_cookies = Cookies.use(this)
+    @_cookies = new Cookies(this)
     @_storage = Storage.use(this)
     @_interact = Interact.use(this)
     @_xhr = Xhr.use(cache)
