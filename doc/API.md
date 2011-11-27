@@ -26,8 +26,8 @@ You can use the following options:
   Defaults to true.
 - `userAgent` -- The User-Agent string to send to the server.
 
-### Browser.visit(url, callback)
-### Browser.visit(url, options, callback)
+### browser.visit(url, callback)
+### browser.visit(url, options, callback)
 
 Shortcut for creating new browser and calling `browser.visit` on it.  If
 the second argument are options, initializes the browser with these
