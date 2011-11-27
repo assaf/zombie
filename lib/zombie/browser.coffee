@@ -21,6 +21,10 @@ MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "runScripts", "site", "userAgent"]
 
 
+package = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
+version = package.version
+
+
 # Use the browser to open up new windows and load documents.
 #
 # The browser maintains state for cookies and localStorage.
@@ -88,7 +92,7 @@ class Browser extends EventEmitter
     # ### userAgent
     #
     # User agent string sent to server.
-    @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{exports.version}"
+    @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{version}"
 
     # ### site
     #
@@ -827,7 +831,7 @@ class Browser extends EventEmitter
   # debugging and submitting error reports.
   dump: ->
     indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
-    console.log "Zombie: #{exports.version}\n"
+    console.log "Zombie: #{version}\n"
     console.log "URL: #{@window.location.href}"
     console.log "History:\n#{indent @window.history.dump()}"
     console.log "Cookies:\n#{indent @_cookies.dump()}"
@@ -857,6 +861,4 @@ class Screen
 
 
 exports.Browser = Browser
-# ### zombie.version : String
-exports.package = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
-exports.version = exports.package.version
+exports.version = version

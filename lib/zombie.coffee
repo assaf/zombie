@@ -1,11 +1,6 @@
 Zombie = require("./zombie/browser")
 Sys = require("sys")
 
-# Constructor for a new Browser. Takes no arguments.
-exports.Browser = Browser = Zombie.Browser
-exports.package = Zombie.package
-exports.version = Zombie.version
-
 
 # ### zombie.visit(url, callback)
 # ### zombie.visit(url, options, callback)
@@ -27,7 +22,7 @@ exports.version = Zombie.version
 # * url -- URL of page to open
 # * options -- Initialize the browser with these options
 # * callback -- Called with error, browser
-exports.visit = (url, options, callback)->
+visit = (url, options, callback)->
   new Browser(options).visit(url, options, callback)
 
 
@@ -38,7 +33,7 @@ exports.visit = (url, options, callback)->
 # Ask Zombie to listen on the specified port for requests.  The default
 # port is 8091, or you can specify a socket name.  The callback is
 # invoked once Zombie is ready to accept new connections.
-exports.listen = (port, callback)->
+listen = (port, callback)->
   require("./zombie/protocol").listen(port, callback)
 
 
@@ -53,3 +48,11 @@ console.showHidden = false
 console.log = ->
   formatted = ((if typeof arg == "string" then arg else Sys.inspect(arg, console.showHidden, console.depth)) for arg in arguments)
   process.stdout.write formatted.join(" ") + "\n"
+
+
+
+# Constructor for a new Browser. Takes no arguments.
+exports.Browser = Zombie.Browser
+exports.listen  = listen
+exports.version = Zombie.version
+exports.visit   = visit
