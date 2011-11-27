@@ -16,6 +16,7 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
     anchor = event.target
     anchor.ownerDocument.parentWindow.location = anchor.href if anchor.href
 
+
 # Fix resource loading to keep track of in-progress requests. Need this to wait
 # for all resources (mainly JavaScript) to complete loading before terminating
 # browser.wait.
@@ -40,6 +41,7 @@ HTML.resourceLoader.load = (element, href, callback)->
           @readFile file, @enqueue(element, loaded, file)
 
 
+# Support for iframes that load content when you set the src attribute.
 HTML.Document.prototype._elementBuilders["iframe"] = (doc, s)->
   parent = doc.parentWindow
 
@@ -52,7 +54,6 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, s)->
       url = URL.resolve(parent.location.href, URL.parse(node._nodeValue))
       iframe.window.location.href = url
   return iframe
-
 
 
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
