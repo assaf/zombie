@@ -1,4 +1,4 @@
-Zombie = require("./zombie/browser")
+Zombie = require("./browser")
 Sys = require("sys")
 
 
