@@ -17,11 +17,12 @@ serialize = (domain, path, name, cookie)->
 deserialize = (serialized)->
   fields = serialized.split(/;+/)
   first = fields[0].trim()
-  if first.split(/\=/).length > 2
+  firstFields = first.split(/\=/)
+  if firstFields.length > 2
       [name, value] = first.split(/\="/)
       value = value.replace(/"$/, '')
   else
-      [name, value] = first.split(/\=/, 2)
+      [name, value] = firstFields
 
   cookie = { name: name, value: value }
   for field in fields
