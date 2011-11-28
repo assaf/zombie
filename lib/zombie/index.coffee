@@ -1,4 +1,4 @@
-Sys = require("sys")
+Sys = require("util")
 Zombie = require("./browser")
 Browser = Zombie.Browser
 
