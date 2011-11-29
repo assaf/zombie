@@ -48,7 +48,8 @@ console.depth = 0
 console.showHidden = false
 console.log = ->
   formatted = ((if typeof arg == "string" then arg else Sys.inspect(arg, console.showHidden, console.depth)) for arg in arguments)
-  process.stdout.write formatted.join(" ") + "\n"
+  #process.stdout.write formatted.join(" ") + "\n"
+  process.stdout.write Sys.format.apply(this, formatted) + "\n"
 
 
 # Constructor for a new Browser. Takes no arguments.
