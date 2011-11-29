@@ -17,7 +17,8 @@ serialize = (domain, path, name, cookie)->
 deserialize = (serialized)->
   fields = serialized.split(/;+/)
   first = fields[0].trim()
-  [name, value] = first.split(/\=/, 2)
+  [_, name, value] = first.match(/(.*?)=(.*)/)
+  value = value.replace(/^"(.*)"$/, "$1")
 
   cookie = { name: name, value: value }
   for field in fields
