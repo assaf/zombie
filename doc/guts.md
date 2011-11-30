@@ -4,41 +4,21 @@ guts-zombie.js(1) -- The Guts
 
 ## Hacking
 
-To get started hacking on Zombie.js you'll need Node.js, NPM and
-CoffeeScript:
+To get started hacking on Zombie.js you'll need Node.js and NPM:
 
-    $ brew install node npm
-    $ npm install coffee-script
+    $ brew install node
+    $ curl http://npmjs.org/install.sh | sudo sh
 
-If you're installing Zombie as an NPM module and want both runtime and
-development dependencies, run `npm install zombie --dev`.
+Next install all the runtime and development dependencies:
 
-If you prefer to work from the source directory, you can use `cake
-setup`:
-
-    $ git clone git@github.com:assaf/zombie.git
-    $ cd zombie
-    $ cake setup
-
-To help isolate your development environment, `cake setup` installs all
-runtime and development dependencies into the directory `node_modules`
-by running `npm bundle`.  To see which dependencies are installed, run
-`npm bundle list installed` (not `npm list installed`).
+    $ npm install
 
 To run the test suite:
 
-    $ cake test
+    $ vows
 
 If you're hacking on Zombie and testing it in a different project, you
-can "install" your working directory using `npm link`.  Keep in mind,
-though, Zombie is written in CoffeeScript ad your project is loading the
-compiled JavaScript.  You need to keep both synchronized by running
-`cake build` or `cake watch`.
-
-Install the working directory and have all changes compiled in
-real-time:
-
-    $ npm link && cake watch
+can "install" your working directory using `npm link`.
 
 To generate the documentation:
 
@@ -90,5 +70,4 @@ page](http://github.com/assaf/zombie).
 
 Additional documentation lives in the `doc` directory.  Annotated source
 code generated using [Docco](http://jashkenas.github.com/docco/).
-
 
