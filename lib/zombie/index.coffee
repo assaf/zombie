@@ -1,4 +1,8 @@
-Sys = require("util")
+try
+  Sys = require("util")
+catch e
+  Sys = require("sys")
+
 Zombie = require("./browser")
 Browser = Zombie.Browser
 
@@ -48,7 +52,10 @@ console.depth = 0
 console.showHidden = false
 console.log = ->
   formatted = ((if typeof arg == "string" then arg else Sys.inspect(arg, console.showHidden, console.depth)) for arg in arguments)
-  process.stdout.write Sys.format.apply(this, formatted) + "\n"
+  if typeof Sys.format == 'function'
+    process.stdout.write Sys.format.apply(this, formatted) + "\n"
+  else
+    process.stdout.write formatted.join(" ") + "\n"
 
 
 # Constructor for a new Browser. Takes no arguments.
