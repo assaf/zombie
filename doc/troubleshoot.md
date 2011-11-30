@@ -51,8 +51,7 @@ call to `visit` (the second argument being the options).
 For example:
 
     zombie.visit("http://thedead", { debug: true}, function(err, browser) {
-      if (err)
-        throw(err.message);
+      console.log(browser.errors);
       ... 
     });
 
@@ -79,7 +78,7 @@ obtaining the `window.resources` array and looking into it.
 
 For example:
 
-    window.resources.dump()
+    browser.resources.dump()
 
 The browser object provides the convenient methods `lastRequest`,
 `lastResponse` and `lastError` that return, respectively, the request,

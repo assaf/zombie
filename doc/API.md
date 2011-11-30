@@ -16,6 +16,7 @@ existing browser instance.  For example:
     browser = new zombie.Browser({ debug: true })
     browser.runScripts = false
 
+
 ### Browser Options
 
 You can use the following options:
@@ -41,6 +42,10 @@ Opens a new browser window.
 ### browser.window : Window
 
 Returns the main window.  A browser always has one window open.
+
+### browser.errors : Array
+
+Returns all errors reported while loading this window.
 
 
 ## Document Content
@@ -197,8 +202,6 @@ and resets before passing control to the callback.  For example:
 
     browser.visit("http://localhost:3000", { debug: true },
       function(err, browser, status) {
-        if (err)
-          throw(err.message);
         console.log("The page:", browser.html());
       }
     );
@@ -541,27 +544,12 @@ Call with multiple arguments to spit them out to the console when
 debugging enabled (same as `console.log`).  Call with function to spit
 out the result of that function call when debugging enabled.
 
+### browser.resources : Object
+
+Returns a list of resources loaded by the browser.
+
 ### browser.viewInBrowser(name?)
 
 Views the current document in a real Web browser.  Uses the default
 system browser on OS X, BSD and Linux.  Probably errors on Windows.
-
-
-## Notes
-
-#### Callbacks
-
-By convention the first argument to a callback function is the error.
-If the first argument is null, no error occurred, and other arguments
-may have meaningful data.
-
-For example, the second and third arguments to the callback of `visit`,
-`clickLink` and `pressButton` are the browser itself and the status
-code.
-
-    pressButton("Create", function(error, browser, status) {
-      if (error)
-        throw error;
-      assert.equal(status, 201, "Expected status 201 Created")
-    });
 
