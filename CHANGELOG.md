@@ -1,6 +1,22 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.11.7 2011-11-30
+
+Fixed `console.log` formatting `%s`, `%d` (Quang Van).
+
+Fixed `viewInBrowser`.
+
+Updated documentation to mention `browser.errors and
+`browser.resources`, and that `cake watch` and `cake build` are no
+longer necessary.
+
+Fix to load cookies that contain equal signs and quotes in the value.
+
+    347 Tests
+    2.0 sec to complete
+
+
 ## Version 0.11.6 2011-11-27
 
 Fixed loading of cookies/history from file, so empty lines are ignored.
