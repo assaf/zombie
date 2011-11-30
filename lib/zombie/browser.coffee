@@ -784,7 +784,7 @@ class Browser extends EventEmitter
   #
   # Views the current document in a real Web browser.  Uses the default system browser on OS X, BSD and Linux.  Probably
   # errors on Windows.
-  @viewInBrowser = (browser)->
+  viewInBrowser: (browser)->
     require("./bcat").bcat @html()
 
   # ### browser.lastRequest => HTTPRequest
