@@ -736,6 +736,25 @@ class Browser extends EventEmitter
   evaluate: (code, filename)->
     return @window._evaluate code, filename
 
+  # ### browser.inject(src, callback) : Object
+  #
+  # Injects JS in the window's DOM.
+  #
+  # You can use this to test a bookmarklet or test how your site behaves to injected javascript (eg: a Chrome extension)
+  #
+  # Calls the callback as soon as the script element fires the "load" event.
+  inject: (src, callback)->
+    # Heavily inspired by JSDOM.
+    script = @window.document.createElement('script')
+    script.onload = => callback(null, this)
+
+    script.onerror = (err) => callback(err, this)
+
+    script.src = src
+    try
+      @window.document.documentElement.appendChild(script)
+    catch err
+      callback(err, this)
 
   # Interaction
   # -----------

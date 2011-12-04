@@ -301,4 +301,30 @@ vows.describe("Scripts").addBatch(
     "should load scripts over SSL": (browser)-> assert.equal browser.window.title, "MLA"
   ###
 
+  "inject":
+    topic: ->
+      brains.get "/bookmarklet", (req, res)->
+        res.send """
+        <html>
+          <head>
+            <title>Dummy page for bookmarklet</title>
+          </head>
+          <body>
+            This is a dummy page
+          </body>
+        </html>
+        """
+      
+      brains.get "/javascripts/bookmarklet.js", (req, res)->
+        res.send """
+        window.injected = true;
+        """
+
+      browser = new Browser
+      browser.wants "http://localhost:3003/bookmarklet", =>
+        browser.inject "http://localhost:3003/javascripts/bookmarklet.js", @callback
+    
+    "should have injected the script": (err, browser)->
+      assert.ok browser.evaluate('window.injected')
+
 ).export(module)
