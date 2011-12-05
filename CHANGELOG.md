@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 0.11.7 2011-11-30
+## Version 0.11.8 2011-12-04
 
 Added `browser.query` and `browser.queryAll`. Deprecated `browser.css`;
 planning to use it for something else post 1.0.
@@ -12,7 +12,8 @@ the text contents.  Particularly useful if you're looking at the
 contents of what should be an HTML page, but got 404 or 500 insteas.
 
     357 Tests
-    1.9 sec to complete
+    2.0 sec to complete
+
 
 ## Version 0.11.7 2011-11-30
 
