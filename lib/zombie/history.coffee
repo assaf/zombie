@@ -153,6 +153,7 @@ class History
       else
         @_pageChanged was
     return
+ 
   # ### history.length => Number
   #
   # Number of states/URLs in the history.

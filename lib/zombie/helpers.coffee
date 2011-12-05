@@ -25,4 +25,13 @@ raise = (element, location, from, scope, error)->
   window.dispatchEvent event
 
 
+# Show deprecated message.
+deprecated = (message)->
+  @shown ||= {}
+  unless @shown[message]
+    @shown[message] = true
+    console.log message
+
+
+exports.deprecated = deprecated.bind(deprecated)
 exports.raise = raise

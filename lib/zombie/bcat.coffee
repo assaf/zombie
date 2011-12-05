@@ -32,7 +32,7 @@ class BCat
   # Open browser to this url.
   open: (browser, port)->
     # Figure out which environment we're running in
-    exec "uname", (err, stdout)=>
+    exec "uname", (err, stdout)->
       throw new Error("Sorry, I don't support your operating system") if err
       if /Darwin/.test(stdout)
         env = "Darwin"

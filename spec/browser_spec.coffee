@@ -24,6 +24,12 @@ vows.describe("Browser").addBatch(
         </html>
         """
 
+        brains.get "/browser/errored", (req, res)->
+          res.send """
+          <script>this.is.wrong</script>
+            """
+
+
     "open page":
       Zombie.wants "http://localhost:3003/browser/scripted"
         "should create HTML document": (browser)->
@@ -46,7 +52,7 @@ vows.describe("Browser").addBatch(
           brains.ready =>
             browser = new Browser
             browser.visit "http://localhost:3003/browser/scripted", @callback
-        "should not include an error": ->
+        "should call callback without error": ->
           assert.ok true
         "should pass browser to callback": (_, browser, status, errors)->
           assert.instanceOf browser, Browser
@@ -57,26 +63,58 @@ vows.describe("Browser").addBatch(
         "should reset browser errors": (_, browser, status, errors)->
           assert.lengthOf browser.errors, 0
 
-      "error":
+      "with error":
+        topic: ->
+          brains.ready =>
+            browser = new Browser
+            browser.visit "http://localhost:3003/browser/errored", @callback
+        "should call callback without error": ->
+          assert.ok true
+        "should pass errors to callback": (_, browser, status, errors)->
+          assert.lengthOf errors, 1
+          assert.equal errors[0].message, "Cannot read property 'wrong' of undefined"
+        "should set browser errors": (_, browser, status, errors)->
+          assert.lengthOf browser.errors, 1
+          assert.equal browser.errors[0].message, "Cannot read property 'wrong' of undefined"
+
+      "404":
         topic: ->
           brains.ready =>
             browser = new Browser
             browser.visit "http://localhost:3003/browser/missing", @callback
-        "should not include an error": ->
+        "should call callback without error": ->
           assert.ok true
-        "should pass browser to callback": (_, browser, status, errors)->
-          assert.instanceOf browser, Browser
-        "should pass status code to callback": (_, browser, status, errors)->
+        "should return status code": (_, browser, status)->
           assert.equal status, 404
-        "should pass errors to callback": (_, browser, status, errors)->
-          assert.lengthOf errors, 1
-          assert.instanceOf errors[0], Error
-        "should set browser errors": (_, browser, status, errors)->
-          assert.lengthOf browser.errors, 1
+        "should capture response document": (browser)->
+          assert.equal browser.source, "Cannot GET /browser/missing" # Express output
+        "should return response document form text method": (browser)->
+          assert.equal browser.text(), "Cannot GET /browser/missing" # Express output
+        "should return response document form html method": (browser)->
+          assert.equal browser.html(), "Cannot GET /browser/missing" # Express output
+
+      "500":
+        topic: ->
+          brains.get "/browser/505", (req, res)->
+            res.send "Ooops, something went wrong", 500
+          brains.ready =>
+            browser = new Browser
+            browser.visit "http://localhost:3003/browser/505", @callback
+        "should call callback without error": ->
+          assert.ok true
+        "should return status code": (_, browser, status)->
+          assert.equal status, 500
+        "should capture response document": (browser)->
+          assert.equal browser.source, "Ooops, something went wrong"
+        "should return response document form text method": (browser)->
+          assert.equal browser.text(), "Ooops, something went wrong"
+        "should return response document form html method": (browser)->
+          assert.equal browser.html(), "Ooops, something went wrong"
 
       "empty page":
         topic: ->
-          brains.get "/browser/empty", (req, res)-> res.send ""
+          brains.get "/browser/empty", (req, res)->
+            res.send ""
           browser = new Browser
           browser.wants "http://localhost:3003/browser/empty", @callback
         "should load document": (browser)->
@@ -88,22 +126,11 @@ vows.describe("Browser").addBatch(
         topic: ->
           brains.ready =>
             browser = new Browser
-            browser.on "loaded", (browser)=>
+            browser.on "loaded", =>
               @callback null, browser
             browser.window.location = "http://localhost:3003/browser/scripted"
         "should fire load event": (browser)->
           assert.ok browser.visit
-
-      "error":
-        topic: ->
-          brains.ready =>
-            browser = new Browser
-            browser.on "error", (error)=>
-              @callback null, error
-            browser.window.location = "http://localhost:3003/browser/deadend"
-        "should fire onerror event": (err)->
-          assert.ok err.message && err.stack
-          assert.equal err.message, "Could not load resource at http://localhost:3003/browser/deadend, got 404"
 
       "wait over":
         topic: ->
@@ -115,6 +142,17 @@ vows.describe("Browser").addBatch(
             browser.wait()
         "should fire done event": (browser)->
           assert.ok browser.visit
+
+      "error":
+        topic: ->
+          brains.ready =>
+            browser = new Browser
+            browser.on "error", (error)=>
+              @callback null, error
+            browser.window.location = "http://localhost:3003/browser/errored"
+        "should fire onerror event": (err)->
+          assert.ok err.message && err.stack
+          assert.equal err.message, "Cannot read property 'wrong' of undefined"
 
 
     "source":

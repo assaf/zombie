@@ -3,7 +3,7 @@ html = jsdom.dom.level3.html
 require "./jsdom_patches"
 require "./forms"
 require "./xpath"
-{ deprecated } = require("./utils")
+{ deprecated } = require("./helpers")
 { Cache } = require("./cache")
 { Cookies } = require("./cookies")
 { EventEmitter } = require("events")
@@ -241,7 +241,6 @@ class Browser extends EventEmitter
     if !callback
       [callback, terminate] = [terminate, null]
     @_eventloop.wait @window, terminate, =>
-      @emit "done", this
       if callback
         callback null, this
     return
@@ -331,8 +330,7 @@ class Browser extends EventEmitter
   text: (selector, context)->
     if @document.documentElement
       return @queryAll(selector, context).map((e)-> e.textContent).join("")
-    else
-      return ""
+    return @source
 
   # ### browser.html(selector?, context?) => String
   #
@@ -345,8 +343,7 @@ class Browser extends EventEmitter
   html: (selector, context)->
     if @document.documentElement
       return @queryAll(selector, context).map((e)-> e.outerHTML.trim()).join("")
-    else
-      return ""
+    return @source
 
   # **Deprecated** please use `queryAll` instead.
   css: (selector, context)->

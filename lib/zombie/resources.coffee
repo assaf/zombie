@@ -141,7 +141,7 @@ class Resources extends Array
   # resource.  Initially the resource is null, but when following a
   # redirect this function is called again with a resource and
   # modifies it instead of recording a new one.
-  _makeRequest: (method, url, data, headers, resource, callback)=>
+  _makeRequest: (method, url, data, headers, resource, callback)->
     url = URL.parse(url)
     method = (method || "GET").toUpperCase()
 
@@ -290,14 +290,14 @@ class Resources extends Array
     return Object.prototype.toString.call(object)
 
   # We use this to convert data array/hash into application/x-www-form-urlencoded
-  stringifyPrimitive = (v) =>
+  stringifyPrimitive = (v)->
     switch typeOf(v)
       when '[object Boolean]' then v ? 'true' : 'false'
       when '[object Number]'  then isFinite(v) ? v : ''
       when '[object String]'  then v
       else ''
 
-  stringify = (object) =>
+  stringify = (object)->
     return object.toString() unless object.map
     object.map((k) ->
       if Array.isArray(k[1])
