@@ -43,7 +43,6 @@
     "websocket-client": "~1.0.0"
   },
   "devDependencies": {
-    "connect":          "~1.8.0",
     "docco":            "~0.3.0",
     "express":          "~2.5.1",
     "ronn":             "~0.3.8",
