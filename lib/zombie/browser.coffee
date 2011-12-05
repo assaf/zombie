@@ -3,6 +3,7 @@ html = jsdom.dom.level3.html
 require "./jsdom_patches"
 require "./forms"
 require "./xpath"
+{ deprecated } = require("./utils")
 { Cache } = require("./cache")
 { Cookies } = require("./cookies")
 { EventEmitter } = require("events")
@@ -278,6 +279,27 @@ class Browser extends EventEmitter
   # Accessors
   # ---------
 
+  # ### browser.queryAll(selector, context?) => Array
+  #
+  # Evaluates the CSS selector against the document (or context node) and return array of nodes.
+  # (Unlike `document.querySelectorAll` that returns a node list).
+  queryAll: (selector, context)->
+    context ||= @document
+    if selector
+      return context.querySelectorAll(selector).toArray()
+    else
+      return [context]
+
+  # ### browser.query(selector, context?) => Element
+  #
+  # Evaluates the CSS selector against the document (or context node) and return an element.
+  query: (selector, context)->
+    context ||= @document
+    if selector
+      context.querySelector(selector)
+    else
+      return context
+
   # ### browser.querySelector(selector) => Element
   #
   # Select a single element (first match) and return it.
@@ -308,7 +330,7 @@ class Browser extends EventEmitter
   # Returns a string
   text: (selector, context)->
     if @document.documentElement
-      return @css(selector, context).map((e)-> e.textContent).join("")
+      return @queryAll(selector, context).map((e)-> e.textContent).join("")
     else
       return ""
 
@@ -322,20 +344,14 @@ class Browser extends EventEmitter
   # Returns a string
   html: (selector, context)->
     if @document.documentElement
-      return @css(selector, context).map((e)-> e.outerHTML.trim()).join("")
+      return @queryAll(selector, context).map((e)-> e.outerHTML.trim()).join("")
     else
       return ""
 
-  # ### browser.css(selector, context?) => Array
-  #
-  # Evaluates the CSS selector against the document (or context node) and return array of nodes.  Shortcut for
-  # `document.querySelectorAll`.
+  # **Deprecated** please use `queryAll` instead.
   css: (selector, context)->
-    context ||= @document
-    if selector
-      return context.querySelectorAll(selector).toArray()
-    else
-      return [context]
+    deprecated "Browser.css is deprecated, please use browser.query and browser.queryAll instead."
+    return @queryAll(selector, context)
 
   # ### browser.xpath(expression, context?) => XPathResult
   #
@@ -360,7 +376,7 @@ class Browser extends EventEmitter
   #
   # Returns the status code of the request for loading the window.
   @prototype.__defineGetter__ "statusCode", ->
-    return @resources.first?.response?.statusCode
+    return @response[0]
 
   # ### browser.redirected => Boolean
   #
@@ -372,7 +388,7 @@ class Browser extends EventEmitter
   #
   # Returns the unmodified source of the document loaded by the browser
   @prototype.__defineGetter__ "source", ->
-    return @resources.first?.response?.body
+    return @response[2]
 
 
   # Navigation

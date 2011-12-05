@@ -75,11 +75,6 @@ used by jQuery.  You're probably familiar with it, if not, check the
 
 Returns the body element of the current document.
 
-### browser.css(selector, context?) => NodeList
-
-Evaluates the CSS selector against the document (or context node) and
-return a node list.  Shortcut for `document.querySelectorAll`.
-
 ### browser.document : Document
 
 Returns the main window's document.  Only valid after opening a document
@@ -107,6 +102,15 @@ evaluated against the element given as the context.
 For example:
 
     console.log(browser.html("#main"));
+
+### browser.queryAll(selector, context?) : Array
+
+Evaluates the CSS selector against the document (or context node) and return array of nodes.
+(Unlike `document.querySelectorAll` that returns a node list).
+
+### browser.query(selector, context?) : Element
+
+Evaluates the CSS selector against the document (or context node) and return an element.
 
 ### browser.querySelector(selector) : Element
 

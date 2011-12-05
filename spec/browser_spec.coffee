@@ -189,6 +189,18 @@ vows.describe("Browser").addBatch(
       browser = new Browser
       browser.wants "http://localhost:3003/browser/walking", @callback
 
+    "queryAll":
+      topic: (browser)->
+        browser.queryAll(".now")
+      "should return array of nodes": (nodes)->
+        assert.lengthOf nodes, 1
+
+    "query method":
+      topic: (browser)->
+        browser.query(".now")
+      "should return single node": (node)->
+        assert node.tagName
+
     "query text":
       topic: (browser)->
         browser

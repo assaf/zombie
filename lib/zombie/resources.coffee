@@ -223,9 +223,6 @@ class Resources extends Array
 
         error = null
         switch response.statusCode
-          when 200, 201, 202, 204
-            @_browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"
-            callback null, resource.response
           when 301, 302, 303, 307
             if response.headers["location"]
               redirect = URL.resolve(URL.format(url), response.headers["location"])
@@ -238,7 +235,8 @@ class Resources extends Array
             else
               error = new Error("Redirect with no Location header, cannot follow")
           else
-            error = new Error("Could not load resource at #{URL.format(url)}, got #{response.statusCode}")
+            @_browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"
+            callback null, resource.response
         # Fallback with error -> callback
         if error
           @_browser.log -> "Error loading #{URL.format(url)}: #{error.message}"
