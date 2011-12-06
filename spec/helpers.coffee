@@ -1,4 +1,6 @@
-#require.paths.unshift __dirname + "/../node_modules"
+# Formidable reads this
+process.env.TMP = "#{__dirname}/tmp"
+
 File = require("fs")
 Express = require("express")
 Zombie = require("../lib/zombie")

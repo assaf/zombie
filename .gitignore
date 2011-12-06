@@ -2,3 +2,4 @@ docs
 html
 man7
 node_modules
+spec/tmp/*
