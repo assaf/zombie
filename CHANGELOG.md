@@ -1,6 +1,10 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.11.9
+
+Log redirect and error responses in debug mode.
+
 
 ## Version 0.11.8 2011-12-04
 

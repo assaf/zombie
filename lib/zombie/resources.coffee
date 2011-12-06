@@ -226,6 +226,7 @@ class Resources extends Array
           when 301, 302, 303, 307
             if response.headers["location"]
               redirect = URL.resolve(URL.format(url), response.headers["location"])
+              @_browser.log -> "#{method} #{url.pathname} => #{redirect}"
               # Fail after fifth attempt to redirect, better than looping forever
               if (resource.redirects += 1) > 5
                 error = new Error("Too many redirects, from #{URL.format(url)} to #{redirect}")
@@ -246,7 +247,9 @@ class Resources extends Array
     
     client = (if secure then HTTPS else HTTP).request(request, response_handler)
     # Connection error wired directly to callback.
-    client.on "error", callback
+    client.on "error", (error)=>
+      @_browser.log -> "#{method} #{URL.format(url)} => #{error.message}"
+      callback error
 
     if method == "PUT" || method == "POST"
       # Construct body from request parameters.

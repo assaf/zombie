@@ -1,7 +1,7 @@
 try
-  Sys = require("util")
+  Util = require("util")
 catch e
-  Sys = require("sys")
+  Util = require("sys")
 
 Zombie = require("./browser")
 Browser = Zombie.Browser
@@ -51,9 +51,9 @@ listen = (port, callback)->
 console.depth = 0
 console.showHidden = false
 console.log = ->
-  formatted = ((if typeof arg == "string" then arg else Sys.inspect(arg, console.showHidden, console.depth)) for arg in arguments)
-  if typeof Sys.format == 'function'
-    process.stdout.write Sys.format.apply(this, formatted) + "\n"
+  formatted = ((if typeof arg == "string" then arg else Util.inspect(arg, console.showHidden, console.depth)) for arg in arguments)
+  if typeof Util.format == 'function'
+    process.stdout.write Util.format.apply(this, formatted) + "\n"
   else
     process.stdout.write formatted.join(" ") + "\n"
 
