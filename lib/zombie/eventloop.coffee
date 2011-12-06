@@ -84,7 +84,7 @@ class EventLoop
   # ### wait(window, duration, callback)
   #
   # Process all events from the queue.  This method returns immediately, events are processed in the background.  When
-  # all events are exhausted, it calls the callback with null, window.
+  # all events are exhausted, it calls the callback.
   #
   # This method will wait for any resources to load (XHR, script elements, iframes, etc).  DOM events are handled
   # synchronously, so will also wait for them.  With duration, it will wait for at least that time (in milliseconds).
@@ -97,8 +97,7 @@ class EventLoop
           @_waiting.push reduce
         else
           @_browser.emit "done", @_browser
-          process.nextTick ->
-            callback null, window
+          process.nextTick callback
       setTimeout reduce, duration
     else
       # No duration, determine latest we're going to wait for timers.
@@ -108,13 +107,14 @@ class EventLoop
           @_waiting.push reduce
         else
           # Run any timers scheduled before our give up (demise) time.
-          for timer in @_timers
-            if timer._fires && timer._fires < demise
-              setTimeout reduce, timer._fires - Date.now()
+          firing = (timer._fires for timer in @_timers when timer._fires)
+          if firing.length > 0
+            next = Math.min(firing...)
+            if next <= demise
+              setTimeout reduce, next - Date.now(), 10
               return
           @_browser.emit "done", @_browser
-          process.nextTick ->
-            callback null, window
+          process.nextTick callback
       process.nextTick reduce
     return
 

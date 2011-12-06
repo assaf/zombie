@@ -238,6 +238,7 @@ class Browser extends EventEmitter
     @_eventloop.wait @window, duration, =>
       if callback
         callback null, this
+    return
 
   # ### browser.fire(name, target, callback?)
   #
@@ -260,7 +261,10 @@ class Browser extends EventEmitter
         event[key] = value
 
     target.dispatchEvent event
-    @wait callback if callback
+    if callback
+      @wait null, callback
+    else
+      return this
 
 
   # Accessors
@@ -394,7 +398,7 @@ class Browser extends EventEmitter
         site = "http://#{site}" unless /^https?:/i.test(site)
         url = URL.resolve(site, URL.parse(URL.format(url)))
       @window.history._assign url
-      @wait (error, browser)=>
+      @wait null, (error, browser)=>
         reset_options()
         if callback
           callback error, browser, browser.statusCode, browser.errors
@@ -435,7 +439,7 @@ class Browser extends EventEmitter
       @fire "click", link, =>
         callback null, this, @statusCode
     else
-      callback new Error("No link matching '#{selector}'")
+      throw new Error("No link matching '#{selector}'")
 
   # ### browser.saveHistory() => String
   #
@@ -485,28 +489,34 @@ class Browser extends EventEmitter
   # selector - CSS selector, field name or text of the field label
   # value - Field value
   #
-  # Returns this
+  # Returns this (if no callback)
   fill: (selector, value, callback)->
     field = @field(selector)
     if field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT"))
-      throw new Error("This INPUT field is disabled") if field.getAttribute("input")
-      throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
+      if field.getAttribute("input")
+        throw new Error("This INPUT field is disabled")
+      if field.getAttribute("readonly")
+        throw new Error("This INPUT field is readonly")
       field.value = value
       @fire "change", field, callback
-      return this
+      unless callback
+        return this
     else
       throw new Error("No INPUT matching '#{selector}'")
 
   _setCheckbox: (selector, value, callback)->
     field = @field(selector)
     if field && field.tagName == "INPUT" && field.type == "checkbox"
-      throw new Error("This INPUT field is disabled") if field.getAttribute("input")
-      throw new Error("This INPUT field is readonly") if field.getAttribute("readonly")
+      if field.getAttribute("input")
+        throw new Error("This INPUT field is disabled")
+      if field.getAttribute("readonly")
+        throw new Error("This INPUT field is readonly")
       if field.checked ^ value
         @fire "click", field, callback
       else if callback
         callback null, false
-      return this
+      else
+        return this
     else
       throw new Error("No checkbox INPUT matching '#{selector}'")
 
@@ -536,7 +546,7 @@ class Browser extends EventEmitter
   #
   # selector - CSS selector, field value or text of the field label
   #
-  # Returns this
+  # Returns this (if no callback)
   choose: (selector, callback)->
     field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
     if field && field.tagName == "INPUT" && field.type == "radio" && field.form
@@ -549,15 +559,18 @@ class Browser extends EventEmitter
         @fire "change", field, callback
       else
         @fire "click", field, callback
-      return this
+      unless callback
+        return this
     else
       throw new Error("No radio INPUT matching '#{selector}'")
 
   _findOption: (selector, value)->
     field = @field(selector)
     if field && field.tagName == "SELECT"
-      throw new Error("This SELECT field is disabled") if field.getAttribute("disabled")
-      throw new Error("This SELECT field is readonly") if field.getAttribute("readonly")
+      if field.getAttribute("disabled")
+        throw new Error("This SELECT field is disabled")
+      if field.getAttribute("readonly")
+        throw new Error("This SELECT field is readonly")
       for option in field.options
         if option.value == value
           return option
@@ -576,7 +589,8 @@ class Browser extends EventEmitter
     if field && field.tagName == "INPUT" && field.type == "file"
       field.value = filename
       @fire "change", field, callback
-      return this
+      unless callback
+        return this
     else
       throw new Error("No file INPUT matching '#{selector}'")
 
@@ -587,11 +601,10 @@ class Browser extends EventEmitter
   # selector - CSS selector, field name or text of the field label
   # value - Value (or label) or option to select
   #
-  # Returns this
+  # Returns this (unless callback)
   select: (selector, value, callback)->
     option = @_findOption(selector, value)
     @selectOption option, callback
-    return this
 
   # ### browser.selectOption(option) => this
   #
@@ -599,7 +612,7 @@ class Browser extends EventEmitter
   #
   # option - option to select
   #
-  # Returns this
+  # Returns this (unless callback)
   selectOption: (option, callback)->
     if option && !option.getAttribute("selected")
       select = @xpath("./ancestor::select", option).value[0]
@@ -607,7 +620,8 @@ class Browser extends EventEmitter
       @fire "change", select, callback
     else if callback
       callback null, false
-    return this
+    else
+      return this
 
   # ### browser.unselect(selector, value) => this
   #
@@ -616,11 +630,10 @@ class Browser extends EventEmitter
   # selector - CSS selector, field name or text of the field label
   # value - Value (or label) or option to unselect
   #
-  # Returns this
+  # Returns this (unless callback)
   unselect: (selector, value, callback)->
     option = @_findOption(selector, value)
     @unselectOption option, callback
-    return this
 
   # ### browser.unselectOption(option) => this
   #
@@ -628,7 +641,7 @@ class Browser extends EventEmitter
   #
   # option - option to unselect
   #
-  # Returns this
+  # Returns this (unless callback)
   unselectOption: (option, callback)->
     if option && option.getAttribute("selected")
       select = @xpath("./ancestor::select", option).value[0]
@@ -638,7 +651,8 @@ class Browser extends EventEmitter
       @fire "change", select, callback
     else if callback
       callback null, false
-    return this
+    else
+      return this
 
   # ### browser.button(selector) : Element
   #
@@ -667,11 +681,11 @@ class Browser extends EventEmitter
   pressButton: (selector, callback)->
     if button = @button(selector)
       if button.getAttribute("disabled")
-        callback new Error("This button is disabled")
+        throw new Error("This button is disabled")
       else
         @fire "click", button, callback
     else
-      callback new Error("No BUTTON '#{selector}'")
+      throw new Error("No BUTTON '#{selector}'")
 
 
   # Cookies and storage
