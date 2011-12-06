@@ -1,6 +1,16 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.12.1 2011-12-06
+
+Added `browser.success`, returns true if status code is 2xx.
+
+Updated documentation to better reflect new API features and behaviors.  Catching up on the many changes since 0.11.
+
+    359 Tests
+    2.4 sec to complete
+
+
 ## Version 0.12.0 2011-12-06
 
 Zombie is now using real timers instead of the fake clock.  That means that a `setTimeout(fn, 5000)` will actually take
