@@ -4,11 +4,10 @@ zombie.js(1) -- Insanely fast, headless full-stack testing using Node.js
 
 ## The Bite
 
-If you're going to write an insanely fast, headless browser, how can you not
-call it Zombie?  Zombie it is.
+If you're going to write an insanely fast, headless browser, how can you not call it Zombie?  Zombie it is.
 
-Zombie.js is a lightweight framework for testing client-side JavaScript code in
-a simulated environment.  No browser required.
+Zombie.js is a lightweight framework for testing client-side JavaScript code in a simulated environment.  No browser
+required.
 
 Let's try to sign up to a page and see what happens:
 
@@ -38,12 +37,10 @@ Well, that was easy.
 
 To install Zombie.js you need Node.js, NPM, a C++ compiler and Python.
 
-On OS X start by installing XCode, or use the [OSX GCC
-installer](https://github.com/kennethreitz/osx-gcc-installer) (less to
-download).
+On OS X start by installing XCode, or use the [OSX GCC installer](https://github.com/kennethreitz/osx-gcc-installer)
+(less to download).
 
-Next, assuming you're using the mighty
-[Homebrew](http://mxcl.github.com/homebrew/):
+Next, assuming you're using the mighty [Homebrew](http://mxcl.github.com/homebrew/):
 
     $ brew install node
     $ node --version
@@ -66,73 +63,60 @@ On Ubuntu try these steps:
     $ npm install zombie
 
 On Windows you'll need Cygwin to get access to GCC, Python, etc.  [Read
-this](https://github.com/joyent/node/wiki/Building-node.js-on-Cygwin-(Windows))
-for detailed instructions and troubleshooting.
+this](https://github.com/joyent/node/wiki/Building-node.js-on-Cygwin-(Windows)) for detailed instructions and
+troubleshooting.
 
 
 ## Walking
 
-To start off we're going to need a browser.  A browser maintains state
-across requests: history, cookies, HTML 5 local and session stroage.  A
-browser has a main window, and typically a document loaded into that
-window.
+To start off we're going to need a browser.  A browser maintains state across requests: history, cookies, HTML 5 local
+and session stroage.  A browser has a main window, and typically a document loaded into that window.
 
-You can create a new `zombie.Browser` and point it at a document, either
-by setting the `location` property or calling its `visit` function.  As
-a shortcut, you can just call the `zombie.visit` function with a URL and
-callback.
+You can create a new `zombie.Browser` and point it at a document, either by setting the `location` property or calling
+its `visit` function.  As a shortcut, you can just call the `zombie.visit` function with a URL and callback.
 
-The browser will load the document and if the document includes any
-scripts, also load and execute these scripts.  It will then process some
-events, for example, anything your scripts do on page load.  All of
-that, just like a real browser, happens asynchronously.
+The browser will load the document and if the document includes any scripts, also load and execute these scripts.  It
+will then process some events, for example, anything your scripts do on page load.  All of that, just like a real
+browser, happens asynchronously.
 
-To wait for the page to fully load and all events to fire, you pass
-`visit` a callback function.  This function takes two arguments.  If
-everything is successful (page loaded, events run), the callback is
-called with `null` and a reference to the browser.
+To wait for the page to fully load and all events to fire, you pass `visit` a callback function.  If everything is
+successful (page loaded, events run), the callback is called with `null` and a reference to the browser.
 
-Most errors that occur – resource loading and JavaScript execution – are
-not fatal, so rather the stopping processing, they are collected in
-`browser.errors`.  The error list is passed to the callback as the
-fourth argument (the third argument is the status code).
+Most errors that occur – resource loading and JavaScript execution – are not fatal, so rather the stopping processing,
+they are collected in `browser.errors`.  The error list is passed to the callback as the fourth argument (the third
+argument is the status code).
 
-If you worked with Node.js before you're familiar with this callback
-pattern.  Every time you see a callback in the Zombie.js API, it works
-that way: the first argument is an error, or null if there is no error.
-And if there are no fatal errors, the remaining arguments may hold
-interesting values.
+If you worked with Node.js before you're familiar with this callback pattern.  Every time you see a callback in the
+Zombie.js API, it works that way: the first argument is an error, or null if there is no error.  And if there are no
+fatal errors, the remaining arguments may hold interesting values.
 
-Whenever you want to wait for all events to be processed, just call
-`browser.wait` with a callback.
+Whenever you want to wait for all events to be processed, just call `browser.wait` with a callback.  Zombie will
+automatically wait for timers that take under 100ms.  These are commonly used for yielding and to work around subtle
+timing issues.
+
+If you need to wait longer, e.g. for an animation or some other transition that can take a second or more, you can pass
+`wait` a time duration (in milliseconds) as the first argument.
 
 Read more [on the Browser API](api)
 
 
 ## Hunting
 
-There are several ways you can inspect the contents of a document.  For
-starters, there's the [DOM API](http://www.w3.org/DOM/DOMTR), which you
-can use to find elements and traverse the document tree.
+There are several ways you can inspect the contents of a document.  For starters, there's the [DOM
+API](http://www.w3.org/DOM/DOMTR), which you can use to find elements and traverse the document tree.
 
-You can also use CSS selectors to pick a specific element or node list.
-Zombie.js implements the [DOM Selector
-API](http://www.w3.org/TR/selectors-api/).  These functions are
-available from every element, the document, and the `Browser` object
-itself.
+You can also use CSS selectors to pick a specific element or node list.  Zombie.js implements the [DOM Selector
+API](http://www.w3.org/TR/selectors-api/).  These functions are available from every element, the document, and the
+`Browser` object itself.
 
-To get the HTML contents of an element, read its `innerHTML` property.
-If you want to include the element itself with its attributes, read the
-element's `outerHTML` property instead.  Alternatively, you can call the
-`browser.html` function with a CSS selector and optional context
-element.  If the function selects multiple elements, it will return the
-combined HTML of them all.
+To get the HTML contents of an element, read its `innerHTML` property.  If you want to include the element itself with
+its attributes, read the element's `outerHTML` property instead.  Alternatively, you can call the `browser.html`
+function with a CSS selector and optional context element.  If the function selects multiple elements, it will return
+the combined HTML of them all.
 
-To see the textual contents of an element, read its `textContent`
-property.  Alternatively, you can call the `browser.text` function with
-a CSS selector and optional context element.  If the function selects
-multiple elements, it will return the combined text contents of them
-all.
+To see the textual contents of an element, read its `textContent` property.  Alternatively, you can call the
+`browser.text` function with a CSS selector and optional context element.  If the function selects multiple elements, it
+will return the combined text contents of them all.
 
 Here are a few examples for checking the contents of a document:
 
@@ -151,31 +135,25 @@ Here are a few examples for checking the contents of a document:
     // Show me the contents of the parts table:
     console.log(browser.html("table.parts"));
 
-CSS selectors are implemented by Sizzle.js.  In addition to CSS 3
-selectors you get additional and quite useful extensions, such as
-`:not(selector)`, `[NAME!=VALUE]`, `:contains(TEXT)`, `:first/:last` and
-so forth.  Check out the [Sizzle.js
-documentation](https://github.com/jeresig/sizzle/wiki) for more details.
+CSS selectors are implemented by Sizzle.js.  In addition to CSS 3 selectors you get additional and quite useful
+extensions, such as `:not(selector)`, `[NAME!=VALUE]`, `:contains(TEXT)`, `:first/:last` and so forth.  Check out the
+[Sizzle.js documentation](https://github.com/jeresig/sizzle/wiki) for more details.
 
-Read more [on the Browser API](api) and [CSS
-selectors](selectors)
+Read more [on the Browser API](api) and [CSS selectors](selectors)
 
 
 
 ## Feeding
 
-You're going to want to perform some actions, like clicking links,
-entering text, submitting forms.  You can certainly do that using the
-[DOM API](http://www.w3.org/DOM/DOMTR), or several of the convenience
-functions we're going to cover next.
+You're going to want to perform some actions, like clicking links, entering text, submitting forms.  You can certainly
+do that using the [DOM API](http://www.w3.org/DOM/DOMTR), or several of the convenience functions we're going to cover
+  next.
 
-To click a link on the page, use `clickLink` with selector and callback.
-The first argument can be a CSS selector (see _Hunting_), the `A`
-element, or the text contents of the `A` element you want to click.
+To click a link on the page, use `clickLink` with selector and callback.  The first argument can be a CSS selector (see
+_Hunting_), the `A` element, or the text contents of the `A` element you want to click.
 
-The second argument is a callback, which much like the `visit` callback
-gets fired after all events are processed, with either an error, or
-`null`, the browser and the HTTP status code.
+The second argument is a callback, which much like the `visit` callback gets fired after all events are processed, with
+either an error, or `null`, the browser and the HTTP status code.
 
 Let's see that in action:
 
@@ -185,25 +163,20 @@ Let's see that in action:
       assert.equal(browser.querySelectorAll("#cart .body"), 3);
     });
 
-To submit a form, use `pressButton`.  The first argument can be a CSS
-selector, the button/input element. the button name (the value of the
-`name` argument) or the text that shows on the button.  You can press
-any `BUTTON` element or `INPUT` of type `submit`, `reset` or `button`.
-The second argument is a callback, just like `clickLink`.
+To submit a form, use `pressButton`.  The first argument can be a CSS selector, the button/input element. the button
+name (the value of the `name` argument) or the text that shows on the button.  You can press any `BUTTON` element or
+`INPUT` of type `submit`, `reset` or `button`.  The second argument is a callback, just like `clickLink`.
 
-Of course, before submitting a form, you'll need to fill it with values.
-For text fields, use the `fill` function, which takes two arguments:
-selector and the field value.  This time the selector can be a CSS
-selector, the input element, the field name (its `name` attribute), or
-the text that shows on the label associated with that field.
+Of course, before submitting a form, you'll need to fill it with values.  For text fields, use the `fill` function,
+which takes two arguments: selector and the field value.  This time the selector can be a CSS selector, the input
+element, the field name (its `name` attribute), or the text that shows on the label associated with that field.
 
-Zombie.js supports text fields, password fields, text areas, and also
-the new HTML 5 fields types like email, search and url.
+Zombie.js supports text fields, password fields, text areas, and also the new HTML 5 fields types like email, search and
+url.
 
-The `fill` function returns a reference to the browser, so you can chain
-several functions together.  Its sibling functions `check` and `uncheck`
-(for check boxes), `choose` (for radio buttons) and `select` (for drop
-downs) work the same way.
+The `fill` function returns a reference to the browser, so you can chain several functions together.  Its sibling
+functions `check` and `uncheck` (for check boxes), `choose` (for radio buttons) and `select` (for drop downs) work the
+same way.
 
 Let's combine all of that into one example:
 
@@ -231,7 +204,7 @@ Zombie.js supports the following:
 - CSS3 Selectors with [some extensions](http://sizzlejs.com/)
 - Cookies and [Web Storage](http://dev.w3.org/html5/webstorage/)
 - `XMLHttpRequest` in all its glory
-- `setTimeout`/`setInterval` and messing with the system clock
+- `setTimeout`/`setInterval`
 - `pushState`, `popstate` and `hashchange` events
 - Scripts that use `document.write`
 - `alert`, `confirm` and `prompt`
@@ -250,8 +223,7 @@ Zombie.js supports the following:
 
 ## Reporting Glitches
 
-**Step 1:** Run Zombie with debugging turned on, the trace will help
-figure out what it's doing. For example:
+**Step 1:** Run Zombie with debugging turned on, the trace will help figure out what it's doing. For example:
 
     var browser = new zombie.Browser({ debug: true });
     browser.visit("http://thedead", function(err, browser, status) {
@@ -260,14 +232,12 @@ figure out what it's doing. For example:
       ...
     });
 
-**Step 2:** Wait for it to finish processing, then dump the current
-browser state:
+**Step 2:** Wait for it to finish processing, then dump the current browser state:
 
    brower.dump();
 
-**Step 3:** If publicly available, include the URL of the page you're
-trying to access.  Even better, provide a test script I can run from the
-Node.js console (similar to step 1 above).
+**Step 3:** If publicly available, include the URL of the page you're trying to access.  Even better, provide a test
+script I can run from the Node.js console (similar to step 1 above).
 
 Read more [about troubleshooting](troubleshoot)
 
@@ -281,21 +251,17 @@ Read more [about troubleshooting](troubleshoot)
 * Make your changes
 * Send a pull request
 
-Read more [about the guts of Zombie.js](guts) and check out the
-outstanding [to-dos](todo).
+Read more [about the guts of Zombie.js](guts) and check out the outstanding [to-dos](todo).
 
-Follow announcements, ask questions on [the Google
-Group](https://groups.google.com/forum/?hl=en#!forum/zombie-js)
+Follow announcements, ask questions on [the Google Group](https://groups.google.com/forum/?hl=en#!forum/zombie-js)
 
-Get help on IRC: join [zombie.js on
-Freenode](irc://irc.freenode.net/zombie.js) or [web-based
+Get help on IRC: join [zombie.js on Freenode](irc://irc.freenode.net/zombie.js) or [web-based
 IRC](http://webchat.freenode.net/?channels=zombie-js)
 
 
 ## Brains
 
-Zombie.js is copyright of [Assaf Arkin](http://labnotes.org), released
-under the MIT License
+Zombie.js is copyright of [Assaf Arkin](http://labnotes.org), released under the MIT License
 
 Blood, sweat and tears of joy:
 
@@ -307,9 +273,7 @@ Blood, sweat and tears of joy:
 
 And all the fine people mentioned in [the changelog](changelog).
 
-Zombie.js is written in
-[CoffeeScript](http://jashkenas.github.com/coffee-script/) for
-[Node.js](http://nodejs.org/)
+Zombie.js is written in [CoffeeScript](http://jashkenas.github.com/coffee-script/) for [Node.js](http://nodejs.org/)
 
 DOM emulation by Elijah Insua's [JSDOM](http://jsdom.org/)
 

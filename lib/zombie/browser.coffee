@@ -216,11 +216,11 @@ class Browser extends EventEmitter
   # ### browser.wait(callback?)
   # ### browser.wait(duration, callback)
   #
-  # Waits for the browser to complete loading resources and processing JS events.  When done, calls the callback with
-  # null and browser.
+  # Waits for the browser to complete loading resources and processing JavaScript events.  When done, calls the callback
+  # with null and browser.
   #
-  # If you're testing any behavior that depends on timers, e.g. animations and transitions, you can tell `wait` to block
-  # for the specified duration (in milliseconds).
+  # If you're testing behavior that depends on timers, e.g. animations and transitions, you can tell `wait` to block for
+  # the specified duration (in milliseconds).  By default it will wait for timers under 100ms.
   #
   # You can also call this method with no arguments and simply listen to the `done` and `error` events.
   wait: (duration, callback)->
@@ -252,12 +252,6 @@ class Browser extends EventEmitter
 
     target.dispatchEvent event
     @wait callback if callback
-
-  # ### browser.now => Date
-  #
-  # The current system time according to the browser.
-  @prototype.__defineGetter__ "now", ->
-    return new Date()
 
 
   # Accessors

@@ -1,7 +1,14 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-## Version 0.11.9
+## Version 0.12.0
+
+Zombie is now using real timers instead of the fake clock.  That means that a `setTimeout(fn, 5000)` will actually take
+5 seconds to complete.
+
+The `wait` method will wait for short timers (under 100ms), which are quite common for yielding and working around
+subtle timing issues.  If you need to wait longer, e.g. animation or transition that takes seconds, you can call `wait`
+with a time duration as the first argument.
 
 Log redirect and error responses in debug mode.
 
