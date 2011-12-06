@@ -46,6 +46,7 @@ vows.describe("Browser").addBatch(
         "should have a parent": (browser)->
           assert.ok browser.window.parent
 
+
     "visit":
       "successful":
         topic: ->
@@ -153,7 +154,6 @@ vows.describe("Browser").addBatch(
         "should fire onerror event": (err)->
           assert.ok err.message && err.stack
           assert.equal err.message, "Cannot read property 'wrong' of undefined"
-
 
     "source":
       Zombie.wants "http://localhost:3003/browser/scripted"
@@ -522,5 +522,6 @@ vows.describe("Browser").addBatch(
       assert.equal iframe.parent, browser.window.top
     "should not alter the parent": (browser, iframe)->
       assert.equal "http://localhost:3003/iframe", browser.window.location
+
 
 ).export(module)

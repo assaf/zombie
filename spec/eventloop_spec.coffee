@@ -17,49 +17,41 @@ vows.describe("EventLoop").addBatch(
     "no wait":
       Zombie.wants "http://localhost:3003/eventloop/timeout"
         topic: (browser)->
-          browser.clock = 0
           browser.window.setTimeout ->
             @document.title += " Two"
-          , 1000
+          , 100
           @callback null, browser
         "should not fire any timeout events": (browser)->
           assert.equal browser.document.title, "One"
-        "should not change clock": (browser) ->
-          assert.equal browser.clock, 0
 
     "wait for all":
       Zombie.wants "http://localhost:3003/eventloop/timeout"
         topic: (browser)->
-          browser.clock = 0
           browser.window.setTimeout ->
             @document.title += " Two"
-          , 3000
+          , 100
           browser.window.setTimeout ->
             @document.title += " Three"
-          , 5000
-          browser.wait @callback
+          , 200
+          browser.wait 200, @callback
         "should fire all timeout events": (browser)->
           assert.equal browser.document.title, "One Two Three"
-        "should move clock forward": (browser) ->
-          assert.equal browser.clock, 5000
 
     "cancel timeout":
       Zombie.wants "http://localhost:3003/eventloop/timeout"
         topic: (browser)->
-          browser.clock = 0
           first = browser.window.setTimeout ->
             @document.title += " Two"
-          , 3000
+          , 100
           second = browser.window.setTimeout ->
             @document.title += " Three"
-          , 5000
-          terminate = ->
+          , 200
+          setTimeout ->
             browser.window.clearTimeout second
-            false
-          browser.wait terminate, @callback
+          , 100
+          browser.wait 300, @callback
         "should fire only uncancelled timeout events": (browser)->
           assert.equal browser.document.title, "One Two"
-          assert.equal browser.clock, 3000
 
 
   "setInterval":
@@ -75,55 +67,43 @@ vows.describe("EventLoop").addBatch(
     "no wait":
       Zombie.wants "http://localhost:3003/eventloop/interval"
         topic: (browser)->
-          browser.clock = 0
           browser.window.setInterval ->
             @document.title += "."
-          , 1000
+          , 100
           @callback null, browser
         "should not fire any timeout events": (browser)->
           assert.equal browser.document.title, ""
-        "should not change clock": (browser) ->
-          assert.equal browser.clock, 0
 
     "wait once":
       Zombie.wants "http://localhost:3003/eventloop/interval"
         topic: (browser)->
-          browser.clock = 0
           browser.window.setInterval ->
             @document.title += "."
-          , 1000
-          browser.wait @callback
+          , 100
+          browser.wait 150, @callback
         "should fire interval event once": (browser)->
           assert.equal browser.document.title, "."
-          assert.equal browser.clock, 1000
 
-    "wait three times":
+    "wait long enough":
       Zombie.wants "http://localhost:3003/eventloop/interval"
         topic: (browser)->
-          browser.clock = 0
           browser.window.setInterval ->
             @document.title += "."
-          , 1000
-          browser.wait 5, =>
-            browser.wait =>
-              browser.wait @callback
+          , 100
+          browser.wait 350, @callback
         "should fire five interval event": (browser)->
           assert.equal browser.document.title, "..."
-        "should move clock forward": (browser) ->
-          assert.equal browser.clock, 3000
 
     "cancel interval":
       Zombie.wants "http://localhost:3003/eventloop/interval"
         topic: (browser)->
-          browser.clock = 0
           interval = browser.window.setInterval ->
             @document.title += "."
-          , 1000
-          browser.wait  =>
+          , 100
+          browser.wait 150, =>
             browser.window.clearInterval interval
-            browser.wait @callback
+            browser.wait 200, @callback
         "should fire only uncancelled interval events": (browser)->
           assert.equal browser.document.title, "."
-          assert.equal browser.clock, 1000
 
 ).export(module)

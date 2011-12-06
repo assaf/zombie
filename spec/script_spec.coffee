@@ -85,7 +85,7 @@ vows.describe("Scripts").addBatch(
             <script>document.title = this.foo</script>
             <script>setTimeout(function() {
               document.title = foo + window.foo
-            })</script>
+            });</script>
           </html>
           """
         browser = new Browser

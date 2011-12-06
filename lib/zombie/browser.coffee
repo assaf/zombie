@@ -1,8 +1,7 @@
-jsdom = require("jsdom")
-html = jsdom.dom.level3.html
 require "./jsdom_patches"
 require "./forms"
 require "./xpath"
+
 { deprecated } = require("./helpers")
 { Cache } = require("./cache")
 { Cookies } = require("./cookies")
@@ -11,13 +10,15 @@ require "./xpath"
 { History } = require("./history")
 { HTML5 } = require("html5")
 Interact = require("./interact")
+JSDom = require("jsdom")
 { Resources } = require("./resources")
 { Storages } = require("./storage")
-Url = require("url")
+URL = require("url")
 WebSocket = require("./websocket")
-Xhr = require("./xhr")
+XHR = require("./xhr")
 
 
+HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "runScripts", "site", "userAgent"]
 
@@ -36,7 +37,7 @@ class Browser extends EventEmitter
     @_eventloop = new EventLoop(this)
     @_storages = new Storages()
     @_interact = Interact.use(this)
-    @_xhr = Xhr.use(@_cache)
+    @_xhr = XHR.use(@_cache)
     @_ws = WebSocket.use(this)
     @resources = new Resources(this)
 
@@ -107,14 +108,6 @@ class Browser extends EventEmitter
         else
           throw "I don't recognize the option #{k}"
 
-    # ### browser.clock => Number
-    #
-    # The current system time according to the browser (see also `browser.clock`).
-    #
-    # You can change this to advance the system clock during tests.  It will also advance when handling timeout/interval
-    # events.
-    @clock = Date.now()
-
     # ### browser.errors => Array
     #
     # Returns all errors reported while loading this window.
@@ -157,7 +150,7 @@ class Browser extends EventEmitter
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
     # Add context for evaluating scripts.
-    newWindow = jsdom.createWindow(html)
+    newWindow = JSDom.createWindow(HTML)
     Object.defineProperty newWindow, "browser", value: this
 
     # Evaulate in context of window. This can be called with a script (String) or a function.
@@ -198,12 +191,12 @@ class Browser extends EventEmitter
     newWindow.screen = new Screen()
     newWindow.JSON = JSON
     newWindow.Image = (width, height)->
-      img = new html.HTMLImageElement(newWindow.document)
+      img = new HTML.HTMLImageElement(newWindow.document)
       img.width = width
       img.height = height
       return img
     newWindow.console = console
-    
+
     # Default onerror handler.
     newWindow.onerror = (event)=>
       error = event.error || new Error("Error loading script")
@@ -221,29 +214,21 @@ class Browser extends EventEmitter
   # ------
 
   # ### browser.wait(callback?)
-  # ### browser.wait(terminator, callback)
+  # ### browser.wait(duration, callback)
   #
-  # Process all events from the queue. This method returns immediately, events are processed in the background. When all
-  # events are exhausted, it calls the callback with `null, browser`.
+  # Waits for the browser to complete loading resources and processing JS events.  When done, calls the callback with
+  # null and browser.
   #
-  # With one argument, that argument is the callback. With two arguments, the first argument is a terminator and the
-  # last argument is the callback. The terminator is one of:
+  # If you're testing any behavior that depends on timers, e.g. animations and transitions, you can tell `wait` to block
+  # for the specified duration (in milliseconds).
   #
-  # null - process all events
-  # number - process that number of events
-  # function - called after each event, stop processing when function returns false
-  #
-  # You can call this method with no arguments and simply listen to the `done`
-  # and `error` events.  Note that resource and JavaScript errors are colleced in `browser.errors`.
-  #
-  # Events include timeout, interval and XHR `onreadystatechange`. DOM events are handled synchronously.
-  wait: (terminate, callback)->
-    if !callback
-      [callback, terminate] = [terminate, null]
-    @_eventloop.wait @window, terminate, =>
+  # You can also call this method with no arguments and simply listen to the `done` and `error` events.
+  wait: (duration, callback)->
+    if !callback && typeof duration == "function"
+      [callback, duration] = [duration, null]
+    @_eventloop.wait @window, duration, =>
       if callback
         callback null, this
-    return
 
   # ### browser.fire(name, target, callback?)
   #
@@ -270,9 +255,9 @@ class Browser extends EventEmitter
 
   # ### browser.now => Date
   #
-  # The current system time according to the browser (see also `browser.clock`).
+  # The current system time according to the browser.
   @prototype.__defineGetter__ "now", ->
-    return new Date(@clock)
+    return new Date()
 
 
   # Accessors
@@ -401,15 +386,15 @@ class Browser extends EventEmitter
   visit: (url, options, callback)->
     if typeof options is "function"
       [callback, options] = [options, null]
-    @withOptions options, (reset)=>
+    @withOptions options, (reset_options)=>
       if site = @site
         site = "http://#{site}" unless /^https?:/i.test(site)
-        url = Url.resolve(site, Url.parse(Url.format(url)))
+        url = URL.resolve(site, URL.parse(URL.format(url)))
       @window.history._assign url
       @wait (error, browser)=>
-        reset()
+        reset_options()
         if callback
-          callback error, this, @statusCode, @errors
+          callback error, browser, browser.statusCode, browser.errors
     return
 
   # ### browser.location => Location
@@ -472,7 +457,7 @@ class Browser extends EventEmitter
   # spaces).
   field: (selector)->
     # If the field has already been queried, return itself
-    if selector instanceof html.Element
+    if selector instanceof HTML.Element
       return selector
     # Try more specific selector first.
     if field = @querySelector(selector)

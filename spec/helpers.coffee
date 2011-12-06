@@ -20,7 +20,8 @@ brains.get "/", (req, res)->
 # messages for debugging.
 brains.get "/sammy.js", (req, res)->
   File.readFile "#{__dirname}/scripts/sammy.js", (err, data)->
-    data = data + ";window.Sammy.log = function() {}"
+    unless process.env.DEBUG
+      data = data + ";window.Sammy.log = function() {}"
     res.send data
 
 brains.get "/jquery.js", (req, res)->
@@ -70,7 +71,7 @@ Browser.prototype.wants = (url, options, callback)->
   brains.ready =>
     options.debug = debug
     @visit url, options, (err, browser)=>
-      callback err, this if callback
+      callback err, browser if callback
   return
 
 
