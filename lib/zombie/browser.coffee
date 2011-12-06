@@ -225,13 +225,13 @@ class Browser extends EventEmitter
   # Waits for the browser to complete loading resources and processing JavaScript events.  When done, calls the callback
   # with null and browser.
   #
-  # This method will wait for timers (`setTimeout`) that execute in the first `waitFor` milliseconds (default to 5
-  # seconds).  This captures most UI and asynchronous behavior.
+  # With `duration` as the first argument, this method waits for the specified time (in milliseconds) and any
+  # resource/JavaScript to complete processing.
   #
-  # You can also pass a duration as the first argument.  This will wait for at least that many milliseconds, and then
-  # for any pending resource/JavaScript processing.  This may be helpful if you need to deal with intervals.
+  # Without duration, Zombie makes best judgement by waiting up to 5 seconds for the page to load resources (scripts,
+  # XHR requests, iframes), process DOM events, and fire timeouts events.
   #
-  # You can also call this method with no arguments and simply listen to the `done` and `error` events.
+  # You can also call `wait` with no callback and simply listen to the `done` and `error` events getting fired.
   wait: (duration, callback)->
     if !callback && typeof duration == "function"
       [callback, duration] = [duration, null]
@@ -367,6 +367,12 @@ class Browser extends EventEmitter
   @prototype.__defineGetter__ "statusCode", ->
     return @response[0]
 
+  # ### browser.success => Boolean
+  #
+  # True if the status code is 2xx.
+  @prototype.__defineGetter__ "success", ->
+    return @statusCode >= 200 && @statusCode < 300
+
   # ### browser.redirected => Boolean
   #
   # Returns true if the request for loading the window followed a redirect.
@@ -482,14 +488,14 @@ class Browser extends EventEmitter
           return label.querySelector(":input")
     return
 
-  # ### browser.fill(selector, value) => this
+  # ### browser.fill(selector, value, callback) => this
   #
   # Fill in a field: input field or text area.
   #
   # selector - CSS selector, field name or text of the field label
   # value - Field value
   #
-  # Returns this (if no callback)
+  # Without callback, returns this.
   fill: (selector, value, callback)->
     field = @field(selector)
     if field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT"))
@@ -520,33 +526,33 @@ class Browser extends EventEmitter
     else
       throw new Error("No checkbox INPUT matching '#{selector}'")
 
-  # ### browser.check(selector) => this
+  # ### browser.check(selector, callback) => this
   #
   # Checks a checkbox.
   #
   # selector - CSS selector, field name or text of the field label
   #
-  # Returns this
+  # Without callback, returns this.
   check: (selector, callback)->
     @_setCheckbox selector, true, callback
 
-  # ### browser.uncheck(selector) => this
+  # ### browser.uncheck(selector, callback) => this
   #
   # Unchecks a checkbox.
   #
   # selector - CSS selector, field name or text of the field label
   #
-  # Returns this
+  # Without callback, returns this.
   uncheck: (selector, callback)->
     @_setCheckbox selector, false, callback
 
-  # ### browser.choose(selector) => this
+  # ### browser.choose(selector, callback) => this
   #
   # Selects a radio box option.
   #
   # selector - CSS selector, field value or text of the field label
   #
-  # Returns this (if no callback)
+  # Without callback, returns this.
   choose: (selector, callback)->
     field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
     if field && field.tagName == "INPUT" && field.type == "radio" && field.form
@@ -581,9 +587,11 @@ class Browser extends EventEmitter
     else
       throw new Error("No SELECT matching '#{selector}'")
 
-  # ### browser.attach(selector, filename) => this
+  # ### browser.attach(selector, filename, callback) => this
   #
   # Attaches a file to the specified input field.  The second argument is the file name.
+  #
+  # Without callback, returns this.
   attach: (selector, filename, callback)->
     field = @field(selector)
     if field && field.tagName == "INPUT" && field.type == "file"
@@ -594,25 +602,25 @@ class Browser extends EventEmitter
     else
       throw new Error("No file INPUT matching '#{selector}'")
 
-  # ### browser.select(selector, value) => this
+  # ### browser.select(selector, value, callback) => this
   #
   # Selects an option.
   #
   # selector - CSS selector, field name or text of the field label
   # value - Value (or label) or option to select
   #
-  # Returns this (unless callback)
+  # Without callback, returns this.
   select: (selector, value, callback)->
     option = @_findOption(selector, value)
     @selectOption option, callback
 
-  # ### browser.selectOption(option) => this
+  # ### browser.selectOption(option, callback) => this
   #
   # Selects an option.
   #
   # option - option to select
   #
-  # Returns this (unless callback)
+  # Without callback, returns this.
   selectOption: (option, callback)->
     if option && !option.getAttribute("selected")
       select = @xpath("./ancestor::select", option).value[0]
@@ -623,25 +631,25 @@ class Browser extends EventEmitter
     else
       return this
 
-  # ### browser.unselect(selector, value) => this
+  # ### browser.unselect(selector, value, callback) => this
   #
   # Unselects an option.
   #
   # selector - CSS selector, field name or text of the field label
   # value - Value (or label) or option to unselect
   #
-  # Returns this (unless callback)
+  # Without callback, returns this.
   unselect: (selector, value, callback)->
     option = @_findOption(selector, value)
     @unselectOption option, callback
 
-  # ### browser.unselectOption(option) => this
+  # ### browser.unselectOption(option, callback) => this
   #
   # Unselects an option.
   #
   # option - option to unselect
   #
-  # Returns this (unless callback)
+  # Without callback, returns this.
   unselectOption: (option, callback)->
     if option && option.getAttribute("selected")
       select = @xpath("./ancestor::select", option).value[0]
@@ -677,7 +685,7 @@ class Browser extends EventEmitter
   # to wait for the from submission, page to load and all events run their course.
   #
   # selector - CSS selector, button name or text of BUTTON element
-  # callback - Called with two arguments: error and browser
+  # callback - Called with two arguments: null and browser
   pressButton: (selector, callback)->
     if button = @button(selector)
       if button.getAttribute("disabled")

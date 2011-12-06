@@ -43,6 +43,10 @@ vows.describe("Browser").addBatch(
           assert.equal browser.document.title, "Awesome"
         "should return status code of last request": (browser)->
           assert.equal browser.statusCode, 200
+        "should indicate success": (browser)->
+          assert.ok browser.success
+        "should indicate success": (browser)->
+          assert.ok browser.success
         "should have a parent": (browser)->
           assert.ok browser.window.parent
 
@@ -59,6 +63,8 @@ vows.describe("Browser").addBatch(
           assert.instanceOf browser, Browser
         "should pass status code to callback": (_, browser, status, errors)->
           assert.equal status, 200
+        "should indicate success": (browser)->
+          assert.ok browser.success
         "should pass zero errors to callback": (_, browser, status, errors)->
           assert.lengthOf errors, 0
         "should reset browser errors": (_, browser, status, errors)->
@@ -71,6 +77,8 @@ vows.describe("Browser").addBatch(
             browser.visit "http://localhost:3003/browser/errored", @callback
         "should call callback without error": ->
           assert.ok true
+        "should indicate success": (browser)->
+          assert.ok browser.success
         "should pass errors to callback": (_, browser, status, errors)->
           assert.lengthOf errors, 1
           assert.equal errors[0].message, "Cannot read property 'wrong' of undefined"
@@ -87,6 +95,8 @@ vows.describe("Browser").addBatch(
           assert.ok true
         "should return status code": (_, browser, status)->
           assert.equal status, 404
+        "should not indicate success": (browser)->
+          assert.ok !browser.success
         "should capture response document": (browser)->
           assert.equal browser.source, "Cannot GET /browser/missing" # Express output
         "should return response document form text method": (browser)->
@@ -105,6 +115,8 @@ vows.describe("Browser").addBatch(
           assert.ok true
         "should return status code": (_, browser, status)->
           assert.equal status, 500
+        "should not indicate success": (browser)->
+          assert.ok !browser.success
         "should capture response document": (browser)->
           assert.equal browser.source, "Ooops, something went wrong"
         "should return response document form text method": (browser)->
@@ -120,6 +132,8 @@ vows.describe("Browser").addBatch(
           browser.wants "http://localhost:3003/browser/empty", @callback
         "should load document": (browser)->
           assert.ok browser.body
+        "should indicate success": (browser)->
+          assert.ok browser.success
 
 
     "event emitter":
