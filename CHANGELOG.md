@@ -1,7 +1,7 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-## Version 0.12.0 2011-12-05
+## Version 0.12.0 2011-12-06
 
 Zombie is now using real timers instead of the fake clock.  That means that a `setTimeout(fn, 5000)` will actually take
 5 seconds to complete.
