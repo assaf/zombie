@@ -14,6 +14,13 @@ You can pass options when initializing a new browser, or set them on an existing
     browser = new zombie.Browser({ debug: true })
     browser.runScripts = false
 
+Alternatively:
+
+    zombie.visit("http://localhost:3000/", { debug: true, runScripts: false },
+                 function (e, browser, status) {
+      ...
+    });
+
 
 ### Browser Options
 
@@ -40,6 +47,10 @@ Opens a new browser window.
 ### browser.window : Window
 
 Returns the main window.  A browser always has one window open.
+
+### browser.error : Error
+
+Returns the last error reported while loading this window.
 
 ### browser.errors : Array
 
@@ -103,15 +114,6 @@ Evaluates the CSS selector against the document (or context node) and return arr
 
 Evaluates the CSS selector against the document (or context node) and return an element.
 
-### browser.querySelector(selector) : Element
-
-Select a single element (first match) and return it.  This is a shortcut that calls `querySelector` on the document.
-
-### browser.querySelectorAll(selector) : NodeList
-
-Select multiple elements and return a static node list.  This is a shortcut that calls `querySelectorAll` on the
-document.
-
 ### browser.text(selector, context?) : String
 
 Returns the text contents of the selected elements.
@@ -148,8 +150,8 @@ browser would.  However, event handlers may intercept the event and do other thi
 
 For example:
 
-    browser.clickLink("View Cart", function(err, browser, status) {
-      assert.equal(browser.querySelectorAll("#cart .body"), 3);
+    browser.clickLink("View Cart", function(e, browser, status) {
+      assert.lengthOf(browser.queryAll("#cart .body"), 3);
     });
 
 
@@ -168,7 +170,7 @@ Changes document location, loading a new document if necessary (same as setting 
 if you just need to change the hash (Zombie.js will fire a `hashchange` event), for example:
 
     browser.location = "#bang";
-    browser.wait(function(err, browser) {
+    browser.wait(function(e, browser) {
       // Fired hashchange event and did something cool.
       ...
     });
@@ -176,6 +178,10 @@ if you just need to change the hash (Zombie.js will fire a `hashchange` event), 
 ### browser.statusCode : Number
 
 Returns the status code returned for this page request (200, 303, etc).
+
+### browser.success : Boolean
+
+Returns true if the status code is 2xx.
 
 ### browser.visit(url, callback)
 ### browser.visit(url, options, callback)
@@ -186,7 +192,7 @@ In the second form, sets the options for the duration of the request, and resets
 For example:
 
     browser.visit("http://localhost:3000", { debug: true },
-      function(err, browser, status) {
+      function(e, browser, status) {
         console.log("The page:", browser.html());
       }
     );
@@ -212,21 +218,23 @@ If there are no event handlers, Zombie.js will submit the form just like a brows
 If there are event handlers, they will all be run before transferring control to the callback function.  Zombie.js can
 even support jQuery live event handlers.
 
-### browser.attach(selector, filename) : this
+### browser.attach(selector, filename, callback) : this
 
 Attaches a file to the specified input field.  The second argument is the file name (you cannot attach streams).
 
-### browser.check(field) : this
+Without callback, returns this.
+
+### browser.check(field, callback) : this
  
 Checks a checkbox.  The argument can be the field name, label text or a CSS selector.
 
-Returns itself.
+Without callback, returns this.
 
-### browser.choose(field) : this
+### browser.choose(field, callback) : this
 
 Selects a radio box option.  The argument can be the field name, label text or a CSS selector.
 
-Returns itself.
+Without callback, returns this.
 
 ### browser.field(selector) : Element
 
@@ -234,7 +242,7 @@ Find and return an input field (`INPUT`, `TEXTAREA` or `SELECT`) based on a CSS 
 attribute) or the text value of a label associated with that field (case sensitive, but ignores leading/trailing
 spaces).
 
-### browser.fill(field, value) : this
+### browser.fill(field, value, callback) : this
 
 Fill in a field: input field or text area.  The first argument can be the field name, label text or a CSS selector.  The
 second argument is the field value.
@@ -243,7 +251,7 @@ For example:
 
     browser.fill("Name", "ArmBiter").fill("Password", "Brains...")
 
-Returns itself.
+Without callback, returns this.
 
 ### browser.button(selector) : Element
 
@@ -260,13 +268,13 @@ the button is pressed, form submitted and all events allowed to run their course
 For example:
 
     browser.fill("email", "zombie@underworld.dead").
-      pressButton("Sign me Up", function(err) {
+      pressButton("Sign me Up", function() {
         // All signed up, now what?
       });
 
 Returns nothing.
 
-### browser.select(field, value) : this
+### browser.select(field, value, callback) : this
  
 Selects an option.  The first argument can be the field name, label text or a CSS selector.  The second value is the
 option to select, by value or label.
@@ -277,28 +285,34 @@ For example:
 
 See also `selectOption`.
 
-Returns itself.
+Without callback, returns this.
 
-### browser.selectOption(option) : this
+### browser.selectOption(option, callback) : this
 
-Selects the option (an `OPTION` element) and returns itself.
+Selects the option (an `OPTION` element).
 
-### browser.uncheck(field) : this
+Without callback, returns this.
+
+### browser.uncheck(field, callback) : this
 
 Unchecks a checkbox.  The argument can be the field name, label text or a CSS selector.
 
-### browser.unselect(field, value) : this
+Without callback, returns this.
+
+### browser.unselect(field, value, callback) : this
  
 Unselects an option.  The first argument can be the field name, label text or a CSS selector.  The second value is the
 option to unselect, by value or label.
 
 You can use this (or `unselectOption`) when dealing with multiple selection.
 
-Returns itself.
+Without callback, returns this.
 
-### browser.unselectOption(option) : this
+### browser.unselectOption(option, callback) : this
 
-Unselects the option (an `OPTION` element) and returns itself.
+Unselects the option (an `OPTION` element).
+
+Without callback, returns this.
 
 
 ## State Management
@@ -421,7 +435,7 @@ events.
 
 ### browser.fire(name, target, calback?)
 
-Fires a DOM event.  You can use this to simulate a DOM event, e.g.  clicking a link or clicking the mouse.  These events
+Fires a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link or clicking the mouse.  These events
 will bubble up and can be cancelled.
 
 The first argument it the event name (e.g. `click`), the second argument is the target element of the event.  With a
@@ -433,28 +447,28 @@ callback, this method will transfer control to the callback after running all ev
 Waits for the browser to complete loading resources and processing JavaScript events.  When done, calls the callback
 with null and browser.
 
-This method will wait for timers (`setTimeout`) that execute in the first `waitFor` milliseconds (default to 5 seconds).
-This captures most UI and asynchronous behavior.
+With `duration` as the first argument, this method waits for the specified time (in milliseconds) and any
+resource/JavaScript to complete processing.
 
-You can also pass a duration as the first argument.  This will wait for at least that many milliseconds, and then for
-any pending resource/JavaScript processing.  This may be helpful if you need to deal with intervals.
+Without duration, Zombie makes best judgement by waiting up to 5 seconds for the page to load resources (scripts, XHR
+requests, iframes), process DOM events, and fire timeouts events.
 
-You can also call this method with no arguments and simply listen to the `done` and `error` events.
+You can also call `wait` with no callback and simply listen to the `done` and `error` events getting fired.
 
 ### Event: 'done'
 `function (browser) { }`
 
 Emitted whenever the event queue goes back to empty.
 
-### Event: 'loaded'
-`function (browser) { }`
-
-Emitted whenever new page loaded.  This event is emitted before `DOMContentLoaded`.
-
 ### Event: 'error'
 `function (error) { }`
 
 Emitted if an error occurred loading a page or submitting a form.
+
+### Event: 'loaded'
+`function (browser) { }`
+
+Emitted whenever new page loaded.  This event is emitted before `DOMContentLoaded`.
 
 
 ## Debugging

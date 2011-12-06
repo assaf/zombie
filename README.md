@@ -15,15 +15,16 @@ Let's try to sign up to a page and see what happens:
     var assert = require("assert");
 
     // Load the page from localhost
-    zombie.visit("http://localhost:3000/", function (err, browser, status) {
+    zombie.visit("http://localhost:3000/", function (e, browser, status) {
 
       // Fill email, password and submit form
       browser.
         fill("email", "zombie@underworld.dead").
         fill("password", "eat-the-living").
-        pressButton("Sign Me Up!", function(err, browser, status) {
+        pressButton("Sign Me Up!", function(e, browser, status) {
 
           // Form submitted, new page loaded.
+          assert.equal(status, 200);
           assert.equal(browser.text("title"), "Welcome To Brains Depot");
 
         })
@@ -60,7 +61,7 @@ On Ubuntu try these steps:
     v0.6.2
     $ npm --version
     1.0.106
-    $ npm install zombie
+    $ npm install z")bie
 
 On Windows you'll need Cygwin to get access to GCC, Python, etc.  [Read
 this](https://github.com/joyent/node/wiki/Building-node.js-on-Cygwin-(Windows)) for detailed instructions and
@@ -70,7 +71,7 @@ troubleshooting.
 ## Walking
 
 To start off we're going to need a browser.  A browser maintains state across requests: history, cookies, HTML 5 local
-and session stroage.  A browser has a main window, and typically a document loaded into that window.
+and session stroage, etc.  A browser has a main window, and typically a document loaded into that window.
 
 You can create a new `zombie.Browser` and point it at a document, either by setting the `location` property or calling
 its `visit` function.  As a shortcut, you can just call the `zombie.visit` function with a URL and callback.
@@ -79,23 +80,31 @@ The browser will load the document and if the document includes any scripts, als
 will then process some events, for example, anything your scripts do on page load.  All of that, just like a real
 browser, happens asynchronously.
 
-To wait for the page to fully load and all events to fire, you pass `visit` a callback function.  If everything is
-successful (page loaded, events run), the callback is called with `null` and a reference to the browser.
+To wait for the page to fully load and process events, you pass `visit` a callback function.  Zombie will then call your
+callback with `null`, the browser object, the status code of the last response, and an array of errors (hopefully
+empty).  This is JavaScript, so you don't need to declare all these arguments, and in fact can access them as
+`browser.statusCode` and `browser.errors`.
+
+(Why would the first callback argument be `null`?  It works great when using asynchronous testing frameworks like
+[Vows.js](http://vowsjs.org/))
+
 
 Most errors that occur – resource loading and JavaScript execution – are not fatal, so rather the stopping processing,
-they are collected in `browser.errors`.  The error list is passed to the callback as the fourth argument (the third
-argument is the status code).
+they are collected in `browser.errors`.  As a convenience, you can get the last error by calling `browser.error`, for
+example:
 
-If you worked with Node.js before you're familiar with this callback pattern.  Every time you see a callback in the
-Zombie.js API, it works that way: the first argument is an error, or null if there is no error.  And if there are no
-fatal errors, the remaining arguments may hold interesting values.
+    browser.visit("http://localhost:3000/", function () {
+      assert.equal(browser.success, "Expected status code to be 2xx");
+      if (browser.error )
+        console.dir("Errors reported:", browser.errors);
+    })
 
-Whenever you want to wait for all events to be processed, just call `browser.wait` with a callback.  Zombie will
-automatically wait for timers that take under 100ms.  These are commonly used for yielding and to work around subtle
-timing issues.
+Whenever you want to wait for all events to be processed, just call `browser.wait` with a callback.  If you know how
+long the wait is (e.g. animation or page transition), you can pass a duration (in milliseconds) as the first argument.
 
-If you need to wait longer, e.g. for an animation or some other transition that can take a second or more, you can pass
-`wait` a time duration (in milliseconds) as the first argument.
+Otherwise, Zombie makes best judgement by waiting up to 5 seconds for the page to load resources (scripts, XHR requests,
+iframes), process DOM events, and fire timeouts events.  It is quite common for pages to fire timeout events as they
+load, e.g. jQuery's `onready`.  Usually these events delay the test by no more than a few milliseconds.
 
 Read more [on the Browser API](api)
 
@@ -121,10 +130,10 @@ will return the combined text contents of them all.
 Here are a few examples for checking the contents of a document:
 
     // Make sure we have an element with the ID brains.
-    assert.ok(browser.querySelector("#brains"));
+    assert.ok(browser.query("#brains"));
 
     // Make sure body has two elements with the class hand.
-    assert.equal(browser.body.querySelectorAll(".hand").length, 2);
+    assert.lengthOf(browser.body.queryAll(".hand"), 2);
 
     // Check the document title.
     assert.equal(browser.text("title"), "The Living Dead");
@@ -142,25 +151,23 @@ extensions, such as `:not(selector)`, `[NAME!=VALUE]`, `:contains(TEXT)`, `:firs
 Read more [on the Browser API](api) and [CSS selectors](selectors)
 
 
-
 ## Feeding
 
 You're going to want to perform some actions, like clicking links, entering text, submitting forms.  You can certainly
 do that using the [DOM API](http://www.w3.org/DOM/DOMTR), or several of the convenience functions we're going to cover
-  next.
+next.
 
 To click a link on the page, use `clickLink` with selector and callback.  The first argument can be a CSS selector (see
 _Hunting_), the `A` element, or the text contents of the `A` element you want to click.
 
-The second argument is a callback, which much like the `visit` callback gets fired after all events are processed, with
-either an error, or `null`, the browser and the HTTP status code.
+The second argument is a callback, which much like the `visit` callback gets fired after all events are processed.
 
 Let's see that in action:
 
     // Now go to the shopping cart page and check that we have
     // three bodies there.
-    browser.clickLink("View Cart", function(err, browser, status) {
-      assert.equal(browser.querySelectorAll("#cart .body"), 3);
+    browser.clickLink("View Cart", function(e, browser, status) {
+      assert.lengthOf(browser.queryAll("#cart .body"), 3);
     });
 
 To submit a form, use `pressButton`.  The first argument can be a CSS selector, the button/input element. the button
@@ -186,9 +193,11 @@ Let's combine all of that into one example:
       fill("Profession", "Living dead").
       select("Born", "1968").
       uncheck("Send me the newsletter").
-      pressButton("Sign me up", function(err, browser, status) {
+      pressButton("Sign me up", function(e, browser, status) {
+
         // Make sure we got redirected to thank you page.
-        assert.equal(browser.location, "http://localhost:3003/thankyou");
+        assert.equal(browser.location.pathname, "/thankyou");
+
       });
 
 Read more [on the Browser API](api)
@@ -226,15 +235,14 @@ Zombie.js supports the following:
 **Step 1:** Run Zombie with debugging turned on, the trace will help figure out what it's doing. For example:
 
     var browser = new zombie.Browser({ debug: true });
-    browser.visit("http://thedead", function(err, browser, status) {
-      if (err)
-        throw(err.message);
+    browser.visit("http://thedead", function(e, browser, status) {
+      console.log(status, browser.errors);
       ...
     });
 
 **Step 2:** Wait for it to finish processing, then dump the current browser state:
 
-   brower.dump();
+   browser.dump();
 
 **Step 3:** If publicly available, include the URL of the page you're trying to access.  Even better, provide a test
 script I can run from the Node.js console (similar to step 1 above).
