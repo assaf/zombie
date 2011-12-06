@@ -20,7 +20,7 @@ XHR = require("./xhr")
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "runScripts", "site", "userAgent"]
+BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "runScripts", "site", "userAgent", "waitFor"]
 
 
 package = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -100,6 +100,11 @@ class Browser extends EventEmitter
     # You can use visit with a path, and it will make a request relative to this host/URL.
     @site = null
 
+    # ### waitFor
+    #
+    # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 5 seconds.
+    @waitFor = 5000
+
     # Sets the browser options.
     if options
       for k,v of options
@@ -165,6 +170,7 @@ class Browser extends EventEmitter
       newWindow.parent = parent
       newWindow.top = parent.top
     else
+      @_eventloop.reset()
       @window = newWindow
       @errors = []
       @resources.clear()
@@ -219,8 +225,11 @@ class Browser extends EventEmitter
   # Waits for the browser to complete loading resources and processing JavaScript events.  When done, calls the callback
   # with null and browser.
   #
-  # If you're testing behavior that depends on timers, e.g. animations and transitions, you can tell `wait` to block for
-  # the specified duration (in milliseconds).  By default it will wait for timers under 100ms.
+  # This method will wait for timers (`setTimeout`) that execute in the first `waitFor` milliseconds (default to 5
+  # seconds).  This captures most UI and asynchronous behavior.
+  #
+  # You can also pass a duration as the first argument.  This will wait for at least that many milliseconds, and then
+  # for any pending resource/JavaScript processing.  This may be helpful if you need to deal with intervals.
   #
   # You can also call this method with no arguments and simply listen to the `done` and `error` events.
   wait: (duration, callback)->

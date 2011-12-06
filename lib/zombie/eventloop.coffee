@@ -11,7 +11,7 @@ class EventLoop
   constructor: (@_browser)->
 
   # Reset the event loop (clearning any timers, etc) before using a new window.
-  _reset: ->
+  reset: ->
     # Prevent any existing timers from firing.
     if @_timers
       for handle in @_timers
@@ -25,8 +25,6 @@ class EventLoop
   
   # Add event-loop features to window (mainly timers).
   apply: (window)->
-    @_reset()
-
     # Excecute function or evaluate string.  Scope is used for error messages, to distinguish between timeout and
     # interval.
     execute = (scope, code)=>
@@ -39,17 +37,17 @@ class EventLoop
         raise window.document, null, __filename, scope, error
 
     # Add new timeout.  If the timeout is short enough, we ask `wait` to automatically wait for it to fire, by storing
-    # the time in `handle._firesAt`.  We need to clear `_firesAt` after the timer fires or when cancelled.
+    # the time in `handle._fires`.  We need to clear `_fires` after the timer fires or when cancelled.
     window.setTimeout = (fn, delay)=>
-      delay ||= 1 # zero won't work, see below
+      delay = Math.max(delay || 0, 1) # zero won't work, see below
       handle = global.setTimeout(=>
-        delete handle._firesAt
+        delete handle._fires
         @_browser.log -> "Firing timeout after #{delay}ms delay"
         execute "Timeout", fn
       , delay)
       @_timers.push handle
       # Automatically wait for short timers (e.g. page load, yield)
-      handle._firesAt = +new Date + delay
+      handle._fires = Date.now() + delay
       return handle
 
     window.setInterval = (fn, interval)=>
@@ -62,9 +60,11 @@ class EventLoop
 
     window.clearTimeout = (handle)->
       # This one will never fire, don't wait for it.
-      delete handle._firesAt
+      delete handle._fires
       global.clearTimeout handle
-    window.clearInterval = global.clearInterval
+    window.clearInterval = (handle)->
+      delete handle._fires
+      global.clearInterval handle
 
 
   # ### perform(fn)
@@ -78,41 +78,49 @@ class EventLoop
       --@_processing
       if @_processing == 0
         while waiter = @_waiting.pop()
-          waiter()
+          process.nextTick waiter
     return
 
-  # ### wait(window, duration, callback, intervals)
+  # ### wait(window, duration, callback)
   #
   # Process all events from the queue.  This method returns immediately, events are processed in the background.  When
   # all events are exhausted, it calls the callback with null, window.
   #
   # This method will wait for any resources to load (XHR, script elements, iframes, etc).  DOM events are handled
-  # synchronously, so will also wait for them.  It will wait at least `duration` milliseconds (default so 0), but will
-  # also wait for any short timers (< 100ms delay) to fire.  These timers are used by init functions (e.g. jQuery
-  # `onready`) and to yield.
+  # synchronously, so will also wait for them.  With duration, it will wait for at least that time (in milliseconds).
+  # Without duration, it will wait up to `browser.waitFor` milliseconds if there are any timeouts to run.
   wait: (window, duration, callback)->
-    setTimeout =>
-      if @_processing > 0
-        @_waiting.push @wait.bind(this, window, 0, callback)
-      else
-        # Wait for any short timers to complete.
-        now = null
-        for timer in @_timers
-          continue unless timer._firesAt
-          now ||= +new Date
-          delay = now - timer._firesAt
-          if delay <= 100
-            @wait window, delay, callback
-            return
-        @_browser.emit "done", @_browser
-        if callback
-          callback null, window
-    , duration || 0
+    if duration
+      # Duration given.  Wait for that duration (at least) and any processing resources afterwards.
+      reduce = =>
+        if @_processing > 0
+          @_waiting.push reduce
+        else
+          @_browser.emit "done", @_browser
+          process.nextTick ->
+            callback null, window
+      setTimeout reduce, duration
+    else
+      # No duration, determine latest we're going to wait for timers.
+      demise = Date.now() + @_browser.waitFor
+      reduce = =>
+        if @_processing > 0
+          @_waiting.push reduce
+        else
+          # Run any timers scheduled before our give up (demise) time.
+          for timer in @_timers
+            if timer._fires && timer._fires < demise
+              setTimeout reduce, timer._fires - Date.now()
+              return
+          @_browser.emit "done", @_browser
+          process.nextTick ->
+            callback null, window
+      process.nextTick reduce
     return
 
   dump: ->
     return [ "The time:   #{new Date}",
-             "Timers:     #{Object.keys(@_timers).length}",
+             "Timers:     #{@_timers.length}",
              "Processing: #{@_processing}",
              "Waiting:    #{@_waiting.length}" ]
 

@@ -19,9 +19,13 @@ You can pass options when initializing a new browser, or set them on an existing
 
 You can use the following options:
 
-- `debug` -- True to have Zombie report what it's doing. Defaults to false.
+- `credentials` -- Object containing authorization credentials.
+- `debug` -- Have Zombie report what it's doing.  Defaults to false.
+- `loadCSS` -- Loads external stylesheets.  Defaults to true.
 - `runScripts` -- Run scripts included in or loaded from the page.  Defaults to true.
 - `userAgent` -- The User-Agent string to send to the server.
+- `site` -- Base URL for all requests.  If set, you can call `visit` with relative URL.
+- `waitFor` -- Tells `wait` function how long to wait (in milliseconds) while timers fire.  Defaults to 5 seconds.
 
 ### browser.visit(url, callback)
 ### browser.visit(url, options, callback)
@@ -429,8 +433,11 @@ callback, this method will transfer control to the callback after running all ev
 Waits for the browser to complete loading resources and processing JavaScript events.  When done, calls the callback
 with null and browser.
 
-If you're testing behavior that depends on timers, e.g. animations and transitions, you can tell `wait` to block for the
-specified duration (in milliseconds).  By default it will wait for timers under 100ms.
+This method will wait for timers (`setTimeout`) that execute in the first `waitFor` milliseconds (default to 5 seconds).
+This captures most UI and asynchronous behavior.
+
+You can also pass a duration as the first argument.  This will wait for at least that many milliseconds, and then for
+any pending resource/JavaScript processing.  This may be helpful if you need to deal with intervals.
 
 You can also call this method with no arguments and simply listen to the `done` and `error` events.
 
