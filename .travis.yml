@@ -2,8 +2,6 @@ language: node_js
 node_js:
   - 0.4
   - 0.6
-env:
-  - TMP=/home/vagrant/builds/assaf/zombie
 notifications:
   email:
     on_success: always
