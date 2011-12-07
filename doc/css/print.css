@@ -11,9 +11,8 @@ h2 { font-size: 18pt; }
 h3 { font-size: 16pt; }
 h4 { font-size: 14pt; }
 pre, code {
-  font-family: "Menlo", "Consolas", "New Courier", Courier, monospace;
-  font-size: 10pt;
-  color: #060;
+  font-family: "Monaco", "Consolas", "New Courier", Courier, monospace;
+  font-size: 12pt;
 }
 
 .toc {

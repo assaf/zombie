@@ -281,7 +281,7 @@ option to select, by value or label.
 
 For example:
 
-    browser.select("Currency", "brain$")
+    browser.select("Currency", "brains")
 
 See also `selectOption`.
 
@@ -402,7 +402,7 @@ response available, returns false.
 
 For example:
 
-    browser.onconfirm "Are you sure?", true
+    browser.onconfirm("Are you sure?", true)
 
 ### browser.onprompt(message, response)
 ### browser.onprompt(fn)
@@ -416,7 +416,7 @@ The response to a prompt can be any value (converted to a string), false to indi
 
 For example:
 
-    browser.onprompt (message)-> Math.random()
+    browser.onprompt(function(message) { return Math.random() })
 
 ### browser.prompted(message) => boolean
 

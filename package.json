@@ -45,6 +45,7 @@
   "devDependencies": {
     "docco":            "~0.3.0",
     "express":          "~2.5.1",
+    "highlight":        "~0.2.0",
     "ronn":             "~0.3.8",
     "vows":             "~0.6.0"
   },

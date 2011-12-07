@@ -1,5 +1,6 @@
-fs            = require("fs")
-path          = require("path")
+File          = require("fs")
+Path          = require("path")
+HLJS          = require("highlight/lib/vendor/highlight.js/highlight").hljs
 {spawn, exec} = require("child_process")
 stdout        = process.stdout
 
@@ -27,7 +28,7 @@ onerror = (err)->
 
 # Setup development dependencies, not part of runtime dependencies.
 task "setup", "Install development dependencies", ->
-  fs.readFile "package.json", "utf8", (err, package)->
+  File.readFile "package.json", "utf8", (err, package)->
     install = (dependencies, callback)->
       if dep = dependencies.shift()
         [name, version] = dep
@@ -79,12 +80,23 @@ task "test", "Run all tests", ->
 
 ## Documentation ##
 
+# HLJS can't guess the language (JavaScript) consistently, so we're going to help by limiting its choice of languages to
+# JavaScript and XML (good pick for one of the dumps).
+require("highlight/lib/vendor/highlight.js/languages/xml")(HLJS)
+require("highlight/lib/vendor/highlight.js/languages/javascript")(HLJS)
+
+# Syntax highlighting
+highlight = (html)->
+  unescape = (html)->
+    return html.replace(/&quot;/g, "\"").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+  return html.replace(/<code>([\s\S]*?)<\/code>/gm, (_, source)-> "<code>#{HLJS.highlightText(unescape(source).replace(/\uffff/g,"\n"))}</code>")
+
 # Markdown to HTML.
 toHTML = (source, callback)->
-  target = "html/#{path.basename(source, ".md").toLowerCase()}.html"
-  fs.readFile "doc/layout/main.html", "utf8", (err, layout)->
+  target = "html/#{Path.basename(source, ".md").toLowerCase()}.html"
+  File.readFile "doc/layout/main.html", "utf8", (err, layout)->
     onerror err
-    fs.readFile source, "utf8", (err, text)->
+    File.readFile source, "utf8", (err, text)->
       onerror err
       log "Creating #{target}", green
       exec "ronn --html #{source}", (err, stdout, stderr)->
@@ -93,13 +105,14 @@ toHTML = (source, callback)->
         name = name.replace(/\(\d\)/, "")
         body = stdout.replace(/<h1>.*<\/h1>/, "")
         html = layout.replace("{{body}}", body).replace(/{{title}}/g, title)
-        fs.writeFile target, html, "utf8", (err)->
+        html = highlight(html)
+        File.writeFile target, html, "utf8", (err)->
           callback err, target
 
 documentPages = (callback)->
-  files = fs.readdirSync(".").filter((file)-> path.extname(file) == ".md").
-    concat(fs.readdirSync("doc").filter((file)-> path.extname(file) == ".md").map((file)-> "doc/#{file}"))
-  fs.mkdir "html", 0777, ->
+  files = File.readdirSync(".").filter((file)-> Path.extname(file) == ".md").
+    concat(File.readdirSync("doc").filter((file)-> Path.extname(file) == ".md").map((file)-> "doc/#{file}"))
+  File.mkdir "html", 0777, ->
     convert = ->
       if file = files.pop()
         toHTML file, (err)->
@@ -107,10 +120,10 @@ documentPages = (callback)->
           convert()
       else
         process.stdout.write "\n"
-        fs.readFile "html/readme.html", "utf8", (err, html)->
+        File.readFile "html/readme.html", "utf8", (err, html)->
           html = html.replace(/<h1>(.*)<\/h1>/, "<h1>Zombie.js</h1><b>$1</b>")
-          fs.writeFile "html/index.html", html, "utf8", onerror
-          fs.unlink "html/readme.html", onerror
+          File.writeFile "html/index.html", html, "utf8", onerror
+          File.unlink "html/readme.html", onerror
           exec "cp -fr doc/css doc/images html/", callback
     convert()
 
@@ -123,17 +136,17 @@ documentSource = (callback)->
     exec "mkdir -p html && cp -rf docs/ html/source && rm -rf docs", callback
 
 generateMan = (callback)->
-  files = fs.readdirSync(".").filter((file)-> path.extname(file) == ".md").
-    concat(fs.readdirSync("doc").filter((file)-> path.extname(file) == ".md").map((file)-> "doc/#{file}"))
-  fs.mkdir "man7", 0777, (err)->
+  files = File.readdirSync(".").filter((file)-> Path.extname(file) == ".md").
+    concat(File.readdirSync("doc").filter((file)-> Path.extname(file) == ".md").map((file)-> "doc/#{file}"))
+  File.mkdir "man7", 0777, (err)->
     log "Generating man file ...", green
     convert = ->
       if file = files.pop()
-        target = "man7/#{path.basename(file, ".md").toLowerCase()}.7"
+        target = "man7/#{Path.basename(file, ".md").toLowerCase()}.7"
         exec "ronn --roff #{file}", (err, stdout, stderr)->
           onerror err
           log "Creating #{target}", green
-          fs.writeFile target, stdout, "utf8", onerror
+          File.writeFile target, stdout, "utf8", onerror
           convert()
       else
         exec "mv man7/readme.7 man7/zombie.7", onerror
@@ -197,7 +210,7 @@ task "publish", "Publish new version (Git, NPM, site)", ->
       onerror err
       exec "git push", (err)->
         onerror err
-        fs.readFile "package.json", "utf8", (err, package)->
+        File.readFile "package.json", "utf8", (err, package)->
           package = JSON.parse(package)
 
           # Publish documentation, need these first to generate man pages,

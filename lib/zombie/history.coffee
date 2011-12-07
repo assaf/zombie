@@ -164,6 +164,7 @@ class History
   #
   # Push new state to the stack, do not reload
   pushState: (state, title, url)->
+    url = URL.resolve(@_stack[@_index]?.url, url)
     @_stack[++@_index] = new Entry(this, url, { state: state, title: title, pop: true })
 
   # ### history.replaceState(state, title, url)
@@ -171,6 +172,7 @@ class History
   # Replace existing state in the stack, do not reload
   replaceState: (state, title, url)->
     @_index = 0 if @_index < 0
+    url = URL.resolve(@_stack[@_index]?.url, url)
     @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
 
   # Location uses this to move to a new URL.
