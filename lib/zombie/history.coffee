@@ -177,6 +177,7 @@ class History
 
   # Location uses this to move to a new URL.
   _assign: (url)->
+    url = URL.resolve(@_stack[@_index]?.url, url)
     was = @_stack[@_index]?.url # before we destroy stack
     @_stack = @_stack[0..@_index]
     @_stack[++@_index] = new Entry(this, url)
@@ -184,6 +185,7 @@ class History
 
   # Location uses this to load new page without changing history.
   _replace: (url)->
+    url = URL.resolve(@_stack[@_index]?.url, url)
     was = @_stack[@_index]?.url # before we destroy stack
     @_index = 0 if @_index < 0
     @_stack[@_index] = new Entry(this, url)
