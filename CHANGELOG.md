@@ -7,6 +7,10 @@ Added `browser.success`, returns true if status code is 2xx.
 
 Updated documentation to better reflect new API features and behaviors.  Catching up on the many changes since 0.11.
 
+DOM events now dispatched asynchronously as part of event loop.
+
+Allow `//<hostname>` URLs to be used in more places
+
     359 Tests
     2.4 sec to complete
 
