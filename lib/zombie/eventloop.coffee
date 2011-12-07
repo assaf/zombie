@@ -9,6 +9,11 @@ URL = require("url")
 # Handles the Window event loop, timers and pending requests.
 class EventLoop
   constructor: (@_browser)->
+    # Size of processing queue (number of ongoing tasks).
+    @_processing = 0
+    # Requests on wait that cannot be handled yet: there's no event in the queue, but we anticipate one (in-progress XHR
+    # request).
+    @_waiting = []
 
   # Reset the event loop (clearning any timers, etc) before using a new window.
   reset: ->
@@ -17,11 +22,6 @@ class EventLoop
       for handle in @_timers
         global.clearTimeout handle
     @_timers = []
-    # Size of processing queue (number of ongoing tasks).
-    @_processing = 0
-    # Requests on wait that cannot be handled yet: there's no event in the queue, but we anticipate one (in-progress XHR
-    # request).
-    @_waiting = []
   
   # Add event-loop features to window (mainly timers).
   apply: (window)->
@@ -80,6 +80,12 @@ class EventLoop
         while waiter = @_waiting.pop()
           process.nextTick waiter
     return
+
+
+  dispatch: (target, event)->
+    @perform (done)=>
+      target.dispatchEvent event
+      done()
 
   # ### wait(window, duration, callback)
   #

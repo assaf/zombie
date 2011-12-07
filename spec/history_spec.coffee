@@ -39,7 +39,6 @@ vows.describe("History").addBatch(
         assert.lengthOf window.history, 0
         assert.isUndefined window.location.href
 
-
   "history":
     "pushState":
       Zombie.wants "http://localhost:3003/"
@@ -50,7 +49,7 @@ vows.describe("History").addBatch(
         "should add state to history": (window)->
           assert.lengthOf window.history, 3
         "should change location URL": (window)->
-          assert.equal window.location.href, "/end"
+          assert.equal window.location.href, "http://localhost:3003/end"
 
         "go backwards":
           topic: (window)->
@@ -86,7 +85,7 @@ vows.describe("History").addBatch(
         "should not add state to history": (window)->
           assert.lengthOf window.history, 2
         "should change location URL": (window)->
-          assert.equal window.location.href, "/end"
+          assert.equal window.location.href, "http://localhost:3003/end"
 
         "go backwards":
           topic: (browser)->

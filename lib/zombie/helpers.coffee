@@ -22,7 +22,7 @@ raise = (element, location, from, scope, error)->
   event.initEvent "error", false, false
   event.message = error.message
   event.error = error
-  window.dispatchEvent event
+  window.browser.dispatchEvent window, event
 
 
 # Show deprecated message.

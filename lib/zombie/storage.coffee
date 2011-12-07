@@ -16,8 +16,7 @@ class StorageArea
     for [storage, window] in @_storages
       continue if storage == source
       event = new StorageEvent(storage, window.location.href, key, oldValue, newValue)
-      process.nextTick ->
-        window.dispatchEvent event, false, false
+      window.browser.dispatchEvent window, event
 
   # Return number of key/value pairs.
   @prototype.__defineGetter__ "length", ->

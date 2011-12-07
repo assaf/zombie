@@ -54,7 +54,7 @@ class History
       # Hash changed. Do not reload page, but do send hashchange
       evt = @_window.document.createEvent("HTMLEvents")
       evt.initEvent "hashchange", true, false
-      @_window.dispatchEvent evt
+      @_browser.dispatchEvent @_window, evt
     else
       # Load new page for now (but later on use caching).
       @_resource url
@@ -146,10 +146,10 @@ class History
           evt = @_window.document.createEvent("HTMLEvents")
           evt.initEvent "popstate", false, false
           evt.state = entry.state
-          @_window.dispatchEvent evt
+          @_browser.dispatchEvent @_window, evt
         # Do not load different page unless we're on a different host
         if was.host != @_stack[@_index].host
-          @_resource @_stack[@_index]
+          @_resource @_stack[@_index].url
       else
         @_pageChanged was
     return

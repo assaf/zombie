@@ -82,7 +82,7 @@ HTML.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "submit", true, true
   event._button = button
-  @dispatchEvent event
+  @ownerDocument.parentWindow.browser.dispatchEvent this, event
 
 # Default behavior for submit events is to call the form's submit method, but we
 # also pass the submitting button.
@@ -100,7 +100,7 @@ HTML.HTMLInputElement.prototype._eventDefaults =
     change = ->
       event = input.ownerDocument.createEvent("HTMLEvents")
       event.initEvent "change", true, true
-      input.dispatchEvent event
+      input.ownerDocument.parentWindow.browser.dispatchEvent input, event
     switch input.type
       when "reset"
         if form = input.form
@@ -123,7 +123,7 @@ HTML.HTMLInputElement.prototype._eventDefaults =
 HTML.HTMLInputElement.prototype.click = ->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "click", true, true
-  @dispatchEvent event
+  @ownerDocument.parentWindow.browser.dispatchEvent this, event
 
 # Default behavior for form BUTTON: submit form.
 HTML.HTMLButtonElement.prototype._eventDefaults =

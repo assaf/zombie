@@ -260,11 +260,15 @@ class Browser extends EventEmitter
       for key, value of options.attributes
         event[key] = value
 
-    target.dispatchEvent event
+    @dispatchEvent target, event
     if callback
-      @wait null, callback
+      @wait 0, callback
     else
       return this
+
+  # Dispatch asynchronously.
+  dispatchEvent: (target, event)->
+    @_eventloop.dispatch target, event
 
 
   # Accessors
