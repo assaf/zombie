@@ -61,7 +61,7 @@ On Ubuntu try these steps:
     v0.6.2
     $ npm --version
     1.0.106
-    $ npm install z")bie
+    $ npm install zombie
 
 On Windows you'll need Cygwin to get access to GCC, Python, etc.  [Read
 this](https://github.com/joyent/node/wiki/Building-node.js-on-Cygwin-(Windows)) for detailed instructions and
