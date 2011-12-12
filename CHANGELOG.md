@@ -1,6 +1,11 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.12.2
+
+Support origin in websockets (Glen Mailer)
+
+
 ## Version 0.12.1 2011-12-06
 
 Added `browser.success`, returns true if status code is 2xx.
