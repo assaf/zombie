@@ -65,3 +65,17 @@ HTML.languageProcessors.javascript = (element, code, filename)->
       window.run code, filename
     catch error
       raise element, filename, __filename, null, error
+
+
+# Support for opacity style property.
+Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
+  get: ->
+    return @_opacity || ""
+  set: (opacity)->
+    if opacity
+      opacity = parseFloat(opacity)
+      unless isNaN(opacity)
+        @_opacity = opacity.toString()
+    else
+      delete @_opacity
+

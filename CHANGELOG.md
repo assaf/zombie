@@ -5,6 +5,8 @@ zombie.js-changelog(7) -- Changelog
 
 Support origin in websockets (Glen Mailer)
 
+Proper support for CSS style `opacity` property.
+
 
 ## Version 0.12.1 2011-12-06
 
