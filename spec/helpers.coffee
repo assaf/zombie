@@ -6,7 +6,9 @@ Express = require("express")
 Zombie = require("../lib/zombie.js")
 Browser = Zombie.Browser
 
-debug = process.env.DEBUG || process.env.TRAVIS
+
+# Always run in verbose mode on Travis.
+Zombie.debug = true if process.env.TRAVIS
 
 
 # An express server we use to test the browser.
@@ -71,7 +73,6 @@ Zombie.wants = (url, context)->
 
 Browser.prototype.wants = (url, options, callback)->
   brains.ready =>
-    options.debug = debug
     @visit url, options, (err, browser)=>
       callback err, browser if callback
   return

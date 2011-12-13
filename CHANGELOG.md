@@ -10,6 +10,10 @@ Added global options, for example:
       ...
     })
 
+You can put Zombie in debug mode by setting environment variable `DEBUG`, for example:
+
+    $ DEBUG=true vows
+
 Support origin in websockets (Glen Mailer)
 
 Proper support for CSS style `opacity` property.

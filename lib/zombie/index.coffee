@@ -61,5 +61,8 @@ console.log = ->
 Zombie.listen  = listen
 Zombie.visit   = visit
 
+# Default to debug mode if environment variable `DEBUG` is set.
+Zombie.debug = !!process.env.DEBUG
+
 # Export the globals from browser.coffee
 module.exports = Zombie
