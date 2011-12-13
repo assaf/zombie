@@ -1,7 +1,7 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
-## Version 0.12.2
+## Version 0.12.2 2011-12-12
 
 Added global options, for example:
 
@@ -19,6 +19,9 @@ Also added `silent` option to suppress all `console.log` output from scripts.
 Support origin in websockets (Glen Mailer)
 
 Proper support for CSS style `opacity` property.
+
+    360 Tests
+    2.5 sec to complete
 
 
 ## Version 0.12.1 2011-12-06
