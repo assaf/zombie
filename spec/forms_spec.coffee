@@ -538,8 +538,8 @@ vows.describe("Forms").addBatch(
         </html>
         """
       brains.post "/forms/upload", (req, res)->
-        [text, image] = [req.body.text, req.body.image]
-        if text || image
+        if req.files
+          [text, image] = [req.files.text, req.files.image]
           data = File.readFileSync((text || image).path)
           if image
             digest = Crypto.createHash("md5").update(data).digest("hex")
