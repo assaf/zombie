@@ -1,6 +1,14 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.12.3 2011-12-13
+
+Fixed issue when globally declared variables with no values are not accessible (Brian McDaniel)
+
+    362 Tests
+    2.6 sec to complete
+
+
 ## Version 0.12.2 2011-12-12
 
 Added global options, for example:
