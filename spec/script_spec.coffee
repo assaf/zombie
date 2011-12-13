@@ -105,6 +105,31 @@ vows.describe("Scripts").addBatch(
         browser.wants "http://localhost:3003/script/window", @callback
       "should be the same as this, top and parent": (browser)->
         assert.equal browser.text("title"), "true,true,true,true,true,true"
+
+    "global and function": "pending"
+    ###
+      topic: ->
+        brains.get "/script/global_and_fn", (req, res)->
+          res.send """
+          <html>
+            <script>
+              var foo;
+              (function() {
+                if (!foo)
+                  foo = "foo";
+              })()
+              document.title = foo;
+            </script>
+          </html>
+          """
+        browser = new Browser
+        browser.wants "http://localhost:3003/script/global_and_fn", @callback
+      "should not fail with an error": (browser)->
+        assert.isEmpty browser.errors
+      "should set global variable": (browser)->
+        assert.equal browser.text("title"), "foo"
+    ###
+
   
   "failing":
     "incomplete":

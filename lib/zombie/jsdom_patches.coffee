@@ -62,7 +62,7 @@ HTML.languageProcessors.javascript = (element, code, filename)->
   if doc = element.ownerDocument
     window = doc.parentWindow
     try
-      window.run code, filename
+      window._evaluate code, filename
     catch error
       raise element, filename, __filename, null, error
 
