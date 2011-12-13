@@ -9,6 +9,7 @@ Browser = Zombie.Browser
 
 # Always run in verbose mode on Travis.
 Zombie.debug = true if process.env.TRAVIS
+Zombie.silent = !Zombie.debug
 
 
 # An express server we use to test the browser.
@@ -24,8 +25,8 @@ brains.get "/", (req, res)->
 # messages for debugging.
 brains.get "/sammy.js", (req, res)->
   File.readFile "#{__dirname}/scripts/sammy.js", (err, data)->
-    unless process.env.DEBUG
-      data = data + ";window.Sammy.log = function() {}"
+    #    unless process.env.DEBUG
+    #  data = data + ";window.Sammy.log = function() {}"
     res.send data
 
 brains.get "/jquery.js", (req, res)->

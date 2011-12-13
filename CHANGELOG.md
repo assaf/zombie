@@ -14,6 +14,8 @@ You can put Zombie in debug mode by setting environment variable `DEBUG`, for ex
 
     $ DEBUG=true vows
 
+Also added `silent` option to suppress all `console.log` output from scripts.
+
 Support origin in websockets (Glen Mailer)
 
 Proper support for CSS style `opacity` property.

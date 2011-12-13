@@ -2,25 +2,26 @@ require "./jsdom_patches"
 require "./forms"
 require "./xpath"
 
-{ deprecated } = require("./helpers")
-{ Cache } = require("./cache")
-{ Cookies } = require("./cookies")
-{ EventEmitter } = require("events")
-{ EventLoop } = require("./eventloop")
-{ History } = require("./history")
-{ HTML5 } = require("html5")
-Interact = require("./interact")
-JSDom = require("jsdom")
-{ Resources } = require("./resources")
-{ Storages } = require("./storage")
-URL = require("url")
-WebSocket = require("./websocket")
-XHR = require("./xhr")
+{ deprecated }    = require("./helpers")
+{ Cache }         = require("./cache")
+{ Console }       = require("./console")
+{ Cookies }       = require("./cookies")
+{ EventEmitter }  = require("events")
+{ EventLoop }     = require("./eventloop")
+{ History }       = require("./history")
+{ HTML5 }         = require("html5")
+Interact          = require("./interact")
+JSDom             = require("jsdom")
+{ Resources }     = require("./resources")
+{ Storages }      = require("./storage")
+URL               = require("url")
+WebSocket         = require("./websocket")
+XHR               = require("./xhr")
 
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "runScripts", "site", "userAgent", "waitFor"]
+BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "runScripts", "silent", "site", "userAgent", "waitFor"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -45,8 +46,7 @@ class Browser extends EventEmitter
     # reported while processing resources/JavaScript.
     @on "error", (error)=>
       @errors.push error
-      if @debug
-        console.error error.message, error.stack
+      @log error.message, error.stack
 
 
     # Options
@@ -90,6 +90,11 @@ class Browser extends EventEmitter
     # Run scripts included in or loaded from the page. Defaults to true.
     @runScripts = true
 
+    # ### silent
+    #
+    # If true, supress `console.log` output from scripts.
+    @silent = false
+
     # ### userAgent
     #
     # User agent string sent to server.
@@ -114,14 +119,6 @@ class Browser extends EventEmitter
           @[name] = value
       else
         @[name] = value
-    ###
-    if options
-      for k,v of options
-        if BROWSER_OPTIONS.indexOf(k) >= 0
-          @[k] = v
-        else
-          throw "I don't recognize the option #{k}"
-    ###
 
     # ### browser.errors => Array
     #
@@ -211,7 +208,7 @@ class Browser extends EventEmitter
       img.width = width
       img.height = height
       return img
-    newWindow.console = console
+    newWindow.console = new Console(@silent)
 
     # Default onerror handler.
     newWindow.onerror = (event)=>

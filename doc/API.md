@@ -36,6 +36,7 @@ You can use the following options:
 - `loadCSS` -- Loads external stylesheets.  Defaults to true.
 - `runScripts` -- Run scripts included in or loaded from the page.  Defaults to true.
 - `userAgent` -- The User-Agent string to send to the server.
+- `silent` -- If true, supress all `console.log` output from scripts.  You can still view it with `window.console.output`.
 - `site` -- Base URL for all requests.  If set, you can call `visit` with relative URL.
 - `waitFor` -- Tells `wait` function how long to wait (in milliseconds) while timers fire.  Defaults to 5 seconds.
 
