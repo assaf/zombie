@@ -1,15 +1,14 @@
-# Formidable reads this
-process.env.TMP = "#{__dirname}/tmp"
-
-File = require("fs")
 Express = require("express")
-Zombie = require("../lib/zombie.js")
-Browser = Zombie.Browser
+File    = require("fs")
+Path    = require("path")
+Zombie  = require("../lib/zombie.js")
 
 
 # Always run in verbose mode on Travis.
 Zombie.debug = true if process.env.TRAVIS
 Zombie.silent = !Zombie.debug
+
+Browser = Zombie.Browser
 
 
 # An express server we use to test the browser.

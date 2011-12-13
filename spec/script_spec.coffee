@@ -106,8 +106,7 @@ vows.describe("Scripts").addBatch(
       "should be the same as this, top and parent": (browser)->
         assert.equal browser.text("title"), "true,true,true,true,true,true"
 
-    "global and function": "pending"
-    ###
+    "global and function":
       topic: ->
         brains.get "/script/global_and_fn", (req, res)->
           res.send """
@@ -128,7 +127,6 @@ vows.describe("Scripts").addBatch(
         assert.isEmpty browser.errors
       "should set global variable": (browser)->
         assert.equal browser.text("title"), "foo"
-    ###
 
   
   "failing":
