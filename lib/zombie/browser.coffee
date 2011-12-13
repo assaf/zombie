@@ -376,7 +376,7 @@ class Browser extends EventEmitter
   #
   # Returns the status code of the request for loading the window.
   @prototype.__defineGetter__ "statusCode", ->
-    return @response[0]
+    return @response?[0]
 
   # ### browser.success => Boolean
   #
@@ -394,7 +394,7 @@ class Browser extends EventEmitter
   #
   # Returns the unmodified source of the document loaded by the browser
   @prototype.__defineGetter__ "source", ->
-    return @response[2]
+    return @response?[2]
 
 
   # Navigation
