@@ -291,6 +291,8 @@ CSS selectors by John Resig's [Sizzle.js](http://sizzlejs.com/)
 
 XPath support using Google's [AJAXSLT](http://code.google.com/p/ajaxslt/)
 
+JavaScript execution contexts using [Contextify](https://github.com/brianmcd/contextify)
+
 Magical Zombie Girl by [Toho Scope](http://www.flickr.com/people/tohoscope/)
 
 
