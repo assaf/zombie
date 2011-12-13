@@ -3,7 +3,7 @@ process.env.TMP = "#{__dirname}/tmp"
 
 File = require("fs")
 Express = require("express")
-Zombie = require("../lib/zombie")
+Zombie = require("../lib/zombie.js")
 Browser = Zombie.Browser
 
 debug = process.env.DEBUG || process.env.TRAVIS

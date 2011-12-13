@@ -172,7 +172,8 @@ vows.describe("Browser").addBatch(
     "source":
       Zombie.wants "http://localhost:3003/browser/scripted"
         "should return the unmodified page": (browser)->
-          assert.equal browser.source, """
+          assert.equal browser.source,
+            """
             <html>
               <head>
                 <title>Whatever</title>
@@ -190,13 +191,25 @@ vows.describe("Browser").addBatch(
             """
 
     "with options":
-      topic: ->
-        browser = new Browser
-        browser.wants "http://localhost:3003/browser/scripted", { runScripts: false }, @callback
-      "should set options for the duration of the request": (browser)->
-        assert.equal browser.document.title, "Whatever"
-      "should reset options following the request": (browser)->
-        assert.isTrue browser.runScripts
+      "per call":
+        topic: ->
+          browser = new Browser
+          browser.wants "http://localhost:3003/browser/scripted", { runScripts: false }, @callback
+        "should set options for the duration of the request": (browser)->
+          assert.equal browser.document.title, "Whatever"
+        "should reset options following the request": (browser)->
+          assert.isTrue browser.runScripts
+
+      "global":
+        topic: ->
+          Zombie.site = "http://localhost:3003"
+          browser = new Browser
+          browser.wants "/browser/scripted", @callback
+        "should set browser options from global options": (browser)->
+          assert.equal browser.site, "http://localhost:3003"
+          assert.equal browser.document.title, "Awesome"
+        teardown: ->
+          Zombie.site = null
 
 
   "content selection":

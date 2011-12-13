@@ -9,17 +9,22 @@ zombie.js-api(7) -- The Zombie API
 Creates and returns a new browser.  A browser maintains state across requests: history, cookies, HTML 5 local and
 session stroage.  A browser has a main window, and typically a document loaded into that window.
 
-You can pass options when initializing a new browser, or set them on an existing browser instance.  For example:
+You can pass options when initializing a new browser, for example:
 
     browser = new zombie.Browser({ debug: true })
     browser.runScripts = false
 
-Alternatively:
+Or on existing browser for the duration of a page load:
 
     zombie.visit("http://localhost:3000/", { debug: true, runScripts: false },
                  function (e, browser, status) {
       ...
     });
+
+You can also set options globally for all browsers to inherit:
+
+    Zombie.site = "http://localhost:3000"
+    Zombie.loadCSS = false
 
 
 ### Browser Options
@@ -27,7 +32,7 @@ Alternatively:
 You can use the following options:
 
 - `credentials` -- Object containing authorization credentials.
-- `debug` -- Have Zombie report what it's doing.  Defaults to false.
+- `debug` -- Have Zombie report what it's doing.  Defaults to true if environment variable `DEBUG` is set.
 - `loadCSS` -- Loads external stylesheets.  Defaults to true.
 - `runScripts` -- Run scripts included in or loaded from the page.  Defaults to true.
 - `userAgent` -- The User-Agent string to send to the server.

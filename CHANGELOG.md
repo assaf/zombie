@@ -3,6 +3,13 @@ zombie.js-changelog(7) -- Changelog
 
 ## Version 0.12.2
 
+Added global options, for example:
+
+    Zombie.site = "http://localhost:3003"
+    Zombie.visit("/browser/test", function() {
+      ...
+    })
+
 Support origin in websockets (Glen Mailer)
 
 Proper support for CSS style `opacity` property.

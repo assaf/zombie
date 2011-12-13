@@ -58,8 +58,8 @@ console.log = ->
     process.stdout.write formatted.join(" ") + "\n"
 
 
-# Constructor for a new Browser. Takes no arguments.
-exports.Browser = Zombie.Browser
-exports.listen  = listen
-exports.version = Zombie.version
-exports.visit   = visit
+Zombie.listen  = listen
+Zombie.visit   = visit
+
+# Export the globals from browser.coffee
+module.exports = Zombie

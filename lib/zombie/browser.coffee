@@ -23,15 +23,15 @@ MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "runScripts", "site", "userAgent", "waitFor"]
 
 
-package = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
-version = package.version
+PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
+VERSION = PACKAGE.version
 
 
 # Use the browser to open up new windows and load documents.
 #
 # The browser maintains state for cookies and localStorage.
 class Browser extends EventEmitter
-  constructor: (options) ->
+  constructor: (options = {}) ->
     @_cache = new Cache()
     @_cookies = new Cookies()
     @_eventloop = new EventLoop(this)
@@ -93,7 +93,7 @@ class Browser extends EventEmitter
     # ### userAgent
     #
     # User agent string sent to server.
-    @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{version}"
+    @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{VERSION}"
 
     # ### site
     #
@@ -106,12 +106,22 @@ class Browser extends EventEmitter
     @waitFor = 5000
 
     # Sets the browser options.
+    for name in BROWSER_OPTIONS
+      value = options[name]
+      if typeof value == "undefined"
+        value = exports[name]
+        unless typeof value == "undefined"
+          @[name] = value
+      else
+        @[name] = value
+    ###
     if options
       for k,v of options
         if BROWSER_OPTIONS.indexOf(k) >= 0
           @[k] = v
         else
           throw "I don't recognize the option #{k}"
+    ###
 
     # ### browser.errors => Array
     #
@@ -857,7 +867,7 @@ class Browser extends EventEmitter
   # debugging and submitting error reports.
   dump: ->
     indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
-    console.log "Zombie: #{version}\n"
+    console.log "Zombie: #{VERSION}\n"
     console.log "URL: #{@window.location.href}"
     console.log "History:\n#{indent @window.history.dump()}"
     console.log "Cookies:\n#{indent @_cookies.dump()}"
@@ -887,4 +897,5 @@ class Screen
 
 
 exports.Browser = Browser
-exports.version = version
+exports.version = VERSION # Backwards compatible
+exports.VERSION = VERSION
