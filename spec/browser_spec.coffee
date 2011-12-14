@@ -69,6 +69,9 @@ vows.describe("Browser").addBatch(
           assert.lengthOf errors, 0
         "should reset browser errors": (_, browser, status, errors)->
           assert.lengthOf browser.errors, 0
+        "should have a resources object": (browser)->
+          assert.ok browser.resources
+
 
       "with error":
         topic: ->
