@@ -24,7 +24,7 @@ Let's try to sign up to a page and see what happens:
         pressButton("Sign Me Up!", function(e, browser, status) {
 
           // Form submitted, new page loaded.
-          assert.equal(status, 200);
+          assert.ok(browser.success);
           assert.equal(browser.text("title"), "Welcome To Brains Depot");
 
         })
@@ -94,7 +94,7 @@ they are collected in `browser.errors`.  As a convenience, you can get the last 
 example:
 
     browser.visit("http://localhost:3000/", function () {
-      assert.equal(browser.success, "Expected status code to be 2xx");
+      assert.ok(browser.success);
       if (browser.error )
         console.dir("Errors reported:", browser.errors);
     })
