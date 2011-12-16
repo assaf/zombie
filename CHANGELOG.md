@@ -1,6 +1,14 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.12.4 2011-12-16
+
+Return undefined for response status when there is no response.
+
+    362 Tests
+    2.4 sec to complete
+
+
 ## Version 0.12.3 2011-12-13
 
 Fixed issue when globally declared variables with no values are not accessible (Brian McDaniel)
