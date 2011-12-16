@@ -1,6 +1,6 @@
-try
+if process.version >= "v0.5.0"
   Util = require("util")
-catch e
+else
   Util = require("sys")
 
 Zombie = require("./browser")

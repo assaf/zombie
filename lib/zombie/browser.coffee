@@ -15,8 +15,9 @@ JSDom             = require("jsdom")
 { Resources }     = require("./resources")
 { Storages }      = require("./storage")
 URL               = require("url")
-WebSocket         = require("./websocket")
 XHR               = require("./xhr")
+if process.version < "v0.5.0"
+  WebSocket       = require("./websocket")
 
 
 HTML = JSDom.dom.level3.html
@@ -39,7 +40,7 @@ class Browser extends EventEmitter
     @_storages = new Storages()
     @_interact = Interact.use(this)
     @_xhr = XHR.use(@_cache)
-    @_ws = WebSocket.use(this)
+    @_ws = WebSocket.use(this) if WebSocket
     @resources = new Resources(this)
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
@@ -200,7 +201,7 @@ class Browser extends EventEmitter
     @_storages.extend newWindow
     @_interact.extend newWindow
     @_xhr.extend newWindow
-    @_ws.extend newWindow
+    @_ws.extend newWindow if @_ws
     newWindow.screen = new Screen()
     newWindow.JSON = JSON
     newWindow.Image = (width, height)->
