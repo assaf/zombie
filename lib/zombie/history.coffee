@@ -42,7 +42,7 @@ class History
       get: =>
         return @_stack[@_index]?.location || new Location(this, {})
       set: (url)=>
-        @_assign URL.resolve(@_stack[@_index]?.url, url)
+        @_assign @_resolve(url)
 
   # Called when we switch to a new page with the URL of the old page.
   _pageChanged: (was)->
@@ -164,7 +164,7 @@ class History
   #
   # Push new state to the stack, do not reload
   pushState: (state, title, url)->
-    url = URL.resolve(@_stack[@_index]?.url, url)
+    url = @_resolve(url)
     @_stack[++@_index] = new Entry(this, url, { state: state, title: title, pop: true })
 
   # ### history.replaceState(state, title, url)
@@ -172,12 +172,19 @@ class History
   # Replace existing state in the stack, do not reload
   replaceState: (state, title, url)->
     @_index = 0 if @_index < 0
-    url = URL.resolve(@_stack[@_index]?.url, url)
+    url = @_resolve(url)
     @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
+
+  # Resolve URL based on current page URL.
+  _resolve: (url)->
+    if url
+      return URL.resolve(@_stack[@_index]?.url, url)
+    else # Yes, this could happen
+      return @_stack[@_index]?.url
 
   # Location uses this to move to a new URL.
   _assign: (url)->
-    url = URL.resolve(@_stack[@_index]?.url, url)
+    url = @_resolve(url)
     was = @_stack[@_index]?.url # before we destroy stack
     @_stack = @_stack[0..@_index]
     @_stack[++@_index] = new Entry(this, url)
@@ -185,7 +192,7 @@ class History
 
   # Location uses this to load new page without changing history.
   _replace: (url)->
-    url = URL.resolve(@_stack[@_index]?.url, url)
+    url = @_resolve(url)
     was = @_stack[@_index]?.url # before we destroy stack
     @_index = 0 if @_index < 0
     @_stack[@_index] = new Entry(this, url)
@@ -205,7 +212,7 @@ class History
   _submit: (url, method, data, enctype)->
     headers = { "content-type": enctype || "application/x-www-form-urlencoded" }
     @_stack = @_stack[0..@_index]
-    url = URL.resolve(@_stack[@_index]?.url, url)
+    url = @_resolve(url)
     @_stack[++@_index] = new Entry(this, url)
     @_resource @_stack[@_index].url, method, data, headers
 
@@ -267,7 +274,7 @@ class Location
 
   # ### location.href = url
   @prototype.__defineSetter__ "href", (new_url)->
-    @_history._assign URL.resolve(@_url, new_url)
+    @_history._assign new_url
 
   # Getter/setter for location parts.
   for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search"]
