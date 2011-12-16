@@ -1,7 +1,7 @@
-{ vows: vows, assert: assert, brains: brains, Browser: Browser } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 
 
-vows.describe("CSS").addBatch(
+Vows.describe("CSS").addBatch(
   "opacity":
     topic: ->
       brains.get "/styled", (req, res)-> res.send """

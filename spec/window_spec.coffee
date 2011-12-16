@@ -1,7 +1,7 @@
-{ vows: vows, assert: assert, brains: brains, Browser: Browser } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 
 
-vows.describe("Window").addBatch(
+Vows.describe("Window").addBatch(
 
   ".title":
     topic: ->

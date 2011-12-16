@@ -1,7 +1,7 @@
-{ vows: vows, assert: assert, brains: brains, Browser: Browser } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 
 
-vows.describe("XMLHttpRequest").addBatch(
+Vows.describe("XMLHttpRequest").addBatch(
   "asynchronous":
     topic: ->
       brains.get "/xhr/async", (req, res)->

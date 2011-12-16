@@ -1,7 +1,7 @@
-{ vows: vows, assert: assert, brains: brains, Browser: Browser } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 
 
-vows.describe("Compatibility with WebSockets").addBatch(
+Vows.describe("Compatibility with WebSockets").addBatch(
   "WebSockets":
     topic: ->
       brains.get "/ws", (req, res)->

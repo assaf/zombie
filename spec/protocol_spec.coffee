@@ -1,4 +1,4 @@
-{ vows: vows, assert: assert, brains: brains, Zombie: Zombie } = require("./helpers")
+{ Vows, assert, brains, Zombie } = require("./helpers")
 NET = require("net")
 
 
@@ -81,7 +81,7 @@ execute = (tests)->
   return tests
 
 
-vows.describe("Protocol").addBatch(
+Vows.describe("Protocol").addBatch(
   ###
   "visit":
     execute

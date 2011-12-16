@@ -1,4 +1,4 @@
-{ vows: vows, assert: assert, brains: brains, Browser: Browser } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 
 
 JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.3", "1.7.1"]
@@ -66,4 +66,4 @@ for version in JQUERY_VERSIONS
         "should perform an AJAX POST request": (browser)->
           assert.match browser.text("#response"), /foo=bar/
 
-vows.describe("Compatibility with jQuery").addBatch(batch).export(module)
+Vows.describe("Compatibility with jQuery").addBatch(batch).export(module)

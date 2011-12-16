@@ -1,9 +1,9 @@
-{ vows: vows, assert: assert, brains: brains, Zombie: Zombie } = require("./helpers")
+{ Vows, assert, brains, Zombie } = require("./helpers")
 File = require("fs")
 Crypto = require("crypto")
 
 
-vows.describe("Forms").addBatch(
+Vows.describe("Forms").addBatch(
 
   "standard":
     topic: ->

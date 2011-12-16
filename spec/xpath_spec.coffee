@@ -1,7 +1,7 @@
-{ vows: vows, assert: assert, brains: brains, Browser: Browser } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 
 
-vows.describe("XPath").addBatch(
+Vows.describe("XPath").addBatch(
   "xpath":
     topic: ->
       brains.get "/xpath", (req, res)-> res.send """

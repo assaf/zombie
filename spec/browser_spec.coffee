@@ -1,8 +1,8 @@
-{ vows: vows, assert: assert, brains: brains, Zombie: Zombie, Browser: Browser } = require("./helpers")
+{ Vows, assert, brains, Zombie, Browser } = require("./helpers")
 JSDOM = require("jsdom")
 
 
-vows.describe("Browser").addBatch(
+Vows.describe("Browser").addBatch(
 
   "browsing":
     topic: ->
@@ -264,7 +264,7 @@ vows.describe("Browser").addBatch(
       topic: (browser)->
         browser.query(".now")
       "should return single node": (node)->
-        assert node.tagName
+        assert.equal node.tagName, "DIV"
 
     "query text":
       topic: (browser)->

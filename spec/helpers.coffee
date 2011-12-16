@@ -80,6 +80,6 @@ Browser.prototype.wants = (url, options, callback)->
 
 exports.assert  = require("assert")
 exports.brains  = brains
-exports.vows    = require("vows")
+exports.Vows    = require("vows")
 exports.Zombie  = Zombie
 exports.Browser = Browser

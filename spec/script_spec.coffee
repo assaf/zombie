@@ -1,7 +1,7 @@
-{ vows: vows, assert: assert, brains: brains, Browser: Browser, Zombie: Zombie } = require("./helpers")
+{ Vows, assert, brains, Browser, Zombie } = require("./helpers")
 
 
-vows.describe("Scripts").addBatch(
+Vows.describe("Scripts").addBatch(
 
   "basic":
     topic: ->

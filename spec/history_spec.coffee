@@ -1,4 +1,4 @@
-{ vows: vows, assert: assert, brains: brains, Browser: Browser, Zombie: Zombie } = require("./helpers")
+{ Vows, assert, brains, Browser, Zombie } = require("./helpers")
 JSDOM = require("jsdom")
 
 
@@ -15,7 +15,7 @@ brains.get "/history/redirect_back", (req, res)->
 file_url = "file://#{__dirname}/data/index.html"
 
 
-vows.describe("History").addBatch(
+Vows.describe("History").addBatch(
 
   "new window":
     topic: ->

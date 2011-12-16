@@ -1,4 +1,4 @@
-{ vows: vows, assert: assert, Browser: Browser } = require("./helpers")
+{ Vows, assert, Browser } = require("./helpers")
 
 
 withStorage = (scope, context)->
@@ -95,7 +95,7 @@ accessTests = (scope)->
         assert.isNull storage.getItem("null")
 
 
-vows.describe("Storage").addBatch(
+Vows.describe("Storage").addBatch(
 
   "local storage":
     accessTests (window)->
