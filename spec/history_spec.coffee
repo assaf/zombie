@@ -43,8 +43,8 @@ Vows.describe("History").addBatch(
     "pushState":
       Zombie.wants "http://localhost:3003/"
         topic: (browser)->
-          browser.window.history.pushState { is: "start" }, null, "/start"
-          browser.window.history.pushState { is: "end" },   null, "/end"
+          browser.history.pushState { is: "start" }, null, "/start"
+          browser.history.pushState { is: "end" },   null, "/end"
           @callback null, browser.window
         "should add state to history": (window)->
           assert.lengthOf window.history, 3
@@ -64,12 +64,12 @@ Vows.describe("History").addBatch(
         "go forwards":
           Zombie.wants "http://localhost:3003/"
             topic: (browser)->
-              browser.window.history.pushState { is: "start" }, null, "/start"
-              browser.window.history.pushState { is: "end" },   null, "/end"
-              browser.window.history.back()
+              browser.history.pushState { is: "start" }, null, "/start"
+              browser.history.pushState { is: "end" },   null, "/end"
+              browser.back()
               browser.window.addEventListener "popstate", (evt)=>
                 @callback(null, evt)
-              browser.window.history.forward()
+              browser.history.forward()
               return
             "should fire popstate event": (evt)->
               assert.instanceOf evt, JSDOM.dom.level3.events.Event
@@ -79,8 +79,8 @@ Vows.describe("History").addBatch(
     "replaceState":
       Zombie.wants "http://localhost:3003/"
         topic: (browser)->
-          browser.window.history.pushState { is: "start" },  null, "/start"
-          browser.window.history.replaceState { is: "end" }, null, "/end"
+          browser.history.pushState { is: "start" },  null, "/start"
+          browser.history.replaceState { is: "end" }, null, "/end"
           @callback null, browser.window
         "should not add state to history": (window)->
           assert.lengthOf window.history, 2
@@ -88,11 +88,11 @@ Vows.describe("History").addBatch(
           assert.equal window.location.href, "http://localhost:3003/end"
 
         "go backwards":
-          topic: (browser)->
-            browser.window.addEventListener "popstate", (evt)=>
-              browser.window.popstate = true
-            browser.window.history.back()
-            @callback null, browser.window
+          topic: (window)->
+            window.addEventListener "popstate", (evt)=>
+              window.popstate = true
+            window.history.back()
+            @callback null, window
           "should change location URL": (window)->
             assert.equal window.location.href, "http://localhost:3003/"
           "should not fire popstate event": (window)->
@@ -105,7 +105,7 @@ Vows.describe("History").addBatch(
         "should pass query parameter": (browser)->
           assert.equal browser.text("title"), "Redirected"
         "should not add location in history": (browser)->
-          assert.lengthOf browser.window.history, 1
+          assert.lengthOf browser.history, 1
         "should indicate last request followed a redirect": (browser)->
           assert.ok browser.redirected
 
@@ -121,7 +121,7 @@ Vows.describe("History").addBatch(
         "should pass query parameter": (browser)->
           assert.match browser.text("title"), /Eeek!/
         "should not add location in history": (browser)->
-          assert.lengthOf browser.window.history, 2
+          assert.lengthOf browser.history, 2
         "should indicate last request followed a redirect": (browser)->
           assert.ok browser.redirected
 
@@ -130,7 +130,7 @@ Vows.describe("History").addBatch(
     "open page":
       Zombie.wants "http://localhost:3003/"
         "should add page to history": (browser)->
-          assert.lengthOf browser.window.history, 1
+          assert.lengthOf browser.history, 1
         "should change location URL": (browser)->
           assert.equal browser.location, "http://localhost:3003/"
         "should load document": (browser)->
@@ -143,7 +143,7 @@ Vows.describe("History").addBatch(
     "open from file system":
       Zombie.wants `file_url`
         "should add page to history": (browser)->
-          assert.lengthOf browser.window.history, 1
+          assert.lengthOf browser.history, 1
         "should change location URL": (browser)->
           assert.equal browser.location, file_url
         "should load document": (browser)->
@@ -161,7 +161,7 @@ Vows.describe("History").addBatch(
             @callback null, browser
           return
         "should add page to history": (browser)->
-          assert.lengthOf browser.window.history, 2
+          assert.lengthOf browser.history, 2
         "should change location URL": (browser)->
           assert.equal browser.location, "http://localhost:3003/history/boo"
         "should load document": (browser)->
@@ -175,7 +175,7 @@ Vows.describe("History").addBatch(
             @callback null, browser
           return
         "should add page to history": (browser)->
-          assert.lengthOf browser.window.history, 2
+          assert.lengthOf browser.history, 2
         "should change location URL": (browser)->
           assert.equal browser.location, "http://localhost:3003/history/boo"
         "should load document": (browser)->
@@ -190,7 +190,7 @@ Vows.describe("History").addBatch(
           browser.window.location.hash = "boo"
           return
         "should add page to history": (browser)->
-          assert.lengthOf browser.window.history, 2
+          assert.lengthOf browser.history, 2
         "should change location URL": (browser)->
           assert.equal browser.location, "http://localhost:3003/#boo"
         "should not reload document": (browser)->
@@ -205,7 +205,7 @@ Vows.describe("History").addBatch(
             @callback null, browser
           return
         "should add page to history": (browser)->
-          assert.lengthOf browser.window.history, 2
+          assert.lengthOf browser.history, 2
         "should change location URL": (browser)->
           assert.equal browser.location, "http://localhost:3003/history/boo"
         "should load document": (browser)->
@@ -222,7 +222,7 @@ Vows.describe("History").addBatch(
             @callback null, browser
           return
         "should not add page to history": (browser)->
-          assert.lengthOf browser.window.history, 1
+          assert.lengthOf browser.history, 1
         "should change location URL": (browser)->
           assert.equal browser.location, "http://localhost:3003/history/boo"
         "should load document": (browser)->
@@ -235,12 +235,12 @@ Vows.describe("History").addBatch(
         topic: (browser)->
           @window = browser.window
           browser.window.document.innerHTML = "Wolf"
-          browser.window.location.reload()
+          browser.reload()
           browser.window.document.addEventListener "DOMContentLoaded", =>
             @callback null, browser
           return
         "should not add page to history": (browser)->
-          assert.lengthOf browser.window.history, 1
+          assert.lengthOf browser.history, 1
         "should not change location URL": (browser)->
           assert.equal browser.location, "http://localhost:3003/"
         "should reload document": (browser)->
@@ -274,7 +274,7 @@ Vows.describe("History").addBatch(
             @callback null, browser
           return
         "should add page to history": (browser)->
-          assert.lengthOf browser.window.history, 2
+          assert.lengthOf browser.history, 2
         "should change location URL": (browser)->
           assert.equal browser.location, "http://localhost:3003/history/boo"
         "should load document": (browser)->
@@ -288,7 +288,7 @@ Vows.describe("History").addBatch(
             @callback null, browser
           return
         "should add page to history": (browser)->
-          assert.lengthOf browser.window.history, 2
+          assert.lengthOf browser.history, 2
         "should change location URL": (browser)->
           assert.equal browser.location, "http://localhost:3003/history/boo"
         "should load document": (browser)->

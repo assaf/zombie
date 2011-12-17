@@ -459,6 +459,20 @@ class Browser extends EventEmitter
     else
       throw new Error("No link matching '#{selector}'")
 
+  # Return the history object.
+  @prototype.__defineGetter__ "history", ->
+    return @window.history
+
+  # Navigate back in history.
+  back: (callback)->
+    @window.history.back()
+    @wait callback
+
+  # Reloads current page.
+  reload: (callback)->
+    @window.location.reload()
+    @wait callback
+
   # ### browser.saveHistory() => String
   #
   # Save history to a text string.  You can use this to load the data later on using `browser.loadHistory`.

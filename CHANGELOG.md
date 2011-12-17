@@ -1,6 +1,12 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.12.5 2011-12-16
+
+Added `browser.history` for accessing history for the current window, `browser.back` for navigating to the previous page
+and `browser.reload` for reloading the current page.
+
+
 ## Version 0.12.4 2011-12-16
 
 Return undefined for response status when there is no response.

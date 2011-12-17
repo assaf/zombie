@@ -146,6 +146,10 @@ For that reason, navigating to a new page doesn't land you immediately on that p
 complete processing of all events.  You can do that by calling `browser.wait` or passing a callback to methods like
 `visit` and `clickLink.`
 
+### browser.back(callback)
+
+Navigate to the previous page in history.
+
 ### browser.clickLink(selector, callback)
  
 Clicks on a link.  The first argument is the link text or CSS selector.  Second argument is a callback, invoked after
@@ -160,6 +164,9 @@ For example:
       assert.lengthOf(browser.queryAll("#cart .body"), 3);
     });
 
+### browser.history : History
+
+Returns the history of the current window (same as `window.history`).
 
 ### browser.link(selector) : Element
 
@@ -180,6 +187,10 @@ if you just need to change the hash (Zombie.js will fire a `hashchange` event), 
       // Fired hashchange event and did something cool.
       ...
     });
+
+### browser.reload(callback)
+
+Reloads the current page.
 
 ### browser.statusCode : Number
 
