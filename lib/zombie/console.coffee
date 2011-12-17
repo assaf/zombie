@@ -1,7 +1,7 @@
-try
-  Util = require("util")
-catch e
+if process.version < "v0.5.0"
   Util = require("sys")
+else
+  Util = require("util")
 
 
 class Console
@@ -63,4 +63,4 @@ class Console
     return (if @_output then @_output.join("\n") else "")
 
 
-exports.Console = Console
+module.exports = Console

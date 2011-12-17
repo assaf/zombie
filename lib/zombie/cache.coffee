@@ -1,4 +1,4 @@
 # Simple HTTP cache.
 class Cache
 
-exports.Cache = Cache
+module.exports = Cache

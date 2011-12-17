@@ -296,4 +296,4 @@ HTML.HTMLDocument.prototype.__defineSetter__ "location", (url)->
   @parentWindow.location = url
 
 
-exports.History = History
+module.exports = History

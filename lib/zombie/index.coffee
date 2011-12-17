@@ -3,8 +3,7 @@ if process.version >= "v0.5.0"
 else
   Util = require("sys")
 
-Zombie = require("./browser")
-Browser = Zombie.Browser
+Browser = require("./browser")
 
 
 # ### zombie.visit(url, callback)
@@ -58,11 +57,12 @@ console.log = ->
     process.stdout.write formatted.join(" ") + "\n"
 
 
-Zombie.listen  = listen
-Zombie.visit   = visit
+Browser.listen  = listen
+Browser.visit   = visit
 
 # Default to debug mode if environment variable `DEBUG` is set.
-Zombie.debug = !!process.env.DEBUG
+Browser.debug = !!process.env.DEBUG
+Browser.Browser = Browser
 
 # Export the globals from browser.coffee
-module.exports = Zombie
+module.exports = Browser

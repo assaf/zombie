@@ -1,4 +1,4 @@
-{ Vows, assert, brains, Zombie } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 
 
 Vows.describe("EventLoop").addBatch(
@@ -15,7 +15,7 @@ Vows.describe("EventLoop").addBatch(
       @callback null
 
     "no wait":
-      Zombie.wants "http://localhost:3003/eventloop/timeout"
+      Browser.wants "http://localhost:3003/eventloop/timeout"
         topic: (browser)->
           browser.window.setTimeout ->
             @document.title += " Two"
@@ -25,7 +25,7 @@ Vows.describe("EventLoop").addBatch(
           assert.equal browser.document.title, "One"
 
     "wait for all":
-      Zombie.wants "http://localhost:3003/eventloop/timeout"
+      Browser.wants "http://localhost:3003/eventloop/timeout"
         topic: (browser)->
           browser.window.setTimeout ->
             @document.title += " Two"
@@ -38,7 +38,7 @@ Vows.describe("EventLoop").addBatch(
           assert.equal browser.document.title, "One Two Three"
 
     "cancel timeout":
-      Zombie.wants "http://localhost:3003/eventloop/timeout"
+      Browser.wants "http://localhost:3003/eventloop/timeout"
         topic: (browser)->
           first = browser.window.setTimeout ->
             @document.title += " Two"
@@ -65,7 +65,7 @@ Vows.describe("EventLoop").addBatch(
       @callback null
 
     "no wait":
-      Zombie.wants "http://localhost:3003/eventloop/interval"
+      Browser.wants "http://localhost:3003/eventloop/interval"
         topic: (browser)->
           browser.window.setInterval ->
             @document.title += "."
@@ -75,7 +75,7 @@ Vows.describe("EventLoop").addBatch(
           assert.equal browser.document.title, ""
 
     "wait once":
-      Zombie.wants "http://localhost:3003/eventloop/interval"
+      Browser.wants "http://localhost:3003/eventloop/interval"
         topic: (browser)->
           browser.window.setInterval ->
             @document.title += "."
@@ -85,7 +85,7 @@ Vows.describe("EventLoop").addBatch(
           assert.equal browser.document.title, "."
 
     "wait long enough":
-      Zombie.wants "http://localhost:3003/eventloop/interval"
+      Browser.wants "http://localhost:3003/eventloop/interval"
         topic: (browser)->
           browser.window.setInterval ->
             @document.title += "."
@@ -95,7 +95,7 @@ Vows.describe("EventLoop").addBatch(
           assert.equal browser.document.title, "..."
 
     "cancel interval":
-      Zombie.wants "http://localhost:3003/eventloop/interval"
+      Browser.wants "http://localhost:3003/eventloop/interval"
         topic: (browser)->
           interval = browser.window.setInterval ->
             @document.title += "."

@@ -50,7 +50,7 @@ call to `visit` (the second argument being the options).
 
 For example:
 
-    zombie.visit("http://thedead", { debug: true}, function(err, browser) {
+    Browser.visit("http://thedead", { debug: true}, function(err, browser) {
       console.log(browser.errors);
       ... 
     });

@@ -1,4 +1,4 @@
-{ Vows, assert, brains, Browser, Zombie } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 
 
 brains.get "/cookies", (req, res)->
@@ -27,7 +27,7 @@ brains.get "/cookies_redirect", (req, res)->
 Vows.describe("Cookies").addBatch(
 
   "get cookies":
-    Zombie.wants "http://localhost:3003/cookies"
+    Browser.wants "http://localhost:3003/cookies"
       "cookies":
         topic: (browser)->
           browser.cookies("localhost", "/cookies")
@@ -72,7 +72,7 @@ Vows.describe("Cookies").addBatch(
 
 
   "get cookies and redirect":
-    Zombie.wants "http://localhost:3003/cookies_redirect"
+    Browser.wants "http://localhost:3003/cookies_redirect"
       "cookies":
         topic: (browser)->
           browser.cookies("localhost", "/")

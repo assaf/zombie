@@ -369,4 +369,4 @@ STATUS =
   505: "HTTP Version Not Supported"
 
 
-exports.Resources = Resources
+module.exports = Resources

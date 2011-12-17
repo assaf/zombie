@@ -209,4 +209,4 @@ class Storages
           throw "Unkown storage type #{type}"
 
 
-exports.Storages = Storages
+module.exports = Storages

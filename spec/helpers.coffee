@@ -1,14 +1,13 @@
 Express = require("express")
 File    = require("fs")
 Path    = require("path")
-Zombie  = require("../lib/zombie.js")
+Browser  = require("../lib/zombie.js")
 
 
 # Always run in verbose mode on Travis.
-Zombie.debug = true if process.env.TRAVIS
-Zombie.silent = !Zombie.debug
+Browser.debug = true if process.env.TRAVIS
+Browser.silent = !Browser.debug
 
-Browser = Zombie.Browser
 
 
 # An express server we use to test the browser.
@@ -53,7 +52,7 @@ brains.ready = (callback)->
 # topic passed to all tests is the browser window after loading the document.
 # However, you can (and often need to) supply a ready function that will be
 # called with err and window; the ready function can then call this.callback.
-Zombie.wants = (url, context)->
+Browser.wants = (url, context)->
   topic = context.topic
   context.topic = ->
     browser = new Browser
@@ -81,5 +80,4 @@ Browser.prototype.wants = (url, options, callback)->
 exports.assert  = require("assert")
 exports.brains  = brains
 exports.Vows    = require("vows")
-exports.Zombie  = Zombie
 exports.Browser = Browser

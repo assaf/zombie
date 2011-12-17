@@ -131,4 +131,4 @@ class EventLoop
              "Waiting:    #{@_waiting.length}" ]
 
 
-exports.EventLoop = EventLoop
+module.exports = EventLoop

@@ -1,4 +1,4 @@
-{ Vows, assert, brains, Browser, Zombie } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 JSDOM = require("jsdom")
 
 
@@ -41,7 +41,7 @@ Vows.describe("History").addBatch(
 
   "history":
     "pushState":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)->
           browser.history.pushState { is: "start" }, null, "/start"
           browser.history.pushState { is: "end" },   null, "/end"
@@ -68,7 +68,7 @@ Vows.describe("History").addBatch(
             assert.equal document.magic, 123
 
         "go forwards":
-          Zombie.wants "http://localhost:3003/"
+          Browser.wants "http://localhost:3003/"
             topic: (browser)->
               browser.history.pushState { is: "start" }, null, "/start"
               browser.history.pushState { is: "end" },   null, "/end"
@@ -83,7 +83,7 @@ Vows.describe("History").addBatch(
               assert.equal evt.state.is, "end"
 
     "replaceState":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)->
           browser.history.pushState { is: "start" },  null, "/start"
           browser.history.replaceState { is: "end" }, null, "/end"
@@ -105,7 +105,7 @@ Vows.describe("History").addBatch(
             assert.isUndefined window.popstate
 
     "redirect":
-      Zombie.wants "http://localhost:3003/history/redirect"
+      Browser.wants "http://localhost:3003/history/redirect"
         "should redirect to final destination": (browser)->
           assert.equal browser.location, "http://localhost:3003/history/boo?redirected=true"
         "should pass query parameter": (browser)->
@@ -116,7 +116,7 @@ Vows.describe("History").addBatch(
           assert.ok browser.redirected
 
     "redirect back":
-      Zombie.wants "http://localhost:3003/history/boo"
+      Browser.wants "http://localhost:3003/history/boo"
         topic: (browser)->
           browser.visit "http://localhost:3003/history/redirect_back"
           browser.window.document.addEventListener "DOMContentLoaded", =>
@@ -134,7 +134,7 @@ Vows.describe("History").addBatch(
 
   "location":
     "open page":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         "should add page to history": (browser)->
           assert.lengthOf browser.history, 1
         "should change location URL": (browser)->
@@ -147,7 +147,7 @@ Vows.describe("History").addBatch(
           assert.equal browser.document.location.href, "http://localhost:3003/"
 
     "open from file system":
-      Zombie.wants `file_url`
+      Browser.wants `file_url`
         "should add page to history": (browser)->
           assert.lengthOf browser.history, 1
         "should change location URL": (browser)->
@@ -160,7 +160,7 @@ Vows.describe("History").addBatch(
           assert.equal browser.document.location.href, file_url
 
     "change pathname":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)->
           browser.window.location.pathname = "/history/boo"
           browser.window.document.addEventListener "DOMContentLoaded", =>
@@ -174,7 +174,7 @@ Vows.describe("History").addBatch(
           assert.match browser.html(), /Eeek!/
 
     "change relative href":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)->
           browser.window.location.href = "/history/boo"
           browser.window.document.addEventListener "DOMContentLoaded", =>
@@ -188,7 +188,7 @@ Vows.describe("History").addBatch(
           assert.match browser.html(), /Eeek!/
 
     "change hash":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)->
           browser.document.innerHTML = "Wolf"
           browser.window.addEventListener "hashchange", =>
@@ -203,7 +203,7 @@ Vows.describe("History").addBatch(
           assert.match browser.document.innerHTML, /Wolf/
 
     "assign":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)->
           @window = browser.window
           browser.window.location.assign "http://localhost:3003/history/boo"
@@ -220,7 +220,7 @@ Vows.describe("History").addBatch(
           assert.ok browser.window != @window
 
     "replace":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)->
           @window = browser.window
           browser.window.location.replace "http://localhost:3003/history/boo"
@@ -237,7 +237,7 @@ Vows.describe("History").addBatch(
           assert.ok browser.window != @window
 
     "reload":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)->
           @window = browser.window
           browser.window.document.innerHTML = "Wolf"
@@ -255,7 +255,7 @@ Vows.describe("History").addBatch(
           assert.ok browser.window != @window
 
     "components":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)-> browser.location
         "should include protocol": (location)->
           assert.equal location.protocol, "http:"
@@ -273,7 +273,7 @@ Vows.describe("History").addBatch(
           assert.equal location.hash, ""
 
     "set window.location":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)->
           browser.window.location = "http://localhost:3003/history/boo"
           browser.window.document.addEventListener "DOMContentLoaded", =>
@@ -287,7 +287,7 @@ Vows.describe("History").addBatch(
           assert.match browser.html(), /Eeek!/
 
     "set document.location":
-      Zombie.wants "http://localhost:3003/"
+      Browser.wants "http://localhost:3003/"
         topic: (browser)->
           browser.window.document.location = "http://localhost:3003/history/boo"
           browser.window.document.addEventListener "DOMContentLoaded", =>

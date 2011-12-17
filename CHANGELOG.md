@@ -3,10 +3,26 @@ zombie.js-changelog(7) -- Changelog
 
 ## Version 0.12.5 2011-12-16
 
+`Zombie` and `Browser` are no longer distinct namespaces.  What you require is the `Browser` class that also includes
+all the methods previously defined for `Zombie`.  For example:
+
+    var Browser = require("zombie")
+
+    // This setting applies to all browsers
+    Browser.debug = true
+    // Create and use a new browser instance
+    var browser = new Browser()
+    browser.visit("http://localhost:3001", function() {
+      ...
+    })
+
 Added `browser.history` for accessing history for the current window, `browser.back` for navigating to the previous page
 and `browser.reload` for reloading the current page.
 
 Fixed a bug whereby navigating back in push-state history would reload document.
+
+    363 Tests
+    2.4 sec to complete
 
 
 ## Version 0.12.4 2011-12-16

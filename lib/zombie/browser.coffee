@@ -3,17 +3,17 @@ require "./forms"
 require "./xpath"
 
 { deprecated }    = require("./helpers")
-{ Cache }         = require("./cache")
-{ Console }       = require("./console")
-{ Cookies }       = require("./cookies")
+Cache             = require("./cache")
+Console           = require("./console")
+Cookies           = require("./cookies")
 { EventEmitter }  = require("events")
-{ EventLoop }     = require("./eventloop")
-{ History }       = require("./history")
+EventLoop         = require("./eventloop")
+History           = require("./history")
 { HTML5 }         = require("html5")
 Interact          = require("./interact")
 JSDom             = require("jsdom")
-{ Resources }     = require("./resources")
-{ Storages }      = require("./storage")
+Resources         = require("./resources")
+Storages          = require("./storage")
 URL               = require("url")
 XHR               = require("./xhr")
 if process.version < "v0.5.0"
@@ -115,7 +115,7 @@ class Browser extends EventEmitter
     for name in BROWSER_OPTIONS
       value = options[name]
       if typeof value == "undefined"
-        value = exports[name]
+        value = Browser[name]
         unless typeof value == "undefined"
           @[name] = value
       else
@@ -908,6 +908,5 @@ class Screen
   @prototype.__defineGetter__ "pixelDepth", -> 24
 
 
-exports.Browser = Browser
-exports.version = VERSION # Backwards compatible
-exports.VERSION = VERSION
+Browser.VERSION = VERSION
+module.exports = Browser

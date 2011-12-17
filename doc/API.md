@@ -11,20 +11,22 @@ session stroage.  A browser has a main window, and typically a document loaded i
 
 You can pass options when initializing a new browser, for example:
 
-    browser = new zombie.Browser({ debug: true })
+    var Browser = require("zombie")
+
+    var browser = new Browser({ debug: true })
     browser.runScripts = false
 
 Or on existing browser for the duration of a page load:
 
-    zombie.visit("http://localhost:3000/", { debug: true, runScripts: false },
+    Browser.visit("http://localhost:3000/", { debug: true, runScripts: false },
                  function (e, browser, status) {
       ...
     });
 
 You can also set options globally for all browsers to inherit:
 
-    Zombie.site = "http://localhost:3000"
-    Zombie.loadCSS = false
+    Browser.site = "http://localhost:3000"
+    Browser.loadCSS = false
 
 
 ### Browser Options

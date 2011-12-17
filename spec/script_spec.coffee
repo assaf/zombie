@@ -1,4 +1,4 @@
-{ Vows, assert, brains, Browser, Zombie } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 
 
 Vows.describe("Scripts").addBatch(
@@ -44,7 +44,7 @@ Vows.describe("Scripts").addBatch(
         """
 
     "run app":
-      Zombie.wants "http://localhost:3003/script/living"
+      Browser.wants "http://localhost:3003/script/living"
         "should execute route": (browser)->
           assert.equal browser.document.title, "The Living"
         "should change location": (browser)->
@@ -58,7 +58,7 @@ Vows.describe("Scripts").addBatch(
             assert.equal browser.location.href, "http://localhost:3003/script/living#/dead"
 
     "live events":
-      Zombie.wants "http://localhost:3003/script/living"
+      Browser.wants "http://localhost:3003/script/living"
         topic: (browser)->
           browser.fill("Email", "armbiter@zombies").fill("Password", "br41nz").pressButton "Sign Me Up", @callback
         "should change location": (browser)->
@@ -67,7 +67,7 @@ Vows.describe("Scripts").addBatch(
           assert.equal browser.document.title, "Signed up"
 
     "evaluate":
-      Zombie.wants "http://localhost:3003/script/living"
+      Browser.wants "http://localhost:3003/script/living"
         topic: (browser)->
           browser.evaluate "document.title"
         "should evaluate in context and return value": (title)->
@@ -296,7 +296,7 @@ Vows.describe("Scripts").addBatch(
 
   ###
   "new Image":
-    Zombie.wants "http://localhost:3003/script/living"
+    Browser.wants "http://localhost:3003/script/living"
       "should construct an img tag": (browser)-> assert.equal domToHtml(browser.evaluate("new Image")), "<img>\r\n"
       "should construct an img tag with width and height": (browser)->
         assert.equal domToHtml(browser.evaluate("new Image(1, 1)")), "<img width=\"1\" height=\"1\">\r\n"

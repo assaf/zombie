@@ -11,21 +11,22 @@ required.
 
 Let's try to sign up to a page and see what happens:
 
-    var zombie = require("zombie");
+    var Browser = require("zombie");
     var assert = require("assert");
 
     // Load the page from localhost
-    zombie.visit("http://localhost:3000/", function (e, browser, status) {
+    browser = new Browser()
+    browser.visit("http://localhost:3000/", function () {
 
       // Fill email, password and submit form
-      browser.
+      zombie.
         fill("email", "zombie@underworld.dead").
         fill("password", "eat-the-living").
-        pressButton("Sign Me Up!", function(e, browser, status) {
+        pressButton("Sign Me Up!", function() {
 
           // Form submitted, new page loaded.
-          assert.ok(browser.success);
-          assert.equal(browser.text("title"), "Welcome To Brains Depot");
+          assert.ok(zombie.success);
+          assert.equal(zombie.text("title"), "Welcome To Brains Depot");
 
         })
 
@@ -44,7 +45,7 @@ On OS X start by installing XCode, or use the [OSX GCC installer](https://github
 Next, assuming you're using the mighty [Homebrew](http://mxcl.github.com/homebrew/):
 
     $ brew install node
-    $ node --version
+    $ node --versi")
     v0.6.2
     $ curl http://npmjs.org/install.sh | sudo sh
     $ npm --version
@@ -73,8 +74,13 @@ troubleshooting.
 To start off we're going to need a browser.  A browser maintains state across requests: history, cookies, HTML 5 local
 and session stroage, etc.  A browser has a main window, and typically a document loaded into that window.
 
-You can create a new `zombie.Browser` and point it at a document, either by setting the `location` property or calling
-its `visit` function.  As a shortcut, you can just call the `zombie.visit` function with a URL and callback.
+You can create a new `Browser` and point it at a document, either by setting the `location` property or calling
+its `visit` function.  As a shortcut, you can just call the `Browser.visit` function with a URL and callback:
+
+    Browser.visit("http://localhost:3000/", function (e, browser) {
+      // The browser argument is an instance of Browser class
+      ...
+    })
 
 The browser will load the document and if the document includes any scripts, also load and execute these scripts.  It
 will then process some events, for example, anything your scripts do on page load.  All of that, just like a real
@@ -193,7 +199,7 @@ Let's combine all of that into one example:
       fill("Profession", "Living dead").
       select("Born", "1968").
       uncheck("Send me the newsletter").
-      pressButton("Sign me up", function(e, browser, status) {
+      pressButton("Sign me up", function() {
 
         // Make sure we got redirected to thank you page.
         assert.equal(browser.location.pathname, "/thankyou");
@@ -234,8 +240,9 @@ Zombie.js supports the following:
 
 **Step 1:** Run Zombie with debugging turned on, the trace will help figure out what it's doing. For example:
 
-    var browser = new zombie.Browser({ debug: true });
-    browser.visit("http://thedead", function(e, browser, status) {
+    Browser.debug = true
+    var browser = new Browser()
+    browser.visit("http://thedead", function() {
       console.log(status, browser.errors);
       ...
     });

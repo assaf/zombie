@@ -1,4 +1,4 @@
-{ Vows, assert, brains, Zombie, Browser } = require("./helpers")
+{ Vows, assert, brains, Browser } = require("./helpers")
 JSDOM = require("jsdom")
 
 
@@ -31,7 +31,7 @@ Vows.describe("Browser").addBatch(
 
 
     "open page":
-      Zombie.wants "http://localhost:3003/browser/scripted"
+      Browser.wants "http://localhost:3003/browser/scripted"
         "should create HTML document": (browser)->
           assert.instanceOf browser.document, JSDOM.dom.level3.html.HTMLDocument
         "should load document from server": (browser)->
@@ -170,7 +170,7 @@ Vows.describe("Browser").addBatch(
           assert.equal err.message, "Cannot read property 'wrong' of undefined"
 
     "source":
-      Zombie.wants "http://localhost:3003/browser/scripted"
+      Browser.wants "http://localhost:3003/browser/scripted"
         "should return the unmodified page": (browser)->
           assert.equal browser.source,
             """
@@ -202,14 +202,14 @@ Vows.describe("Browser").addBatch(
 
       "global":
         topic: ->
-          Zombie.site = "http://localhost:3003"
+          Browser.site = "http://localhost:3003"
           browser = new Browser
           browser.wants "/browser/scripted", @callback
         "should set browser options from global options": (browser)->
           assert.equal browser.site, "http://localhost:3003"
           assert.equal browser.document.title, "Awesome"
         teardown: ->
-          Zombie.site = null
+          Browser.site = null
 
 
   "content selection":
@@ -455,7 +455,7 @@ Vows.describe("Browser").addBatch(
 
 
   "URL without path":
-    Zombie.wants "http://localhost:3003"
+    Browser.wants "http://localhost:3003"
       "should resolve URL": (browser)->
         assert.equal browser.location.href, "http://localhost:3003/"
       "should load page": (browser)->

@@ -222,4 +222,4 @@ HTML.HTMLDocument.prototype.__defineSetter__ "cookie", (cookie)->
   @parentWindow.cookies.update cookie
 
 
-exports.Cookies = Cookies
+module.exports = Cookies
