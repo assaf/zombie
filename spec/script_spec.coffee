@@ -83,7 +83,9 @@ Vows.describe("Scripts").addBatch(
             <script>var foo = 1</script>
             <script>window.foo = foo + 1</script>
             <script>document.title = this.foo</script>
-            <script>setTimeout(function() {
+            <script>
+            console.log("HERE")
+            setTimeout(function() {
               document.title = foo + window.foo
             });</script>
           </html>

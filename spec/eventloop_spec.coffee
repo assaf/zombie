@@ -100,11 +100,11 @@ Vows.describe("EventLoop").addBatch(
           interval = browser.window.setInterval ->
             @document.title += "."
           , 100
-          browser.wait 150, =>
+          browser.wait 250, =>
             browser.window.clearInterval interval
             browser.wait 200, @callback
         "should fire only uncancelled interval events": (browser)->
-          assert.equal browser.document.title, "."
+          assert.equal browser.document.title, ".."
 
 
   "browser.wait function":

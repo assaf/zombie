@@ -19,15 +19,16 @@ class EventLoop
   reset: ->
     # Prevent any existing timers from firing.
     if @_timers
-      for handle in @_timers
-        global.clearTimeout handle
+      for timer in @_timers
+        global.clearTimeout timer.handle
     @_timers = []
   
   # Add event-loop features to window (mainly timers).
   apply: (window)->
     # Excecute function or evaluate string.  Scope is used for error messages, to distinguish between timeout and
     # interval.
-    execute = (scope, code)=>
+    execute = (scope, code, notice)=>
+      @_browser.log notice
       try
         if typeof code == "string" || code instanceof String
           return window.run code
@@ -36,40 +37,66 @@ class EventLoop
       catch error
         raise window.document, null, __filename, scope, error
       finally
-        while waiter = @_waiting.pop()
-          process.nextTick waiter
+        @_next()
 
     # Add new timeout.  If the timeout is short enough, we ask `wait` to automatically wait for it to fire, by storing
-    # the time in `handle._fires`.  We need to clear `_fires` after the timer fires or when cancelled.
+    # the time in `timer.fires`.  We need to clear `fires` after the timer fires or when cancelled.
     window.setTimeout = (fn, delay)=>
       delay = Math.max(delay || 0, 1) # zero won't work, see below
-      handle = global.setTimeout(=>
-        delete handle._fires
-        @_browser.log -> "Firing timeout after #{delay}ms delay"
-        execute "Timeout", fn
-      , delay)
-      @_timers.push handle
-      # Automatically wait for short timers (e.g. page load, yield)
-      handle._fires = Date.now() + delay
-      return handle
+      timer =
+        # Start timer, but only schedule it during browser.wait.
+        start: =>
+          timer.fires = Date.now() + delay
+          if @_waiting.length > 0
+            timer.resume()
+        # Resume timer when entering browser.wait.
+        resume: ->
+          if timer.fires
+            timer.handle = global.setTimeout(=>
+              delete timer.fires
+              execute "Timeout", fn, "Firing timeout after #{delay}ms delay"
+            , timer.fires - Date.now())
+        # Pause timer when leaving browser.wait.
+        pause: ->
+          global.clearTimeout(timer.handle)
+        # Cancel (clear) timer.
+        stop: ->
+          timer.pause()
+          delete timer.fires
+      timer.start()
+      @_timers.push timer
+      return timer
 
     window.setInterval = (fn, interval)=>
-      handle = global.setInterval(=>
-        handle._fires = Date.now() + interval
-        @_browser.log -> "Firing interval every #{interval}ms"
-        execute "Interval", fn
-      , interval)
-      @_timers.push handle
-      handle._fires = Date.now() + interval
-      return handle
+      timer =
+        # Start timer, but only schedule it during browser.wait.
+        start: =>
+          timer.fires = true
+          if @_waiting.length > 0
+            timer.resume()
+        # Resume timer when entering browser.wait.
+        resume: ->
+          if timer.fires
+            timer.handle = global.setInterval(=>
+              timer.fires = Date.now() + interval
+              execute "Interval", fn, "Firing interval every #{interval}ms"
+            , interval)
+            timer.fires = Date.now() + interval
+        # Pause timer when leaving browser.wait.
+        pause: ->
+          global.clearInterval(timer.handle)
+        # Cancel (clear) timer.
+        stop: ->
+          timer.pause()
+          delete timer.fires
+      timer.start()
+      @_timers.push timer
+      return timer
 
-    window.clearTimeout = (handle)->
-      # This one will never fire, don't wait for it.
-      delete handle._fires
-      global.clearTimeout handle
-    window.clearInterval = (handle)->
-      delete handle._fires
-      global.clearInterval handle
+    window.clearTimeout = (timer)->
+      timer.stop()
+    window.clearInterval = (timer)->
+      timer.stop()
 
 
   # ### perform(fn)
@@ -82,8 +109,7 @@ class EventLoop
     fn =>
       --@_processing
       if @_processing == 0
-        while waiter = @_waiting.pop()
-          process.nextTick waiter
+        @_next()
     return
 
   # Dispatch event asynchronously, wait for it to complete.
@@ -112,27 +138,48 @@ class EventLoop
         duration = @_browser.waitFor
       done_at = Date.now() + (duration || 0)
 
+    # Handle case where we're waken up multiple times.
+    done = false
+
     # Duration is a function, proceed until function returns false.
-    reduce = =>
-      if @_processing > 0
-        @_waiting.push reduce
-      else
-        try
-          unless is_done && is_done(window)
-            # Not done and no events, so wait for the next timer.
-            timers = (timer._fires for timer in @_timers when timer._fires)
-            next = Math.min.apply(Math, timers)
-            if next <= done_at
-              @_waiting.push reduce
-              return
-          @_browser.emit "done", @_browser
-          process.nextTick callback
-        catch error
-          @_browser.emit "error", error
-          callback error
-    process.nextTick reduce
+    waiting = =>
+      return if done
+      # Processing XHR/JS events, keep waiting.
+      return if @_processing > 0
+      try
+        unless is_done && is_done(window)
+          # Not done and no events, so wait for the next timer.
+          timers = (timer.fires for timer in @_timers when timer.fires)
+          next = Math.min.apply(Math, timers)
+          if next <= done_at
+            return
+        @_browser.emit "done", @_browser
+      catch error
+        @_browser.emit "error", error
+      @_waiting = (fn for fn in @_waiting when fn != waiting)
+      @_pause() if @_waiting.length == 0
+      done = true
+      callback()
+
+    # No one is waiting, resume firing timers.
+    @_resume() if @_waiting.length == 0
+    @_waiting.push waiting
+    process.nextTick waiting
     return
 
+  _next: ->
+    for waiting in @_waiting
+      process.nextTick waiting
+
+  # Pause any timers from firing while we're not listening.
+  _pause: ->
+    for timer in @_timers
+      timer.pause()
+
+  # Resumes any timers.
+  _resume: ->
+    for timer in @_timers
+      timer.resume()
 
   dump: ->
     return [ "The time:   #{new Date}",
