@@ -54,8 +54,6 @@ class Browser extends EventEmitter
     # -------
 
 
-    # ### credentials
-    #
     # Object containing authorization credentials.  Supported schemes include
     # `basic` (HTTP Basic), `oauth` (OAuth 2.0 draft 10) and `bearer` (OAuth
     # 2.0 draft 20).  Scheme name is case insensitive.
@@ -70,44 +68,28 @@ class Browser extends EventEmitter
     #   })
     @credentials = false
 
-    # ### debug
-    #
     # True to have Zombie report what it's doing.
     @debug = false
 
-    # ### htmlParser
-    #
     # Which parser to use (HTML5 by default). For example:
     #   zombie.htmlParser = require("html5").HTML5
     @htmlParser = null
 
-    # ### loadCSS
-    #
     # True to load external stylesheets.
     @loadCSS = true
 
-    # ### runScripts
-    #
     # Run scripts included in or loaded from the page. Defaults to true.
     @runScripts = true
 
-    # ### silent
-    #
     # If true, supress `console.log` output from scripts.
     @silent = false
 
-    # ### userAgent
-    #
     # User agent string sent to server.
     @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{VERSION}"
 
-    # ### site
-    #
     # You can use visit with a path, and it will make a request relative to this host/URL.
     @site = null
 
-    # ### waitFor
-    #
     # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 1 second.
     @waitFor = 1000
 
@@ -121,8 +103,6 @@ class Browser extends EventEmitter
       else
         @[name] = value
 
-    # ### browser.errors => Array
-    #
     # Returns all errors reported while loading this window.
     @errors = []
 
@@ -227,14 +207,12 @@ class Browser extends EventEmitter
   # Events
   # ------
 
-  # ### browser.wait(callback?)
-  # ### browser.wait(duration, callback)
-  #
   # Waits for the browser to complete loading resources and processing JavaScript events.  When done, calls the callback
   # with null and browser.
   #
   # With `duration` as the first argument, this method waits for the specified time (in milliseconds) and any
-  # resource/JavaScript to complete processing.
+  # resource/JavaScript to complete processing.  Duration can also be a function, called after each event to determine
+  # whether or not to proceed.
   #
   # Without duration, Zombie makes best judgement by waiting up to 5 seconds for the page to load resources (scripts,
   # XHR requests, iframes), process DOM events, and fire timeouts events.
@@ -248,8 +226,6 @@ class Browser extends EventEmitter
         callback null, this
     return
 
-  # ### browser.fire(name, target, callback?)
-  #
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
   # can be cancelled.  With a callback, this method will call `wait`.
   #

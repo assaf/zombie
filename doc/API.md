@@ -462,6 +462,7 @@ callback, this method will transfer control to the callback after running all ev
 
 ### browser.wait(callback)
 ### browser.wait(duration, callback)
+### browser.wait(done, callback)
 
 Waits for the browser to complete loading resources and processing JavaScript events.  When done, calls the callback
 with null and browser.
@@ -469,8 +470,11 @@ with null and browser.
 With `duration` as the first argument, this method waits for the specified time (in milliseconds) and any
 resource/JavaScript to complete processing.
 
-Without duration, Zombie makes best judgement by waiting up to 5 seconds for the page to load resources (scripts, XHR
-requests, iframes), process DOM events, and fire timeouts events.
+You can also pass a function as the first argument that tells the browser when to stop processing events.  The function
+is called with the window and should return `true` when done.
+
+Without duration or function, Zombie makes best judgement by waiting up to a second for the page to load resources
+(scripts, XHR requests, iframes), process DOM events, and fire timeouts events.
 
 You can also call `wait` with no callback and simply listen to the `done` and `error` events getting fired.
 

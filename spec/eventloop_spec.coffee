@@ -106,4 +106,22 @@ Vows.describe("EventLoop").addBatch(
         "should fire only uncancelled interval events": (browser)->
           assert.equal browser.document.title, "."
 
+
+  "browser.wait function":
+    topic: ->
+      brains.get "/eventloop/function", (req, res)-> res.send """
+        <html>
+          <head><title></title></head>
+        </html>
+        """
+      browser = new Browser
+      browser.wants "http://localhost:3003/eventloop/function", =>
+        browser.window.setInterval (-> @document.title += "."), 100
+        gotFourDots = (window)->
+          return window.document.title == "...."
+        browser.wait gotFourDots, @callback
+    "should not wait longer than specified": (browser)->
+      assert.equal browser.document.title, "...."
+
+
 ).export(module)

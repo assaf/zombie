@@ -1,6 +1,20 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+You can now tell `browser.wait` when to complete processing events by passing either duration (in milliseconds) or a
+function that returns true when done.  For example:
+
+    browser.wait(500, function() {
+      // Waits no longer than 0.5 second
+    })
+
+    function mapIsVisible(window) {
+      return window.querySelector("#map");
+    }
+    browser.wait(mapIsVisible, function() {
+      // Waits until the map element is visible on the page
+    })
+
 Reduced default `waitFor` from 5 seconds to one.  Can easily be extended if this is too short for most people.
 
 

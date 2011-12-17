@@ -35,6 +35,9 @@ class EventLoop
           return code.call window
       catch error
         raise window.document, null, __filename, scope, error
+      finally
+        while waiter = @_waiting.pop()
+          process.nextTick waiter
 
     # Add new timeout.  If the timeout is short enough, we ask `wait` to automatically wait for it to fire, by storing
     # the time in `handle._fires`.  We need to clear `_fires` after the timer fires or when cancelled.
@@ -52,10 +55,12 @@ class EventLoop
 
     window.setInterval = (fn, interval)=>
       handle = global.setInterval(=>
+        handle._fires = Date.now() + interval
         @_browser.log -> "Firing interval every #{interval}ms"
         execute "Interval", fn
       , interval)
       @_timers.push handle
+      handle._fires = Date.now() + interval
       return handle
 
     window.clearTimeout = (handle)->
@@ -81,48 +86,53 @@ class EventLoop
           process.nextTick waiter
     return
 
-
+  # Dispatch event asynchronously, wait for it to complete.
   dispatch: (target, event)->
     @perform (done)=>
       target.dispatchEvent event
       done()
 
-  # ### wait(window, duration, callback)
+  # Process all events from the queue.  This method returns immediately, events
+  # are processed in the background.  When all events are exhausted, it calls
+  # the callback.
   #
-  # Process all events from the queue.  This method returns immediately, events are processed in the background.  When
-  # all events are exhausted, it calls the callback.
+  # This method will wait for any resources to load (XHR, script elements,
+  # iframes, etc).  DOM events are handled synchronously, so will also wait for
+  # them.
   #
-  # This method will wait for any resources to load (XHR, script elements, iframes, etc).  DOM events are handled
-  # synchronously, so will also wait for them.  With duration, it will wait for at least that time (in milliseconds).
-  # Without duration, it will wait up to `browser.waitFor` milliseconds if there are any timeouts to run.
+  # Duration is either how long to wait, or a function evaluated against the
+  # window that returns true when done.  The default duration is
+  # `browser.waitFor`.
   wait: (window, duration, callback)->
-    if duration
-      # Duration given.  Wait for that duration (at least) and any processing resources afterwards.
-      reduce = =>
-        if @_processing > 0
-          @_waiting.push reduce
-        else
-          @_browser.emit "done", @_browser
-          process.nextTick callback
-      setTimeout reduce, duration
+    if typeof duration == "function"
+      is_done = duration
+      done_at = Date.now() + 10000 # don't block forever
     else
-      # No duration, determine latest we're going to wait for timers.
-      demise = Date.now() + @_browser.waitFor
-      reduce = =>
-        if @_processing > 0
-          @_waiting.push reduce
-        else
-          # Run any timers scheduled before our give up (demise) time.
-          firing = (timer._fires for timer in @_timers when timer._fires)
-          if firing.length > 0
-            next = Math.min(firing...)
-            if next <= demise
-              setTimeout reduce, next - Date.now(), 10
+      unless duration && duration != 0
+        duration = @_browser.waitFor
+      done_at = Date.now() + (duration || 0)
+
+    # Duration is a function, proceed until function returns false.
+    reduce = =>
+      if @_processing > 0
+        @_waiting.push reduce
+      else
+        try
+          unless is_done && is_done(window)
+            # Not done and no events, so wait for the next timer.
+            timers = (timer._fires for timer in @_timers when timer._fires)
+            next = Math.min.apply(Math, timers)
+            if next <= done_at
+              @_waiting.push reduce
               return
           @_browser.emit "done", @_browser
           process.nextTick callback
-      process.nextTick reduce
+        catch error
+          @_browser.emit "error", error
+          callback error
+    process.nextTick reduce
     return
+
 
   dump: ->
     return [ "The time:   #{new Date}",
