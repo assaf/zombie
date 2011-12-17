@@ -108,8 +108,8 @@ class Browser extends EventEmitter
 
     # ### waitFor
     #
-    # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 5 seconds.
-    @waitFor = 5000
+    # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 1 second.
+    @waitFor = 1000
 
     # Sets the browser options.
     for name in BROWSER_OPTIONS

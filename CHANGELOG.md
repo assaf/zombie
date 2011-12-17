@@ -1,6 +1,9 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+Reduced default `waitFor` from 5 seconds to one.  Can easily be extended if this is too short for most people.
+
+
 ## Version 0.12.5 2011-12-16
 
 `Zombie` and `Browser` are no longer distinct namespaces.  What you require is the `Browser` class that also includes
