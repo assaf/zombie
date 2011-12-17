@@ -148,7 +148,7 @@ class History
           evt.state = entry.state
           @_browser.dispatchEvent @_window, evt
         # Do not load different page unless we're on a different host
-        if was.host != @_stack[@_index].host
+        if was.host != @_stack[@_index]?.url?.host
           @_resource @_stack[@_index].url
       else
         @_pageChanged was

@@ -6,6 +6,8 @@ zombie.js-changelog(7) -- Changelog
 Added `browser.history` for accessing history for the current window, `browser.back` for navigating to the previous page
 and `browser.reload` for reloading the current page.
 
+Fixed a bug whereby navigating back in push-state history would reload document.
+
 
 ## Version 0.12.4 2011-12-16
 

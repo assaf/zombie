@@ -53,13 +53,19 @@ Vows.describe("History").addBatch(
 
         "go backwards":
           topic: (window)->
-            window.addEventListener "popstate", (evt)=> @callback(null, evt)
+            window.document.magic = 123
+            window.addEventListener "popstate", (evt)=>
+              @callback(null, evt)
             window.history.back()
             return
           "should fire popstate event": (evt)->
             assert.instanceOf evt, JSDOM.dom.level3.events.Event
           "should include state": (evt)->
             assert.equal evt.state.is, "start"
+          "should not reload page from same host": (evt)->
+            # Get access to the *current* document
+            document = evt.target.window.browser.document
+            assert.equal document.magic, 123
 
         "go forwards":
           Zombie.wants "http://localhost:3003/"
