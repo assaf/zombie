@@ -134,7 +134,7 @@ class EventLoop
   wait: (window, duration, callback)->
     if typeof duration == "function"
       is_done = duration
-      done_at = Date.now() + 10000 # don't block forever
+      done_at = Date.now() + 5000 # don't block forever
     else
       unless duration && duration != 0
         duration = @_browser.waitFor

@@ -90,8 +90,8 @@ class Browser extends EventEmitter
     # You can use visit with a path, and it will make a request relative to this host/URL.
     @site = null
 
-    # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 1 second.
-    @waitFor = 1000
+    # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 0.5 seconds.
+    @waitFor = 500
 
     # Sets the browser options.
     for name in BROWSER_OPTIONS
@@ -110,8 +110,6 @@ class Browser extends EventEmitter
     @open()
 
 
-  # ### withOptions(options, fn)
-  #
   # Changes the browser options, and calls the function with a callback (reset).  When you're done processing, call the
   # reset function to bring options back to their previous values.
   #
@@ -123,8 +121,6 @@ class Browser extends EventEmitter
     fn =>
       @[k] = v for k,v of restore if restore
 
-  # ### browser.fork() => Browser
-  #
   # Return a new browser with a snapshot of this browser's state.
   # Any changes to the forked browser's state do not affect this browser.
   fork: ->
@@ -138,8 +134,6 @@ class Browser extends EventEmitter
   # Windows
   # -------
 
-  # ### browser.open() => Window
-  #
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
     # Add context for evaluating scripts.

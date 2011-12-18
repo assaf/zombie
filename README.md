@@ -109,7 +109,7 @@ Whenever you want to wait for all events to be processed, just call `browser.wai
 long the wait is (e.g. animation or page transition), you can pass a duration (in milliseconds) as the first argument.
 You can also pass a function that would return true when done.
 
-Otherwise, Zombie makes best judgement by waiting for about a second for the page to load resources (scripts, XHR
+Otherwise, Zombie makes best judgement by waiting for about half a second for the page to load resources (scripts, XHR
 requests, iframes), process DOM events, and fire timeouts events.  It is quite common for pages to fire timeout events
 as they load, e.g. jQuery's `onready`.  Usually these events delay the test by no more than a few milliseconds.
 

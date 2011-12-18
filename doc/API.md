@@ -40,7 +40,7 @@ You can use the following options:
 - `userAgent` -- The User-Agent string to send to the server.
 - `silent` -- If true, supress all `console.log` output from scripts.  You can still view it with `window.console.output`.
 - `site` -- Base URL for all requests.  If set, you can call `visit` with relative URL.
-- `waitFor` -- Tells `wait` function how long to wait (in milliseconds) while timers fire.  Defaults to 1 second.
+- `waitFor` -- Tells `wait` function how long to wait (in milliseconds) while timers fire.  Defaults to 0.5 seconds.
 
 ### browser.visit(url, callback)
 ### browser.visit(url, options, callback)
@@ -464,17 +464,33 @@ callback, this method will transfer control to the callback after running all ev
 ### browser.wait(duration, callback)
 ### browser.wait(done, callback)
 
-Waits for the browser to complete loading resources and processing JavaScript events.  When done, calls the callback
-with null and browser.
+Waits for the browser to complete loading resources and processing JavaScript events.
 
-With `duration` as the first argument, this method waits for the specified time (in milliseconds) and any
-resource/JavaScript to complete processing.
+The browser will wait for resources to load (scripts, iframes, etc), XHR requests to complete, DOM events to fire and
+timers (timeout and interval).  But it can't wait forever, especially not for timers that may fire repeatedly (e.g.
+checking page state, long polling).
 
-You can also pass a function as the first argument that tells the browser when to stop processing events.  The function
-is called with the window and should return `true` when done.
+There are two mechanisms to determine completion of processing.  You can tell the browser to give up after certain time
+by passing the duration as first argument, or by setting the browser option `waitFor`.  The default value is 500, since
+waiting 0.5 seconds is good enough for most pages.
 
-Without duration or function, Zombie makes best judgement by waiting up to a second for the page to load resources
-(scripts, XHR requests, iframes), process DOM events, and fire timeouts events.
+You can also tell the browser to wait for something to happen on the page by passing a function as the first argument.
+That function is called repeatedly with the window object, and should return true (or any value equal to true) when it's
+time to pass control back to the application.
+
+For example:
+
+    // Wait until map is loaded
+    function mapLoaded(window) {
+      return window.querySelector("#map");
+    }
+    browser.wait(mapLoaded, function() {
+      // Page has a #map element now
+
+    })
+
+Note that even in this mode the browser won't wait forever, but complete when there are no events to wait for, or give
+up after 5 seconds of waiting.
 
 You can also call `wait` with no callback and simply listen to the `done` and `error` events getting fired.
 

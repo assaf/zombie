@@ -15,7 +15,10 @@ function that returns true when done.  For example:
       // Waits until the map element is visible on the page
     })
 
-Reduced default `waitFor` from 5 seconds to one.  Can easily be extended if this is too short for most people.
+Reduced default `waitFor` from 5 seconds to 0.5 seconds.  That seems good enough default for most pages.
+
+    366 Tests
+    3.3 sec to complete
 
 
 ## Version 0.12.5 2011-12-16
