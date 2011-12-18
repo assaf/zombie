@@ -489,8 +489,8 @@ For example:
 
     })
 
-Note that even in this mode the browser won't wait forever, but complete when there are no events to wait for, or give
-up after 5 seconds of waiting.
+Even with completion function, the browser won't wait forever.  It will complete as soon as it determines there are no
+more events to wait for, or after 5 seconds of waiting.
 
 You can also call `wait` with no callback and simply listen to the `done` and `error` events getting fired.
 

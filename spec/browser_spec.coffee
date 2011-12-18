@@ -332,7 +332,7 @@ Vows.describe("Browser").addBatch(
           </body>
         </html>
         """
-      browser = new Browser
+      browser = new Browser(waitFor: 700)
       browser.wants "http://localhost:3003/browser/head", =>
         browser.clickLink "Smash", @callback
 
