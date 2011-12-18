@@ -2,7 +2,7 @@
 JSDOM = require("jsdom")
 
 
-Vows.describe("Browser").addBatch(
+Vows.describe("Browser").addBatch
 
   "browsing":
     topic: ->
@@ -212,6 +212,8 @@ Vows.describe("Browser").addBatch(
           Browser.site = null
 
 
+.addBatch
+
   "content selection":
     topic: ->
       brains.get "/browser/walking", (req, res)->
@@ -309,6 +311,8 @@ Vows.describe("Browser").addBatch(
         assert.equal $('body').find('#main a').text(), 'Kill'
 
 
+.addBatch
+
   "click link":
     topic: ->
       brains.get "/browser/head", (req, res)->
@@ -383,6 +387,8 @@ Vows.describe("Browser").addBatch(
       "should be accessible from navigator": (browser)->
         assert.equal browser.window.navigator.userAgent, "imposter"
 
+
+.addBatch
 
   "authentication":
     "basic":
@@ -514,6 +520,8 @@ Vows.describe("Browser").addBatch(
       assert.equal "http://localhost:3003/browser/living", forked.location.href
 
 
+.addBatch
+
   "iframes":
     topic: ->
       brains.get "/iframe", (req, res)->
@@ -551,4 +559,4 @@ Vows.describe("Browser").addBatch(
       assert.equal "http://localhost:3003/iframe", browser.window.location
 
 
-).export(module)
+.export(module)
