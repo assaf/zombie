@@ -1,6 +1,8 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.12.6 2011-12-18
+
 You can now tell `browser.wait` when to complete processing events by passing either duration (in milliseconds) or a
 function that returns true when done.  For example:
 
@@ -18,7 +20,7 @@ function that returns true when done.  For example:
 Reduced default `waitFor` from 5 seconds to 0.5 seconds.  That seems good enough default for most pages.
 
     366 Tests
-    3.3 sec to complete
+    3.7 sec to complete
 
 
 ## Version 0.12.5 2011-12-16
