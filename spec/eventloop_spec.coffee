@@ -33,7 +33,7 @@ Vows.describe("EventLoop").addBatch(
           browser.window.setTimeout ->
             @document.title += " Three"
           , 200
-          browser.wait 200, @callback
+          browser.wait 250, @callback
         "should fire all timeout events": (browser)->
           assert.equal browser.document.title, "One Two Three"
 
