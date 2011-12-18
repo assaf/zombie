@@ -53,6 +53,20 @@ Vows.describe("EventLoop").addBatch(
         "should fire only uncancelled timeout events": (browser)->
           assert.equal browser.document.title, "One Two"
 
+    "outside wait":
+      Browser.wants "http://localhost:3003/eventloop/timeout"
+        topic: (browser)->
+          browser.wants "http://localhost:3003/eventloop/function", =>
+            browser.window.setTimeout (-> @document.title += "1"), 100
+            browser.window.setTimeout (-> @document.title += "2"), 200
+            browser.window.setTimeout (-> @document.title += "3"), 300
+            browser.wait 150, =>
+              setTimeout =>
+                browser.wait 150, @callback
+              , 300
+        "should not fire": (browser)->
+          assert.equal browser.document.title, "12"
+
 
   "setInterval":
     topic: ->
@@ -106,6 +120,18 @@ Vows.describe("EventLoop").addBatch(
         "should fire only uncancelled interval events": (browser)->
           assert.equal browser.document.title, ".."
 
+    "outside wait":
+      Browser.wants "http://localhost:3003/eventloop/interval"
+        topic: (browser)->
+          browser.wants "http://localhost:3003/eventloop/function", =>
+            browser.window.setInterval (-> @document.title += "."), 100
+            browser.wait 100, =>
+              setTimeout =>
+                browser.wait 100, @callback
+              , 300
+        "should not fire": (browser)->
+          assert.equal browser.document.title, ".."
+
 
   "browser.wait function":
     topic: ->
@@ -122,6 +148,7 @@ Vows.describe("EventLoop").addBatch(
         browser.wait gotFourDots, @callback
     "should not wait longer than specified": (browser)->
       assert.equal browser.document.title, "...."
+
 
 
 ).export(module)
