@@ -1,6 +1,17 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+
+## Version 0.12.7 2011-12-19
+
+Methods like `visit` and `fire` no longer call `wait` if there's no callback.
+
+The wait callback is called from `nextTick`.  Fixes a possible race condition.
+
+    366 Tests
+    3.7 sec to complete
+
+
 ## Version 0.12.6 2011-12-18
 
 You can now tell `browser.wait` when to complete processing events by passing either duration (in milliseconds) or a

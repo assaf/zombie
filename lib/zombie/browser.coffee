@@ -389,10 +389,12 @@ class Browser extends EventEmitter
         site = "http://#{site}" unless /^https?:/i.test(site)
         url = URL.resolve(site, URL.parse(URL.format(url)))
       @window.history._assign url
-      @wait duration, (error, browser)=>
-        reset_options()
-        if callback
+      if callback
+        @wait duration, (error, browser)=>
+          reset_options()
           callback error, browser, browser.statusCode, browser.errors
+      else
+        reset_options()
     return
 
   # ### browser.location => Location

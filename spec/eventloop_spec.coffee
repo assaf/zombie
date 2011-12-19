@@ -60,9 +60,9 @@ Vows.describe("EventLoop").addBatch(
             browser.window.setTimeout (-> @document.title += "1"), 100
             browser.window.setTimeout (-> @document.title += "2"), 200
             browser.window.setTimeout (-> @document.title += "3"), 300
-            browser.wait 150, =>
+            browser.wait 100, =>
               setTimeout =>
-                browser.wait 150, @callback
+                browser.wait 100, @callback
               , 300
         "should not fire": (browser)->
           assert.equal browser.document.title, "12"
