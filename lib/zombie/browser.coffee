@@ -227,7 +227,8 @@ class Browser extends EventEmitter
   # target - Target element (e.g a link)
   # callback - Wait for events to be processed, then call me (optional)
   fire: (name, target, options, callback)->
-    [callback, options] = [options, null] if typeof options is "function"
+    if typeof options == "function"
+      [callback, options] = [options, null]
     options ?= {}
 
     type = options.type || (if name in MOUSE_EVENT_NAMES then "MouseEvents" else "HTMLEvents")
@@ -240,7 +241,7 @@ class Browser extends EventEmitter
 
     @dispatchEvent target, event
     if callback
-      @wait 0, callback
+      @wait callback
     else
       return this
 
@@ -379,14 +380,16 @@ class Browser extends EventEmitter
   #
   # The callback is called with null, the browser, status code and array of resource/JavaScript errors.
   visit: (url, options, callback)->
-    if typeof options is "function"
+    if typeof options == "function" && !callback
       [callback, options] = [options, null]
+    if typeof options != "object"
+      [duration, options] = [options, null]
     @withOptions options, (reset_options)=>
       if site = @site
         site = "http://#{site}" unless /^https?:/i.test(site)
         url = URL.resolve(site, URL.parse(URL.format(url)))
       @window.history._assign url
-      @wait null, (error, browser)=>
+      @wait duration, (error, browser)=>
         reset_options()
         if callback
           callback error, browser, browser.statusCode, browser.errors
@@ -436,12 +439,14 @@ class Browser extends EventEmitter
   # Navigate back in history.
   back: (callback)->
     @window.history.back()
-    @wait callback
+    if callback
+      @wait callback
 
   # Reloads current page.
   reload: (callback)->
     @window.location.reload()
-    @wait callback
+    if callback
+      @wait callback
 
   # ### browser.saveHistory() => String
   #

@@ -12,7 +12,6 @@
   "keywords": [ "test", "tests", "testing", "TDD", "spec", "specs", "BDD", "headless", "browser",
     "html", "html5", "dom", "css", "javascript", "integration", "ajax", "full-stack", "DSL" ],
   "main": "lib/zombie",
-  "man": "./man7",
   "scripts": {
     "test":   "vows --spec"
   },
@@ -20,7 +19,7 @@
     "node": ">= 0.4.0"
   },
   "dependencies": {
-    "coffee-script":    "~1.1.3",
+    "coffee-script":    "=>1.1.3",
     "contextify":       "~0.0.7",
     "html5":            "~0.3.5",
     "jsdom":            "~0.2.10",

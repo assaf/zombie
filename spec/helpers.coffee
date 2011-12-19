@@ -71,6 +71,8 @@ Browser.wants = (url, context)->
   return context
 
 Browser.prototype.wants = (url, options, callback)->
+  if !callback && typeof options == "function"
+    [options, callback] = [null, options]
   brains.ready =>
     @visit url, options, (err, browser)=>
       callback err, browser if callback

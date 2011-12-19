@@ -143,15 +143,13 @@ class EventLoop
     # Called once at the end of the loop. Also, set to null when done, since
     # waiting may be called multiple times.
     done = (error)=>
-      try
-        # Remove from waiting list, pause timers if last waiting.
-        @_waiting = (fn for fn in @_waiting when fn != waiting)
-        @_pause() if @_waiting.length == 0
-        # Mark as done so we don't run it again.
-        done = null
-        callback error
-      catch error
-        process.emit "error", error
+      # Mark as done so we don't run it again.
+      done = null
+      # Remove from waiting list, pause timers if last waiting.
+      @_waiting = (fn for fn in @_waiting when fn != waiting)
+      @_pause() if @_waiting.length == 0
+      process.nextTick ->
+        callback error, window
 
     # Duration is a function, proceed until function returns false.
     waiting = =>
@@ -164,12 +162,13 @@ class EventLoop
           # Not done and no events, so wait for the next timer.
           timers = (timer.next for timer in @_timers when timer.next)
           next = Math.min.apply(Math, timers)
+          # If there are no timers, next is Infinity, larger then done_at, no waiting
           if next <= done_at
             return
         @_browser.emit "done", @_browser
         done()
       catch error
-        @_browser.emit "done", @_browser
+        @_browser.emit "error", error
         done(error)
 
     # No one is waiting, resume firing timers.
