@@ -2,9 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.12.8 2011-12-20
+
 Browser implementations of clearInterval/clearTimeout do not throw exceptions (Justin Tulloss)
 
 Fix resources.toString throwing an error (Mr Rogers)
+
+    374 tests
+    3.9 sec to complete
 
 
 ## Version 0.12.7 2011-12-19
