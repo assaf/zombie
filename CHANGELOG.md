@@ -2,6 +2,9 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+Browser implementations of clearInterval/clearTimeout do not throw exceptions (Justin Tulloss)
+
+
 ## Version 0.12.7 2011-12-19
 
 Methods like `visit` and `fire` no longer call `wait` if there's no callback.
