@@ -96,9 +96,9 @@ class EventLoop
       return timer
 
     window.clearTimeout = (timer)->
-      timer.stop()
+      try timer.stop() catch exc
     window.clearInterval = (timer)->
-      timer.stop()
+      try timer.stop() catch exc
 
 
   # ### perform(fn)
