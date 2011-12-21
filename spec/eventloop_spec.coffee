@@ -52,6 +52,11 @@ Vows.describe("EventLoop").addBatch(
           browser.wait 300, @callback
         "should fire only uncancelled timeout events": (browser)->
           assert.equal browser.document.title, "One Two"
+        "should not choke on invalid timers": (browser)->
+          assert.doesNotThrow ->
+            # clearTimeout should not choke when clearing an invalid timer
+            # https://developer.mozilla.org/en/DOM/window.clearTimeout
+            browser.window.clearTimeout undefined
 
     "outside wait":
       Browser.wants "http://localhost:3003/eventloop/timeout"
@@ -119,6 +124,10 @@ Vows.describe("EventLoop").addBatch(
             browser.wait 200, @callback
         "should fire only uncancelled interval events": (browser)->
           assert.equal browser.document.title, ".."
+        "should not throw an exception with invalid interval": (browser)->
+          assert.doesNotThrow ->
+            # clearInterval should not choke on invalid interval
+            browser.window.clearInterval undefined
 
     "outside wait":
       Browser.wants "http://localhost:3003/eventloop/interval"
