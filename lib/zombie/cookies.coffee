@@ -94,7 +94,8 @@ class Access
   # * value -- Cookie value
   # * options -- Options max-age, expires, secure, domain, path
   set: (name, value, options = {})->
-    return if options.domain && !domainMatch(options.domain, @_hostname)
+    if options.domain && !domainMatch(options.domain, @_hostname)
+      return
 
     name = name
     state = { value: value.toString() }

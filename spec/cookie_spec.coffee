@@ -49,9 +49,20 @@ Vows.describe("Cookies").addBatch(
         "should not have access to other paths": (cookies)->
           assert.isUndefined cookies.get("_path2")
           assert.isUndefined cookies.get("_path3")
-        "should not have access to .domain": (cookies)->
+        "should have access to .domain": (cookies)->
           assert.equal cookies.get("_domain1"), "here"
         "should not have access to other domains": (cookies)->
+          assert.isUndefined cookies.get("_domain2")
+          assert.isUndefined cookies.get("_domain3")
+
+      "host in domain":
+        topic: (browser)->
+          browser.cookies("host.localhost")
+        "should not have access to domain cookies": (cookies)->
+          assert.isUndefined cookies.get("_name")
+        "should have access to .host cookies": (cookies)->
+          assert.equal cookies.get("_domain1"), "here"
+        "should not have access to other hosts' cookies": (cookies)->
           assert.isUndefined cookies.get("_domain2")
           assert.isUndefined cookies.get("_domain3")
 
@@ -76,6 +87,15 @@ Vows.describe("Cookies").addBatch(
           "should not include httpOnly cookies": (pairs)->
             for key, value of pairs
               assert.notEqual key, "_http_only"
+
+
+  "host":
+    Browser.wants "http://host.localhost:3003/cookies"
+      "cookies":
+        topic: (browser)->
+          browser.cookies("localhost", "/cookies")
+        "should be able to set domain cookies": (cookies)->
+          assert.equal cookies.get("_domain1"), "here"
 
 
   "get cookies and redirect":

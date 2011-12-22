@@ -1,13 +1,18 @@
-Express = require("express")
-File    = require("fs")
-Path    = require("path")
-Browser  = require("../lib/zombie.js")
+DNS       = require("dns")
+Express   = require("express")
+File      = require("fs")
+Path      = require("path")
+Browser   = require("../lib/zombie.js")
 
 
 # Always run in verbose mode on Travis.
 Browser.debug = true if process.env.TRAVIS
 Browser.silent = !Browser.debug
 
+
+# Redirect all HTTP requests to localhost
+DNS.lookup = (domain, callback)->
+  callback null, "127.0.0.1", 4
 
 
 # An express server we use to test the browser.
