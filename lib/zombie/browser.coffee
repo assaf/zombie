@@ -702,47 +702,34 @@ class Browser extends EventEmitter
   # Cookies and storage
   # -------------------
 
-  # ### browser.cookies(domain, path) => Cookies
-  #
-  # Returns all the cookies for this domain/path. Path defaults to "/".
+  # Returns all the cookies for this domain/path. Domain defaults to hostname of currently open page. Path defaults to
+  # "/".
   cookies: (domain, path)->
-    return @_cookies.access(domain, path)
+    return @_cookies.access(domain || @location.hostname, path || @location.pathname)
   
-  # ### browser.saveCookies() => String
-  #
   # Save cookies to a text string.  You can use this to load them back later on using `browser.loadCookies`.
   saveCookies: ->
     @_cookies.save()
 
-  # ### browser.loadCookies(String)
-  #
   # Load cookies from a text string (e.g. previously created using `browser.saveCookies`.
   loadCookies: (serialized)->
     @_cookies.load serialized
 
-  # ### brower.localStorage(host) => Storage
-  #
   # Returns local Storage based on the document origin (hostname/port). This is the same storage area you can access
   # from any document of that origin.
   localStorage: (host)->
     return @_storages.local(host)
 
-  # ### brower.sessionStorage(host) => Storage
-  #
   # Returns session Storage based on the document origin (hostname/port). This is the same storage area you can access
   # from any document of that origin.
   sessionStorage: (host)->
     return @_storages.session(host)
 
-  # ### browser.saveStorage() => String
-  #
   # Save local/session storage to a text string.  You can use this to load the data later on using
   # `browser.loadStorage`.
   saveStorage: ->
     @_storages.save()
   
-  # ### browser.loadStorage(String)
-  #
   # Load local/session stroage from a text string (e.g. previously created using `browser.saveStorage`.
   loadStorage: (serialized)->
     @_storages.load serialized
@@ -751,9 +738,6 @@ class Browser extends EventEmitter
   # Scripts
   # -------
 
-  # ### browser.evaluate(function) : Object
-  # ### browser.evaluate(code, filename) : Object
-  #
   # Evaluates a JavaScript expression in the context of the current window and returns the result.  When evaluating
   # external script, also include filename.
   #

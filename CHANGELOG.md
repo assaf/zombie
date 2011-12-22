@@ -2,6 +2,12 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+Added support for `httpOnly` cookies.
+
+You can now call `browser.cookies` with no arguments to return cookies for the current domain (based on the hostname of
+the currently loaded page).
+
+
 ## Version 0.12.8 2011-12-20
 
 Browser implementations of clearInterval/clearTimeout do not throw exceptions (Justin Tulloss)

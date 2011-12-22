@@ -8,9 +8,11 @@ HTML = require("jsdom").dom.level3.html
 serialize = (domain, path, name, cookie)->
   str = "#{name}=#{cookie.value}; domain=#{domain}; path=#{path}"
   if cookie.expires
-    str = "#{str}; max-age=#{cookie.expires - +new Date}"
+    str += "; max-age=#{cookie.expires - +new Date}"
   if cookie.secure
-    str = "#{str}; secure"
+    str += "; secure"
+  if cookie.httpOnly
+    str += "; httpOnly"
   str
 
 # Deserialize a cookie
@@ -29,6 +31,7 @@ deserialize = (serialized)->
       when "expires"  then cookie.expires     = new Date(dequote(val))
       when "max-age"  then cookie['max-age']  = parseInt(dequote(val), 10)
       when "secure"   then cookie.secure      = true
+      when "httponly" then cookie.httpOnly    = true
   return cookie
 
 # Cookie header values are (supposed to be) quoted. This function strips
@@ -69,8 +72,13 @@ class Access
     # (longest is more specific)
     return matching.sort((a,b) -> a[1].length - b[1].length)
 
-  #### cookies(host, path).get(name) => String
-  #
+  # Returns all the cookies for this domain/path.
+  all: ->
+    cookies = {}
+    for match in @_selected()
+      cookies[match[2]] = match[3]
+    return cookies
+
   # Returns the value of a cookie.
   #
   # * name -- Cookie name
@@ -80,8 +88,6 @@ class Access
       if match[2] == name
         return match[3].value
 
-  #### cookies(host, path).set(name, value, options?)
-  #
   # Sets a cookie (deletes if expires/max-age is in the past).
   #
   # * name -- Cookie name
@@ -98,8 +104,8 @@ class Access
       maxage = options["max-age"]
       if typeof maxage == "number"
         state.expires = +new Date + maxage
-    if options.secure
-      state.secure = true
+    state.secure = !!options.secure
+    state.httpOnly = !!options.httpOnly
 
     if typeof state.expires == "number" && state.expires <= +new Date
       @remove(name, options)
@@ -109,8 +115,6 @@ class Access
       in_path = in_domain[options.path || path_without_resource] ||= {}
       in_path[name] = state
 
-  #### cookies(host, path).remove(name, options?)
-  #
   # Deletes a cookie.
   #
   # * name -- Cookie name
@@ -122,16 +126,12 @@ class Access
       if in_path
         delete in_path[name]
 
-  #### cookies(host, path).clear()
-  #
   # Clears all cookies.
   clear: (options = {})->
     in_domain = @_cookies[@_hostname]
     if in_domain
       delete in_domain[@_pathname]
 
-  #### cookies(host, path).update(serialized)
-  #
   # Update cookies from serialized form. This method works equally well for
   # the Set-Cookie header and value passed to document.cookie setter.
   #
@@ -144,22 +144,12 @@ class Access
       cookie = deserialize(cookie)
       @set cookie.name, cookie.value, cookie
 
-  #### cookies(host, path).addHeader(headers)
-  #
   # Adds Cookie header suitable for sending to the server.
   addHeader: (headers)->
     header = ("#{match[2]}=#{match[3].value}" for match in @_selected()).join("; ")
     if header.length > 0
       headers.cookie = header
 
-  #### cookies(host, path).pairs => String
-  #
-  # Returns key/value pairs of all cookies in this domain/path.
-  @prototype.__defineGetter__ "pairs", ->
-    return (("#{match[2]}=#{match[3].value}" for match in @_selected()).join("; "))
-
-  #### cookies(host, path).dump(separator?) => String
-  #
   # The default separator is a line break, useful to output when
   # debugging.  If you need to save/load, use comma as the line
   # separator and then call `cookies.update`.
@@ -208,14 +198,11 @@ class Cookies
       new Access(@_cookies, cookie.domain, cookie.path).set(cookie.name, cookie.value, cookie)
 
 
-# ### document.cookie => String
-#
 # Returns name=value pairs
 HTML.HTMLDocument.prototype.__defineGetter__ "cookie", ->
-  return @parentWindow.cookies.pairs
+  cookies = ("#{name}=#{cookie.value}" for name, cookie of @parentWindow.cookies.all() when !cookie.httpOnly)
+  return cookies.join("; ")
 
-# ### document.cookie = String
-#
 # Accepts serialized form (same as Set-Cookie header) and updates cookie from
 # new values.
 HTML.HTMLDocument.prototype.__defineSetter__ "cookie", (cookie)->

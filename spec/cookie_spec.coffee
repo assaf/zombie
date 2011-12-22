@@ -13,6 +13,7 @@ brains.get "/cookies", (req, res)->
   res.cookie "_domain1",  "here",     domain: ".localhost"
   res.cookie "_domain2",  "not here", domain: "not.localhost"
   res.cookie "_domain3",  "wrong",    domain: "notlocalhost"
+  res.cookie "_http_only","value",    httpOnly: true
   res.send "<html></html>"
 
 brains.get "/cookies/echo", (req,res)->
@@ -22,6 +23,9 @@ brains.get "/cookies/echo", (req,res)->
 brains.get "/cookies_redirect", (req, res)->
   res.cookie "_expires4", "3s",       expires: new Date(Date.now() + 3000), "Path": "/"
   res.redirect "/"
+
+brains.get "/cookies/empty", (req,res)->
+  res.send "<html></html>"
 
 
 Vows.describe("Cookies").addBatch(
@@ -69,6 +73,9 @@ Vows.describe("Cookies").addBatch(
           "should match name to value": (pairs)->
            assert.equal pairs._name, "value"
            assert.equal pairs._path1, "yummy"
+          "should not include httpOnly cookies": (pairs)->
+            for key, value of pairs
+              assert.notEqual key, "_http_only"
 
 
   "get cookies and redirect":
@@ -129,7 +136,7 @@ Vows.describe("Cookies").addBatch(
 
 
   "setting cookies from subdomains":
-    topic: (browser)->
+    topic: ->
       browser = new Browser()
       browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
       @callback null, browser
@@ -139,13 +146,54 @@ Vows.describe("Cookies").addBatch(
 
 
   "setting Cookie header":
-    topic: (browser)->
+    topic: ->
       browser = new Browser()
-      header = {cookie: ''}
-      browser.cookies("localhost").update("foo=bar;")
-      browser.cookies("localhost").addHeader header
+      header = { cookie: "" }
+      browser.cookies().update("foo=bar;")
+      browser.cookies().addHeader header
       header
     "should send V0 header": (header)->
       assert.equal header.cookie, "foo=bar"
+
+
+  "document.cookie":
+    topic: ->
+      browser = new Browser()
+      @callback null, browser
+    "setting cookie":
+      topic: (browser)->
+        browser.wants "http://localhost:3003/cookies/empty", =>
+          browser.document.cookie = "foo=bar"
+          @callback null, browser
+      "should be available from document": (browser)->
+        assert.equal browser.document.cookie, "foo=bar"
+      "send request":
+        topic: (browser)->
+          browser.wants "http://localhost:3003/cookies/echo", =>
+            cookies = browser.text("html").split(/;\s*/).reduce (all, cookie)->
+              [name, value] = cookie.split("=")
+              all[name] = value.replace(/^"(.*)"$/, "$1")
+              all
+            , {}
+            @callback null, cookies
+        "should send to server": (cookies)->
+          assert.equal cookies.foo, "bar"
+
+    "setting cookie with quotes":
+      topic: (browser)->
+        browser.wants "http://localhost:3003/cookies/empty", =>
+          browser.document.cookie = "foo=bar\"baz"
+          @callback null, browser
+      "should be available from document": (browser)->
+        assert.equal browser.cookies().get("foo"), "bar\"baz"
+
+    "setting cookie with semicolon":
+      topic: (browser)->
+        browser.wants "http://localhost:3003/cookies/empty", =>
+          browser.document.cookie = "foo=bar; baz"
+          @callback null, browser
+      "should be available from document": (browser)->
+        assert.equal browser.cookies().get("foo"), "bar"
+
 
 ).export(module)

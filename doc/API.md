@@ -342,17 +342,19 @@ The browser maintains state as you navigate from one page to another.  Zombie.js
 Note that Web storage is specific to a host/port combination.  Cookie storage is specific to a domain, typically a host,
 ignoring the port.
 
-### browser.cookies(domain, path?) : Cookies
+### browser.cookies(domain?, path?) : Cookies
 
-Returns all the cookies for this domain/path. Path defaults to "/".
+Returns all the cookies for this domain/path.  Without domain, uses the hostname of the currently loaded page.  Without
+path, uses the pathname of the currently loaded page.
 
 For example:
 
-    browser.cookies("localhost").set("session", "567");
+    browser.cookies().set("session", "123");
+    browser.cookies("host.example.com", "/path").set("onlyhere", "567");
 
-The `Cookies` object has the methods `clear()`, `get(name)`, `set(name, value)`, `remove(name)` and `dump()`.
+The `Cookies` object has the methods `all()`, `clear()`, `get(name)`, `set(name, value)`, `remove(name)` and `dump()`.
 
-The `set` method accepts a third argument which may include the options `expires`, `maxAge` and `secure`.
+The `set` method accepts a third argument which may include the options `expires`, `maxAge`, `httpOnly` and `secure`.
 
 ### browser.fork() : Browser
 
