@@ -96,8 +96,8 @@ class History
     document.window = document.parentWindow = @_window
 
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
-    referer = @_stack[@_index-1]?.url
-    headers["referer"] = referer.href if referer?
+    referer = @_browser.referer || @_stack[@_index-1]?.url?.href
+    headers["referer"] = referer if referer
 
     if credentials = @_browser.credentials
       switch credentials.scheme.toLowerCase()

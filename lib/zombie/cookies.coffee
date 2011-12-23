@@ -6,13 +6,13 @@ HTML = require("jsdom").dom.level3.html
 
 # Serialize cookie object into RFC2109 representation.
 serialize = (domain, path, name, cookie)->
-  str = "#{name}=#{cookie.value}; domain=#{domain}; path=#{path}"
+  str = "#{name}=#{cookie.value}; Domain=#{domain}; Path=#{path}"
   if cookie.expires
-    str += "; max-age=#{cookie.expires - +new Date}"
+    str += "; Max-Age=#{cookie.expires - +new Date}"
   if cookie.secure
-    str += "; secure"
+    str += "; Secure"
   if cookie.httpOnly
-    str += "; httpOnly"
+    str += "; HttpOnly"
   str
 
 # Deserialize a cookie

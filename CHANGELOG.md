@@ -7,6 +7,11 @@ Added support for `httpOnly` cookies.
 You can now call `browser.cookies` with no arguments to return cookies for the current domain (based on the hostname of
 the currently loaded page).
 
+You can now pass `referer` header:
+
+    browser.visit("/page", referer: "http://google.com", function() {
+    })
+
 
 ## Version 0.12.8 2011-12-20
 

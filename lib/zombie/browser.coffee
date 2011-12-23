@@ -22,7 +22,7 @@ if process.version < "v0.5.0"
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "runScripts", "silent", "site", "userAgent", "waitFor"]
+BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -78,6 +78,9 @@ class Browser extends EventEmitter
     # True to load external stylesheets.
     @loadCSS = true
 
+    # Send this referer.
+    @referer = undefined
+
     # Run scripts included in or loaded from the page. Defaults to true.
     @runScripts = true
 
@@ -88,7 +91,7 @@ class Browser extends EventEmitter
     @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{VERSION}"
 
     # You can use visit with a path, and it will make a request relative to this host/URL.
-    @site = null
+    @site = undefined
 
     # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 0.5 seconds.
     @waitFor = 500

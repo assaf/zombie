@@ -10,12 +10,15 @@ brains.get "/history/redirect", (req, res)->
   res.redirect "/history/boo?redirected=true"
 
 brains.get "/history/redirect_back", (req, res)->
-  res.redirect req.headers['referer']
+  res.redirect req.headers["referer"]
+
+brains.get "/history/referer", (req, res)->
+  res.send "<html><title>#{req.headers["referer"]}</title></html>"
 
 file_url = "file://#{__dirname}/data/index.html"
 
 
-Vows.describe("History").addBatch(
+Vows.describe("History").addBatch
 
   "new window":
     topic: ->
@@ -300,4 +303,34 @@ Vows.describe("History").addBatch(
         "should load document": (browser)->
           assert.match browser.html(), /Eeek!/
 
-).export(module)
+
+  "referer not set":
+    "first page":
+      topic: (browser)->
+        browser = new Browser()
+        browser.wants "http://localhost:3003/history/referer", @callback
+      "should be empty": (browser)->
+        assert.equal browser.text("title"), "undefined"
+
+      "second page":
+        topic: (browser)->
+          browser.visit "http://localhost:3003/history/referer", @callback
+        "should point to first page": (browser)->
+          assert.equal browser.text("title"), "http://localhost:3003/history/referer"
+
+  "referer set":
+    "first page":
+      topic: (browser)->
+        browser = new Browser()
+        browser.wants "http://localhost:3003/history/referer", referer: "http://braindepot", @callback
+      "should be empty": (browser)->
+        assert.equal browser.text("title"), "http://braindepot"
+
+      "second page":
+        topic: (browser)->
+          browser.visit "http://localhost:3003/history/referer", @callback
+        "should point to first page": (browser)->
+          assert.equal browser.text("title"), "http://localhost:3003/history/referer"
+
+
+.export(module)
