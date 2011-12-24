@@ -136,7 +136,7 @@ class EventLoop
   wait: (window, duration, callback)->
     if typeof duration == "function"
       is_done = duration
-      done_at = Date.now() + 5000 # don't block forever
+      done_at = Infinity
     else
       unless duration && duration != 0
         duration = @_browser.waitFor
@@ -152,6 +152,11 @@ class EventLoop
       @_pause() if @_waiting.length == 0
       process.nextTick ->
         callback error, window
+      if terminate
+        clearTimeout(terminate)
+
+    # don't block forever
+    terminate = setTimeout(done, 5000)
 
     # Duration is a function, proceed until function returns false.
     waiting = =>
