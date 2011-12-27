@@ -3,13 +3,6 @@ HTML = require("jsdom").dom.level3.html
 URL = require("url")
 { raise } = require("./helpers")
 
-
-HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
-HTML.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
-HTML.HTMLElement.prototype.__defineGetter__ "offsetWidth",  -> 100
-HTML.HTMLElement.prototype.__defineGetter__ "offsetHeight", -> 100
-
-
 # Default behavior for clicking on links: navigate to new URL is specified.
 HTML.HTMLAnchorElement.prototype._eventDefaults =
   click: (event)->
