@@ -19,14 +19,14 @@ Let's try to sign up to a page and see what happens:
     browser.visit("http://localhost:3000/", function () {
 
       // Fill email, password and submit form
-      zombie.
+      browser.
         fill("email", "zombie@underworld.dead").
         fill("password", "eat-the-living").
         pressButton("Sign Me Up!", function() {
 
           // Form submitted, new page loaded.
-          assert.ok(zombie.success);
-          assert.equal(zombie.text("title"), "Welcome To Brains Depot");
+          assert.ok(browser.success);
+          assert.equal(browser.text("title"), "Welcome To Brains Depot");
 
         })
 
