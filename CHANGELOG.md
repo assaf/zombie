@@ -2,10 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.12.10 2012-01-01
+
 Brought back Web Sockets support (Justin Latimer)
 
 Using JSDOM offsets (Justin Tulloss)
 
+    388 tests
+    3.8 sec to complete
 
 
 ## Version 0.12.9 2011-12-23
