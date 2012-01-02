@@ -1,5 +1,6 @@
 DNS       = require("dns")
 Express   = require("express")
+WebSocket = require("ws")
 File      = require("fs")
 Path      = require("path")
 Browser   = require("../lib/zombie.js")
@@ -19,6 +20,7 @@ DNS.lookup = (domain, callback)->
 brains = Express.createServer()
 brains.use Express.bodyParser()
 brains.use Express.cookieParser()
+wss = new WebSocket.Server({ server: brains })
 
 
 brains.get "/", (req, res)->
