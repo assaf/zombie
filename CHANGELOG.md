@@ -2,6 +2,12 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+Brought back Web Sockets support (Justin Latimer)
+
+Using JSDOM offsets (Justin Tulloss)
+
+
+
 ## Version 0.12.9 2011-12-23
 
 Added support for `httpOnly` cookies.
