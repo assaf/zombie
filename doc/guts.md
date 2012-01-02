@@ -22,7 +22,7 @@ can "install" your working directory using `npm link`.
 
 To generate the documentation:
 
-    $ cake doc:pages
+    $ make doc
     $ open html/index.html
 
 
