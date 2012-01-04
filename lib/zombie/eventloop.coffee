@@ -35,7 +35,7 @@ class EventLoop
         else
           return code.call window
       catch error
-        raise window.document, null, __filename, scope, error
+        raise element: window.document, from: __filename, scope: scope, error: error
       finally
         @_next()
 

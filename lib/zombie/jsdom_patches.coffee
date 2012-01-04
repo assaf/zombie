@@ -57,7 +57,7 @@ HTML.languageProcessors.javascript = (element, code, filename)->
     try
       window._evaluate code, filename
     catch error
-      raise element, filename, __filename, null, error
+      raise element: element, location: filename, from: __filename, error: error
 
 
 # Support for opacity style property.
