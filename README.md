@@ -222,7 +222,6 @@ Zombie.js supports the following:
 - `XMLHttpRequest` in all its glory
 - `setTimeout`/`setInterval`
 - `pushState`, `popstate` and `hashchange` events
-- Scripts that use `document.write`
 - `alert`, `confirm` and `prompt`
 
 
