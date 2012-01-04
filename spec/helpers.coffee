@@ -26,6 +26,9 @@ wss = new WebSocket.Server({ server: brains })
 brains.get "/", (req, res)->
   res.send "<html><title>Tap, Tap</title></html>"
 
+wss.on "connection", (client)->
+  client.send "Hello"
+
 # Prevent sammy from polluting the output. Comment this if you need its
 # messages for debugging.
 brains.get "/sammy.js", (req, res)->
