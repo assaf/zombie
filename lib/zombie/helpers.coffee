@@ -12,9 +12,11 @@ raise = ({ element, location, from, scope, error })->
   # (anything leading to this file).  Add the document location at
   # the end.
   partial = []
-  for line in error.stack.split("\n")
-    break if ~line.indexOf(from)
-    partial.push line
+  # "RangeError: Maximum call stack size exceeded" doesn't have a stack trace
+  if error.stack
+    for line in error.stack.split("\n")
+      break if ~line.indexOf(from)
+      partial.push line
   partial.push "    in #{location}"
   error.stack = partial.join("\n")
 
