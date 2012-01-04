@@ -280,11 +280,15 @@ Zombie.js is copyright of [Assaf Arkin](http://labnotes.org), released under the
 
 Blood, sweat and tears of joy:
 
+[Bob Lail boblail](http://boblail.tumblr.com/)
+
+[Brian McDaniel](https://github.com/brianmcd)
+
 [Damian Janowski aka djanowski](https://github.com/djanowski)
 
 [José Valim aka josevalim](http://blog.plataformatec.com.br/)
 
-[Bob Lail boblail](http://boblail.tumblr.com/)
+[Justin Latimer](http://www.justinlatimer.com/)
 
 And all the fine people mentioned in [the changelog](changelog).
 
