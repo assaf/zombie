@@ -20,6 +20,13 @@ file_url = "file://#{__dirname}/data/index.html"
 
 Vows.describe("History").addBatch
 
+  "URL without path":
+    Browser.wants "http://localhost:3003"
+      "should resolve URL": (browser)->
+        assert.equal browser.location.href, "http://localhost:3003/"
+      "should load page": (browser)->
+        assert.equal browser.text("title"), "Tap, Tap"
+
   "new window":
     topic: ->
       new Browser().window

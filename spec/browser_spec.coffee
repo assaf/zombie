@@ -135,6 +135,7 @@ Vows.describe("Browser").addBatch
         "should indicate success": (browser)->
           assert.ok browser.success
 
+.addBatch
 
     "event emitter":
       "successful":
@@ -169,146 +170,48 @@ Vows.describe("Browser").addBatch
           assert.ok err.message && err.stack
           assert.equal err.message, "Cannot read property 'wrong' of undefined"
 
-    "source":
-      Browser.wants "http://localhost:3003/browser/scripted"
-        "should return the unmodified page": (browser)->
-          assert.equal browser.source,
-            """
-            <html>
-              <head>
-                <title>Whatever</title>
-                <script src="/jquery.js"></script>
-              </head>
-              <body>Hello World</body>
-              <script>
-                document.title = "Nice";
-                $(function() { $("title").text("Awesome") })
-              </script>
-              <script type="text/x-do-not-parse">
-                <p>this is not valid JavaScript</p>
-              </script>
-            </html>
-            """
-
-    "with options":
-      "per call":
-        topic: ->
-          browser = new Browser
-          browser.wants "http://localhost:3003/browser/scripted", { runScripts: false }, @callback
-        "should set options for the duration of the request": (browser)->
-          assert.equal browser.document.title, "Whatever"
-        "should reset options following the request": (browser)->
-          assert.isTrue browser.runScripts
-
-      "global":
-        topic: ->
-          Browser.site = "http://localhost:3003"
-          browser = new Browser
-          browser.wants "/browser/scripted", @callback
-        "should set browser options from global options": (browser)->
-          assert.equal browser.site, "http://localhost:3003"
-          assert.equal browser.document.title, "Awesome"
-        teardown: ->
-          Browser.site = null
-
 
 .addBatch
 
-  "content selection":
+  "with options":
+    "per call":
+      topic: ->
+        browser = new Browser
+        browser.wants "http://localhost:3003/browser/scripted", { runScripts: false }, @callback
+      "should set options for the duration of the request": (browser)->
+        assert.equal browser.document.title, "Whatever"
+      "should reset options following the request": (browser)->
+        assert.isTrue browser.runScripts
+
+    "global":
+      topic: ->
+        Browser.site = "http://localhost:3003"
+        browser = new Browser
+        browser.wants "/browser/scripted", @callback
+      "should set browser options from global options": (browser)->
+        assert.equal browser.site, "http://localhost:3003"
+        assert.equal browser.document.title, "Awesome"
+      teardown: ->
+        Browser.site = null
+
+  "user agent":
     topic: ->
-      brains.get "/browser/walking", (req, res)->
-        res.send """
-        <html>
-          <head>
-            <script src="/jquery.js"></script>
-            <script src="/sammy.js"></script>
-            <script src="/browser/app.js"></script>
-          </head>
-          <body>
-            <div id="main">
-              <a href="/browser/dead">Kill</a>
-              <form action="#/dead" method="post">
-                <label>Email <input type="text" name="email"></label>
-                <label>Password <input type="password" name="password"></label>
-                <button>Sign Me Up</button>
-              </form>
-            </div>
-            <div class="now">Walking Aimlessly</div>
-          </body>
-        </html>
-        """
-
-      brains.get "/browser/app.js", (req, res)->
-        res.send """
-        Sammy("#main", function(app) {
-          app.get("#/", function(context) {
-            document.title = "The Living";
-          });
-          app.get("#/dead", function(context) {
-            context.swap("The Living Dead");
-          });
-          app.post("#/dead", function(context) {
-            document.title = "Signed up";
-          });
-        });
-        $(function() { Sammy("#main").run("#/"); });
-        """
+      brains.get "/browser/useragent", (req, res)->
+        res.send "<html><body>#{req.headers["user-agent"]}</body></html>"
       browser = new Browser
-      browser.wants "http://localhost:3003/browser/walking", @callback
+      browser.wants "http://localhost:3003/browser/useragent", @callback
+    "should send own version to server": (browser)->
+      assert.match browser.text("body"), /Zombie.js\/\d\.\d/
+    "should be accessible from navigator": (browser)->
+      assert.match browser.window.navigator.userAgent, /Zombie.js\/\d\.\d/
 
-    "queryAll":
+    "specified":
       topic: (browser)->
-        browser.queryAll(".now")
-      "should return array of nodes": (nodes)->
-        assert.lengthOf nodes, 1
-
-    "query method":
-      topic: (browser)->
-        browser.query(".now")
-      "should return single node": (node)->
-        assert.equal node.tagName, "DIV"
-
-    "query text":
-      topic: (browser)->
-        browser
-      "should query from document": (browser)->
-        assert.equal browser.text(".now"), "Walking Aimlessly"
-      "should query from context (exists)": (browser)->
-        assert.equal browser.text(".now"), "Walking Aimlessly"
-      "should query from context (unrelated)": (browser)->
-        assert.equal browser.text(".now", browser.querySelector("form")), ""
-      "should combine multiple elements": (browser)->
-        assert.equal browser.text("form label"), "Email Password "
-
-    "query html":
-      topic: (browser)->
-        browser
-      "should query from document": (browser)->
-        assert.equal browser.html(".now"), "<div class=\"now\">Walking Aimlessly</div>"
-      "should query from context (exists)": (browser)->
-        assert.equal browser.html(".now", browser.body), "<div class=\"now\">Walking Aimlessly</div>"
-      "should query from context (unrelated)": (browser)->
-        assert.equal browser.html(".now", browser.querySelector("form")), ""
-      "should combine multiple elements": (browser)->
-        assert.equal browser.html("title, #main a"), "<title>The Living</title><a href=\"/browser/dead\">Kill</a>"
-
-    "jQuery":
-      topic: (browser)->
-        browser.evaluate('window.jQuery')
-      "should query by id": ($)->
-        assert.equal $('#main').size(), 1
-      "should query by element name": ($)->
-        assert.equal $('form').attr('action'), '#/dead'
-      "should query by element name (multiple)": ($)->
-        assert.equal $('label').size(), 2
-      "should query with descendant selectors": ($)->
-        assert.equal $('body #main a').text(), 'Kill'
-      "should query in context": ($)->
-        assert.equal $('body').find('#main a', 'body').text(), 'Kill'
-      "should query in context": ($)->
-        assert.equal $('body').find('#main a', 'body').text(), 'Kill'
-      "should query in context with find()": ($)->
-        assert.equal $('body').find('#main a').text(), 'Kill'
+        browser.visit "http://localhost:3003/browser/useragent", { userAgent: "imposter" }, @callback
+      "should send user agent to server": (browser)->
+        assert.equal browser.text("body"), "imposter"
+      "should be accessible from navigator": (browser)->
+        assert.equal browser.window.navigator.userAgent, "imposter"
 
 
 .addBatch
@@ -368,104 +271,7 @@ Vows.describe("Browser").addBatch
   ###
 
 
-  "user agent":
-    topic: ->
-      brains.get "/browser/useragent", (req, res)->
-        res.send "<html><body>#{req.headers["user-agent"]}</body></html>"
-      browser = new Browser
-      browser.wants "http://localhost:3003/browser/useragent", @callback
-    "should send own version to server": (browser)->
-      assert.match browser.text("body"), /Zombie.js\/\d\.\d/
-    "should be accessible from navigator": (browser)->
-      assert.match browser.window.navigator.userAgent, /Zombie.js\/\d\.\d/
-
-    "specified":
-      topic: (browser)->
-        browser.visit "http://localhost:3003/browser/useragent", { userAgent: "imposter" }, @callback
-      "should send user agent to server": (browser)->
-        assert.equal browser.text("body"), "imposter"
-      "should be accessible from navigator": (browser)->
-        assert.equal browser.window.navigator.userAgent, "imposter"
-
-
 .addBatch
-
-  "authentication":
-    "basic":
-      topic: ->
-        brains.get "/auth/basic", (req, res) ->
-          if auth = req.headers.authorization
-            if auth == "Basic dXNlcm5hbWU6cGFzczEyMw=="
-              res.send "<html><body>#{req.headers["authorization"]}</body></html>"
-            else
-              res.send "Invalid credentials", 401
-          else
-            res.send "Missing credentials", 401
-
-      "without credentials":
-        topic: ->
-          browser = new Browser
-          browser.visit "http://localhost:3003/auth/basic", @callback
-        "should return status code 401": (browser)->
-          assert.equal browser.statusCode, 401
-
-      "with invalid credentials":
-        topic: ->
-          browser = new Browser
-          credentials = { scheme: "basic", user: "username", password: "wrong" }
-          browser.visit "http://localhost:3003/auth/basic", credentials: credentials, @callback
-        "should return status code 401": (browser)->
-          assert.equal browser.statusCode, 401
-
-      "with valid credentials":
-        topic: ->
-          browser = new Browser
-          credentials = { scheme: "basic", user: "username", password: "pass123" }
-          browser.visit "http://localhost:3003/auth/basic", credentials: credentials, @callback
-        "should have the authentication header": (browser)->
-          assert.equal browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
-
-    "OAuth bearer":
-      topic: ->
-        brains.get "/auth/oauth2", (req, res) ->
-          if auth = req.headers.authorization
-            if auth == "Bearer 12345"
-              res.send "<html><body>#{req.headers["authorization"]}</body></html>"
-            else
-              res.send "Invalid token", 401
-          else
-            res.send "Missing token", 401
-
-      "without credentials":
-        topic: ->
-          browser = new Browser
-          browser.visit "http://localhost:3003/auth/oauth2", @callback
-        "should return status code 401": (browser)->
-          assert.equal browser.statusCode, 401
-
-      "with invalid credentials":
-        topic: ->
-          browser = new Browser
-          credentials = { scheme: "bearer", token: "wrong" }
-          browser.visit "http://localhost:3003/auth/oauth2", credentials: credentials, @callback
-        "should return status code 401": (browser)->
-          assert.equal browser.statusCode, 401
-
-      "with valid credentials":
-        topic: ->
-          browser = new Browser
-          credentials = { scheme: "bearer", token: "12345" }
-          browser.visit "http://localhost:3003/auth/oauth2", credentials: credentials, @callback
-        "should have the authentication header": (browser)->
-          assert.equal browser.text("body"), "Bearer 12345"
-
-
-  "URL without path":
-    Browser.wants "http://localhost:3003"
-      "should resolve URL": (browser)->
-        assert.equal browser.location.href, "http://localhost:3003/"
-      "should load page": (browser)->
-        assert.equal browser.text("title"), "Tap, Tap"
 
 
   "fork":
@@ -518,45 +324,6 @@ Vows.describe("Browser").addBatch
       assert.equal "http://localhost:3003/browser/dead", forked.location.href
       forked.window.history.back()
       assert.equal "http://localhost:3003/browser/living", forked.location.href
-
-
-.addBatch
-
-  "iframes":
-    topic: ->
-      brains.get "/iframe", (req, res)->
-        res.send """
-        <html>
-          <head>
-            <script src="/jquery.js"></script>
-          </head>
-          <body>
-            <iframe src="/static" />
-          </body>
-        </html>
-        """
-      brains.get "/static", (req, res)->
-        res.send """
-        <html>
-          <head>
-            <title>Whatever</title>
-          </head>
-          <body>Hello World</body>
-        </html>
-        """
-      browser = new Browser
-      browser.wants "http://localhost:3003/iframe", =>
-        iframe = browser.querySelector("iframe").window
-        @callback browser, iframe
-
-    "should load iframe document": (browser, iframe)->
-      assert.equal "Whatever", iframe.document.title
-      assert.match iframe.document.querySelector("body").innerHTML, /Hello World/
-      assert.equal iframe.location, "http://localhost:3003/static"
-    "should reference parent window from iframe": (browser, iframe)->
-      assert.equal iframe.parent, browser.window.top
-    "should not alter the parent": (browser, iframe)->
-      assert.equal "http://localhost:3003/iframe", browser.window.location
 
 
 .export(module)
