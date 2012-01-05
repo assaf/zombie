@@ -60,7 +60,10 @@ Vows.describe("Scripts").addBatch(
     "live events":
       Browser.wants "http://localhost:3003/script/living"
         topic: (browser)->
-          browser.fill("Email", "armbiter@zombies").fill("Password", "br41nz").pressButton "Sign Me Up", @callback
+          browser.fill "Email", "armbiter@zombies"
+          browser.fill "Password", "br41nz"
+          browser.pressButton "Sign Me Up"
+          browser.wait 500, @callback
         "should change location": (browser)->
           assert.equal browser.location.href, "http://localhost:3003/script/living#/"
         "should process event": (browser)->
