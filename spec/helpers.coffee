@@ -50,8 +50,7 @@ brains.ready = (callback)->
     process.nextTick callback
   else
     @active = true
-    brains.listen 3003, ->
-      process.nextTick callback
+    brains.listen 3003, callback
   return # nothing
 
 # Creates a new Vows context that will wait for the HTTP server to be ready,
@@ -77,7 +76,7 @@ Browser.wants = (url, context)->
       else
         throw err if err
         browser.wait @callback
-    return
+    return # nothing
   return context
 
 Browser.prototype.wants = (url, options, callback)->
@@ -86,7 +85,7 @@ Browser.prototype.wants = (url, options, callback)->
   brains.ready =>
     @visit url, options, (err, browser)=>
       callback err, browser if callback
-  return
+  return # nothing
 
 
 exports.assert  = require("assert")

@@ -24,10 +24,10 @@ Vows.describe("Browser").addBatch
         </html>
         """
 
-        brains.get "/browser/errored", (req, res)->
-          res.send """
-          <script>this.is.wrong</script>
-            """
+      brains.get "/browser/errored", (req, res)->
+        res.send """
+        <script>this.is.wrong</script>
+          """
 
 
     "open page":
@@ -43,8 +43,6 @@ Vows.describe("Browser").addBatch
           assert.equal browser.document.title, "Awesome"
         "should return status code of last request": (browser)->
           assert.equal browser.statusCode, 200
-        "should indicate success": (browser)->
-          assert.ok browser.success
         "should indicate success": (browser)->
           assert.ok browser.success
         "should have a parent": (browser)->
@@ -108,14 +106,14 @@ Vows.describe("Browser").addBatch
 
       "500":
         topic: ->
-          brains.get "/browser/505", (req, res)->
+          brains.get "/browser/500", (req, res)->
             res.send "Ooops, something went wrong", 500
           brains.ready =>
             browser = new Browser
-            browser.visit "http://localhost:3003/browser/505", @callback
+            browser.visit "http://localhost:3003/browser/500", @callback
         "should call callback without error": ->
           assert.ok true
-        "should return status code": (_, browser, status)->
+        "should return status code 500": (_, browser, status)->
           assert.equal status, 500
         "should not indicate success": (browser)->
           assert.ok !browser.success
