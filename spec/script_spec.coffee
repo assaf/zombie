@@ -1,7 +1,7 @@
 { Vows, assert, brains, Browser } = require("./helpers")
 
 
-Vows.describe("Scripts").addBatch(
+Vows.describe("Scripts").addBatch
 
   "basic":
     topic: ->
@@ -76,6 +76,7 @@ Vows.describe("Scripts").addBatch(
         "should evaluate in context and return value": (title)->
           assert.equal title, "The Living"
 
+.addBatch
 
   "evaluating":
     "context":
@@ -132,26 +133,6 @@ Vows.describe("Scripts").addBatch(
       "should set global variable": (browser)->
         assert.equal browser.text("title"), "foo"
 
-  
-  "failing":
-    "incomplete":
-      topic: ->
-        brains.get "/script/incomplete", (req, res)->
-          res.send "<script>1+</script>"
-        browser = new Browser
-        browser.wants "http://localhost:3003/script/incomplete", @callback
-      "should propagate error to window": (browser)->
-        assert.equal browser.error.message, "Unexpected end of input"
-
-    "error":
-      topic: ->
-        brains.get "/script/error", (req, res)->
-          res.send "<script>(function(foo) { foo.bar })()</script>"
-        browser = new Browser
-        browser.wants "http://localhost:3003/script/error", @callback
-      "should propagate error to window": (browser)->
-        assert.equal browser.error.message, "Cannot read property 'bar' of undefined"
-
 
   "order":
     topic: ->
@@ -175,6 +156,61 @@ Vows.describe("Scripts").addBatch(
     "should run scripts in order regardless of source": (browser)->
       assert.equal browser.text("title"), "ZeroOneTwo"
 
+
+  "eval":
+    topic: ->
+      brains.get "/script/eval", (req, res)->
+        res.send """
+        <html>
+          <script>
+            var foo = "One";
+            (function() {
+              var bar = "Two"; // standard eval sees this
+              var e = eval; // this 'eval' only sees global scope
+              try {
+                var baz = e("bar");
+              } catch (ex) {
+                var baz = "Three";
+              }
+              // In spite of local variable, global scope eval finds global foo
+              var foo = "NotOne";
+              var e_foo = e("foo");
+              var qux = window.eval.call(window, "foo");
+
+              document.title = eval('e_foo + bar + baz + qux');
+            })();
+          </script>
+        </html>
+        """
+      browser = new Browser
+      browser.wants "http://localhost:3003/script/eval", @callback
+    "should evaluate in global scope": (browser)->
+      #assert.equal browser.document.title, "OneTwoThreeFour"
+
+
+.addBatch
+  
+  "failing":
+    "incomplete":
+      topic: ->
+        brains.get "/script/incomplete", (req, res)->
+          res.send "<script>1+</script>"
+        browser = new Browser
+        browser.wants "http://localhost:3003/script/incomplete", @callback
+      "should propagate error to window": (browser)->
+        assert.equal browser.error.message, "Unexpected end of input"
+
+    "error":
+      topic: ->
+        brains.get "/script/error", (req, res)->
+          res.send "<script>(function(foo) { foo.bar })()</script>"
+        browser = new Browser
+        browser.wants "http://localhost:3003/script/error", @callback
+      "should propagate error to window": (browser)->
+        assert.equal browser.error.message, "Cannot read property 'bar' of undefined"
+
+
+.addBatch
 
   "loading":
     "with entities":
@@ -272,65 +308,15 @@ Vows.describe("Scripts").addBatch(
       assert.equal browser.document.title, "Zero"
 
 
-  "eval":
-    topic: ->
-      brains.get "/script/eval", (req, res)->
-        res.send """
-        <html>
-          <script>
-            var foo = "One";
-            (function() {
-              var bar = "Two"; // standard eval sees this
-              var e = eval; // this 'eval' only sees global scope
-              try {
-                var baz = e("bar");
-              } catch (ex) {
-                var baz = "Three";
-              }
-              // In spite of local variable, global scope eval finds global foo
-              var foo = "NotOne";
-              var e_foo = e("foo");
-              var qux = window.eval.call(window, "foo");
-
-              document.title = eval('e_foo + bar + baz + qux');
-            })();
-          </script>
-        </html>
-        """
-      browser = new Browser
-      browser.wants "http://localhost:3003/script/eval", @callback
-    "should evaluate in global scope": (browser)->
-      #assert.equal browser.document.title, "OneTwoThreeFour"
-
-
   ###
+.addBatch
+
   "new Image":
     Browser.wants "http://localhost:3003/script/living"
       "should construct an img tag": (browser)-> assert.equal domToHtml(browser.evaluate("new Image")), "<img>\r\n"
       "should construct an img tag with width and height": (browser)->
         assert.equal domToHtml(browser.evaluate("new Image(1, 1)")), "<img width=\"1\" height=\"1\">\r\n"
-
-  "SSL":
-    topic: ->
-      brains.get "/script/ssl", (req, res)-> res.send """
-        <html>
-          <head>
-            <script>
-              function jsonp(response) {
-                document.title = response[2].id;
-              }
-            </script>
-
-            <script src="https://api.mercadolibre.com/sites/MLA?callback=jsonp"></script>
-          </head>
-          <body>
-
-          </body>
-        </html>
-        """
-      browser = new Browser(runScripts: false)
-      browser.wants "http://localhost:3003/script/ssl", @callback
-    "should load scripts over SSL": (browser)-> assert.equal browser.window.title, "MLA"
   ###
 
-).export(module)
+      
+.export(module)
