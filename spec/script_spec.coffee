@@ -176,6 +176,7 @@ Vows.describe("Scripts").addBatch
               var foo = "NotOne";
               var e_foo = e("foo");
               var qux = window.eval.call(window, "foo");
+              console.log(qux)
 
               document.title = eval('e_foo + bar + baz + qux');
             })();
@@ -185,7 +186,7 @@ Vows.describe("Scripts").addBatch
       browser = new Browser
       browser.wants "http://localhost:3003/script/eval", @callback
     "should evaluate in global scope": (browser)->
-      #assert.equal browser.document.title, "OneTwoThreeFour"
+      assert.equal browser.document.title, "OneTwoThreeFour"
 
 
 .addBatch
