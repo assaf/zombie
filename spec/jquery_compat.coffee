@@ -66,4 +66,10 @@ for version in JQUERY_VERSIONS
         "should perform an AJAX POST request": (browser)->
           assert.match browser.text("#response"), /foo=bar/
 
+      "jQuery.globalEval": (browser) ->
+          browser.evaluate("(function () {
+            $.globalEval('var globalEvalWorks = true;');
+          })();")
+          assert.ok browser.window.globalEvalWorks
+
 Vows.describe("Compatibility with jQuery").addBatch(batch).export(module)
