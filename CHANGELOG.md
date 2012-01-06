@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.12.11 2012-01-06
+
+Maintenance update, mostly more test coverage, and updates to dependencies.
+
+    403 tests
+    4.4 sec to complete
+
+
 ## Version 0.12.10 2012-01-01
 
 Brought back Web Sockets support (Justin Latimer)
