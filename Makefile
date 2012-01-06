@@ -1,5 +1,5 @@
 test :
-	vows --spec spec/*_spec.coffee
+	npm test
 
 
 # Documentation consists of Markdown files converted to HTML, CSS/images copied over, annotated source code and PDF.
