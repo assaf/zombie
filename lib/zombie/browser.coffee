@@ -387,7 +387,7 @@ class Browser extends EventEmitter
       [duration, options] = [options, null]
     @withOptions options, (reset_options)=>
       if site = @site
-        site = "http://#{site}" unless /^https?:/i.test(site)
+        site = "http://#{site}" unless /^(https?:|file:)/i.test(site)
         url = URL.resolve(site, URL.parse(URL.format(url)))
       @window.history._assign url
       if callback

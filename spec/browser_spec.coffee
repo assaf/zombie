@@ -194,6 +194,15 @@ Vows.describe("Browser").addBatch
       teardown: ->
         Browser.site = null
 
+    "global with file: url scheme":
+      topic: ->
+        Browser.site = "file://" + __dirname + "/data/";
+        browser = new Browser;
+        browser.wants "index.html", @callback
+      "should set the browser options from global options": (browser)->
+        assert.equal browser.site, "file://" + __dirname + "/data/";
+        assert.match browser.document.title, /Insanely fast, headless/
+
   "user agent":
     topic: ->
       brains.get "/browser/useragent", (req, res)->
