@@ -42,6 +42,13 @@ You can use the following options:
 - `site` -- Base URL for all requests.  If set, you can call `visit` with relative URL.
 - `waitFor` -- Tells `wait` function how long to wait (in milliseconds) while timers fire.  Defaults to 0.5 seconds.
 
+Credential options look like this:
+
+    { credentials: { scheme: "basic", username: "who", password: "secret" } } // HTTP Basic
+    { credentials: { scheme: "oauth", token: "long and magical" } }   // OAuth 2.0 draft 10
+    { credentials: { scheme: "bearer", token: "long and magical" } }  // OAuth 2.0 latest
+
+
 ### browser.visit(url, callback)
 ### browser.visit(url, options, callback)
 
