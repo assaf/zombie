@@ -2,6 +2,9 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+Added element offset properties.  Google Maps demand these.
+
+
 ## Version 0.12.11 2012-01-06
 
 Maintenance update, mostly more test coverage, and updates to dependencies.

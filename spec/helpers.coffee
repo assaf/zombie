@@ -3,6 +3,7 @@ Express   = require("express")
 WebSocket = require("ws")
 File      = require("fs")
 Path      = require("path")
+Replay    = require("replay")
 Browser   = require("../lib/zombie.js")
 
 
@@ -12,8 +13,9 @@ Browser.silent = !Browser.debug
 
 
 # Redirect all HTTP requests to localhost
-DNS.lookup = (domain, callback)->
-  callback null, "127.0.0.1", 4
+Replay.fixtures = "#{__dirname}/replay"
+Replay.networkAccess = true
+Replay.ignore "mt0.googleapis.com", "mt1.googleapis.com"
 
 
 # An express server we use to test the browser.
