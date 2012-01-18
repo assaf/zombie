@@ -68,7 +68,7 @@ publish-docs : html html/source html/zombie.pdf
 	rsync -chr --del --stats html/ labnotes.org:/var/www/zombie/
 
 # npm publish, public-docs and tag
-publish : clean test man7 publish-docs
+publish : clean man7 publish-docs
 	git push
 	npm publish
 	git tag v$(version)

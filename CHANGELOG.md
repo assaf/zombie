@@ -2,6 +2,10 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+`Browser.fire` takes no options (that was an undocumented argument), and always fires events that bubble and can be
+cancelled.
+
+
 ## Version 0.12.12 2012-01-16
 
 Added element offset properties.  Google Maps demand these.

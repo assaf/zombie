@@ -227,18 +227,10 @@ class Browser extends EventEmitter
   # name - Even name (e.g `click`)
   # target - Target element (e.g a link)
   # callback - Wait for events to be processed, then call me (optional)
-  fire: (name, target, options, callback)->
-    if typeof options == "function"
-      [callback, options] = [options, null]
-    options ?= {}
-
-    type = options.type || (if name in MOUSE_EVENT_NAMES then "MouseEvents" else "HTMLEvents")
+  fire: (name, target, callback)->
+    type = if name in MOUSE_EVENT_NAMES then "MouseEvents" else "HTMLEvents"
     event = @window.document.createEvent(type)
-    event.initEvent(name, !!options.bubbles, !!options.cancelable)
-
-    if options.attributes?
-      for key, value of options.attributes
-        event[key] = value
+    event.initEvent name, true, true
 
     @dispatchEvent target, event
     if callback

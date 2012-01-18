@@ -28,8 +28,8 @@ Vows.describe("Google map").addBatch
 
       brains.ready =>
         browser = new Browser
-        browser.visit "http://localhost:3003/browser/map"
-        browser.wait @callback
+        browser.visit "http://localhost:3003/browser/map", =>
+          browser.wait @callback
     "should load map": (browser)->
       assert.ok browser.window.map
     "should set bounds": (browser)->
