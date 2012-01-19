@@ -99,6 +99,7 @@ class HTTPResponse
 # supports the `request` method and the shorthand `get`.
 class Resources extends Array
   constructor: (@_browser)->
+    @stubbedRequests = []
   # Returns the first resource in this array (the page loaded by this
   # window).
   @prototype.__defineGetter__ "first", ->
@@ -138,6 +139,27 @@ class Resources extends Array
   toString: ->
     @map((resource)-> resource.toString()).join("\n")
 
+  # Allows for stubbing specific requests for a pre-canned response. In some
+  # testing situations it's handy to stub out certain remote resources with
+  # something else.
+  #
+  #   request = {url:"http:fake.com/path"}
+  #   response = {body:"<p>stubbed response</p>"}
+  #   browser.resources.stubRequest(request, response)
+  stubRequest: (request, response)->
+    request.method = request.method || "GET"
+    code = response.statusCode || 200
+    headers = response.headers || {}
+    httpResponse = new HTTPResponse(request.url, code, headers, response.body)
+    @stubbedRequests.push([request, httpResponse]);
+
+  _handleStub: (method, url, data, headers, resource, callback)->
+    for [request, response] in @stubbedRequests
+      if request.method == method and request.url == url.href
+        callback null, response
+        return true
+    return false
+
   # Implementation of the request method, which also accepts the
   # resource.  Initially the resource is null, but when following a
   # redirect this function is called again with a resource and
@@ -145,6 +167,10 @@ class Resources extends Array
   _makeRequest: (method, url, data, headers, resource, callback)->
     url = URL.parse(url)
     method = (method || "GET").toUpperCase()
+
+    # shortcut stubbed requests
+    if @_handleStub(method, url, data, headers, resource, callback)
+      return
 
     # If the request is for a file:// descriptor, just open directly from the
     # file system rather than getting node's http (which handles file://

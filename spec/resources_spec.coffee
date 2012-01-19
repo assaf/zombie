@@ -42,5 +42,25 @@ Vows.describe("Resources").addBatch
         catch e
           assert.ok false, "calling dump method throws an error [" + e + "]"
 
+  "Browsing content referencing a stubbed resource":
+    topic: ->
+      brains.get "/stubberoo", (req, res)->
+        res.send """
+        <html>
+          <head><script src="http://fa.ke/url.js"></script></head>
+          <body></body>
+        </html>
+        """
+
+    "should load it":
+      topic: ->
+        brains.ready =>
+          browser = new Browser
+          request = {url:"http://fa.ke/url.js"}
+          response = {body:'console.log("stubbed script");'}
+          browser.resources.stubRequest(request, response);
+          browser.visit "http://localhost:3003/stubberoo", @callback
+      "should have loaded stubbed resource": (browser)->
+        assert.equal browser.window.console.output, "stubbed script\n"
 
 .export(module)
