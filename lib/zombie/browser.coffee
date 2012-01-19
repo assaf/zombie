@@ -576,6 +576,9 @@ class Browser extends EventEmitter
       for option in field.options
         if option.label == value
           return option
+      for option in field.options
+        if option.textContent.replace(/^\s+|\s+$/g, '') == value
+          return option
       throw new Error("No OPTION '#{value}'")
     else
       throw new Error("No SELECT matching '#{selector}'")
