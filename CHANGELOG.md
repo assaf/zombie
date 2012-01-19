@@ -2,11 +2,16 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.12.13 2012-01-18
+
 `Browser.fire` takes no options (that was an undocumented argument), and always fires events that bubble and can be
 cancelled.
 
 Clicking on checkbox or radio button now changes the value and propagated the click event.  If `preventDefault`, the
 value is changed back.
+
+    411 tests
+    6.0 sec to complete
 
 
 ## Version 0.12.12 2012-01-16
