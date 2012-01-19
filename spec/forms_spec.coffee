@@ -85,6 +85,9 @@ Vows.describe("Forms").addBatch(
               <input type="image" name="image" id="image_submit" value="Image Submit">
 
               <button name="button" value="hit-me">Hit Me</button>
+
+              <input type="checkbox" id="field-prevent-check">
+              <input type="radio" id="field-prevent-radio">
             </form>
           </body>
         </html>
@@ -242,6 +245,19 @@ Vows.describe("Forms").addBatch(
           "should callback": (_, browser)->
             assert.ok !browser.querySelector("#field-check").checked
 
+        "prevent default":
+          topic: (browser)->
+            check_box = browser.$$("#field-prevent-check")
+            values = [check_box.checked]
+            check_box.addEventListener "click", (event)=>
+              values.push check_box.checked
+              event.preventDefault()
+            browser.check check_box, =>
+              values.push check_box.checked
+              @callback null, values
+          "should turn checkbox on then off": (values)->
+            assert.deepEqual values, [false, true, false]
+
           
     "radio buttons":
       Browser.wants "http://localhost:3003/forms/form"
@@ -278,6 +294,19 @@ Vows.describe("Forms").addBatch(
               assert.ok browser.querySelector("#field-notscary").checked
             "should uncheck other radio": (browser)->
               assert.ok !browser.querySelector("#field-scary").checked
+
+        "prevent default":
+          topic: (browser)->
+            radio = browser.$$("#field-prevent-radio")
+            values = [radio.checked]
+            radio.addEventListener "click", (event)=>
+              values.push radio.checked
+              event.preventDefault()
+            browser.choose radio, =>
+              values.push radio.checked
+              @callback null, values
+          "should turn radio on then off": (values)->
+            assert.deepEqual values, [false, true, false]
 
 
     "select option":

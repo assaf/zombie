@@ -231,10 +231,10 @@ class Browser extends EventEmitter
     type = if name in MOUSE_EVENT_NAMES then "MouseEvents" else "HTMLEvents"
     event = @window.document.createEvent(type)
     event.initEvent name, true, true
-
     @dispatchEvent target, event
     if callback
-      @wait callback
+      @wait (error, browser)->
+        callback error, browser, event
     else
       return this
 
@@ -266,6 +266,8 @@ class Browser extends EventEmitter
       context.querySelector(selector)
     else
       return context
+  $$: (selector, context)->
+    return @query(selector, context)
 
   # ### browser.querySelector(selector) => Element
   #
@@ -514,9 +516,10 @@ class Browser extends EventEmitter
       if field.getAttribute("readonly")
         throw new Error("This INPUT field is readonly")
       if field.checked ^ value
-        @fire "click", field, callback
-      else if callback
-        callback null, false
+        field.click()
+
+      if callback
+        @wait callback
       else
         return this
     else
@@ -552,16 +555,10 @@ class Browser extends EventEmitter
   choose: (selector, callback)->
     field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
     if field && field.tagName == "INPUT" && field.type == "radio" && field.form
-      if !field.checked
-        radios = @querySelectorAll(":radio[name='#{field.getAttribute("name")}']", field.form)
-        for radio in radios
-          radio.checked = false unless radio.getAttribute("disabled") || radio.getAttribute("readonly")
-        field.checked = true
-        @fire "click", field
-        @fire "change", field, callback
+      field.click()
+      if callback
+        @wait callback
       else
-        @fire "click", field, callback
-      unless callback
         return this
     else
       throw new Error("No radio INPUT matching '#{selector}'")

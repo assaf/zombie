@@ -109,9 +109,7 @@ HTML.HTMLInputElement.prototype._eventDefaults =
         if form = input.form
           form._dispatchSubmitEvent input
       when "checkbox"
-        unless input.getAttribute("readonly")
-          input.checked = !input.checked
-          change()
+        change()
       when "radio"
         unless input.getAttribute("readonly")
           input.checked = true
@@ -121,9 +119,48 @@ HTML.HTMLInputElement.prototype._eventDefaults =
 # ignore all other clicks. We need those other clicks to occur, so we're going
 # to dispatch them all.
 HTML.HTMLInputElement.prototype.click = ->
-  event = @ownerDocument.createEvent("HTMLEvents")
-  event.initEvent "click", true, true
-  @ownerDocument.parentWindow.browser.dispatchEvent this, event
+  # First event we fire is click event
+  click = =>
+    event = @ownerDocument.createEvent("HTMLEvents")
+    event.initEvent "click", true, true
+    @ownerDocument.parentWindow.browser.dispatchEvent this, event
+    return !event._preventDefault
+
+  # If that works out, we follow with a change event
+  change = =>
+    event = @ownerDocument.createEvent("HTMLEvents")
+    event.initEvent "change", true, true
+    @ownerDocument.parentWindow.browser.dispatchEvent this, event
+
+  switch @type
+    when "checkbox"
+      unless @getAttribute("readonly")
+        original = @checked
+        @checked = !@checked
+        if click()
+          change()
+        else
+          @checked = original
+    when "radio"
+      unless @getAttribute("readonly")
+        if !@checked
+          radios = @ownerDocument.querySelectorAll(":radio[name='#{@getAttribute("name")}']", @form)
+          checked = null
+          for radio in radios
+            if radio.checked
+              checked = radio
+              radio.checked = false
+          @checked = true
+          if click()
+            change()
+          else
+            for radio in radios
+              radio.checked = radio == checked
+        else
+          click()
+    else
+      click()
+  return
 
 # Default behavior for form BUTTON: submit form.
 HTML.HTMLButtonElement.prototype._eventDefaults =
