@@ -48,6 +48,20 @@ Vows.describe("Forms").addBatch(
                 <option>neither</option>
               </select>
 
+              <select name="months" id="field-months">
+                <option value=""></option>
+                <option value="jan_2011">Jan 2011</option>
+                <option value="feb_2011">Feb 2011</option>
+                <option value="mar_2011">Mar 2011</option>
+              </select>
+
+              <select name="months2" id="field-months2">
+                <option value=""></option>
+                <option value="jan_2011">Jan 2011</option>
+                <option value="feb_2011">Feb 2011</option>
+                <option value="mar_2011"> Mar 2011 </option>
+              </select>
+
               <span>First address</span>
               <label for='address1_street'>Street</label>
               <input type="text" name="addresses[][street]" value="" id="address1_street">
@@ -337,6 +351,28 @@ Vows.describe("Forms").addBatch(
           "should select second option": (browser)->
             selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-state").options)
             assert.deepEqual selected, [false, true, false]
+          "should fire change event": (browser)->
+            assert.ok browser.stateChanged
+
+        "select name using option text":
+          topic: (browser)->
+            browser.select "months", "Jan 2011"
+          "should set value": (browser)->
+            assert.equal browser.querySelector("#field-months").value, "jan_2011"
+          "should select second option": (browser)->
+            selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-months").options)
+            assert.deepEqual selected, [false, true, false, false]
+          "should fire change event": (browser)->
+            assert.ok browser.stateChanged
+
+        "select name using option text with leading/trailing spaces":
+          topic: (browser)->
+            browser.select "months2", "Mar 2011"
+          "should set value": (browser)->
+            assert.equal browser.querySelector("#field-months2").value, "mar_2011"
+          "should select second option": (browser)->
+            selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-months2").options)
+            assert.deepEqual selected, [false, false, false, true]
           "should fire change event": (browser)->
             assert.ok browser.stateChanged
 

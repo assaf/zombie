@@ -55,11 +55,33 @@ Vows.describe("Cookies").addBatch(
           assert.isUndefined cookies.get("_domain2")
           assert.isUndefined cookies.get("_domain3")
 
-      "host in domain":
+      "same domain (.localhost)":
+        topic: (browser)->
+          browser.cookies(".localhost")
+        "should have access to domain cookies": (cookies)->
+          assert.equal cookies.get("_name"), "value"
+        "should have access to .host cookies": (cookies)->
+          assert.equal cookies.get("_domain1"), "here"
+        "should not have access to other hosts' cookies": (cookies)->
+          assert.isUndefined cookies.get("_domain2")
+          assert.isUndefined cookies.get("_domain3")
+
+      "subdomain (host.localhost)":
         topic: (browser)->
           browser.cookies("host.localhost")
-        "should not have access to domain cookies": (cookies)->
-          assert.isUndefined cookies.get("_name")
+        "should have access to domain cookies": (cookies)->
+          assert.equal cookies.get("_name"), "value"
+        "should have access to .host cookies": (cookies)->
+          assert.equal cookies.get("_domain1"), "here"
+        "should not have access to other hosts' cookies": (cookies)->
+          assert.isUndefined cookies.get("_domain2")
+          assert.isUndefined cookies.get("_domain3")
+
+      "subdomain in subdomain (subdomain.host.localhost)":
+        topic: (browser)->
+          browser.cookies("subdomain.host.localhost")
+        "should have access to domain cookies": (cookies)->
+          assert.equal cookies.get("_name"), "value"
         "should have access to .host cookies": (cookies)->
           assert.equal cookies.get("_domain1"), "here"
         "should not have access to other hosts' cookies": (cookies)->
