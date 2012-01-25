@@ -99,6 +99,8 @@ class HTTPResponse
 # supports the `request` method and the shorthand `get`.
 class Resources extends Array
   constructor: (@_browser)->
+    @cache = new Cache(@_browser)
+
   # Returns the first resource in this array (the page loaded by this
   # window).
   @prototype.__defineGetter__ "first", ->
@@ -111,7 +113,7 @@ class Resources extends Array
   # Makes a GET request.  See `request` for more details about
   # callback and response object.
   get: (url, callback)->
-    @request "GET", url, null, null, callback
+    @cache.request "GET", url, null, null, callback
 
   # Makes a request.  Requires HTTP method and resource URL.
   #
@@ -314,8 +316,7 @@ class Resources extends Array
 
 
 class Cache
-  constructor: (browser)->
-    @resources = browser.resources
+  constructor: (@_browser)->
 
   # Makes a GET request using the cache.  See `request` for more
   # details about callback and response object.
@@ -323,7 +324,19 @@ class Cache
     @request "GET", url, null, null, callback
 
   request: (method, url, data, headers, callback)->
-    @resources.request method, url, data, headers, callback
+    cached = @_browser._cache[url.href] if method == "GET"
+    if cached
+      { expires, response } = cached
+      if expires and Date.now() < expires
+        return callback(null, response)
+      delete @_browser._cache[url.href]
+
+    @_browser.resources.request method, url, data, headers, (error, response) =>
+      match = response?.headers?['cache-control']?.match?(/max-age=(\d+)/) unless error
+      if match
+        expires = Date.now() + (match[1] * 1000)
+        @_browser._cache[url.href] = { expires, response }
+      callback error, response
 
 
 # HTTP status code to status text
