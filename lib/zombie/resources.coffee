@@ -166,6 +166,7 @@ class Resources extends Array
 
     # Clone headers before we go and modify them.
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
+    headers["Accept-Encoding"] = @_browser.acceptEncoding
     headers["User-Agent"] = @_browser.userAgent
     if method == "GET" || method == "HEAD"
       # Request paramters go in query string

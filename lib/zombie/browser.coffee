@@ -20,7 +20,7 @@ WebSocket         = require("./websocket")
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor"]
+BROWSER_OPTIONS   = ["acceptEncoding", "credentials", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -51,6 +51,9 @@ class Browser extends EventEmitter
     # Options
     # -------
 
+
+    # Supported compression schema names (called content-coding tokens), separated by commas.
+    @acceptEncoding = "identity"
 
     # Object containing authorization credentials.  Supported schemes include
     # `basic` (HTTP Basic), `oauth` (OAuth 2.0 draft 10) and `bearer` (OAuth
@@ -575,6 +578,9 @@ class Browser extends EventEmitter
           return option
       for option in field.options
         if option.label == value
+          return option
+      for option in field.options
+        if option.textContent.replace(/^\s+|\s+$/g, '') == value
           return option
       throw new Error("No OPTION '#{value}'")
     else
