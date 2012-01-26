@@ -511,7 +511,7 @@ class Browser extends EventEmitter
   _setCheckbox: (selector, value, callback)->
     field = @field(selector)
     if field && field.tagName == "INPUT" && field.type == "checkbox"
-      if field.getAttribute("input")
+      if field.getAttribute("disabled")
         throw new Error("This INPUT field is disabled")
       if field.getAttribute("readonly")
         throw new Error("This INPUT field is readonly")
