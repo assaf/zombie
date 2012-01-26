@@ -20,6 +20,8 @@ Vows.describe("Forms").addBatch(
               <input type="badtype" name="invalidtype" id="field-invalidtype" />
               <input type="text" name="email2" id="field-email2" />
               <input type="text" name="email3" id="field-email3" />
+              <input type="text" name="disabled_input_field" disabled id="disabled_input_field" />
+              <input type="text" name="readonly_input_field" readonly id="readonly_input_field" />
 
               <label>Hungry</label>
               <label>You bet<input type="checkbox" name="hungry[]" value="you bet" id="field-hungry"></label>
@@ -172,6 +174,18 @@ Vows.describe("Forms").addBatch(
             assert.equal browser.querySelector("#field-email2").value, "headchomper@example.com"
           "should fire change event": (browser)->
             assert.ok browser.email2Changed
+
+        "disabled input can not be modified":
+          topic: (browser)->
+            browser.fill browser.querySelector("#disabled_input_field"), "yeahh"
+          "should raise error": (browser)->
+            assert.ok (browser instanceof Error)
+
+        "readonly input can not be modified":
+          topic: (browser)->
+            browser.fill browser.querySelector("#readonly_input_field"), "yeahh"
+          "should raise error": (browser)->
+            assert.ok (browser instanceof Error)
 
         "should callback":
           topic: (browser)->
