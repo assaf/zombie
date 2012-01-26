@@ -497,7 +497,7 @@ class Browser extends EventEmitter
   fill: (selector, value, callback)->
     field = @field(selector)
     if field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT"))
-      if field.getAttribute("input")
+      if field.getAttribute("disabled")
         throw new Error("This INPUT field is disabled")
       if field.getAttribute("readonly")
         throw new Error("This INPUT field is readonly")
