@@ -2,6 +2,9 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+Fix redirect not passing the same headers again.
+
+
 ## Version 0.12.13 2012-01-18
 
 `Browser.fire` takes no options (that was an undocumented argument), and always fires events that bubble and can be

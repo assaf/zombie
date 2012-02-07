@@ -233,7 +233,7 @@ class Resources extends Array
                 error = new Error("Too many redirects, from #{URL.format(url)} to #{redirect}")
               else
                 process.nextTick =>
-                  @_makeRequest "GET", redirect, null, null, resource, callback
+                  @_makeRequest "GET", redirect, null, headers, resource, callback
             else
               error = new Error("Redirect with no Location header, cannot follow")
           else

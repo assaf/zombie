@@ -106,11 +106,13 @@ Vows.describe("XMLHttpRequest").addBatch(
       brains.get "/xhr/redirect/backend", (req, res)->
         res.redirect "/xhr/redirect/target"
       brains.get "/xhr/redirect/target", (req, res)->
-        res.send "redirected"
+        res.send "redirected " + req.headers["x-requested-with"]
       browser = new Browser
       browser.wants "http://localhost:3003/xhr/redirect", @callback
     "should follow redirect": (browser)->
-      assert.equal browser.window.response, "redirected"
+      assert.match browser.window.response, /redirected/
+    "should resend headers": (browser)->
+      assert.match browser.window.response, /XMLHttpRequest/
 
 
   "handle POST requests with no data":
