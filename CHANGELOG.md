@@ -5,6 +5,9 @@ zombie.js-changelog(7) -- Changelog
 
 Fix redirect not passing the same headers again.
 
+    412 tests
+    6.4 sec to complete
+
 
 ## Version 0.12.13 2012-01-18
 
