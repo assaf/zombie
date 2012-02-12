@@ -56,8 +56,11 @@ HTML.HTMLFormElement.prototype.submit = (button)->
           if field.value && field.type != "submit" && field.type != "image"
             value = field.value
 
-      if value?
-        params.push [name, value]
+      if name?
+        if value?
+          params.push [name, value]
+        else
+          params.push [name, '']
       process index + 1
     else
       if button && button.name
