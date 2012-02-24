@@ -20,9 +20,9 @@
   },
   "dependencies": {
     "coffee-script":    "~1.2",
-    "jsdom":            "~0.2.10",
-    "mime":             "~1.2.4",
-    "ws":               "~0.4.0"
+    "jsdom":            "~0.2.12",
+    "mime":             "~1.2.5",
+    "ws":               "~0.4.7"
   },
   "devDependencies": {
     "docco":            "~0.3.0",

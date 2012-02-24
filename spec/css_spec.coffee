@@ -9,6 +9,7 @@ Vows.describe("CSS").addBatch(
       """
       browser = new Browser
       browser.wants "http://localhost:3003/styled", =>
+        console.log browser.query("#styled")
         @callback null, browser.query("#styled").style
 
     "should be formatted string": (style)->

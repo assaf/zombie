@@ -253,7 +253,7 @@ class Browser extends EventEmitter
   queryAll: (selector, context)->
     context ||= @document
     if selector
-      return context.querySelectorAll(selector).toArray()
+      return context.querySelectorAll(selector).slice()
     else
       return [context]
 
@@ -263,7 +263,7 @@ class Browser extends EventEmitter
   query: (selector, context)->
     context ||= @document
     if selector
-      context.querySelector(selector)
+      return context.querySelector(selector)
     else
       return context
   $$: (selector, context)->

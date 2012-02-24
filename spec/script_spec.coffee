@@ -173,12 +173,12 @@ Vows.describe("Scripts").addBatch
                 var baz = "Three";
               }
               // In spite of local variable, global scope eval finds global foo
-              var foo = "NotOne";
+              var foo = "Four";
               var e_foo = e("foo");
               var qux = window.eval.call(window, "foo");
-              console.log(qux)
+              var qoo = eval("foo");
 
-              document.title = eval('e_foo + bar + baz + qux');
+              document.title = eval('e_foo + bar + baz + qux + qoo');
             })();
           </script>
         </html>
@@ -186,7 +186,7 @@ Vows.describe("Scripts").addBatch
       browser = new Browser
       browser.wants "http://localhost:3003/script/eval", @callback
     "should evaluate in global scope": (browser)->
-      assert.equal browser.document.title, "OneTwoThreeFour"
+      assert.equal browser.document.title, "OneTwoThreeOneFour"
 
 
 .addBatch
