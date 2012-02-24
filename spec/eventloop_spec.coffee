@@ -149,9 +149,9 @@ Vows.describe("EventLoop").addBatch(
         topic: (browser)->
           browser.wants "http://localhost:3003/eventloop/function", =>
             browser.window.setInterval (-> @document.title += "."), 100
-            browser.wait 100, =>
+            browser.wait 150, =>
               setTimeout =>
-                browser.wait 100, @callback
+                browser.wait 150, @callback
               , 300
         "should not fire": (browser)->
           assert.equal browser.document.title, ".."

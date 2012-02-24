@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "coffee-script":    "~1.2",
+    "htmlparser":       "~1.7.4",
     "jsdom":            "~0.2.12",
     "mime":             "~1.2.5",
     "ws":               "~0.4.7"

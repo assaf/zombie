@@ -5,11 +5,10 @@ Vows.describe("CSS").addBatch(
   "opacity":
     topic: ->
       brains.get "/styled", (req, res)-> res.send """
-        <body><div id="styled"></div></body>
+        <html><body><div id="styled"></div></body></html>
       """
       browser = new Browser
       browser.wants "http://localhost:3003/styled", =>
-        console.log browser.query("#styled")
         @callback null, browser.query("#styled").style
 
     "should be formatted string": (style)->
