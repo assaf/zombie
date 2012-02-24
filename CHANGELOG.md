@@ -1,6 +1,11 @@
 zombie.js-changelog(7) -- Changelog
 ===================================
 
+## Version 0.12.15 2012-02-23
+
+Maintenance release: JSDOM 0.2.11/12 is broken, fixing to 0.2.10 (Mike Swift)
+
+
 ## Version 0.12.14 2012-02-07
 
 Fix redirect not passing the same headers again.
