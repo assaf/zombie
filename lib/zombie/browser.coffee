@@ -20,7 +20,7 @@ WebSocket         = require("./websocket")
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor"]
+BROWSER_OPTIONS   = ["credentials", "proxy", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -57,15 +57,23 @@ class Browser extends EventEmitter
     # 2.0 draft 20).  Scheme name is case insensitive.
     #
     # Example
-    #   creadentials = { scheme: "basic", username: "bloody", password: "hungry" }
-    #   browser.visit("/basic/auth", { creadentials: creadentials }, function(error, browser) {
+    #   credentials = { scheme: "basic", username: "bloody", password: "hungry" }
+    #   browser.visit("/basic/auth", { credentials: credentials }, function(error, browser) {
     #   })
     #
-    #   creadentials = { scheme: "bearer", token: "b1004a8" }
-    #   browser.visit("/oauth/2", { creadentials: creadentials }, function(error, browser) {
+    #   credentials = { scheme: "bearer", token: "b1004a8" }
+    #   browser.visit("/oauth/2", { credentials: credentials }, function(error, browser) {
     #   })
     @credentials = false
 
+    # Object containing http proxy configuration.
+    #
+    # Example
+    #   proxy = { host: "localhost", port: 8080 }
+    #   browser.visit("site", {proxy: proxy}, function(error, browser) {
+    #   })
+    @proxy = false
+    
     # True to have Zombie report what it's doing.
     @debug = false
 
