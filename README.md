@@ -45,7 +45,7 @@ On OS X start by installing XCode, or use the [OSX GCC installer](https://github
 Next, assuming you're using the mighty [Homebrew](http://mxcl.github.com/homebrew/):
 
     $ brew install node
-    $ node --versi")
+    $ node --version
     v0.6.2
     $ curl http://npmjs.org/install.sh | sudo sh
     $ npm --version
