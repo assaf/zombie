@@ -57,10 +57,7 @@ HTML.HTMLFormElement.prototype.submit = (button)->
             value = field.value
 
       if name?
-        if value?
-          params.push [name, value]
-        else
-          params.push [name, '']
+          params.push [name, value || ""]
       process index + 1
     else
       if button && button.name
