@@ -308,6 +308,14 @@ Vows.describe("Scripts").addBatch
     "should not run scripts": (browser)->
       assert.equal browser.document.title, "Zero"
 
+.addBatch
+
+  "file:// uri scheme":
+    Browser.wants "file://" + __dirname + "/data/file_scheme.html"
+      topic: (browser)->
+        browser.wait 100, @callback
+      "should run scripts with file url src": (browser)->
+        assert.equal browser.document.title, "file://"
 
   ###
 .addBatch

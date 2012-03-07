@@ -32,11 +32,13 @@ HTML.resourceLoader.load = (element, href, callback)->
         element.window.location = URL.resolve(element.window.parent.location, href)
       else
         url = URL.parse(@resolve(document, href))
-        loaded = (response, filename)->
-          callback.call this, response.body, URL.parse(response.url).pathname
         if url.hostname
+          loaded = (response, filename)->
+            callback.call this, response.body, URL.parse(response.url).pathname
           window.browser.resources.get url, @enqueue(element, loaded, url.pathname)
         else
+          loaded = (data, filename)->
+            callback.call this, data, filename
           file = @resolve(document, url.pathname)
           @readFile file, @enqueue(element, loaded, file)
 
