@@ -20,7 +20,7 @@ WebSocket         = require("./websocket")
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor"]
+BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor", "windowName"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -93,6 +93,9 @@ class Browser extends EventEmitter
 
     # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 0.5 seconds.
     @waitFor = 500
+
+    # You can set the browser window.name property
+    @windowName = "nodejs"
 
     # Sets the browser options.
     for name in BROWSER_OPTIONS
@@ -171,6 +174,7 @@ class Browser extends EventEmitter
     newWindow.navigator.javaEnabled = ->
       return false
     newWindow.navigator.userAgent = @userAgent
+    newWindow.name = @windowName
     
     @_cookies.extend newWindow
     @_storages.extend newWindow
