@@ -34,6 +34,17 @@ deprecated = (message)->
     @shown[message] = true
     console.log message
 
+translateCredentials = (credentials) ->
+  switch credentials.scheme.toLowerCase()
+    when "basic"
+      base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
+      "Basic #{base64}"
+    when "bearer"
+      "Bearer #{credentials.token}"
+    when "oauth"
+      "OAuth #{credentials.token}"
 
 exports.deprecated = deprecated.bind(deprecated)
 exports.raise = raise
+exports.translateCredentials = translateCredentials
+

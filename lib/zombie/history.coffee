@@ -3,7 +3,7 @@ util = require("util")
 JSDOM = require("jsdom")
 HTML = JSDOM.dom.level3.html
 URL = require("url")
-
+{translateCredentials} = require './helpers'
 
 # History entry. Consists of:
 # - state -- As provided by pushState/replaceState
@@ -94,20 +94,13 @@ class History
     document = JSDOM.jsdom(null, HTML, options)
     @_window.document = document
     document.window = document.parentWindow = @_window
-
+    
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
     referer = @_browser.referer || @_stack[@_index-1]?.url?.href
     headers["referer"] = referer if referer
 
     if credentials = @_browser.credentials
-      switch credentials.scheme.toLowerCase()
-        when "basic"
-          base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
-          headers["authorization"] = "Basic #{base64}"
-        when "bearer"
-          headers["authorization"] = "Bearer #{credentials.token}"
-        when "oauth"
-          headers["authorization"] = "OAuth #{credentials.token}"
+      headers['authorization'] = translateCredentials credentials
     
     @_browser.resources.request method, url, data, headers, (error, response)=>
       if error

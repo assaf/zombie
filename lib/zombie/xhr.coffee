@@ -2,7 +2,7 @@
 html = require("jsdom").dom.level3.html
 http = require("http")
 URL = require("url")
-{ raise } = require("./helpers")
+{ raise, translateCredentials } = require("./helpers")
 
 
 # Additional error codes defines for XHR and not in JSDOM.
@@ -56,6 +56,9 @@ XMLHttpRequest = (window)->
 
       headers = {}
       @setRequestHeader = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
+      if credentials = window.browser.credentials
+        @setRequestHeader 'authorization', translateCredentials credentials
+
       # Allow calling send method.
       @send = (data)->
         # Aborting request in progress.
