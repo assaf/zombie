@@ -199,6 +199,15 @@ class Resources extends Array
     secure = url.protocol == "https:"
     url.port ||= if secure then 443 else 80
 
+    # set values for the proxy
+    host = url.hostname
+    port = url.port
+    path = "#{url.pathname}#{url.search || ""}"
+      if @_browser.proxy
+        host = @_browser.proxy.host
+        port = @_browser.proxy.port
+        path = "#{url.protocol}//#{url.host}#{url.pathname}#{url.search || ""}"
+
     # First request has not resource, so create it and add to
     # Resources.  After redirect, we have a resource we're using.
     unless resource

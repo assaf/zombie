@@ -20,7 +20,7 @@ WebSocket         = require("./websocket")
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor", "windowName"]
+BROWSER_OPTIONS   = ["credentials", "proxy", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor", "windowName"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -68,6 +68,11 @@ class Browser extends EventEmitter
 
     # True to have Zombie report what it's doing.
     @debug = false
+
+    # Support for using proxies
+    # proxy = { host: "127.0.0.1", port: "18000"}
+    # add proxy to browser.vist
+    @proxy = false
 
     # Which parser to use (HTML5 by default). For example:
     #   zombie.htmlParser = require("html5").HTML5

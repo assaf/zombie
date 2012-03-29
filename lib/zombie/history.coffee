@@ -109,6 +109,11 @@ class History
         when "oauth"
           headers["authorization"] = "OAuth #{credentials.token}"
     
+    if proxycredentials = @_browser.proxycredentials
+        when "proxy-basic"
+          base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
+          headers["Proxy-Authorization"] = "Basic #{base64}"
+
     @_browser.resources.request method, url, data, headers, (error, response)=>
       if error
         document.write "<html><body>#{error}</body></html>"
