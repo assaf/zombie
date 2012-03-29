@@ -20,7 +20,7 @@ WebSocket         = require("./websocket")
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor", "windowName"]
+BROWSER_OPTIONS   = ["credentials", "debug", "headers", "proxy", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -57,17 +57,27 @@ class Browser extends EventEmitter
     # 2.0 draft 20).  Scheme name is case insensitive.
     #
     # Example
-    #   creadentials = { scheme: "basic", username: "bloody", password: "hungry" }
+    #   credentials = { scheme: "basic", username: "bloody", password: "hungry" }
     #   browser.visit("/basic/auth", { creadentials: creadentials }, function(error, browser) {
     #   })
     #
-    #   creadentials = { scheme: "bearer", token: "b1004a8" }
+    #   credentials = { scheme: "bearer", token: "b1004a8" }
     #   browser.visit("/oauth/2", { creadentials: creadentials }, function(error, browser) {
     #   })
     @credentials = false
 
+    # Object containing HTTP proxy configuration.
+    #
+    # Example
+    #   proxy = { host: "localhost", port: 8080 }
+    #   browser.visit("site", {proxy: proxy}, function(error, browser) { });
+    @proxy = false
+
     # True to have Zombie report what it's doing.
     @debug = false
+
+    # User-specified HTTP headers to send with the request
+    @headers = null
 
     # Which parser to use (HTML5 by default). For example:
     #   zombie.htmlParser = require("html5").HTML5
@@ -93,9 +103,6 @@ class Browser extends EventEmitter
 
     # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 0.5 seconds.
     @waitFor = 500
-
-    # You can set the browser window.name property
-    @windowName = "nodejs"
 
     # Sets the browser options.
     for name in BROWSER_OPTIONS
@@ -174,7 +181,6 @@ class Browser extends EventEmitter
     newWindow.navigator.javaEnabled = ->
       return false
     newWindow.navigator.userAgent = @userAgent
-    newWindow.name = @windowName
     
     @_cookies.extend newWindow
     @_storages.extend newWindow
@@ -257,8 +263,7 @@ class Browser extends EventEmitter
   queryAll: (selector, context)->
     context ||= @document
     if selector
-      ret = context.querySelectorAll(selector)
-      return Array.prototype.slice.call(ret, 0)
+      return context.querySelectorAll(selector).toArray()
     else
       return [context]
 
