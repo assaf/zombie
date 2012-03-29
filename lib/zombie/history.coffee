@@ -4,7 +4,6 @@ JSDOM = require("jsdom")
 HTML = JSDOM.dom.level3.html
 URL = require("url")
 
-
 # History entry. Consists of:
 # - state -- As provided by pushState/replaceState
 # - title -- As provided by pushState/replaceState
@@ -91,11 +90,17 @@ class History
       options.features.FetchExternalResources.push "script"
     if @_browser.loadCSS
       options.features.FetchExternalResources.push "css"
+
     document = JSDOM.jsdom(null, HTML, options)
     @_window.document = document
     document.window = document.parentWindow = @_window
 
-    headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
+    if headers
+      headers = JSON.parse(JSON.stringify(headers))
+    else if @_browser.headers
+      headers = JSON.parse(JSON.stringify(@_browser.headers))
+
+    headers = '' if headers == undefined
     referer = @_browser.referer || @_stack[@_index-1]?.url?.href
     headers["referer"] = referer if referer
 
@@ -108,6 +113,8 @@ class History
           headers["authorization"] = "Bearer #{credentials.token}"
         when "oauth"
           headers["authorization"] = "OAuth #{credentials.token}"
+
+    delete headers[key] for key, val of headers when headers[key] is null
     
     @_browser.resources.request method, url, data, headers, (error, response)=>
       if error
