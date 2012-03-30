@@ -91,6 +91,9 @@ class History
       options.features.FetchExternalResources.push "script"
     if @_browser.loadCSS
       options.features.FetchExternalResources.push "css"
+    if @_browser.loadIMG
+      options.features.FetchExternalResources.push "img"
+
     document = JSDOM.jsdom(null, HTML, options)
     @_window.document = document
     document.window = document.parentWindow = @_window
@@ -104,16 +107,14 @@ class History
         when "basic"
           base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
           headers["authorization"] = "Basic #{base64}"
+        when "proxy-basic"
+          base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
+          headers["Proxy-Authorization"] = "Basic #{base64}"
         when "bearer"
           headers["authorization"] = "Bearer #{credentials.token}"
         when "oauth"
           headers["authorization"] = "OAuth #{credentials.token}"
     
-    if proxycredentials = @_browser.proxycredentials
-        when "proxy-basic"
-          base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
-          headers["Proxy-Authorization"] = "Basic #{base64}"
-
     @_browser.resources.request method, url, data, headers, (error, response)=>
       if error
         document.write "<html><body>#{error}</body></html>"
