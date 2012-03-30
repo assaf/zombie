@@ -222,6 +222,10 @@ class Resources extends Array
       path: "#{url.pathname}#{url.search || ""}"
       method: method
       headers: headers
+
+    if @_browser.agent?
+      request.agent = @_browser.agent
+
     response_handler = (response)=>
       body = ""
 

@@ -20,7 +20,7 @@ WebSocket         = require("./websocket")
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "headers", "proxy", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor"]
+BROWSER_OPTIONS   = ["credentials", "debug", "agent", "headers", "proxy", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
