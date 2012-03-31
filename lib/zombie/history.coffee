@@ -102,20 +102,18 @@ class History
 
     headers = '' if headers == undefined
     referer = @_browser.referer || @_stack[@_index-1]?.url?.href
-    headers["referer"] = referer if referer
+    headers["Referer"] = referer if referer
 
     if credentials = @_browser.credentials
       switch credentials.scheme.toLowerCase()
         when "basic"
           base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
-          headers["authorization"] = "Basic #{base64}"
+          headers["Authorization"] = "Basic #{base64}"
         when "bearer"
-          headers["authorization"] = "Bearer #{credentials.token}"
+          headers["Authorization"] = "Bearer #{credentials.token}"
         when "oauth"
-          headers["authorization"] = "OAuth #{credentials.token}"
+          headers["Authorization"] = "OAuth #{credentials.token}"
 
-    delete headers[key] for key, val of headers when headers[key] is null
-    
     @_browser.resources.request method, url, data, headers, (error, response)=>
       if error
         document.write "<html><body>#{error}</body></html>"

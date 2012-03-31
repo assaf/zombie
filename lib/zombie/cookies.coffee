@@ -149,7 +149,7 @@ class Access
   addHeader: (headers)->
     header = ("#{match[2]}=#{match[3].value}" for match in @_selected()).join("; ")
     if header.length > 0
-      headers.cookie = header
+      headers["Cookie"] = header
 
   # The default separator is a line break, useful to output when
   # debugging.  If you need to save/load, use comma as the line

@@ -216,6 +216,8 @@ class Resources extends Array
       this.push resource
     @_browser.log -> "#{method} #{URL.format(url)}"
 
+    delete headers[key] for key, val of headers when headers[key] is null
+
     request =
       host: host
       port: port
