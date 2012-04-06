@@ -88,6 +88,24 @@ load_form = (callback)->
           <input type="checkbox" id="field-prevent-check">
           <input type="radio" id="field-prevent-radio">
         </form>
+        <div id="formless_inputs">
+          <label>Hunter <input type="text" name="hunter_name" id="hunter-name"></label>
+          <textarea name="hunter_hobbies">Killing zombies.</textarea>
+          <input type="password" name="hunter_password" id="hunter-password">
+          <input type="badtype" name="hunter_invalidtype" id="hunter-invalidtype" />
+          <label>Weapons</label>
+          <label>Chainsaw<input type="checkbox" name="hunter_weapon[]" value="chainsaw"></label>
+          <label>Shotgun<input type="checkbox" name="hunter_weapon[]" value="shotgun"></label>
+          <label>Type
+            <select name="hunter_type">
+              <option value="regular" label="Regular"></option>
+              <option value="evil" label="Evil"></option>
+              <option value="tiny" label="tiny"></option>
+            </select>
+          </label>
+          <label>Powerglove <input name="hunter_powerglove" type="radio" value="glove"></label>
+          <label>No powerglove <input name="hunter_powerglove" type="radio" value="noglove" checked="checked"></label>
+        </div>
       </body>
     </html>
     """
@@ -432,6 +450,26 @@ Vows.describe("Forms").addBatch
           selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-hobbies").options)
           assert.deepEqual selected, [true, false, false]
 
+.addBatch
+  "fields not contained in a form":
+    topic: ->
+      load_form (browser)=>
+        @callback null, browser
+
+    "should fill text field": (browser) ->
+      assert.ok browser.fill "Hunter", "Bruce"
+    "should fill textarea": (browser) ->
+      assert.ok browser.fill "hunter_hobbies", "Trying to get home"
+    "should fill password": (browser) ->
+      assert.ok browser.fill "#hunter-password", "klaatubarada"
+    "should fill input with invalid type": (browser) ->
+      assert.ok browser.fill ":input[name=hunter_invalidtype]", "necktie?"
+    "should check checkbox": (browser) ->
+      assert.ok browser.check "Chainsaw"
+    "should choose radio": (browser) ->
+      assert.ok browser.choose "Powerglove"
+    "should choose select": (browser) ->
+      assert.ok browser.select "Type", "Evil"
 
 .addBatch
 
