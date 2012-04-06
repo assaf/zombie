@@ -141,7 +141,7 @@ For example:
 
     console.log(browser.text("title"));
 
-### browser.xpath(expression, context?) => XPathResult
+### browser.xpath(expression, context?) : XPathResult
 
 Evaluates the XPath expression against the document (or context node) and return the XPath result.  Shortcut for
 `document.evaluate`.
@@ -447,7 +447,7 @@ For example:
 
     browser.onprompt(function(message) { return Math.random() })
 
-### browser.prompted(message) => boolean
+### browser.prompted(message) : boolean
 
 Returns true if user was prompted with that message by a previous call to `window.alert`, `window.confirm` or
 `window.prompt`.
