@@ -76,7 +76,7 @@ class BCat
         res.end()
         server.close()
         process.exit 0
-    server.listen port, "127.0.0.1"
+    server.listen port
 
 # Serve that input stream to a browser.
 #
@@ -87,4 +87,5 @@ exports.bcat = (input, port = 8091, browser)->
   bcat = new BCat
   input ||= process.openStdin()
   bcat.serve input, port
+  console.log "open your browser on http://127.0.0.1:#{port}/"
   bcat.open browser, port
