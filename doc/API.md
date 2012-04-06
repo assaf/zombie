@@ -80,7 +80,7 @@ Selector API](http://www.w3.org/TR/selectors-api/).
 
 To find an element with ID "item-23":
 
-    var item = document.getElementById("item-32");
+    var item = document.getElementById("item-23");
 
 For example, to find out the first input field with the name "email":
 
