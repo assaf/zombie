@@ -559,7 +559,7 @@ class Browser extends EventEmitter
   # Without callback, returns this.
   choose: (selector, callback)->
     field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
-    if field && field.tagName == "INPUT" && field.type == "radio" && field.form
+    if field && field.tagName == "INPUT" && field.type == "radio"
       field.click()
       if callback
         @wait callback
