@@ -20,17 +20,18 @@
   },
   "dependencies": {
     "coffee-script":    "~1.2",
+    "htmlparser":       "~1.7.5",
     "jsdom":            "0.2.10",
-    "mime":             "~1.2.4",
-    "ws":               "~0.4.0"
+    "mime":             "~1.2.5",
+    "ws":               "~0.4.12"
   },
   "devDependencies": {
     "docco":            "~0.3.0",
-    "express":          "~2.5.4",
-    "highlight":        "~0.2.0",
-    "replay":           "~1.2.3",
+    "express":          "~2.5.9",
+    "highlight":        "~0.2.1",
+    "replay":           "~1.3.1",
     "ronn":             "~0.3.8",
-    "vows":             "~0.6.1"
+    "vows":             "~0.6.2"
   },
   "repository": {
     "type": "git",
