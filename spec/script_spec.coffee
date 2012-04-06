@@ -317,15 +317,13 @@ Vows.describe("Scripts").addBatch
       "should run scripts with file url src": (browser)->
         assert.equal browser.document.title, "file://"
 
-  ###
 .addBatch
 
   "new Image":
     Browser.wants "http://localhost:3003/script/living"
-      "should construct an img tag": (browser)-> assert.equal domToHtml(browser.evaluate("new Image")), "<img>\r\n"
+      "should construct an img tag": (browser)->
+        assert.equal browser.evaluate("new Image").tagName, "IMG"
       "should construct an img tag with width and height": (browser)->
-        assert.equal domToHtml(browser.evaluate("new Image(1, 1)")), "<img width=\"1\" height=\"1\">\r\n"
-  ###
+        assert.equal browser.evaluate("new Image(1, 1)").height, 1
 
-      
 .export(module)
