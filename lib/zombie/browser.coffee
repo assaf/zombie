@@ -12,6 +12,7 @@ FS                = require("fs")
 History           = require("./history")
 Interact          = require("./interact")
 JSDom             = require("jsdom")
+Mime              = require("mime")
 PATH              = require("path")
 Resources         = require("./resources")
 Storages          = require("./storage")
@@ -601,6 +602,7 @@ class Browser extends EventEmitter
         field.value = filename
         file = new FILE_CLASS()
         file.name = PATH.basename filename
+        file.type = Mime.lookup filename
         file.size = stat.size
         field.files ?= []
         field.files.push file
