@@ -753,7 +753,6 @@ Vows.describe("Forms").addBatch
             <div id="filename"></div>
             <div id="type"></div>
             <div id="size"></div>
-            <div id="file_body"></div>
             <div id="is_file"></div>
           </body>
         </html>
@@ -772,8 +771,6 @@ Vows.describe("Forms").addBatch
           assert.equal browser.text("#type"), "text/plain"
         "should know file size": (browser)->
           assert.equal browser.text("#size"), "12"
-        "should have file body": (browser)->
-          assert.equal browser.text("#file_body"), "Random text"
         "should be of type File": (browser)->
           assert.equal browser.text("#is_file"), "true"
 
