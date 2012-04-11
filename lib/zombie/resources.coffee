@@ -207,14 +207,14 @@ class Resources extends Array
       host = @_browser.proxy.host
       port = @_browser.proxy.port
       path = "#{url.protocol}//#{url.host}#{url.pathname}#{url.search || ""}"
-    
+
     # First request has not resource, so create it and add to
     # Resources.  After redirect, we have a resource we're using.
     unless resource
       resource = new Resource(new HTTPRequest(method, url, headers, null))
       this.push resource
     @_browser.log -> "#{method} #{URL.format(url)}"
-    
+
     request =
       host: host
       port: port
