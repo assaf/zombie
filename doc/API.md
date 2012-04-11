@@ -492,7 +492,7 @@ For example:
 
     // Wait until map is loaded
     function mapLoaded(window) {
-      return window.querySelector("#map");
+      return window.document.querySelector("#map");
     }
     browser.wait(mapLoaded, function() {
       // Page has a #map element now
