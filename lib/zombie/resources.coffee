@@ -199,17 +199,26 @@ class Resources extends Array
     secure = url.protocol == "https:"
     url.port ||= if secure then 443 else 80
 
+    host = url.hostname
+    port = url.port
+    path = "#{url.pathname}#{url.search || ""}"
+
+    if @_browser.proxy
+      host = @_browser.proxy.host
+      port = @_browser.proxy.port
+      path = "#{url.protocol}//#{url.host}#{url.pathname}#{url.search || ""}"
+    
     # First request has not resource, so create it and add to
     # Resources.  After redirect, we have a resource we're using.
     unless resource
       resource = new Resource(new HTTPRequest(method, url, headers, null))
       this.push resource
     @_browser.log -> "#{method} #{URL.format(url)}"
-
+    
     request =
-      host: url.hostname
-      port: url.port
-      path: "#{url.pathname}#{url.search || ""}"
+      host: host
+      port: port
+      path: path
       method: method
       headers: headers
     response_handler = (response)=>

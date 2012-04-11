@@ -20,7 +20,7 @@ WebSocket         = require("./websocket")
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor", "windowName"]
+BROWSER_OPTIONS   = ["credentials", "proxy", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -69,6 +69,11 @@ class Browser extends EventEmitter
     # True to have Zombie report what it's doing.
     @debug = false
 
+    # Support for using proxies
+    # proxy = { host: "127.0.0.1", port: "18000"}
+    # add proxy to browser.vist
+    @proxy = false
+
     # Which parser to use (HTML5 by default). For example:
     #   zombie.htmlParser = require("html5").HTML5
     @htmlParser = null
@@ -93,9 +98,6 @@ class Browser extends EventEmitter
 
     # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 0.5 seconds.
     @waitFor = 500
-
-    # You can set the browser window.name property
-    @windowName = "nodejs"
 
     # Sets the browser options.
     for name in BROWSER_OPTIONS
@@ -174,7 +176,6 @@ class Browser extends EventEmitter
     newWindow.navigator.javaEnabled = ->
       return false
     newWindow.navigator.userAgent = @userAgent
-    newWindow.name = @windowName
     
     @_cookies.extend newWindow
     @_storages.extend newWindow
@@ -257,8 +258,7 @@ class Browser extends EventEmitter
   queryAll: (selector, context)->
     context ||= @document
     if selector
-      ret = context.querySelectorAll(selector)
-      return Array.prototype.slice.call(ret, 0)
+      return context.querySelectorAll(selector).toArray()
     else
       return [context]
 
@@ -559,7 +559,7 @@ class Browser extends EventEmitter
   # Without callback, returns this.
   choose: (selector, callback)->
     field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
-    if field && field.tagName == "INPUT" && field.type == "radio"
+    if field && field.tagName == "INPUT" && field.type == "radio" && field.form
       field.click()
       if callback
         @wait callback
