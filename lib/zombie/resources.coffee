@@ -251,18 +251,17 @@ class Resources extends Array
               if content.read
                 currentItem["Content-Disposition"] += "; filename=\"#{content}\""
                 mime = content.mime || "application/octet-stream"
-              else
-                mime = "text/plain"
-              
-              currentItem["Content-Type"] = "#{mime}"
-              if content.read
+                currentItem["Content-Type"] = "#{mime}"
                 buffer = content.read()
                 currentItem["Content-Length"] = "#{buffer.length}"
                 currentItem['body'] = buffer
               else
+                #mime = "text/plain"
+                #currentItem["Content-Type"] = "#{mime}"
                 currentItem["Content-Length"] = "#{content.length}"
-                currentItem["Content-Transfer-Encoding"] = "utf8"
+                #currentItem["Content-Transfer-Encoding"] = "utf8"
                 currentItem['body'] = content
+              
               mpart.push currentItem
           request.multipart = mpart
     client = rqst(request, response_handler)
