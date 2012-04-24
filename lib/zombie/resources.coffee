@@ -217,6 +217,7 @@ class Resources extends Array
         callback null, resource.response
     
     request =
+      followAllRedirects : true
       url: url_orig
       method: method
       headers: headers
