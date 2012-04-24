@@ -231,7 +231,6 @@ class Resources extends Array
     unless resource
       resource = new Resource(new HTTPRequest(method, url_orig, headers, null))
       this.push resource
-    @_browser.log -> "#{method} #{URL.format(url_orig)}"
     
     mpart = []
     
