@@ -22,7 +22,8 @@
     "coffee-script":    "~1.2",
     "jsdom":            "0.2.10",
     "mime":             "~1.2.4",
-    "ws":               "~0.4.0"
+    "ws":               "~0.4.0",
+    "request":		"~2.9.0"
   },
   "devDependencies": {
     "docco":            "~0.3.0",
@@ -30,7 +31,8 @@
     "highlight":        "~0.2.0",
     "replay":           "~1.2.3",
     "ronn":             "~0.3.8",
-    "vows":             "~0.6.1"
+    "vows":             "~0.6.1",
+    "request":		"~2.9.0"
   },
   "repository": {
     "type": "git",

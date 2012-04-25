@@ -15,6 +15,7 @@ FS = require("fs")
 Path = require("path")
 QS = require("querystring")
 URL = require("url")
+rqst = require("request")
 
 
 partial = (text, length = 250)->
@@ -124,7 +125,7 @@ class Resources extends Array
   # The callback is called with error and response (see `HTTPResponse`).
   request: (method, url, data, headers, callback)->
     @_browser._eventloop.perform (done)=>
-      @_makeRequest method, url, data, headers, null, (error, response)->
+      @_makeRequestv2 method, url, data, headers, null, (error, response)->
         done()
         callback error, response
 
@@ -137,6 +138,148 @@ class Resources extends Array
 
   toString: ->
     @map((resource)-> resource.toString()).join("\n")
+
+  _makeRequestv2: (method, url_orig, data, headers, resource, callback)->
+    url = URL.parse(url_orig)
+    real_url = url.href;
+    method = (method || "GET").toUpperCase()
+    j = rqst.jar()
+    
+    # convert array to request-like qs param's object
+    qsparams = null
+    if data
+      qsparams = {}
+      for field in data
+        qsparams[field[0]] = field[1]
+        
+    # If the request is for a file:// descriptor, just open directly from the
+    # file system rather than getting node's http (which handles file://
+    # poorly) involved.
+    if url.protocol == "file:"
+      @_browser.log -> "#{method} #{url.pathname}"
+      if method == "GET"
+        FS.readFile Path.normalize(url.pathname), (err, data) =>
+          # Fallback with error -> callback
+          if err
+            @_browser.log -> "Error loading #{URL.format(url)}: #{err.message}"
+            callback err
+          # Turn body from string into a String, so we can add property getters.
+          response = new HTTPResponse(url, 200, {}, String(data))
+          callback null, response
+      else
+        callback new Error("Cannot #{method} a file: URL")
+      return
+
+    # Clone headers before we go and modify them.
+    headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
+    headers["User-Agent"] = @_browser.userAgent
+    if method == "GET" || method == "HEAD"
+      # Request paramters go in query string
+      url.search = "?" + stringify(data) if data
+    else
+      # Construct body from request parameters.
+      switch headers["content-type"]
+        when "multipart/form-data"
+          if Object.keys(data).length > 0
+            boundary = "#{new Date().getTime()}#{Math.random()}"
+            headers["content-type"] += "; boundary=#{boundary}"
+          else
+            headers["content-type"] = "text/plain;charset=UTF-8"
+        when "application/x-www-form-urlencoded"
+          data = stringify(data)
+          unless headers["transfer-encoding"]
+            headers["content-length"] ||= data.length
+        else
+          # Fallback on sending text. (XHR falls-back on this)
+          headers["content-type"] ||= "text/plain;charset=UTF-8"
+
+    # Pre 0.3 we need to specify the host name.
+    headers["Host"] = url.host
+    url.pathname = "/#{url.pathname || ""}" unless url.pathname && url.pathname[0] == "/"
+    url.hash = null
+    # We're going to use cookies later when recieving response.
+    cookies = @_browser.cookies(url.hostname, url.pathname)
+    #cookies.addHeader headers
+
+    selcookies = cookies._selected()
+    for c in ("#{match[2]}=#{match[3].value}" for match in selcookies)
+      j.add rqst.cookie(c)
+    
+    response_handler = (error, response, body)=>
+      arcookies = []
+      resource.response = new HTTPResponse(url_orig, response.statusCode, response.headers, body)
+      @_browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"
+      jarcookies = j.get({ url: url.href })
+      for c in jarcookies
+        arcookies.push c["str"]
+      if arcookies.length
+          cookies.update arcookies
+      #cookies.update response.headers["set-cookie"]
+      # Fallback with error -> callback
+      # Fallback with error -> callback
+      if error
+        @_browser.log -> "Error loading #{URL.format(url)}: #{error.message}"
+        error.response = resource.response
+        resource.error = error
+        callback error
+      else
+        callback null, resource.response
+
+    rq =
+      followAllRedirects : true
+      url: real_url
+      method: method
+      headers: headers
+      qs: qsparams
+      jar: j
+
+    #if method == "POST" && headers["content-type"].split(";")[0] && headers["content-type"].split(";")[0] != "multipart/form-data"
+    if method == "POST"
+      rq.qs = null
+      rq.body = QS.stringify(qsparams)
+    
+    if @_browser.proxy
+      rq.proxy = @_browser.proxy
+    
+    @_browser.log -> "#{method} #{URL.format(url_orig)}"
+    
+    unless resource
+      resource = new Resource(new HTTPRequest(method, url_orig, headers, null))
+      this.push resource
+    
+    mpart = []
+    
+    if method == "PUT" || method == "POST"
+      # Construct body from request parameters.
+      switch headers["content-type"].split(";")[0]
+#        when "application/x-www-form-urlencoded"
+#          client.write data, "utf8"
+        when "multipart/form-data"
+          remaining = Object.keys(data).length
+          if remaining > 0
+            boundary = headers["content-type"].match(/boundary=(.*)/)[1]
+            for field in data
+              currentItem = {}
+              [name, content] = field
+              currentItem["Content-Disposition"] = "form-data; name=\"#{name}\""
+              if content.read
+                currentItem["Content-Disposition"] += "; filename=\"#{content}\""
+                mime = content.mime || "application/octet-stream"
+                currentItem["Content-Type"] = "#{mime}"
+                buffer = content.read()
+                currentItem["Content-Length"] = "#{buffer.length}"
+                currentItem['body'] = buffer
+              else
+                #mime = "text/plain"
+                #currentItem["Content-Type"] = "#{mime}"
+                currentItem["Content-Length"] = "#{content.length}"
+                #currentItem["Content-Transfer-Encoding"] = "utf8"
+                currentItem['body'] = content
+              
+              mpart.push currentItem
+          rq.multipart = mpart
+    
+    client = rqst(rq, response_handler)
 
   # Implementation of the request method, which also accepts the
   # resource.  Initially the resource is null, but when following a
@@ -199,6 +342,15 @@ class Resources extends Array
     secure = url.protocol == "https:"
     url.port ||= if secure then 443 else 80
 
+    host = url.hostname
+    port = url.port
+    path = "#{url.pathname}#{url.search || ""}"
+
+    if @_browser.proxy
+      host = @_browser.proxy.host
+      port = @_browser.proxy.port
+      path = "#{url.protocol}//#{url.host}#{url.pathname}#{url.search || ""}"
+
     # First request has not resource, so create it and add to
     # Resources.  After redirect, we have a resource we're using.
     unless resource
@@ -207,9 +359,9 @@ class Resources extends Array
     @_browser.log -> "#{method} #{URL.format(url)}"
 
     request =
-      host: url.hostname
-      port: url.port
-      path: "#{url.pathname}#{url.search || ""}"
+      host: host
+      port: port
+      path: path
       method: method
       headers: headers
     response_handler = (response)=>

@@ -41,8 +41,11 @@ dequote = (value)->
 
 # Determines if domain matches hostname.
 domainMatch = (domain, hostname)->
+  if domain.charAt(0) == '.'
+    domain = domain.substring(1)
+  i = hostname.length - domain.length
   return domain == hostname ||
-    (domain.charAt(0) == "." && domain.substring(1) == hostname.replace(/^[^.]+\./, ""))
+    (i > 0 && hostname[i-1] == '.' && domain == hostname.substring(i))
 
 
 # Domain/path specific scope around the global cookies collection.
@@ -96,7 +99,6 @@ class Access
   set: (name, value, options = {})->
     if options.domain && !domainMatch(options.domain, @_hostname)
       return
-
     name = name
     state = { value: value.toString() }
     if options.expires
