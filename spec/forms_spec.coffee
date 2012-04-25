@@ -662,6 +662,12 @@ Vows.describe("Forms").addBatch
               <input name="get_file" type="file">
               <input type="submit" value="Get Upload">
             </form>
+
+            <form method="post" enctype="multipart/form-data">
+              <input name="username" type="text">
+              <input name="logfile" type="file">
+              <button>Save</button>
+            </form>
           </body>
         </html>
         """
@@ -704,6 +710,19 @@ Vows.describe("Forms").addBatch
         "should upload file": (browser)->
           digest = Crypto.createHash("md5").update(File.readFileSync(@filename)).digest("hex")
           assert.equal browser.text("body").trim(), digest
+
+    "mixed":
+      Browser.wants "http://localhost:3003/forms/upload"
+        topic: (browser)->
+          filename = __dirname + "/data/random.txt"
+          browser
+            .fill('username', 'hello')
+            .attach("logfile", filename)
+            .pressButton "Save", @callback
+        "should upload file": (browser)->
+          assert.equal browser.text("body").trim(), "Random text"
+        "should upload include name": (browser)->
+          assert.equal browser.text("title"), "random.txt"
 
     "empty":
       Browser.wants "http://localhost:3003/forms/upload"
