@@ -216,7 +216,7 @@ class Resources extends Array
       else
         callback null, resource.response
     
-    request =
+    rq =
       followAllRedirects : true
       url: url_orig
       method: method
@@ -224,9 +224,13 @@ class Resources extends Array
       qs: qsparams
       jar: j
 
+    if method == "POST" && headers["content-type"].split(";")[0] && headers["content-type"].split(";")[0] != "multipart/form-data"
+      rq.qs = null
+      rq.body = QS.stringify(qsparams)
+    
     if @_browser.proxy
-      request.proxy = @_browser.proxy
-
+      rq.proxy = @_browser.proxy
+    
     @_browser.log -> "#{method} #{URL.format(url_orig)}"
     
     unless resource
@@ -263,8 +267,8 @@ class Resources extends Array
                 currentItem['body'] = content
               
               mpart.push currentItem
-          request.multipart = mpart
-    client = rqst(request, response_handler)
+          rq.multipart = mpart
+    client = rqst(rq, response_handler)
 
   # Implementation of the request method, which also accepts the
   # resource.  Initially the resource is null, but when following a
