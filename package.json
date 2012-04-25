@@ -23,6 +23,7 @@
     "htmlparser":       "~1.7.6",
     "jsdom":            "0.2.10",
     "mime":             "~1.2.5",
+    "request":          "~2.9.202",
     "ws":               "~0.4.13"
   },
   "devDependencies": {

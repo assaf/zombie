@@ -25,7 +25,7 @@ class File
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "referer", "runScripts", "silent", "site", "userAgent", "waitFor", "windowName"]
+BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "proxy", "referer", "runScripts", "silent", "site", "userAgent", "waitFor", "windowName"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -62,12 +62,12 @@ class Browser extends EventEmitter
     # 2.0 draft 20).  Scheme name is case insensitive.
     #
     # Example
-    #   creadentials = { scheme: "basic", username: "bloody", password: "hungry" }
-    #   browser.visit("/basic/auth", { creadentials: creadentials }, function(error, browser) {
+    #   credentials = { scheme: "basic", username: "bloody", password: "hungry" }
+    #   browser.visit("/basic/auth", { credentials: credentials }, function(error, browser) {
     #   })
     #
-    #   creadentials = { scheme: "bearer", token: "b1004a8" }
-    #   browser.visit("/oauth/2", { creadentials: creadentials }, function(error, browser) {
+    #   credentials = { scheme: "bearer", token: "b1004a8" }
+    #   browser.visit("/oauth/2", { credentials: credentials }, function(error, browser) {
     #   })
     @credentials = false
 
@@ -80,6 +80,14 @@ class Browser extends EventEmitter
 
     # True to load external stylesheets.
     @loadCSS = true
+    
+    # Proxy URL.
+    #
+    # Example
+    #   proxy = "http://myproxy:8080"
+    #   browser.visit("site", { proxy: proxy }, function(error, browser) {
+    #   })
+    @proxy = null
 
     # Send this referer.
     @referer = undefined
@@ -601,13 +609,13 @@ class Browser extends EventEmitter
     if field && field.tagName == "INPUT" && field.type == "file"
       if filename
         stat = FS.statSync(filename)
-        field.value = filename
         file = new File()
         file.name = Path.basename(filename)
         file.type = Mime.lookup(filename)
         file.size = stat.size
-        field.files ?= []
+        field.files ||= []
         field.files.push file
+        field.value = filename
         @fire "change", field, callback
     else
       throw new Error("No file INPUT matching '#{selector}'")

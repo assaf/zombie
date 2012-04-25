@@ -36,6 +36,7 @@ You can use the following options:
 - `credentials` -- Object containing authorization credentials.
 - `debug` -- Have Zombie report what it's doing.  Defaults to true if environment variable `DEBUG` is set.
 - `loadCSS` -- Loads external stylesheets.  Defaults to true.
+- `proxy` -- Proxy URL.
 - `runScripts` -- Run scripts included in or loaded from the page.  Defaults to true.
 - `userAgent` -- The User-Agent string to send to the server.
 - `silent` -- If true, supress all `console.log` output from scripts.  You can still view it with `window.console.output`.
@@ -45,9 +46,14 @@ You can use the following options:
 
 Credential options look like this:
 
-    { credentials: { scheme: "basic", username: "who", password: "secret" } } // HTTP Basic
-    { credentials: { scheme: "oauth", token: "long and magical" } }   // OAuth 2.0 draft 10
-    { credentials: { scheme: "bearer", token: "long and magical" } }  // OAuth 2.0 latest
+    { credentials: { scheme: "basic", username: "who", password: "secret" } }   // HTTP Basic
+    { credentials: { scheme: "oauth", token: "long and magical" } }             // OAuth 2.0 draft 10
+    { credentials: { scheme: "bearer", token: "long and magical" } }            // OAuth 2.0 latest
+
+The proxy URL specifies the host and port of the proxy.  It also supports HTTP
+Basic authentication, for example:
+
+    browser.proxy = "http://user:password@proxy:8080"
 
 
 ### browser.visit(url, callback)

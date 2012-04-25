@@ -8,13 +8,14 @@
 # If you're familiar with the WebKit Inspector Resources pane, this does
 # the same thing.
 
-inspect = require("util").inspect
-HTTP = require("http")
-HTTPS = require("https")
-FS = require("fs")
-Path = require("path")
-QS = require("querystring")
-URL = require("url")
+{ inspect } = require("util")
+HTTP        = require("http")
+HTTPS       = require("https")
+FS          = require("fs")
+Path        = require("path")
+QS          = require("querystring")
+Request     = require("request")
+URL         = require("url")
 
 
 partial = (text, length = 250)->
@@ -143,6 +144,7 @@ class Resources extends Array
   # redirect this function is called again with a resource and
   # modifies it instead of recording a new one.
   _makeRequest: (method, url, data, headers, resource, callback)->
+    browser = @_browser
     url = URL.parse(url)
     method = (method || "GET").toUpperCase()
 
@@ -150,12 +152,12 @@ class Resources extends Array
     # file system rather than getting node's http (which handles file://
     # poorly) involved.
     if url.protocol == "file:"
-      @_browser.log -> "#{method} #{url.pathname}"
+      browser.log -> "#{method} #{url.pathname}"
       if method == "GET"
-        FS.readFile Path.normalize(url.pathname), (err, data) =>
+        FS.readFile Path.normalize(url.pathname), (err, data)->
           # Fallback with error -> callback
           if err
-            @_browser.log -> "Error loading #{URL.format(url)}: #{err.message}"
+            browser.log -> "Error loading #{URL.format(url)}: #{err.message}"
             callback err
           # Turn body from string into a String, so we can add property getters.
           response = new HTTPResponse(url, 200, {}, String(data))
@@ -166,7 +168,7 @@ class Resources extends Array
 
     # Clone headers before we go and modify them.
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
-    headers["User-Agent"] = @_browser.userAgent
+    headers["User-Agent"] = browser.userAgent
     if method == "GET" || method == "HEAD"
       # Request paramters go in query string
       url.search = "?" + stringify(data) if data
@@ -191,107 +193,71 @@ class Resources extends Array
     headers["Host"] = url.host
     url.pathname = "/#{url.pathname || ""}" unless url.pathname && url.pathname[0] == "/"
     url.hash = null
-    # We're going to use cookies later when recieving response.
-    cookies = @_browser.cookies(url.hostname, url.pathname)
-    cookies.addHeader headers
-    # Pathname for HTTP request needs to start with / and include query
-    # string.
-    secure = url.protocol == "https:"
-    url.port ||= if secure then 443 else 80
 
     # First request has not resource, so create it and add to
     # Resources.  After redirect, we have a resource we're using.
     unless resource
       resource = new Resource(new HTTPRequest(method, url, headers, null))
       this.push resource
-    @_browser.log -> "#{method} #{URL.format(url)}"
-
-    request =
-      host: url.hostname
-      port: url.port
-      path: "#{url.pathname}#{url.search || ""}"
-      method: method
-      headers: headers
-    response_handler = (response)=>
-      response.setEncoding "utf8"
-      body = ""
-      response.on "data", (chunk)-> body += chunk
-      response.on "end", =>
-        cookies.update response.headers["set-cookie"]
-
-        # Turn body from string into a String, so we can add property getters.
-        resource.response = new HTTPResponse(url, response.statusCode, response.headers, body)
-
-        error = null
-        switch response.statusCode
-          when 301, 302, 303, 307
-            if response.headers["location"]
-              redirect = URL.resolve(URL.format(url), response.headers["location"])
-              @_browser.log -> "#{method} #{url.pathname} => #{redirect}"
-              # Fail after fifth attempt to redirect, better than looping forever
-              if (resource.redirects += 1) > 5
-                error = new Error("Too many redirects, from #{URL.format(url)} to #{redirect}")
-              else
-                process.nextTick =>
-                  if method in ["POST", "PUT"]
-                    delete headers['content-type']
-                    delete headers['content-length']
-                  @_makeRequest "GET", redirect, null, headers, resource, callback
-            else
-              error = new Error("Redirect with no Location header, cannot follow")
-          else
-            @_browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"
-            callback null, resource.response
-        # Fallback with error -> callback
-        if error
-          @_browser.log -> "Error loading #{URL.format(url)}: #{error.message}"
-          error.response = resource.response
-          resource.error = error
-          callback error
-    
-    client = (if secure then HTTPS else HTTP).request(request, response_handler)
-    # Connection error wired directly to callback.
-    client.on "error", (error)=>
-      @_browser.log -> "#{method} #{URL.format(url)} => #{error.message}"
-      callback error
 
     if method == "PUT" || method == "POST"
       # Construct body from request parameters.
       switch headers["content-type"].split(";")[0]
         when "application/x-www-form-urlencoded"
-          client.write data, "utf8"
+          body = data
         when "multipart/form-data"
-          remaining = Object.keys(data).length
-          if remaining > 0
-            boundary = headers["content-type"].match(/boundary=(.*)/)[1]
-            for field in data
-              [name, content] = field
-              client.write "--#{boundary}\r\n"
-              disp = "Content-Disposition: form-data; name=\"#{name}\""
-              if content.read
-                disp += "; filename=\"#{content}\""
-                mime = content.mime || "application/octet-stream"
-              else
-                mime = "text/plain"
-
-              client.write "#{disp}\r\n"
-              client.write "Content-Type: #{mime}\r\n"
-              if content.read
-                buffer = content.read()
-                client.write "Content-Length: #{buffer.length}\r\n"
-                client.write "\r\n"
-                client.write buffer
-              else
-                client.write "Content-Length: #{content.length}\r\n"
-                client.write "Content-Transfer-Encoding: utf8\r\n\r\n"
-                client.write content, "utf8"
-              if --remaining == 0
-                client.write "\r\n--#{boundary}--\r\n"
-              else
-                client.write "\r\n--#{boundary}\r\n"
+          multipart = []
+          for field in data
+            [name, content] = field
+            disp = "form-data; name=\"#{name}\""
+            if content.read
+              binary = content.read()
+              multipart.push
+                "Content-Disposition":  "#{disp}; filename=\"#{content}\""
+                "Content-Type":         content.mime || "application/octet-stream"
+                "Content-Length":       binary.length
+                body:                   binary
+            else
+              multipart.push
+                "Content-Disposition":        disp
+                "Content-Type":               "text/plain"
+                "Content-Transfer-Encoding":  "utf8"
+                "Content-Length":             content.length
+                body:                         content
         else
-          client.write (data || "").toString(), "utf8"
-    client.end()
+          body = (data || "").toString()
+
+    # We're going to use cookies later when recieving response.
+    cookies = browser.cookies(url.hostname, url.pathname)
+    cookies.addHeader headers
+    # We only use the JAR for response cookies
+    jar = Request.jar()
+
+    params = 
+      method:     method
+      url:        url
+      headers:    headers
+      body:       body
+      multipart:  multipart
+      proxy:      browser.proxy
+      jar:        jar
+    Request params, (error, response)->
+      if error
+        browser.log -> "#{method} #{URL.format(url)} => #{error.message}"
+        callback error
+        return
+
+      # Turn body from string into a String, so we can add property getters.
+      resource.response = new HTTPResponse(@href, response.statusCode, response.headers, response.body)
+      resource.redirects = @redirects.length
+      for cookie in jar.cookies
+        cookies.update cookie.str
+
+      for redirect in @redirects
+        browser.log -> "#{redirect.statusCode} => #{redirect.redirectUri}"
+      browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"
+      callback null, resource.response
+
 
   typeOf = (object)->
     return Object.prototype.toString.call(object)

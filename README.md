@@ -304,6 +304,8 @@ XPath support using Google's [AJAXSLT](http://code.google.com/p/ajaxslt/)
 
 JavaScript execution contexts using [Contextify](https://github.com/brianmcd/contextify)
 
+HTTP(S) requests using [Request](https://github.com/mikeal/request)
+
 Magical Zombie Girl by [Toho Scope](http://www.flickr.com/people/tohoscope/)
 
 

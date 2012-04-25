@@ -620,10 +620,8 @@ Vows.describe("Forms").addBatch
             <head>
               <script src="/jquery.js"></script>
               <script>
-              console.log("HERE");
                 $(function() {
                   $("form").submit(function() { 
-                    console.log("HERE");
                     return false;
                   })
                 })
@@ -656,11 +654,6 @@ Vows.describe("Forms").addBatch
               <input name="text" type="file">
               <input name="image" type="file">
               <button>Upload</button>
-            </form>
-
-            <form>
-              <input name="get_file" type="file">
-              <input type="submit" value="Get Upload">
             </form>
           </body>
         </html>
@@ -720,13 +713,8 @@ Vows.describe("Forms").addBatch
         "should not send inputs without names": (browser)->
           assert.equal browser.text("body").trim(), "nothing"
 
-    "get":
-      Browser.wants "http://localhost:3003/forms/upload"
-        topic: (browser)->
-          filename = __dirname + "/data/random.txt"
-          browser.attach("get_file", filename).pressButton "Get Upload", @callback
-        "should send just the file basename": (browser)->
-          assert.equal browser.location.search, "?get_file=random.txt"
+
+.addBatch
 
   "file upload with JS":
     topic: ->
