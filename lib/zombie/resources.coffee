@@ -206,14 +206,16 @@ class Resources extends Array
       j.add rqst.cookie(c)
     
     response_handler = (error, response, body)=>
+      arcookies = []
       resource.response = new HTTPResponse(url_orig, response.statusCode, response.headers, body)
       @_browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"
-      cookies.update response.headers["set-cookie"]
-      
-      selcookies = cookies._selected()
-      for c in ("#{match[2]}=#{match[3].value}" for match in selcookies)
-        j.add rqst.cookie(c)
-      
+      jarcookies = j.get({ url: url.href })
+      for c in jarcookies
+        arcookies.push c["str"]
+      if arcookies.length
+          cookies.update arcookies
+      #cookies.update response.headers["set-cookie"]
+      # Fallback with error -> callback
       # Fallback with error -> callback
       if error
         @_browser.log -> "Error loading #{URL.format(url)}: #{error.message}"
@@ -222,10 +224,7 @@ class Resources extends Array
         callback error
       else
         callback null, resource.response
-    
-    #console.log inspect(headers, 10)
-    #headers.cookie = nu
-    
+
     rq =
       followAllRedirects : true
       url: real_url
@@ -397,8 +396,6 @@ class Resources extends Array
           error.response = resource.response
           resource.error = error
           callback error
-    
-    console.log inspect(headers, 10)
     
     client = (if secure then HTTPS else HTTP).request(request, response_handler)
     # Connection error wired directly to callback.
