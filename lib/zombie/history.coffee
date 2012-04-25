@@ -120,7 +120,7 @@ class History
       else
         @_browser.response = [response.statusCode, response.headers, response.body]
         @_stack[@_index].update response.url
-        html = if response.body.trim() == "" then "<html><body></body></html>" else response.body
+        html = if response.body && response.body.trim() != "" then response.body else "<html><body></body></html>"
         document.write html
         document.close()
         if document.documentElement
