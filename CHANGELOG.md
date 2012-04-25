@@ -7,6 +7,8 @@ zombie.js-changelog(7) -- Changelog
 Now requires Node 0.6.x or later.  Also upgraded to CoffeeScript 1.3.1, which
 helped find a couple of skipped tests.
 
+Added File object in browser (Ian Young)
+
 
 ## Version 0.12.15 2012-02-23
 

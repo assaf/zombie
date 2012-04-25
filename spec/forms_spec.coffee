@@ -730,7 +730,7 @@ Vows.describe("Forms").addBatch
 
   "file upload with JS":
     topic: ->
-      brains.get "/forms/upload", (req, res)->
+      brains.get "/forms/upload-js", (req, res)->
         res.send """
         <html>
           <head>
@@ -759,10 +759,11 @@ Vows.describe("Forms").addBatch
         """
 
     "text":
-      Browser.wants "http://localhost:3003/forms/upload"
+      Browser.wants "http://localhost:3003/forms/upload-js"
         topic: (browser)->
-          filename = __dirname + "/data/random.txt"
+          filename = "#{__dirname}/data/random.txt"
           browser.attach "my_file", filename, @callback
+          
         "should call callback": (browser)->
           assert.equal browser.text("title"), "Upload done"
         "should have filename": (browser)->
@@ -773,6 +774,7 @@ Vows.describe("Forms").addBatch
           assert.equal browser.text("#size"), "12"
         "should be of type File": (browser)->
           assert.equal browser.text("#is_file"), "true"
+
 
 .addBatch
 
