@@ -8,15 +8,19 @@ Console           = require("./console")
 Cookies           = require("./cookies")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
+FS                = require("fs")
 History           = require("./history")
 Interact          = require("./interact")
 JSDom             = require("jsdom")
+Mime              = require("mime")
+PATH              = require("path")
 Resources         = require("./resources")
 Storages          = require("./storage")
 URL               = require("url")
 XHR               = require("./xhr")
 WebSocket         = require("./websocket")
 
+FILE_CLASS = ->
 
 HTML = JSDom.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
@@ -183,6 +187,7 @@ class Browser extends EventEmitter
     @_ws.extend newWindow
     newWindow.screen = new Screen()
     newWindow.JSON = JSON
+    newWindow.File = FILE_CLASS
     newWindow.Image = (width, height)->
       img = new HTML.HTMLImageElement(newWindow.document)
       img.width = width
@@ -593,8 +598,15 @@ class Browser extends EventEmitter
   attach: (selector, filename, callback)->
     field = @field(selector)
     if field && field.tagName == "INPUT" && field.type == "file"
-      field.value = filename
-      @fire "change", field, callback
+      FS.stat filename, (e, stat) =>
+        field.value = filename
+        file = new FILE_CLASS()
+        file.name = PATH.basename filename
+        file.type = Mime.lookup filename
+        file.size = stat.size
+        field.files ?= []
+        field.files.push file
+        @fire "change", field, callback
       unless callback
         return this
     else

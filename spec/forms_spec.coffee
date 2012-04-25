@@ -727,8 +727,53 @@ Vows.describe("Forms").addBatch
           browser.attach("get_file", filename).pressButton "Get Upload", @callback
         "should send just the file basename": (browser)->
           assert.equal browser.location.search, "?get_file=random.txt"
-       
-         
+
+  "file upload with JS":
+    topic: ->
+      brains.get "/forms/upload", (req, res)->
+        res.send """
+        <html>
+          <head>
+            <title>Upload a file</title>
+            <script>
+              function handleFile() {
+                document.title = "Upload done";
+                var file = document.getElementById("my_file").files[0];
+                document.getElementById("filename").innerHTML = file.name;
+                document.getElementById("type").innerHTML = file.type;
+                document.getElementById("size").innerHTML = file.size;
+                document.getElementById("is_file").innerHTML = (file instanceof File);
+              }
+            </script>
+          </head>
+          <body>
+            <form>
+              <input name="my_file" id="my_file" type="file" onchange="handleFile()">
+            </form>
+            <div id="filename"></div>
+            <div id="type"></div>
+            <div id="size"></div>
+            <div id="is_file"></div>
+          </body>
+        </html>
+        """
+
+    "text":
+      Browser.wants "http://localhost:3003/forms/upload"
+        topic: (browser)->
+          filename = __dirname + "/data/random.txt"
+          browser.attach "my_file", filename, @callback
+        "should call callback": (browser)->
+          assert.equal browser.text("title"), "Upload done"
+        "should have filename": (browser)->
+          assert.equal browser.text("#filename"), "random.txt"
+        "should know file type": (browser)->
+          assert.equal browser.text("#type"), "text/plain"
+        "should know file size": (browser)->
+          assert.equal browser.text("#size"), "12"
+        "should be of type File": (browser)->
+          assert.equal browser.text("#is_file"), "true"
+
 .addBatch
 
   "content length":
