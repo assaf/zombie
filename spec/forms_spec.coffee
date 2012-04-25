@@ -550,9 +550,9 @@ Vows.describe("Forms").addBatch
         assert.equal browser.text("#scary"), "yes"
       "should send unknown types to server": (browser)->
         assert.equal browser.text("#unknown"), "yes"
-      "should send checkbox with default value to server": (browser)->
+      "should send checkbox with default value to server (brains)": (browser)->
         assert.equal browser.text("#brains"), "yes"
-      "should send checkbox with default value to server": (browser)->
+      "should send checkbox with default value to server (green)": (browser)->
         assert.equal browser.text("#green"), "Super green!"
       "should send multiple checkbox values to server": (browser)->
         assert.equal browser.text("#hungry"), '["you bet","certainly"]'

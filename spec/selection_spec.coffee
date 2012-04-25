@@ -94,8 +94,6 @@ Vows.describe("Selection").addBatch
         assert.equal $('body #main a').text(), 'Kill'
       "should query in context": ($)->
         assert.equal $('body').find('#main a', 'body').text(), 'Kill'
-      "should query in context": ($)->
-        assert.equal $('body').find('#main a', 'body').text(), 'Kill'
       "should query in context with find()": ($)->
         assert.equal $('body').find('#main a').text(), 'Kill'
 
