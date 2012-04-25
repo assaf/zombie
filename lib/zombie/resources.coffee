@@ -233,7 +233,8 @@ class Resources extends Array
       qs: qsparams
       jar: j
 
-    if method == "POST" && headers["content-type"].split(";")[0] && headers["content-type"].split(";")[0] != "multipart/form-data"
+    #if method == "POST" && headers["content-type"].split(";")[0] && headers["content-type"].split(";")[0] != "multipart/form-data"
+    if method == "POST"
       rq.qs = null
       rq.body = QS.stringify(qsparams)
     
