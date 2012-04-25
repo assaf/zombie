@@ -141,15 +141,16 @@ class Resources extends Array
 
   _makeRequestv2: (method, url_orig, data, headers, resource, callback)->
     url = URL.parse(url_orig)
+    real_url = url.href;
     method = (method || "GET").toUpperCase()
     j = rqst.jar()
-
+    
     # convert array to request-like qs param's object
     qsparams = {}
     if data
       for field in data
         qsparams[field[0]] = field[1]
-
+        
     # If the request is for a file:// descriptor, just open directly from the
     # file system rather than getting node's http (which handles file://
     # poorly) involved.
@@ -218,7 +219,7 @@ class Resources extends Array
     
     rq =
       followAllRedirects : true
-      url: url_orig
+      url: real_url
       method: method
       headers: headers
       qs: qsparams
