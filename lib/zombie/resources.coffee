@@ -146,8 +146,9 @@ class Resources extends Array
     j = rqst.jar()
     
     # convert array to request-like qs param's object
-    qsparams = {}
+    qsparams = null
     if data
+      qsparams = {}
       for field in data
         qsparams[field[0]] = field[1]
         
