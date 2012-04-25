@@ -199,7 +199,7 @@ class Resources extends Array
     url.hash = null
     # We're going to use cookies later when recieving response.
     cookies = @_browser.cookies(url.hostname, url.pathname)
-    cookies.addHeader headers
+    #cookies.addHeader headers
 
     selcookies = cookies._selected()
     for c in ("#{match[2]}=#{match[3].value}" for match in selcookies)
@@ -217,6 +217,9 @@ class Resources extends Array
         callback error
       else
         callback null, resource.response
+    
+    #console.log inspect(headers, 10)
+    #headers.cookie = nu
     
     rq =
       followAllRedirects : true
@@ -270,6 +273,7 @@ class Resources extends Array
               
               mpart.push currentItem
           rq.multipart = mpart
+    
     client = rqst(rq, response_handler)
 
   # Implementation of the request method, which also accepts the

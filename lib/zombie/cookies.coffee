@@ -99,7 +99,6 @@ class Access
   set: (name, value, options = {})->
     if options.domain && !domainMatch(options.domain, @_hostname)
       return
-
     name = name
     state = { value: value.toString() }
     if options.expires
