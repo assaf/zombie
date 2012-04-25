@@ -15,7 +15,7 @@ FS = require("fs")
 Path = require("path")
 QS = require("querystring")
 URL = require("url")
-
+zlib = require("zlib")
 
 partial = (text, length = 250)->
   return "" unless text
@@ -166,7 +166,8 @@ class Resources extends Array
 
     # Clone headers before we go and modify them.
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
-    headers["User-Agent"] = @_browser.userAgent
+    if headers['User-Agent'] is null
+      headers["User-Agent"] = @_browser.userAgent
     if method == "GET" || method == "HEAD"
       # Request paramters go in query string
       url.search = "?" + stringify(data) if data
@@ -199,6 +200,15 @@ class Resources extends Array
     secure = url.protocol == "https:"
     url.port ||= if secure then 443 else 80
 
+    # If proxy is set, then add the proxy.
+    host = url.hostname
+    port = url.port
+    path = "#{url.pathname}#{url.search || ""}"
+    if @_browser.proxy
+      host = @_browser.proxy.host
+      port = @_browser.proxy.port
+      path = "#{url.protocol}//#{url.host}#{url.pathname}#{url.search || ""}"
+
     # First request has not resource, so create it and add to
     # Resources.  After redirect, we have a resource we're using.
     unless resource
@@ -206,17 +216,35 @@ class Resources extends Array
       this.push resource
     @_browser.log -> "#{method} #{URL.format(url)}"
 
+    delete headers[key] for key, val of headers when headers[key] is null
+
     request =
-      host: url.hostname
-      port: url.port
+      host: host
+      port: port
       path: "#{url.pathname}#{url.search || ""}"
       method: method
       headers: headers
+
+    if @_browser.agent?
+      request.agent = @_browser.agent
+
     response_handler = (response)=>
-      response.setEncoding "utf8"
       body = ""
-      response.on "data", (chunk)-> body += chunk
-      response.on "end", =>
+
+      switch response.headers['content-encoding']
+        when "gzip", "deflate"
+          output = zlib.createUnzip()
+          response.pipe output
+        when "sdch"
+          error = new Error("No SDCH support")
+          @_browser.log -> "#{method} #{URL.format(url)} => #{error.message}"
+          callback error
+        else
+          output = response
+      
+      output.on "data", (chunk)=>
+        body += chunk.toString()
+      output.on "end", =>
         cookies.update response.headers["set-cookie"]
 
         # Turn body from string into a String, so we can add property getters.
@@ -242,14 +270,17 @@ class Resources extends Array
           else
             @_browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"
             callback null, resource.response
+
         # Fallback with error -> callback
         if error
           @_browser.log -> "Error loading #{URL.format(url)}: #{error.message}"
           error.response = resource.response
           resource.error = error
           callback error
-    
+
     client = (if secure then HTTPS else HTTP).request(request, response_handler)
+      
+
     # Connection error wired directly to callback.
     client.on "error", (error)=>
       @_browser.log -> "#{method} #{URL.format(url)} => #{error.message}"

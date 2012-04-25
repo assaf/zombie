@@ -4,7 +4,6 @@ JSDOM = require("jsdom")
 HTML = JSDOM.dom.level3.html
 URL = require("url")
 
-
 # History entry. Consists of:
 # - state -- As provided by pushState/replaceState
 # - title -- As provided by pushState/replaceState
@@ -91,24 +90,30 @@ class History
       options.features.FetchExternalResources.push "script"
     if @_browser.loadCSS
       options.features.FetchExternalResources.push "css"
+
     document = JSDOM.jsdom(null, HTML, options)
     @_window.document = document
     document.window = document.parentWindow = @_window
 
-    headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
+    if headers
+      headers = JSON.parse(JSON.stringify(headers))
+    else if @_browser.headers
+      headers = JSON.parse(JSON.stringify(@_browser.headers))
+
+    headers = '' if headers == undefined
     referer = @_browser.referer || @_stack[@_index-1]?.url?.href
-    headers["referer"] = referer if referer
+    headers["Referer"] = referer if referer
 
     if credentials = @_browser.credentials
       switch credentials.scheme.toLowerCase()
         when "basic"
           base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
-          headers["authorization"] = "Basic #{base64}"
+          headers["Authorization"] = "Basic #{base64}"
         when "bearer"
-          headers["authorization"] = "Bearer #{credentials.token}"
+          headers["Authorization"] = "Bearer #{credentials.token}"
         when "oauth"
-          headers["authorization"] = "OAuth #{credentials.token}"
-    
+          headers["Authorization"] = "OAuth #{credentials.token}"
+
     @_browser.resources.request method, url, data, headers, (error, response)=>
       if error
         document.write "<html><body>#{error}</body></html>"
