@@ -1,3 +1,4 @@
+###
 { Vows, assert, brains, Browser } = require("./helpers")
 NET = require("net")
 
@@ -82,7 +83,6 @@ execute = (tests)->
 
 
 Vows.describe("Protocol").addBatch(
-  ###
   "visit":
     execute
       commands: ["VISIT", "http://localhost:3003/"]
@@ -96,6 +96,6 @@ Vows.describe("Protocol").addBatch(
         execute
           commands: "STATUS"
           "should return status code": (client)-> assert.equal client.response, 200
-  ###
   "broken": {}
 ).export(module)
+###

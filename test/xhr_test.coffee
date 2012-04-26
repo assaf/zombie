@@ -1,9 +1,12 @@
 { Vows, assert, brains, Browser } = require("./helpers")
 
 
-Vows.describe("XMLHttpRequest").addBatch(
-  "asynchronous":
-    topic: ->
+describe "XMLHttpRequest", ->
+
+  describe "asynchronous", ->
+    browser = new Browser()
+
+    before (done)->
       brains.get "/xhr/async", (req, res)->
         res.send """
         <html>
@@ -23,16 +26,19 @@ Vows.describe("XMLHttpRequest").addBatch(
         """
       brains.get "/xhr/async/backend", (req, res)->
         res.send "Three"
-      browser = new Browser
-      browser.wants "http://localhost:3003/xhr/async", @callback
-    "should load resource asynchronously": (browser)->
+      brains.ready ->
+        browser.visit "http://localhost:3003/xhr/async", done
+
+    it "should load resource asynchronously", ->
       assert.equal browser.window.title, "OneTwoThree"
-    "should run callback in global context": (browser)->
+    it "should run callback in global context", ->
       assert.equal browser.window.foo, "barbar"
 
 
-  "response headers":
-    topic: ->
+  describe "response headers", ->
+    browser = new Browser()
+
+    before (done)->
       brains.get "/xhr/headers", (req, res)->
         res.send """
         <html>
@@ -53,17 +59,20 @@ Vows.describe("XMLHttpRequest").addBatch(
         res.setHeader "Header-Two", "value2"
         res.setHeader "Header-Three", "value3"
         res.send ""
-      browser = new Browser
-      browser.wants "http://localhost:3003/xhr/headers", @callback
-    "should return all headers as string": (browser)->
-      assert.include browser.document.allHeaders, "header-one: value1\nheader-two: value2\nheader-three: value3"
-    "should return individual headers": (browser)->
+      brains.ready ->
+        browser.visit "http://localhost:3003/xhr/headers", done
+
+    it "should return all headers as string", ->
+      assert ~browser.document.allHeaders.indexOf("header-one: value1\nheader-two: value2\nheader-three: value3")
+    it "should return individual headers", ->
       assert.equal browser.document.headerOne, "value1"
       assert.equal browser.document.headerThree, "value3"
 
 
-  "cookies":
-    topic: ->
+  describe "cookies", ->
+    browser = new Browser()
+
+    before (done)->
       brains.get "/xhr/cookies", (req, res)->
         res.cookie "xhr", "send", path: "/"
         res.send """
@@ -83,16 +92,19 @@ Vows.describe("XMLHttpRequest").addBatch(
         cookie = req.cookies["xhr"]
         res.cookie "xhr", "return", path: "/"
         res.send cookie
-      browser = new Browser
-      browser.wants "http://localhost:3003/xhr/cookies", @callback
-    "should send cookies to XHR request": (browser)->
-      assert.include browser.document.values, "send"
-    "should return cookies from XHR request": (browser)->
-      assert.include browser.document.values, "return"
+      brains.ready ->
+        browser.visit "http://localhost:3003/xhr/cookies", done
+
+    it "should send cookies to XHR request", ->
+      assert ~browser.document.values.indexOf("send")
+    it "should return cookies from XHR request", ->
+      assert ~browser.document.values.indexOf("return")
   
 
-  "redirect":
-    topic: ->
+  describe "redirect", ->
+    browser = new Browser()
+
+    before (done)->
       brains.get "/xhr/redirect", (req, res)-> res.send """
         <html>
           <head><script src="/jquery.js"></script></head>
@@ -107,16 +119,19 @@ Vows.describe("XMLHttpRequest").addBatch(
         res.redirect "/xhr/redirect/target"
       brains.get "/xhr/redirect/target", (req, res)->
         res.send "redirected " + req.headers["x-requested-with"]
-      browser = new Browser
-      browser.wants "http://localhost:3003/xhr/redirect", @callback
-    "should follow redirect": (browser)->
-      assert.match browser.window.response, /redirected/
-    "should resend headers": (browser)->
-      assert.match browser.window.response, /XMLHttpRequest/
+      brains.ready ->
+        browser.visit "http://localhost:3003/xhr/redirect", done
+
+    it "should follow redirect", ->
+      assert /redirected/.test(browser.window.response)
+    it "should resend headers", ->
+      assert /XMLHttpRequest/.test(browser.window.response)
 
 
-  "handle POST requests with no data":
-    topic: ->
+  describe "handle POST requests with no data", ->
+    browser = new Browser()
+
+    before (done)->
       brains.get "/xhr/post/empty", (req, res)->
         res.send """
         <html>
@@ -130,9 +145,9 @@ Vows.describe("XMLHttpRequest").addBatch(
         """
       brains.post "/xhr/post/empty", (req, res)->
         res.send "posted", 201
-      browser = new Browser
-      browser.wants "http://localhost:3003/xhr/post/empty", @callback
-    "should post with no data": (browser)->
+      brains.ready ->
+        browser.visit "http://localhost:3003/xhr/post/empty", done
+
+    it "should post with no data", ->
       assert.equal browser.document.title, "201posted"
 
-).export(module)

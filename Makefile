@@ -1,3 +1,13 @@
+default : test
+.PHONY : test setup
+
+
+# Setup everything
+setup :
+	npm install
+
+
+# Run test suite
 test :
 	npm test
 
