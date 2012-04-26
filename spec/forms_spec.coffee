@@ -19,6 +19,7 @@ load_form = (callback)->
           <input type="text" name="email3" id="field-email3" />
           <input type="text" name="disabled_input_field" disabled id="disabled_input_field" />
           <input type="text" name="readonly_input_field" readonly id="readonly_input_field" />
+          <input type="text" name="nullValueText" id="nullValueText" />
 
           <label>Hungry</label>
           <label>You bet<input type="checkbox" name="hungry[]" value="you bet" id="field-hungry"></label>
@@ -27,7 +28,8 @@ load_form = (callback)->
           <label for="field-brains">Brains?</label>
           <input type="checkbox" name="brains" value="yes" id="field-brains">
           <input type="checkbox" name="green" id="field-green" value="Super green!" checked="checked">
-          
+
+          <input type="checkbox" name="nullValueCheckbox" id="nullValueCheckbox">
           <input type="checkbox" name="check" id="field-check" value="Huh?" checked="checked">
           <input type="checkbox" name="uncheck" id="field-uncheck" value="Yeah!">
 

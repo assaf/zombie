@@ -48,7 +48,7 @@ HTML.HTMLFormElement.prototype.submit = (button)->
               value = option.value
         else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
           if field.checked
-            value = field.value
+            value = field.value || '1'
         else if field.nodeName == "INPUT" && field.type == "file"
           if field.value
             value = new UploadedFile(field.value)
@@ -56,8 +56,8 @@ HTML.HTMLFormElement.prototype.submit = (button)->
           if field.value && field.type != "submit" && field.type != "image"
             value = field.value
 
-      if value?
-        params.push [name, value]
+      if name?
+          params.push [name, value || ""]
       process index + 1
     else
       if button && button.name
