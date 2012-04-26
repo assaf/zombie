@@ -1,4 +1,4 @@
-{ Vows, assert, brains, Browser } = require("./helpers")
+{ assert, brains, Browser } = require("./helpers")
 
 
 JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.3", "1.7.1"]
