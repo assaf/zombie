@@ -12,6 +12,8 @@ module](https://github.com/mikeal/request)
 
 Added File object in browser (Ian Young)
 
+Added support for EventSource (see [Server-Sent Events](http://dev.w3.org/html5/eventsource/))
+
 
 ## Version 0.12.15 2012-02-23
 

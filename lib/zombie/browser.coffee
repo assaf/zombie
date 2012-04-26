@@ -8,6 +8,7 @@ Console           = require("./console")
 Cookies           = require("./cookies")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
+EventSource       = require("eventsource")
 FS                = require("fs")
 History           = require("./history")
 Interact          = require("./interact")
@@ -196,6 +197,13 @@ class Browser extends EventEmitter
     @_ws.extend newWindow
     newWindow.screen = new Screen()
     newWindow.JSON = JSON
+
+    # Constructor for EventSource, URL is relative to document's.
+    newWindow.EventSource = (url)->
+      url = URL.resolve(newWindow.location, url)
+      newWindow.setInterval (->), 100 # We need this to trigger event loop
+      return new EventSource(url)
+
     newWindow.File = File
     newWindow.Image = (width, height)->
       img = new HTML.HTMLImageElement(newWindow.document)

@@ -223,6 +223,7 @@ Zombie.js supports the following:
 - `setTimeout`/`setInterval`
 - `pushState`, `popstate` and `hashchange` events
 - `alert`, `confirm` and `prompt`
+- WebSockets and Server-Sent Events
 
 
 ## In The Family
