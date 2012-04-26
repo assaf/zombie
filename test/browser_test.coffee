@@ -354,9 +354,9 @@ describe "Browser", ->
 
         forked = browser.fork()
         forked.visit "http://localhost:3003/browser/dead", (err)->
-          browser.cookies("www.localhost").update("foo=baz; domain=.localhost")
-          browser.localStorage("www.localhost").setItem("foo", "new")
-          browser.sessionStorage("www.localhost").setItem("baz", "value")
+          forked.cookies("www.localhost").update("foo=baz; domain=.localhost")
+          forked.localStorage("www.localhost").setItem("foo", "new")
+          forked.sessionStorage("www.localhost").setItem("baz", "value")
           done()
 
     it "should not be the same object", ->
@@ -368,13 +368,13 @@ describe "Browser", ->
       assert.equal browser.location.href, "http://localhost:3003/browser/living"
       assert.equal forked.location, "http://localhost:3003/browser/dead"
     it "should manipulate cookies independently", ->
-      assert.equal browser.cookies("localhost").get("foo"), "baz"
-      assert.equal forked.cookies("localhost").get("foo"), "bar"
+      assert.equal browser.cookies("localhost").get("foo"), "bar"
+      assert.equal forked.cookies("localhost").get("foo"), "baz"
     it "should manipulate storage independently", ->
-      assert.equal browser.localStorage("www.localhost").getItem("foo"), "new"
-      assert.equal browser.sessionStorage("www.localhost").getItem("baz"), "value"
-      assert.equal forked.localStorage("www.localhost").getItem("foo"), "bar"
-      assert.equal forked.sessionStorage("www.localhost").getItem("baz"), "qux"
+      assert.equal browser.localStorage("www.localhost").getItem("foo"), "bar"
+      assert.equal browser.sessionStorage("www.localhost").getItem("baz"), "qux"
+      assert.equal forked.localStorage("www.localhost").getItem("foo"), "new"
+      assert.equal forked.sessionStorage("www.localhost").getItem("baz"), "value"
     it "should have independent history", ->
       assert.equal "http://localhost:3003/browser/living", browser.location.href
       assert.equal "http://localhost:3003/browser/dead", forked.location.href

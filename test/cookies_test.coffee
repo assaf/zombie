@@ -16,16 +16,14 @@ describe "Cookies", ->
       res.cookie "_domain1",  "here",     domain: ".localhost"
       res.cookie "_domain2",  "not here", domain: "not.localhost"
       res.cookie "_domain3",  "wrong",    domain: "notlocalhost"
+      res.cookie "_dup",      "specific", path: "/cookies"
+      res.cookie "_dup",      "general",  path: "/"
       res.cookie "_http_only","value",    httpOnly: true
       res.send "<html></html>"
 
     brains.get "/cookies/echo", (req,res)->
       cookies = ("#{k}=#{v}" for k,v of req.cookies).join("; ")
       res.send "<html>#{cookies}</html>"
-
-    brains.get "/cookies_redirect", (req, res)->
-      res.cookie "_expires4", "3s",       expires: new Date(Date.now() + 3000), "Path": "/"
-      res.redirect "/"
 
     brains.get "/cookies/empty", (req,res)->
       res.send "<html></html>"
@@ -39,10 +37,10 @@ describe "Cookies", ->
     before (done)->
       browser.visit "http://localhost:3003/cookies", done
 
-      describe "cookies", ->
-        cookies = null
-        before ->
-          cookies = browser.cookies("localhost", "/cookies")
+    describe "cookies", ->
+      cookies = null
+      before ->
+        cookies = browser.cookies("localhost", "/cookies")
 
       it "should have access to session cookie", ->
         assert.equal cookies.get("_name"), "value"
@@ -63,46 +61,47 @@ describe "Cookies", ->
       it "should not have access to other domains", ->
         assert cookies.get("_domain2") == undefined
         assert cookies.get("_domain3") == undefined
+      it "should access most specific cookie", ->
+        assert.equal cookies.get("_dup"), "specific"
 
-      describe "host in domain", ->
-        cookies = null
+
+    describe "host in domain", ->
+      cookies = null
+      before ->
+        cookies = browser.cookies("host.localhost")
+
+      it "should have access to host cookies", ->
+        assert.equal cookies.get("_domain1"), "here"
+      it "should not have access to other hosts' cookies", ->
+        assert cookies.get("_domain2") == undefined
+        assert cookies.get("_domain3") == undefined
+
+    describe "document.cookie", ->
+      cookie = null
+      before ->
+        cookie = browser.document.cookie
+
+      it "should return name/value pairs", ->
+        assert /^(\w+=\w+; )+\w+=\w+$/.test(cookie)
+
+      describe "pairs", ->
+        pairs = null
         before ->
-          cookies = browser.cookies("host.localhost")
+          pairs = cookie.split("; ").reduce (map, pair)->
+            [name, value] = pair.split("=")
+            map[name] = value
+            map
+          , {}
 
-        it "should not have access to domain cookies", ->
-          assert cookies.get("_name") == undefined
-        it "should have access to .host cookies", ->
-          assert.equal cookies.get("_domain1"), "here"
-        it "should not have access to other hosts' cookies", ->
-          assert cookies.get("_domain2") == undefined
-          assert cookies.get("_domain3") == undefined
-
-      describe "document.cookie", ->
-        cookie = null
-        before ->
-          cookie = browser.document.cookie
-
-        it "should return name/value pairs", ->
-          assert /^(\w+=\w+; )+\w+=\w+$/.test(cookie)
-
-        describe "pairs", ->
-          pairs = null
-          before ->
-            pairs = cookie.split("; ").reduce (map, pair)->
-              [name, value] = pair.split("=")
-              map[name] = value
-              map
-            , {}
-
-          it "should include only visible cookies", ->
-            keys = (key for key, value of pairs).sort()
-            assert.equal keys, "_domain1 _expires1 _expires2 _name _path1 _path4".split(" ")
-          it "should match name to value": (pairs)->
-           assert.equal pairs._name, "value"
-           assert.equal pairs._path1, "yummy"
-          it "should not include httpOnly cookies", ->
-            for key, value of pairs
-              assert key != "_http_only"
+        it "should include only visible cookies", ->
+          keys = (key for key, value of pairs).sort()
+          assert.deepEqual keys, "_domain1 _dup _expires1 _expires2 _name _path1 _path4".split(" ")
+        it "should match name to value": (pairs)->
+         assert.equal pairs._name, "value"
+         assert.equal pairs._path1, "yummy"
+        it "should not include httpOnly cookies", ->
+          for key, value of pairs
+            assert key != "_http_only"
 
 
   describe "host", ->
@@ -122,9 +121,13 @@ describe "Cookies", ->
     cookies = null
 
     before (done)->
+      brains.get "/cookies/redirect", (req, res)->
+        res.cookie "_expires4", "3s" #, expires: new Date(Date.now() + 3000), "Path": "/"
+        res.redirect "/"
+
       browser = new Browser()
-      browser.visit "http://localhost:3003/cookies_redirect", ->
-        cookies = browser.cookies("localhost", "/")
+      browser.visit "http://localhost:3003/cookies/redirect", ->
+        cookies = browser.cookies("localhost", "/cookies/redirect")
         done()
 
     it "should have access to persistent cookie", ->
@@ -230,8 +233,13 @@ describe "Cookies", ->
         cookies = null
 
         before (done)->
+          browser.visit "http://localhost:3003/cookies", ->
+            browser.document.cookie = "foo=qux" # more specific, /cookies/echo hides it
+            done()
+
+        before (done)->
           browser.visit "http://localhost:3003/cookies/other", ->
-            browser.document.cookie = "bar=qux"
+            browser.document.cookie = "bar=qux" # different domain, not visible
             done()
 
         before (done)->
@@ -245,6 +253,8 @@ describe "Cookies", ->
 
         it "should not be visible", ->
           assert !cookies.bar
+          assert.equal cookies.foo, "bar"
+
 
 
     describe "setting cookie with quotes", ->
@@ -253,7 +263,7 @@ describe "Cookies", ->
           browser.document.cookie = "foo=bar\"baz"
           done()
 
-      it "should be available from document": (browser)->
+      it "should be available from document", ->
         assert.equal browser.cookies().get("foo"), "bar\"baz"
 
     describe "setting cookie with semicolon", ->

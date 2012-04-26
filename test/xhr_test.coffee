@@ -74,15 +74,14 @@ describe "XMLHttpRequest", ->
 
     before (done)->
       brains.get "/xhr/cookies", (req, res)->
-        res.cookie "xhr", "send", path: "/"
+        res.cookie "xhr", "send", path: "/xhr"
         res.send """
         <html>
           <head><script src="/jquery.js"></script></head>
           <body>
             <script>
-              $.get("/xhr/cookies/backend", function(response) {
-                var returned = document.cookie.split("=")[1];
-                document.values = [response, returned]
+              $.get("/xhr/cookies/backend", function(cookie) {
+                document.received = cookie;
               });
             </script>
           </body>
@@ -90,15 +89,15 @@ describe "XMLHttpRequest", ->
         """
       brains.get "/xhr/cookies/backend", (req, res)->
         cookie = req.cookies["xhr"]
-        res.cookie "xhr", "return", path: "/"
+        res.cookie "xhr", "return", path: "/xhr"
         res.send cookie
       brains.ready ->
         browser.visit "http://localhost:3003/xhr/cookies", done
 
     it "should send cookies to XHR request", ->
-      assert ~browser.document.values.indexOf("send")
+      assert.equal browser.document.received, "send"
     it "should return cookies from XHR request", ->
-      assert ~browser.document.values.indexOf("return")
+      assert /xhr=return/.test(browser.document.cookie)
   
 
   describe "redirect", ->

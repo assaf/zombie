@@ -49,15 +49,11 @@ class Access
   #
   # * name -- Cookie name
   remove: (name)->
-    @_cookies = @_cookies.filter((cookie)=>
-      return !(cookie.key == name && Tough.domainMatch(@domain, cookie.domain) && Tough.pathMatch(@path, cookie.path))
-    )
+    @_cookies = @_cookies.filter((cookie)=> !(cookie.key == name && cookie.domain == @domain && cookie.path == @path) )
 
   # Clears all cookies.
   clear: ->
-    @_cookies = @_cookies.filter((cookie)=>
-      return !(Tough.domainMatch(@domain, cookie.domain) && Tough.pathMatch(@path, cookie.path))
-    )
+    @_cookies = @_cookies.filter((cookie)=> !(cookie.domain == @domain && cookie.path == @path) )
 
   # Update cookies from serialized form. This method works equally well for
   # the Set-Cookie header and value passed to document.cookie setter.
@@ -71,8 +67,10 @@ class Access
       cookie = Cookie.parse(cookie)
       cookie.domain ||= @domain
       cookie.path   ||= @path
-      if Tough.domainMatch(@domain, cookie.domain) && Tough.pathMatch(@path, cookie.path) && cookie.TTL() > 0
-        @_cookies.push cookie
+      if Tough.domainMatch(@domain, cookie.domain) && Tough.pathMatch(@path, cookie.path)
+        #@remove cookie.key
+        if cookie.TTL() > 0
+          @_cookies.push cookie
 
   # Adds Cookie header suitable for sending to the server.
   addHeader: (headers)->
