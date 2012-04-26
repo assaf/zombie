@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 0.12.16 2012-04-25
+## Version 0.13.0 2012-04-25
 
 Now requires Node 0.6.x or later.  Also upgraded to CoffeeScript 1.3.1, which
 helped find a couple of skipped tests.
