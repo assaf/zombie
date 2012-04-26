@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 0.13.0 2012-04-26
+## Version 0.13.1 2012-04-26
 
 Switched from testing with Vows to testing with Mocha.  Tests now running
 sequentially.

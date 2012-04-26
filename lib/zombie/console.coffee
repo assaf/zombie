@@ -1,7 +1,4 @@
-if process.version < "v0.5.0"
-  Util = require("sys")
-else
-  Util = require("util")
+Util = require("util")
 
 
 class Console

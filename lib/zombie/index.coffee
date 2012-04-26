@@ -1,8 +1,4 @@
-if process.version >= "v0.5.0"
-  Util = require("util")
-else
-  Util = require("sys")
-
+Util    = require("util")
 Browser = require("./browser")
 
 
