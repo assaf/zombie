@@ -15,7 +15,7 @@ Next install all the runtime and development dependencies:
 
 To run the test suite:
 
-    $ vows
+    $ npm test
 
 If you're hacking on Zombie and testing it in a different project, you
 can "install" your working directory using `npm link`.
