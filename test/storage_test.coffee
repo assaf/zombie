@@ -79,7 +79,7 @@ test = (scope)->
 
     it "should drop item from length", ->
       assert.equal storage.length, 1
-    it "should forget key": (storage)->
+    it "should forget key", ->
       assert.equal storage.key(0), "wants"
       assert !storage.key(1)
     it "should forget value", ->

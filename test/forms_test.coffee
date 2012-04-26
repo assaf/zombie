@@ -483,9 +483,9 @@ describe "Forms", ->
           browser.unselect "#field-hobbies", "Sleep"
           done()
 
-        it "should unselect items", ->
-          selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-hobbies").options)
-          assert.deepEqual selected, [true, false, false]
+      it "should unselect items", ->
+        selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-hobbies").options)
+        assert.deepEqual selected, [true, false, false]
 
     describe "with callback", ->
       browser = new Browser()
@@ -496,9 +496,9 @@ describe "Forms", ->
           browser.unselect "#field-hobbies", "Sleep"
           browser.select "#field-hobbies", "Eat Brains", done
 
-        it "should unselect callback", ->
-          selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-hobbies").options)
-          assert.deepEqual selected, [true, false, false]
+      it "should unselect callback", ->
+        selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-hobbies").options)
+        assert.deepEqual selected, [true, false, false]
 
 
   describe "fields not contained in a form", ->

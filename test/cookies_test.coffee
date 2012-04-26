@@ -96,7 +96,7 @@ describe "Cookies", ->
         it "should include only visible cookies", ->
           keys = (key for key, value of pairs).sort()
           assert.deepEqual keys, "_domain1 _dup _expires1 _expires2 _name _path1 _path4".split(" ")
-        it "should match name to value": (pairs)->
+        it "should match name to value", ->
          assert.equal pairs._name, "value"
          assert.equal pairs._path1, "yummy"
         it "should not include httpOnly cookies", ->
@@ -254,7 +254,6 @@ describe "Cookies", ->
         it "should not be visible", ->
           assert !cookies.bar
           assert.equal cookies.foo, "bar"
-
 
 
     describe "setting cookie with quotes", ->

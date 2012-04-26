@@ -10,7 +10,7 @@ sequentially.
 Fixed a couple of issues with cookies, also switched to a better implementation,
 see [Tough Cookie](https://github.com/goinstant/node-cookie)
 
-    412 tests
+    421 tests
     9.6 sec to complete
 
 

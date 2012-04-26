@@ -88,4 +88,3 @@ describe "Compatibility with jQuery", ->
   for version in JQUERY_VERSIONS
     test.call this, version
 
-

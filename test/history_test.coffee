@@ -74,46 +74,48 @@ describe "History", ->
           window = browser.window
           done()
 
-        it "should add state to history", ->
-          assert.equal window.history.length, 3
-        it "should change location URL", ->
-          assert.equal window.location.href, "http://localhost:3003/end"
+      it "should add state to history", ->
+        assert.equal window.history.length, 3
+      it "should change location URL", ->
+        assert.equal window.location.href, "http://localhost:3003/end"
 
-        describe "go backwards", ->
-          before (done)->
-            window.document.magic = 123
-            window.addEventListener "popstate", ->
+      describe "go backwards", ->
+        event = null
+
+        before (done)->
+          window.document.magic = 123
+          window.addEventListener "popstate", ->
+            event = arguments[0]
+            done()
+          window.history.back()
+
+        it "should fire popstate event", ->
+          assert event instanceof JSDOM.dom.level3.events.Event
+        it "should include state", ->
+          assert.equal event.state.is, "start"
+        it "should not reload page from same host", ->
+          # Get access to the *current* document
+          document = event.target.window.browser.document
+          assert.equal document.magic, 123
+
+      describe "go forwards", ->
+        event = null
+
+        before (done)->
+          browser = new Browser()
+          browser.visit "http://localhost:3003/", ->
+            browser.history.pushState { is: "start" }, null, "/start"
+            browser.history.pushState { is: "end" },   null, "/end"
+            browser.back()
+            browser.window.addEventListener "popstate", ->
               event = arguments[0]
               done()
-            window.history.back()
+            browser.history.forward()
 
-          it "should fire popstate event", ->
-            assert.instanceOf event, JSDOM.dom.level3.events.Event
-          it "should include state", ->
-            assert.equal event.state.is, "start"
-          it "should not reload page from same host", ->
-            # Get access to the *current* document
-            document = event.target.window.browser.document
-            assert.equal document.magic, 123
-
-        describe "go forwards", ->
-          event = null
-
-          before (done)->
-            browser = new Browser()
-            browser.visit "http://localhost:3003/", ->
-              browser.history.pushState { is: "start" }, null, "/start"
-              browser.history.pushState { is: "end" },   null, "/end"
-              browser.back()
-              browser.window.addEventListener "popstate", ->
-                event = arguments[0]
-                done()
-              browser.history.forward()
-
-          it "should fire popstate event", ->
-            assert.instanceOf event, JSDOM.dom.level3.events.Event
-          it "should include state", ->
-            assert.equal event.state.is, "end"
+        it "should fire popstate event", ->
+          assert event instanceof JSDOM.dom.level3.events.Event
+        it "should include state", ->
+          assert.equal event.state.is, "end"
 
 
     describe "replaceState", ->
@@ -191,7 +193,7 @@ describe "History", ->
         assert.equal browser.history.length, 1
       it "should change location URL", ->
         assert.equal browser.location, "http://localhost:3003/"
-      it "should load document": (browser)->
+      it "should load document", ->
         assert /Tap, Tap/.test(browser.html())
       it "should set window location", ->
         assert.equal browser.window.location.href, "http://localhost:3003/"
