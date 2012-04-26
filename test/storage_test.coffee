@@ -1,4 +1,4 @@
-{ Vows, assert, Browser } = require("./helpers")
+{ assert, Browser } = require("./helpers")
 
 
 test = (scope)->
