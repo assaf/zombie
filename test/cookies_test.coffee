@@ -44,25 +44,25 @@ describe "Cookies", ->
         before ->
           cookies = browser.cookies("localhost", "/cookies")
 
-        it "should have access to session cookie", ->
-          assert.equal cookies.get("_name"), "value"
-        it "should have access to persistent cookie", ->
-          assert.equal cookies.get("_expires1"), "3s"
-          assert.equal cookies.get("_expires2"), "5s"
-        it "should not have access to expired cookies", ->
-          assert cookies.get("_expires3") == undefined
-        it "should have access to cookies for the path /cookies", ->
-          assert.equal cookies.get("_path1"), "yummy"
-        it "should have access to cookies for paths which are ancestors of /cookies", ->
-          assert.equal cookies.get("_path4"), "yummy"
-        it "should not have access to other paths", ->
-          assert cookies.get("_path2") == undefined
-          assert cookies.get("_path3") == undefined
-        it "should have access to .domain", ->
-          assert.equal cookies.get("_domain1"), "here"
-        it "should not have access to other domains", ->
-          assert cookies.get("_domain2") == undefined
-          assert cookies.get("_domain3") == undefined
+      it "should have access to session cookie", ->
+        assert.equal cookies.get("_name"), "value"
+      it "should have access to persistent cookie", ->
+        assert.equal cookies.get("_expires1"), "3s"
+        assert.equal cookies.get("_expires2"), "5s"
+      it "should not have access to expired cookies", ->
+        assert cookies.get("_expires3") == undefined
+      it "should have access to cookies for the path /cookies", ->
+        assert.equal cookies.get("_path1"), "yummy"
+      it "should have access to cookies for paths which are ancestors of /cookies", ->
+        assert.equal cookies.get("_path4"), "yummy"
+      it "should not have access to other paths", ->
+        assert cookies.get("_path2") == undefined
+        assert cookies.get("_path3") == undefined
+      it "should have access to .domain", ->
+        assert.equal cookies.get("_domain1"), "here"
+      it "should not have access to other domains", ->
+        assert cookies.get("_domain2") == undefined
+        assert cookies.get("_domain3") == undefined
 
       describe "host in domain", ->
         cookies = null
@@ -143,9 +143,8 @@ describe "Cookies", ->
       browser.cookies("localhost", "/cookies/echo"  ).set "_path2",     "here"
       browser.cookies("localhost", "/jars"          ).set "_path3",     "there",  "path": "/jars"
       browser.cookies("localhost", "/cookies/fido"  ).set "_path4",     "there",  "path": "/cookies/fido"
-      browser.cookies("localhost", "/jars"          ).set "_path5",     "here",   "path": "/cookies"
-      browser.cookies("localhost", "/jars"          ).set "_path6",     "here"
-      browser.cookies("localhost", "/jars/"         ).set "_path7",     "there"
+      browser.cookies("localhost", "/"              ).set "_path5",     "here",   "path": "/cookies"
+      browser.cookies("localhost", "/jars/"         ).set "_path6",     "there"
       browser.cookies(".localhost"                  ).set "_domain1",   "here"
       browser.cookies("not.localhost"               ).set "_domain2",   "there"
       browser.cookies("notlocalhost"                ).set "_domain3",   "there"
@@ -168,12 +167,10 @@ describe "Cookies", ->
       assert.equal cookies._path2, "here"
     it "should pass cookies that specified a different path when they were assigned", ->
       assert.equal cookies._path5, "here"
-    it "should pass cookies that didn't specify a path when they were assigned", ->
-      assert.equal cookies._path6, "here"
     it "should not pass unrelated path cookies to server", ->
       assert cookies._path3 == undefined
       assert cookies._path4 == undefined
-      assert cookies._path7 == undefined
+      assert cookies._path6 == undefined
     it "should pass sub-domain cookies to server", ->
       assert.equal cookies._domain1, "here"
     it "should not pass other domain cookies to server", ->
@@ -207,14 +204,14 @@ describe "Cookies", ->
 
     describe "setting cookie", ->
       before (done)->
-        browser.visit "http://localhost:3003/cookies/empty", ->
+        browser.visit "http://localhost:3003/cookies", ->
           browser.document.cookie = "foo=bar"
           done()
 
       it "should be available from document", ->
-        assert.equal browser.document.cookie, "foo=bar"
+        assert ~browser.document.cookie.split("; ").indexOf("foo=bar")
 
-      describe "send request", ->
+      describe "on reload", ->
         cookies = null
 
         before (done)->
@@ -228,6 +225,27 @@ describe "Cookies", ->
 
         it "should send to server", ->
           assert.equal cookies.foo, "bar"
+
+      describe "different path", ->
+        cookies = null
+
+        before (done)->
+          browser.visit "http://localhost:3003/cookies/other", ->
+            browser.document.cookie = "bar=qux"
+            done()
+
+        before (done)->
+          browser.visit "http://localhost:3003/cookies/echo", ->
+            cookies = browser.text("html").split(/;\s*/).reduce (all, cookie)->
+              [name, value] = cookie.split("=")
+              all[name] = value.replace(/^"(.*)"$/, "$1")
+              all
+            , {}
+            done()
+
+        it "should not be visible", ->
+          assert !cookies.bar
+
 
     describe "setting cookie with quotes", ->
       before (done)->

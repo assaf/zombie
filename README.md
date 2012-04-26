@@ -307,6 +307,8 @@ JavaScript execution contexts using [Contextify](https://github.com/brianmcd/con
 
 HTTP(S) requests using [Request](https://github.com/mikeal/request)
 
+Cookie support using [Tough Cookie](https://github.com/goinstant/node-cookie)
+
 Magical Zombie Girl by [Toho Scope](http://www.flickr.com/people/tohoscope/)
 
 

@@ -7,6 +7,9 @@ zombie.js-changelog(7) -- Changelog
 Switched from testing with Vows to testing with Mocha.  Tests now running
 sequentially.
 
+Fixed a couple of issues with cookies, also switched to a better implementation,
+see [Tough Cookie](https://github.com/goinstant/node-cookie)
+
     412 tests
     9.6 sec to complete
 
