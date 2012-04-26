@@ -92,7 +92,7 @@ empty).  This is JavaScript, so you don't need to declare all these arguments, a
 `browser.statusCode` and `browser.errors`.
 
 (Why would the first callback argument be `null`?  It works great when using asynchronous testing frameworks like
-[Vows.js](http://vowsjs.org/))
+[Mocha](http://visionmedia.github.com/mocha/))
 
 
 Most errors that occur – resource loading and JavaScript execution – are not fatal, so rather the stopping processing,
@@ -232,7 +232,7 @@ Zombie.js supports the following:
 
 **[zombie-jasmine-spike](https://github.com/mileskin/zombie-jasmine-spike)** -- Spike project for trying out Zombie.js with Jasmine
 
-**[Vows BDD](https://github.com/jmreidy/vows-bdd)** -- A BDD wrapper for Vows, allowing for easy writing of tests in a given-when-then format
+**[Mocha](https://github.com/visionmedia/mocha)** -- mocha - simple, flexible, fun javascript test framework for node.js & the browser. (BDD, TDD, QUnit styles via interfaces)
 
 **[Mink](https://github.com/Behat/Mink)** -- PHP 5.3 acceptance test framework for web applications
 
