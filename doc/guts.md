@@ -15,7 +15,7 @@ Next install all the runtime and development dependencies:
 
 To run the test suite:
 
-    $ vows
+    $ npm test
 
 If you're hacking on Zombie and testing it in a different project, you
 can "install" your working directory using `npm link`.
@@ -46,7 +46,7 @@ DOM selectors are provided by JSDOM using [Sizzle.js](http://sizzlejs.com/).
 
 ## Testing
 
-Zombie.js is tested using [Vows](http://vowsjs.org/).
+Zombie.js is tested using [Mocha](http://visionmedia.github.com/mocha/).
 
 Since we're testing a Web browser, we also need a Web server, so it
 spins up an instance of [Express](http://expressjs.com/).  Spinning up
