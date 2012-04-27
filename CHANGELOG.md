@@ -12,7 +12,7 @@ see [Tough Cookie](https://github.com/goinstant/node-cookie)
 
 Zombie now submits empty text fields and checked checkboxes with no value.
 
-    421 tests
+    423 tests
     9.6 sec to complete
 
 

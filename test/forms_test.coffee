@@ -762,6 +762,7 @@ describe "Forms", ->
           </html>
           """
 
+
     describe "text", ->
       browser = new Browser()
 
@@ -774,6 +775,7 @@ describe "Forms", ->
         assert.equal browser.text("body").trim(), "Random text"
       it "should upload include name", ->
         assert.equal browser.text("title"), "random.txt"
+
 
     describe "binary", ->
       browser = new Browser()
@@ -789,6 +791,44 @@ describe "Forms", ->
         digest = Crypto.createHash("md5").update(File.readFileSync(filename)).digest("hex")
         assert.equal browser.text("body").trim(), digest
 
+
+    describe "mixed", ->
+      browser = new Browser()
+
+      before (done)->
+        brains.get "/forms/mixed", (req, res)->
+          res.send """
+          <html>
+            <body>
+              <form method="post" enctype="multipart/form-data">
+                <input name="username" type="text">
+                <input name="logfile" type="file">
+                <button>Save</button>
+              </form>
+            </body>
+          </html>
+          """
+        brains.post "/forms/mixed", (req, res)->
+          data = File.readFileSync(req.files.logfile.path)
+          res.send """
+          <html>
+            <head><title>#{req.files.logfile.name}</title></head>
+            <body>#{data}</body>
+          </html>
+          """
+
+        browser.visit "http://localhost:3003/forms/mixed", ->
+          browser
+            .fill("username", "hello")
+            .attach("logfile", "#{__dirname}/data/random.txt")
+            .pressButton "Save", done
+
+      it "should upload file", ->
+        assert.equal browser.text("body").trim(), "Random text"
+      it "should upload include name", ->
+        assert.equal browser.text("title"), "random.txt"
+
+
     describe "empty", ->
       browser = new Browser()
 
@@ -799,6 +839,7 @@ describe "Forms", ->
 
       it "should not upload any file", ->
         assert.equal browser.text("body").trim(), "nothing"
+
 
     describe "not set", ->
       browser = new Browser()
