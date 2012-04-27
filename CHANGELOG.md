@@ -2,6 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.13.2 2012-04-26
+
+Fixed iframes not loading properly of firing `onload` event when setting `src`
+attribute.
+
+    426 tests
+    9.6 sec to complete
+
+
 ## Version 0.13.1 2012-04-26
 
 Switched from testing with Vows to testing with Mocha.  Tests now running

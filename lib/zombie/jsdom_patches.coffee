@@ -29,7 +29,10 @@ HTML.resourceLoader.load = (element, href, callback)->
   if ownerImplementation.hasFeature('FetchExternalResources', tagName)
     switch tagName
       when "iframe"
-        element.window.location = URL.resolve(element.window.parent.location, href)
+        url = @resolve(element.window.parent.location, href)
+        loaded = (response, filename)->
+          callback response.body, URL.parse(response.url).pathname
+        element.window.browser.resources.get url, @enqueue(element, loaded, url.pathname)
       else
         url = URL.parse(@resolve(document, href))
         if url.hostname

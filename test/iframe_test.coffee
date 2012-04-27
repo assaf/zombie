@@ -11,7 +11,7 @@ describe "IFrame", ->
           <script src="/jquery.js"></script>
         </head>
         <body>
-          <iframe src="/static" />
+          <iframe src="/static"></iframe>
         </body>
       </html>
       """
@@ -31,15 +31,20 @@ describe "IFrame", ->
 
   before (done)->
     browser.visit "http://localhost:3003/iframe", ->
-      iframe = browser.querySelector("iframe").window
+      iframe = browser.querySelector("iframe")
       done()
 
   it "should load iframe document", ->
-    assert.equal "Whatever", iframe.document.title
-    assert /Hello World/.test(iframe.document.querySelector("body").innerHTML)
-    assert.equal iframe.location, "http://localhost:3003/static"
+    assert.equal "Whatever", iframe.window.document.title
+    assert /Hello World/.test(iframe.window.document.querySelector("body").innerHTML)
+    assert.equal iframe.window.location, "http://localhost:3003/static"
   it "should reference parent window from iframe", ->
-    assert.equal iframe.parent, browser.window.top
+    assert.equal iframe.window.parent, browser.window.top
   it "should not alter the parent", ->
     assert.equal "http://localhost:3003/iframe", browser.window.location
+  it "should fire onload event", (done)->
+    iframe.onload = (event)->
+      assert event
+      done()
+    iframe.src = "/static"
 

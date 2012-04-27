@@ -83,7 +83,7 @@ class History
         QuerySelector: true
         MutationEvents: "2.0"
         ProcessExternalResources: []
-        FetchExternalResources: ["frame"]
+        FetchExternalResources: ["iframe"]
       parser: @_browser.htmlParser
       url: URL.format(url)
     if @_browser.runScripts
@@ -296,7 +296,8 @@ class Location
 HTML.HTMLDocument.prototype.__defineGetter__ "location", ->
   @parentWindow.location
 HTML.HTMLDocument.prototype.__defineSetter__ "location", (url)->
-  @parentWindow.location = url
+  # Avoids infinite loop setting document location during iframe creation
+  @parentWindow.location = url if @_parentWindow
 
 
 module.exports = History
