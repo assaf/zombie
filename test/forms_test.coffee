@@ -11,16 +11,17 @@ describe "Forms", ->
       <html>
         <body>
           <form action="/forms/submit" method="post">
-            <label>Name <input type="text" name="name" id="field-name"></label>
+            <label>Name <input type="text" name="name" id="field-name" /></label>
             <label for="field-email">Email</label>
             <input type="text" name="email" id="field-email"></label>
             <textarea name="likes" id="field-likes">Warm brains</textarea>
             <input type="password" name="password" id="field-password">
-            <input type="badtype" name="invalidtype" id="field-invalidtype" />
-            <input type="text" name="email2" id="field-email2" />
-            <input type="text" name="email3" id="field-email3" />
-            <input type="text" name="disabled_input_field" disabled id="disabled_input_field" />
-            <input type="text" name="readonly_input_field" readonly id="readonly_input_field" />
+            <input type="badtype" name="invalidtype" id="field-invalidtype">
+            <input type="text" name="email2" id="field-email2">
+            <input type="text" name="email3" id="field-email3">
+            <input type="text" name="disabled" disabled>
+            <input type="text" name="readonly" readonly>
+            <input type="text" name="empty_text" id="empty-text">
 
             <label>Hungry</label>
             <label>You bet<input type="checkbox" name="hungry[]" value="you bet" id="field-hungry"></label>
@@ -32,6 +33,7 @@ describe "Forms", ->
             
             <input type="checkbox" name="check" id="field-check" value="Huh?" checked="checked">
             <input type="checkbox" name="uncheck" id="field-uncheck" value="Yeah!">
+            <input type="checkbox" name="empty_checkbox" id="empty-checkbox" checked="checked">
 
             <label>Looks
               <select name="looks" id="field-looks">
@@ -125,6 +127,8 @@ describe "Forms", ->
           <div id="state">#{req.body.state}</div>
           <div id="scary">#{req.body.scary}</div>
           <div id="state">#{req.body.state}</div>
+          <div id="empty-text">#{req.body.empty_text}</div>
+          <div id="empty-checkbox">#{req.body.empty_checkbox || "nothing"}</div>
           <div id="unselected_state">#{req.body.unselected_state}</div>
           <div id="hobbies">#{JSON.stringify(req.body.hobbies)}</div>
           <div id="addresses">#{JSON.stringify(req.body.addresses)}</div>
@@ -631,6 +635,11 @@ describe "Forms", ->
         assert.equal browser.text("#hobbies"), '["Eat Brains","Sleep"]'
       it "should send nested attributes in the order they are declared", ->
         assert.equal browser.text("#addresses"), '["CDG","Paris","PGS","Mikolaiv"]'
+      it "should send empty text fields", ->
+        assert.equal browser.text("#empty-text"), ""
+      it "should send checked field with no value", ->
+        assert.equal browser.text("#empty-checkbox"), "1"
+
 
     describe "by clicking button", ->
       browser = new Browser()
@@ -853,17 +862,6 @@ describe "Forms", ->
 
   describe "content length", ->
     before ->
-      brains.get "/forms/urlencoded", (req, res)->
-        res.send """
-        <html>
-          <body>
-            <form method="post">
-              <input name="text" type="text">
-              <input type="submit" value="submit">
-            </form>
-          </body>
-        </html>
-        """
       brains.post "/forms/urlencoded", (req, res)->
         text = req.body.text
         res.send """
@@ -877,6 +875,17 @@ describe "Forms", ->
       browser = new Browser()
 
       before (done)->
+        brains.get "/forms/urlencoded", (req, res)->
+          res.send """
+          <html>
+            <body>
+              <form method="post">
+                <input name="text" type="text">
+                <input type="submit" value="submit">
+              </form>
+            </body>
+          </html>
+          """
         browser.visit "http://localhost:3003/forms/urlencoded", ->
           browser.fill("text", "bite").pressButton "submit", done
 
@@ -891,7 +900,17 @@ describe "Forms", ->
       browser = new Browser()
 
       before (done)->
-        browser.visit "http://localhost:3003/forms/urlencoded", ->
+        brains.get "/forms/urlencoded/empty", (req, res)->
+          res.send """
+          <html>
+            <body>
+              <form method="post">
+                <input type="submit" value="submit">
+              </form>
+            </body>
+          </html>
+          """
+        browser.visit "http://localhost:3003/forms/urlencoded/empty", ->
           browser.pressButton "submit", done
 
       it "should send content-length header", ->

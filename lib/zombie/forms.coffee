@@ -41,23 +41,22 @@ HTML.HTMLFormElement.prototype.submit = (button)->
               selected.push(option.value)
 
           if field.multiple
-            value = selected
+            params.push [name, selected]
           else
             value = selected.shift()
             if !value? && option = field.options[0]
               value = option.value
+            params.push [name, value]
         else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
           if field.checked
-            value = field.value
+            params.push [name, field.value || "1"]
         else if field.nodeName == "INPUT" && field.type == "file"
           if field.value
-            value = new UploadedFile(field.value)
+            params.push [name, UploadedFile(field.value)]
         else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
-          if field.value && field.type != "submit" && field.type != "image"
-            value = field.value
+          if field.type != "submit" && field.type != "image"
+            params.push [name, field.value || ""]
 
-      if value?
-        params.push [name, value]
       process index + 1
     else
       if button && button.name
@@ -65,6 +64,7 @@ HTML.HTMLFormElement.prototype.submit = (button)->
       history = document.parentWindow.history
       history._submit @getAttribute("action"), @getAttribute("method"), params, @getAttribute("enctype")
   process 0
+
 
 # Implement form.reset to reset all form fields.
 HTML.HTMLFormElement.prototype.reset = ->
