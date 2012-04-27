@@ -113,7 +113,7 @@ Otherwise, Zombie makes best judgement by waiting for about half a second for th
 requests, iframes), process DOM events, and fire timeouts events.  It is quite common for pages to fire timeout events
 as they load, e.g. jQuery's `onready`.  Usually these events delay the test by no more than a few milliseconds.
 
-Read more [on the Browser API](api)
+Read more [on the Browser API](API)
 
 
 ## Hunting
@@ -155,7 +155,7 @@ CSS selectors are implemented by Sizzle.js.  In addition to CSS 3 selectors you 
 extensions, such as `:not(selector)`, `[NAME!=VALUE]`, `:contains(TEXT)`, `:first/:last` and so forth.  Check out the
 [Sizzle.js documentation](https://github.com/jeresig/sizzle/wiki) for more details.
 
-Read more [on the Browser API](api) and [CSS selectors](selectors)
+Read more [on the Browser API](API) and [CSS selectors](selectors)
 
 
 ## Feeding
@@ -207,7 +207,7 @@ Let's combine all of that into one example:
 
       });
 
-Read more [on the Browser API](api)
+Read more [on the Browser API](API)
 
 
 ## Readiness
