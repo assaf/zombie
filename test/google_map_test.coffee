@@ -37,5 +37,6 @@ describe "Google map", ->
   it "should set bounds", ->
     bounds = browser.window.map.getBounds()
     assert bounds, "No map bounds yet"
-    assert.equal bounds.toString(), "((-34.62332513513795, 150.369341796875), (-34.17006113241608, 150.918658203125))"
+    assert bounds.getNorthEast()
+    assert bounds.getSouthWest()
 

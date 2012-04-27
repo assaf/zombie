@@ -11,7 +11,6 @@ Browser.silent = !Browser.debug
 Replay.fixtures = "#{__dirname}/../replay"
 Replay.networkAccess = true
 Replay.localhost "host.localhost"
-Replay.ignore "mt0.googleapis.com", "mt1.googleapis.com"
 
 
 exports.assert  = require("assert")
