@@ -57,6 +57,8 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, s)->
       iframe.window.location.href = url
   return iframe
 
+HTML.languageProcessors.coffeescript = (element, code, filename)->
+  @javascript(element, require('coffee-script').compile(code), filename)
 
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
 # fires on the Window.  We also want better stack traces.
