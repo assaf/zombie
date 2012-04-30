@@ -234,13 +234,16 @@ class Resources extends Array
     jar = Request.jar()
 
     params = 
-      method:     method
-      url:        url
-      headers:    headers
-      body:       body
-      multipart:  multipart
-      proxy:      browser.proxy
-      jar:        jar
+      method:         method
+      url:            url
+      headers:        headers
+      body:           body
+      multipart:      multipart
+      proxy:          browser.proxy
+      jar:            jar
+      followRedirect: true
+      followAllRedirects: true
+
     Request params, (error, response)->
       if error
         browser.log -> "#{method} #{URL.format(url)} => #{error.message}"
