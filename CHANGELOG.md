@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.13.3 2012-04-30
+
+Fixed failing to redirect after POST request (Vincent P).
+
+    426 tests
+    8.8 sec to complete
+
+
 ## Version 0.13.2 2012-04-26
 
 Fixed iframes not loading properly of firing `onload` event when setting `src`
