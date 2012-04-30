@@ -310,6 +310,35 @@ describe "Browser", ->
     it "should return status code", ->
       assert.equal browser.statusCode, 200
 
+  describe "follow express redirect", ->
+    browser = new Browser()
+
+    before (done)->
+      brains.get "/browser/killed", (req, res)->
+        res.send """
+        <html>
+          <body>
+            <form action="/browser/alive" method="post">
+              <input type="submit" name="Submit">
+            </form>
+          </body>
+        </html>
+        """
+      brains.post "/browser/alive", (req, res)->
+        res.redirect "/browser/killed"
+      brains.ready done
+
+    before (done)->
+      browser.visit "http://localhost:3003/browser/killed", ->
+        browser.pressButton "Submit", done
+
+    it "should be at initial location", ->
+      assert.equal browser.location, "http://localhost:3003/browser/killed"
+    it "should have followed a redirection", ->
+      assert.equal browser.redirected, true
+    it "should return status code", ->
+      assert.equal browser.statusCode, 200
+
 
   ###
   # NOTE: htmlparser doesn't handle tag soup.
