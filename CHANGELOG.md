@@ -2,15 +2,19 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 0.13.4 2012-04-31
+## Version 0.13.4 2012-05-01
 
-Upgraded to JSDOM 0.2.14.
+Upgraded to JSDOM 0.2.14.  This includes an upgrade to Contextify which fixes an
+edge case with JS scoping.  It also translates to 10% faster tests (On My
+Machine).
+
+But HTML processing is a bit more picky right now.
 
 Methods like `visit` now pass error to the callback if they fail to load or
 parse the page.  JavaScript execution errors are handled separately.
 
-    434 tests
-    8.9 sec to complete
+    436 tests
+    8.0 sec to complete
 
 
 ## Version 0.13.3 2012-04-30
