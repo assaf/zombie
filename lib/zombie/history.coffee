@@ -123,10 +123,12 @@ class History
           html = "<html><body></body></html>"
         document.write html
         document.close()
-        if document.documentElement
+        if response.statusCode >= 400
+          @_browser.emit "error", new Error("Server returned status code #{response.statusCode}")
+        else if document.documentElement && response.statusCode < 300
           @_browser.emit "loaded", @_browser
         else
-          #@_browser.emit "error", "Could not parse document at #{URL.format(url)}"
+          @_browser.emit "error", new Error("Could not parse document at #{URL.format(url)}")
 
   # ### history.forward()
   forward: -> @go(1)

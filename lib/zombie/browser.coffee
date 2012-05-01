@@ -242,9 +242,16 @@ class Browser extends EventEmitter
   wait: (duration, callback)->
     if !callback && typeof duration == "function"
       [callback, duration] = [duration, null]
-    @_eventloop.wait @window, duration, (error)=>
+
+    completed = (error)=>
+      @removeListener "done", completed
+      @removeListener "error", completed
       if callback
         callback error, this
+    @addListener "done", completed
+    @addListener "error", completed
+
+    @_eventloop.wait @window, duration
     return
 
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and

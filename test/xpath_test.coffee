@@ -7,50 +7,54 @@ describe "XPath", ->
 
   before (done)->
     brains.get "/xpath", (req, res)-> res.send """
-      <h1 id="title">My Blog</h2>
+    <html>
+      <body>
+        <h1 id="title">My Blog</h2>
 
-      <ul class="navigation">
-        <li><a href="#">First anchor</a></li>
-        <li><a href="#">Second anchor</a></li>
-        <li><a href="#">Third anchor</a></li>
-        <li><a href="#">Fourth anchor</a></li>
-        <li><a href="#">Fifth anchor</a></li>
-      </ul>
+        <ul class="navigation">
+          <li><a href="#">First anchor</a></li>
+          <li><a href="#">Second anchor</a></li>
+          <li><a href="#">Third anchor</a></li>
+          <li><a href="#">Fourth anchor</a></li>
+          <li><a href="#">Fifth anchor</a></li>
+        </ul>
 
-      <div id="posts">
-        <div class="post" id="post-1">
-          <h2>First post</h2>
+        <div id="posts">
+          <div class="post" id="post-1">
+            <h2>First post</h2>
 
-          <div class="meta">
-            <a href="#">First permalink</a>
-            <a href="#">First author</a>
-            <a href="#">First comments</a>
+            <div class="meta">
+              <a href="#">First permalink</a>
+              <a href="#">First author</a>
+              <a href="#">First comments</a>
+            </div>
+
+            <div class="content">
+              <p>First paragraph</p>
+              <p>Second paragraph</p>
+              <p>Third paragraph</p>
+            </div>
           </div>
 
-          <div class="content">
-            <p>First paragraph</p>
-            <p>Second paragraph</p>
-            <p>Third paragraph</p>
+          <div class="post" id="post-2">
+            <h2>Second post</h2>
+
+            <div class="meta">
+              <a href="#">Second permalink</a>
+              <a href="#">Second author</a>
+              <a href="#">Second comments</a>
+            </div>
+
+            <div class="content">
+              <p>Fourth paragraph</p>
+              <p>Fifth paragraph</p>
+              <p>Sixth paragraph</p>
+            </div>
           </div>
         </div>
-
-        <div class="post" id="post-2">
-          <h2>Second post</h2>
-
-          <div class="meta">
-            <a href="#">Second permalink</a>
-            <a href="#">Second author</a>
-            <a href="#">Second comments</a>
-          </div>
-
-          <div class="content">
-            <p>Fourth paragraph</p>
-            <p>Fifth paragraph</p>
-            <p>Sixth paragraph</p>
-          </div>
-        </div>
-      </div>
-      """
+      </body>
+    </html>
+    """
 
     brains.ready ->
       browser.visit "http://localhost:3003/xpath", done

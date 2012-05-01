@@ -12,20 +12,26 @@ describe "Browser", ->
           <title>Whatever</title>
           <script src="/jquery.js"></script>
         </head>
-        <body>Hello World</body>
-        <script>
-          document.title = "Nice";
-          $(function() { $("title").text("Awesome") })
-        </script>
-        <script type="text/x-do-not-parse">
-          <p>this is not valid JavaScript</p>
-        </script>
+        <body>
+          <h1>Hello World</h1>
+          <script>
+            document.title = "Nice";
+            $(function() { $("title").text("Awesome") })
+          </script>
+          <script type="text/x-do-not-parse">
+            <p>this is not valid JavaScript</p>
+          </script>
+        </body>
       </html>
       """
 
     brains.get "/browser/errored", (req, res)->
       res.send """
-      <script>this.is.wrong</script>
+          <html>
+            <head>
+              <script>this.is.wrong</script>
+            </head>
+          </html>
         """
 
     brains.ready done
@@ -41,7 +47,7 @@ describe "Browser", ->
       it "should create HTML document", ->
         assert browser.document instanceof JSDOM.dom.level3.html.HTMLDocument
       it "should load document from server", ->
-        assert /<body>Hello World/.test(browser.html())
+        assert.equal browser.text("body h1"), "Hello World"
       it "should load external scripts", ->
         assert jQuery = browser.window.jQuery, "window.jQuery not available"
         assert.equal typeof jQuery.ajax, "function"
@@ -66,7 +72,7 @@ describe "Browser", ->
             done()
 
         it "should call callback without error", ->
-          assert true
+          assert !error
         it "should pass browser to callback", ->
           assert browser instanceof Browser
         it "should pass status code to callback", ->
@@ -90,10 +96,12 @@ describe "Browser", ->
             done()
 
         it "should call callback without error", ->
-          assert true
+          console.dir error
+          assert error instanceof Error
         it "should indicate success", ->
           assert browser.success
         it "should pass errors to callback", ->
+          console.log errors
           assert.equal errors.length, 1
           assert.equal errors[0].message, "Cannot read property 'wrong' of undefined"
         it "should set browser errors", ->
@@ -109,8 +117,8 @@ describe "Browser", ->
             [error, browser, status, errors] = arguments
             done()
 
-        it "should call callback without error", ->
-          assert true
+        it "should call with error", ->
+          assert error instanceof Error
         it "should return status code", ->
           assert.equal status, 404
         it "should not indicate success", ->
@@ -133,8 +141,8 @@ describe "Browser", ->
             [error, browser, status, errors] = arguments
             done()
 
-        it "should call callback without error", ->
-          assert true
+        it "should call callback with error", ->
+          assert error instanceof Error
         it "should return status code 500", ->
           assert.equal status, 500
         it "should not indicate success", ->
@@ -181,18 +189,15 @@ describe "Browser", ->
 
       describe "wait over", ->
         browser = new Browser()
-        args = null
 
         before (done)->
           browser.on "done", ->
-            args = arguments
             done()
           browser.window.location = "http://localhost:3003/browser/scripted"
           browser.wait()
 
-        it "should fire done event with browser", ->
-          assert args
-          assert args[0].visit
+        it "should fire done event", ->
+          assert true
 
       describe "error", ->
         browser = new Browser()

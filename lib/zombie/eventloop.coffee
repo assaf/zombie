@@ -150,10 +150,17 @@ class EventLoop
       # Remove from waiting list, pause timers if last waiting.
       @_waiting = (fn for fn in @_waiting when fn != waiting)
       @_pause() if @_waiting.length == 0
-      process.nextTick ->
-        callback error, window
       if terminate
         clearTimeout(terminate)
+
+      # Callback and event emitter, pick your poison.
+      if callback
+        process.nextTick ->
+          callback error, window
+      if error
+        @_browser.emit "error", error
+      else
+        @_browser.emit "done"
 
     # don't block forever
     terminate = setTimeout(done, 5000)
@@ -172,10 +179,8 @@ class EventLoop
           # If there are no timers, next is Infinity, larger then done_at, no waiting
           if next <= done_at
             return
-        @_browser.emit "done", @_browser
         done()
       catch error
-        @_browser.emit "error", error
         done(error)
 
     # No one is waiting, resume firing timers.

@@ -18,7 +18,8 @@ describe "Authentication", ->
     describe "without credentials", ->
       browser = new Browser()
       before (done)->
-        browser.visit "http://localhost:3003/auth/basic", done
+        browser.visit "http://localhost:3003/auth/basic", ->
+          done()
 
       it "should return status code 401", ->
         assert.equal browser.statusCode, 401
@@ -27,7 +28,8 @@ describe "Authentication", ->
       browser = new Browser()
       before (done)->
         credentials = { scheme: "basic", user: "username", password: "wrong" }
-        browser.visit "http://localhost:3003/auth/basic", credentials: credentials, done
+        browser.visit "http://localhost:3003/auth/basic", credentials: credentials, ->
+          done()
 
       it "should return status code 401", ->
         assert.equal browser.statusCode, 401
@@ -57,7 +59,8 @@ describe "Authentication", ->
     describe "without credentials", ->
       browser = new Browser()
       before (done)->
-        browser.visit "http://localhost:3003/auth/oauth2", done
+        browser.visit "http://localhost:3003/auth/oauth2", ->
+          done()
 
       it "should return status code 401", ->
         assert.equal browser.statusCode, 401
@@ -66,7 +69,8 @@ describe "Authentication", ->
       browser = new Browser()
       before (done)->
         credentials = { scheme: "bearer", token: "wrong" }
-        browser.visit "http://localhost:3003/auth/oauth2", credentials: credentials, done
+        browser.visit "http://localhost:3003/auth/oauth2", credentials: credentials, ->
+          done()
 
       it "should return status code 401", ->
         assert.equal browser.statusCode, 401

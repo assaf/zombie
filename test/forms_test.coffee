@@ -952,7 +952,8 @@ describe "Forms", ->
           </html>
           """
         browser.visit "http://localhost:3003/forms/urlencoded/empty", ->
-          browser.pressButton "submit", done
+          browser.pressButton "submit", ->
+            done() # 404 since there's no get for this form
 
       it "should send content-length header", ->
         assert browser.lastRequest.headers.hasOwnProperty("content-length")

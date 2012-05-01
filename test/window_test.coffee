@@ -32,10 +32,12 @@ describe "Window", ->
     before (done)->
       brains.get "/window/alert", (req, res)->
         res.send """
-        <script>
-          alert("Hi");
-          alert("Me again");
-        </script>
+        <html>
+          <script>
+            alert("Hi");
+            alert("Me again");
+          </script>
+        </html>
         """
       browser.onalert (message)->
         if message = "Me again"
@@ -55,11 +57,13 @@ describe "Window", ->
     before (done)->
       brains.get "/window/confirm", (req, res)->
         res.send """
-        <script>
-          window.first = confirm("continue?");
-          window.second = confirm("more?");
-          window.third = confirm("silent?");
-        </script>
+        <html>
+          <script>
+            window.first = confirm("continue?");
+            window.second = confirm("more?");
+            window.third = confirm("silent?");
+          </script>
+        </html>
         """
       browser.onconfirm "continue?", true
       browser.onconfirm (prompt)->
@@ -85,12 +89,14 @@ describe "Window", ->
     before (done)->
       brains.get "/window/prompt", (req, res)->
         res.send """
-        <script>
-          window.first = prompt("age");
-          window.second = prompt("gender");
-          window.third = prompt("location");
-          window.fourth = prompt("weight");
-        </script>
+        <html>
+          <script>
+            window.first = prompt("age");
+            window.second = prompt("gender");
+            window.third = prompt("location");
+            window.fourth = prompt("weight");
+          </script>
+        </html>
         """
       browser.onprompt "age", 31
       browser.onprompt (message, def)->

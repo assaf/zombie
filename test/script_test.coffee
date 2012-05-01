@@ -223,22 +223,42 @@ describe "Scripts", ->
   describe "failing", ->
     describe "incomplete", ->
       browser = new Browser()
+      error = null
 
       before (done)->
         brains.get "/script/incomplete", (req, res)->
-          res.send "<script>1+</script>"
-        browser.visit "http://localhost:3003/script/incomplete", done
+          res.send """
+            <html>
+              <script>1+</script>
+            </html>
+          """
+        browser.visit "http://localhost:3003/script/incomplete", (_)->
+          error = _
+          done()
+
+      it "should pass error to callback", ->
+        assert.equal error.message, "Unexpected end of input"
 
       it "should propagate error to window", ->
         assert.equal browser.error.message, "Unexpected end of input"
 
     describe "error", ->
       browser = new Browser()
+      error = null
 
       before (done)->
         brains.get "/script/error", (req, res)->
-          res.send "<script>(function(foo) { foo.bar })()</script>"
-        browser.visit "http://localhost:3003/script/error", done
+          res.send """
+            <html
+              <script>(function(foo) { foo.bar })()</script>
+            </html>
+          """
+        browser.visit "http://localhost:3003/script/error", (_)->
+          error = _
+          done()
+
+      it "should pass error to callback", ->
+        assert.equal error.message, "Cannot read property 'bar' of undefined"
 
       it "should propagate error to window", ->
         assert.equal browser.error.message, "Cannot read property 'bar' of undefined"

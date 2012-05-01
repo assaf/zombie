@@ -76,6 +76,8 @@ HTML.languageProcessors.javascript = (element, code, filename)->
     try
       window._evaluate code, filename
     catch error
+      unless error instanceof Error
+        error = new Error(error.message)
       raise element: element, location: filename, from: __filename, error: error
 
 

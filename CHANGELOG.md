@@ -6,6 +6,9 @@ zombie.js-changelog(7) -- Changelog
 
 Upgraded to JSDOM 0.2.14.
 
+Methods like `visit` now pass error to the callback if they fail to load or
+parse the page.  JavaScript execution errors are handled separately.
+
     434 tests
     8.9 sec to complete
 
