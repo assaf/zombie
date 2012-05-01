@@ -11,6 +11,7 @@ EventLoop         = require("./eventloop")
 EventSource       = require("eventsource")
 FS                = require("fs")
 History           = require("./history")
+{ HTML5 }         = require("html5")
 Interact          = require("./interact")
 JSDom             = require("jsdom")
 Mime              = require("mime")
@@ -76,8 +77,9 @@ class Browser extends EventEmitter
     @debug = false
 
     # Which parser to use (HTML5 by default). For example:
-    #   zombie.htmlParser = require("html5").HTML5
-    @htmlParser = null
+    #   zombie.htmlParser = require("html5").HTML5 // HTML5, forgiving
+    #   zombie.htmlParser = require("htmlparser")  // Faster, stricter
+    @htmlParser = HTML5
 
     # True to load external stylesheets.
     @loadCSS = true

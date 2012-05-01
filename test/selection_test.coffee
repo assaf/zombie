@@ -68,7 +68,7 @@ describe "Selection", ->
     it "should query from context (unrelated)", ->
       assert.equal browser.text(".now", browser.querySelector("form")), ""
     it "should combine multiple elements", ->
-      assert.equal browser.text("form label"), "Email Password "
+      assert.equal browser.text("form label"), "Email Password"
 
 
   describe "query html", ->

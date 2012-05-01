@@ -351,7 +351,8 @@ describe "Browser", ->
         <p>One paragraph
         <p>And another
         """
-      browser.visit "http://localhost:3003/browser/soup", done
+      browser.visit "http://localhost:3003/browser/soup", ->
+        done()
 
     it "should parse to complete HTML", ->
       assert.ok browser.querySelector("html head")
@@ -359,6 +360,19 @@ describe "Browser", ->
     it "should close tags", ->
       paras = browser.querySelectorAll("body p").map((e)-> e.textContent.trim())
       assert.deepEqual paras, ["One paragraph", "And another"]
+
+  describe "comments", ->
+    browser = new Browser()
+
+    before (done)->
+      brains.get "/browser/comment", (req, res)-> res.send """
+        This is <!-- a comment, not --> plain text
+        """
+      browser.visit "http://localhost:3003/browser/comment", ->
+        done()
+
+    it "should not show up as text node", ->
+      assert.equal browser.text("body"), "This is  plain text"
 
 
   describe "fork", ->

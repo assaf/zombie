@@ -78,13 +78,13 @@ class History
     # point on the browser sees a new document, client register event
     # handler for DOMContentLoaded/error.
     options =
-      deferClose: false
+      deferClose: true
       features:
         QuerySelector:            true
         MutationEvents:           "2.0"
         ProcessExternalResources: []
         FetchExternalResources:   ["iframe"]
-      parser: require("html5") # @_browser.htmlParser
+      parser: @_browser.htmlParser
       url: URL.format(url)
 
     # require("html5").HTML5
@@ -103,13 +103,13 @@ class History
     if @_browser.runScripts
       document.addEventListener "DOMNodeInserted", (event)=>
         node = event.relatedNode
-        if node.tagName == "SCRIPT" && !node.src
-          code = node.text
-          language = HTML.languageProcessors[node.language]
-          if code && language
-            HTML.resourceLoader.enqueue(node, (code, url)->
-              language(this, code, url)
-            )(null, code)
+        if node.tagName == "SCRIPT"
+          if language = HTML.languageProcessors[node.language]
+            if node.src
+              HTML.resourceLoader.load(node, url)
+            else
+              if code = node.text
+                HTML.resourceLoader.enqueue(node, -> language(this, code, url))()
 
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
     referer = @_browser.referer || @_stack[@_index-1]?.url?.href
@@ -127,7 +127,9 @@ class History
     
     @_browser.resources.request method, url, data, headers, (error, response)=>
       if error
-        document.innerHTML = error
+        document.open()
+        document.write error.message
+        document.close()
         @_browser.emit "error", error
       else
         @_browser.response = [response.statusCode, response.headers, response.body]
@@ -135,7 +137,9 @@ class History
         # For responses that contain a non-empty body, load it.  Otherwise, we
         # already have an empty document in there courtesy of JSDOM.
         if response.body
-          document.innerHTML = response.body
+          document.open()
+          document.write response.body
+          document.close()
         # Error on any response that's not 2xx, or if we're not smart enough to
         # process the content and generate an HTML DOM tree from it.
         if response.statusCode >= 400

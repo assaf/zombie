@@ -216,7 +216,7 @@ describe "History", ->
       it "should set document location", ->
         assert.equal browser.document.location.href, file_url
 
-    xdescribe "change pathname", ->
+    describe "change pathname", ->
       browser = new Browser()
 
       before (done)->
@@ -232,7 +232,7 @@ describe "History", ->
       it "should load document", ->
         assert /Eeek!/.test(browser.html())
 
-    xdescribe "change relative href", ->
+    describe "change relative href", ->
       browser = new Browser()
 
       before (done)->
@@ -265,7 +265,7 @@ describe "History", ->
       it "should not reload document", ->
         assert /Wolf/.test(browser.document.innerHTML)
 
-    xdescribe "assign", ->
+    describe "assign", ->
       browser = new Browser()
       window = null
 
@@ -285,7 +285,7 @@ describe "History", ->
       it "should load document in new window", ->
         assert browser.window != window
 
-    xdescribe "replace", ->
+    describe "replace", ->
       browser = new Browser()
       window = null
 
@@ -305,7 +305,7 @@ describe "History", ->
       it "should load document in new window", ->
         assert browser.window != window
 
-    xdescribe "reload", ->
+    describe "reload", ->
       browser = new Browser()
       window = null
 
@@ -350,7 +350,7 @@ describe "History", ->
       it "should include hash", ->
         assert.equal location.hash, ""
 
-    xdescribe "set window.location", ->
+    describe "set window.location", ->
       browser = new Browser()
 
       before (done)->
@@ -366,7 +366,7 @@ describe "History", ->
       it "should load document", ->
         assert /Eeek!/.test(browser.html())
 
-    xdescribe "set document.location", ->
+    describe "set document.location", ->
       browser = new Browser()
 
       before (done)->

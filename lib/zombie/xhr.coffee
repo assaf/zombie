@@ -76,10 +76,8 @@ XMLHttpRequest = (window)->
             # At this state, allow retrieving of headers and status code.
             @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
             @getAllResponseHeaders = ->
-              ###
-              XHR's getAllResponseHeaders, against all reason, returns a multi-line string.
-              See http://www.w3.org/TR/XMLHttpRequest/#the-getallresponseheaders-method
-              ###
+              # XHR's getAllResponseHeaders, against all reason, returns a multi-line string.
+              # See http://www.w3.org/TR/XMLHttpRequest/#the-getallresponseheaders-method
               headerStrings = for header, value of response.headers
                 "#{header}: #{value}"
               return headerStrings.join("\n")

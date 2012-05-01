@@ -96,3 +96,20 @@ Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
     else
       delete @_opacity
 
+
+# textContent returns the textual content of nodes like text, comment,
+# attribute, but when operating on elements, return only textual content of
+# child text/element nodes.
+HTML.Node.prototype.__defineGetter__ "textContent", ->
+  if @nodeType == HTML.Node.TEXT_NODE || @nodeType == HTML.Node.COMMENT_NODE ||
+     @nodeType == HTML.Node.ATTRIBUTE_NODE || @nodeType == HTML.Node.CDATA_SECTION_NODE
+    return @nodeValue
+  else if @nodeType == HTML.Node.ELEMENT_NODE || @nodeType == HTML.Node.DOCUMENT_FRAGMENT_NODE
+    return @childNodes
+      .filter((node)-> node.nodeType == HTML.Node.TEXT_NODE || node.nodeType == HTML.Node.ELEMENT_NODE ||
+                       node.nodeType == HTML.Node.CDATA_SECTION_NODE)
+      .map((node)-> node.textContent)
+      .join("")
+  else
+    return null
+      

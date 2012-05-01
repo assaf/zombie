@@ -249,7 +249,7 @@ describe "Scripts", ->
       before (done)->
         brains.get "/script/error", (req, res)->
           res.send """
-            <html
+            <html>
               <script>(function(foo) { foo.bar })()</script>
             </html>
           """
@@ -282,6 +282,7 @@ describe "Scripts", ->
         assert.equal browser.text("title"), "1"
 
     # NOTE: htmlparser can't deal with CDATA sections
+    ###
     describe "with CDATA", ->
       browser = new Browser()
 
@@ -295,6 +296,7 @@ describe "Scripts", ->
 
       it "should run full script", ->
         assert.equal browser.text("title"), "2"
+    ###
 
     # NOTE: htmlparser can't deal with document.write.
     describe "using document.write", ->
@@ -303,20 +305,18 @@ describe "Scripts", ->
       before (done)->
         brains.get "/script/write", (req, res)-> res.send """
           <html>
-            <head>
-              <script>document.write(unescape(\'%3Cscript src="/jquery.js"%3E%3C/script%3E\'));</script>
-            </head>
             <body>
-              <script>
-                $(function() { document.title = "Script document.write" });
-              </script>
+            <script>document.write(unescape(\'%3Cscript %3Edocument.title = document.title + ".write"%3C/script%3E\'));</script>
+            <script>
+              document.title = document.title + "document";
+            </script>
             </body>
           </html>
           """
         browser.visit "http://localhost:3003/script/write", done
 
       it "should run script", ->
-        assert.equal browser.document.title, "Script document.write"
+        assert.equal browser.document.title, "document.write"
 
 
     describe "using appendChild", ->
@@ -329,17 +329,19 @@ describe "Scripts", ->
             <head>
               <script>
                 var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
-                s.src = '/jquery.js';
+                s.src = '/script/append.js';
                 (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);
               </script>
             </head>
             <body>
               <script>
-                $(function() { document.title = "Script appendChild" });
+                document.title = document.title + "element";
               </script>
             </body>
           </html>
           """
+        brains.get "/script/append.js", (req, res)->
+          res.send "document.title = document.title + \"appendChild\""
         browser.visit "http://localhost:3003/script/append", done
 
       it "should run script", -> (browser)->
