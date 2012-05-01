@@ -77,12 +77,14 @@ HTML.HTMLFormElement.prototype.reset = ->
     else if field.nodeName == "INPUT" || field.nodeName == "TEXTAREA"
       field.value = field._defaultValue
 
+
 # Replace dispatchEvent so we can send the button along the event.
 HTML.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "submit", true, true
   event._button = button
   @ownerDocument.parentWindow.browser.dispatchEvent this, event
+
 
 # Default behavior for submit events is to call the form's submit method, but we
 # also pass the submitting button.
@@ -114,6 +116,7 @@ HTML.HTMLInputElement.prototype._eventDefaults =
         unless input.getAttribute("readonly")
           input.checked = true
           change()
+
 
 # Current INPUT behavior on click is to capture sumbit and handle it, but
 # ignore all other clicks. We need those other clicks to occur, so we're going
@@ -162,6 +165,7 @@ HTML.HTMLInputElement.prototype.click = ->
       click()
   return
 
+
 # Default behavior for form BUTTON: submit form.
 HTML.HTMLButtonElement.prototype._eventDefaults =
   click: (event)->
@@ -172,6 +176,7 @@ HTML.HTMLButtonElement.prototype._eventDefaults =
       form = button.form
       if form
         form._dispatchSubmitEvent button
+
 
 # Default type for button is submit. jQuery live submit handler looks
 # for the type attribute, so we've got to make sure it's there.

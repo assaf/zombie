@@ -9,7 +9,11 @@ describe "CSS", ->
 
     before (done)->
       brains.get "/styled", (req, res)-> res.send """
-        <body><div id="styled"></div></body>
+        <html>
+          <body>
+            <div id="styled"></div>
+          </body>
+        </html>
       """
       brains.ready done
 

@@ -126,7 +126,7 @@ class History
         if document.documentElement
           @_browser.emit "loaded", @_browser
         else
-          error = "Could not parse document at #{URL.format(url)}"
+          #@_browser.emit "error", "Could not parse document at #{URL.format(url)}"
 
   # ### history.forward()
   forward: -> @go(1)

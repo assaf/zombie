@@ -340,21 +340,23 @@ describe "Browser", ->
       assert.equal browser.statusCode, 200
 
 
-  ###
   # NOTE: htmlparser doesn't handle tag soup.
-  "tag soup using HTML5 parser":
-    topic: ->
+  ###
+  describe "tag soup using HTML5 parser", ->
+    browser = new Browser()
+
+    before (done)->
       brains.get "/browser/soup", (req, res)-> res.send """
         <h1>Tag soup</h1>
         <p>One paragraph
         <p>And another
         """
-      browser = new Browser
-      browser.wants "http://localhost:3003/browser/soup", { htmlParser: require("html5").HTML5 }, @callback
-    "should parse to complete HTML": (browser)->
+      browser.visit "http://localhost:3003/browser/soup", done
+
+    it "should parse to complete HTML", ->
       assert.ok browser.querySelector("html head")
       assert.equal browser.text("html body h1"), "Tag soup"
-    "should close tags": (browser)->
+    it "should close tags", ->
       paras = browser.querySelectorAll("body p").toArray().map((e)-> e.textContent.trim())
       assert.deepEqual paras, ["One paragraph", "And another"]
   ###

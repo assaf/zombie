@@ -4,10 +4,12 @@ URL = require("url")
 { raise } = require("./helpers")
 
 
+###
 HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
 HTML.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
 HTML.HTMLElement.prototype.__defineGetter__ "offsetWidth",  -> 100
 HTML.HTMLElement.prototype.__defineGetter__ "offsetHeight", -> 100
+###
 
 
 # Default behavior for clicking on links: navigate to new URL is specified.
@@ -60,8 +62,11 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, s)->
       iframe.window.location.href = url
   return iframe
 
+
+# Support CoffeeScript.  Just because.
 HTML.languageProcessors.coffeescript = (element, code, filename)->
   @javascript(element, require('coffee-script').compile(code), filename)
+
 
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
 # fires on the Window.  We also want better stack traces.

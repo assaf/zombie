@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.13.4 2012-04-31
+
+Upgraded to JSDOM 0.2.14.
+
+    434 tests
+    8.9 sec to complete
+
+
 ## Version 0.13.3 2012-04-30
 
 Fixed failing to redirect after POST request (Vincent P).

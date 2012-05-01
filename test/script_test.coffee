@@ -186,7 +186,6 @@ describe "Scripts", ->
       assert.equal browser.text("title"), "ZeroOneTwo"
 
 
-  ### Need new JSDOM/Contextify for this
   describe "eval", ->
     browser = new Browser()
 
@@ -218,8 +217,7 @@ describe "Scripts", ->
       browser.visit "http://localhost:3003/script/eval", done
 
     it "should evaluate in global scope", ->
-      assert.equal browser.document.title, "OneTwoThreeFour"
-  ###
+      assert.equal browser.document.title, "OneTwoThreeOne"
 
 
   describe "failing", ->
@@ -263,8 +261,8 @@ describe "Scripts", ->
       it "should run full script", ->
         assert.equal browser.text("title"), "1"
 
-    ###
     # NOTE: htmlparser can't deal with CDATA sections
+    ###
     describe "with CDATA", ->
       browser = new Browser()
 
@@ -300,7 +298,7 @@ describe "Scripts", ->
           """
         browser.visit "http://localhost:3003/script/write", done
 
-      it "should run script" ->
+      it "should run script", ->
         assert.equal browser.document.title, "Script document.write"
     ###
 

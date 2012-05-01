@@ -74,13 +74,12 @@ test = (version)->
       it "should perform an AJAX POST request", ->
         assert /foo=bar/.test(browser.text("#response"))
 
-    ###
-    describe "jQuery.globalEval": (browser) ->
+    describe "jQuery.globalEval", ->
+      it "should work as expected", ->
         browser.evaluate("(function () {
           $.globalEval('var globalEvalWorks = true;');
         })();")
         assert.ok browser.window.globalEvalWorks
-    ###
 
 
 describe "Compatibility with jQuery", ->
