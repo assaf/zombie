@@ -26,14 +26,14 @@
     "mime":             "~1.2.5",
     "request":          "~2.9.202",
     "tough-cookie":     "~0.9.12",
-    "ws":               "~0.4.13"
+    "ws":               "~0.4.14"
   },
   "devDependencies": {
     "docco":            "~0.3.0",
     "express":          "~2.5.9",
     "highlight":        "~0.2.2",
     "mocha":            "~1.0.2",
-    "replay":           "~1.3.1",
+    "replay":           "~1.4.1",
     "ronn":             "~0.3.8"
   },
   "repository": {
