@@ -80,20 +80,36 @@ class History
     options =
       deferClose: false
       features:
-        QuerySelector: true
-        MutationEvents: "2.0"
+        QuerySelector:            true
+        MutationEvents:           "2.0"
         ProcessExternalResources: []
-        FetchExternalResources: ["iframe"]
-      parser: @_browser.htmlParser
+        FetchExternalResources:   ["iframe"]
+      parser: require("html5") # @_browser.htmlParser
       url: URL.format(url)
+
+    # require("html5").HTML5
     if @_browser.runScripts
       options.features.ProcessExternalResources.push "script"
       options.features.FetchExternalResources.push "script"
     if @_browser.loadCSS
       options.features.FetchExternalResources.push "css"
+
+    # Create an empty document.  We do this here so the document is available
+    # before we start loading.  Some code waits for document to load
+    # (browser.visit) but some doesn't (set href, then bind onload).
     document = JSDOM.jsdom(null, HTML, options)
     @_window.document = document
     document.window = document.parentWindow = @_window
+    if @_browser.runScripts
+      document.addEventListener "DOMNodeInserted", (event)=>
+        node = event.relatedNode
+        if node.tagName == "SCRIPT" && !node.src
+          code = node.text
+          language = HTML.languageProcessors[node.language]
+          if code && language
+            HTML.resourceLoader.enqueue(node, (code, url)->
+              language(this, code, url)
+            )(null, code)
 
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
     referer = @_browser.referer || @_stack[@_index-1]?.url?.href
@@ -111,21 +127,20 @@ class History
     
     @_browser.resources.request method, url, data, headers, (error, response)=>
       if error
-        document.write "<html><body>#{error}</body></html>"
-        document.close()
+        document.innerHTML = error
         @_browser.emit "error", error
       else
         @_browser.response = [response.statusCode, response.headers, response.body]
         @_stack[@_index].update response.url
+        # For responses that contain a non-empty body, load it.  Otherwise, we
+        # already have an empty document in there courtesy of JSDOM.
         if response.body
-          html = response.body
-        else
-          html = "<html><body></body></html>"
-        document.write html
-        document.close()
+          document.innerHTML = response.body
+        # Error on any response that's not 2xx, or if we're not smart enough to
+        # process the content and generate an HTML DOM tree from it.
         if response.statusCode >= 400
           @_browser.emit "error", new Error("Server returned status code #{response.statusCode}")
-        else if document.documentElement && response.statusCode < 300
+        else if document.documentElement
           @_browser.emit "loaded", @_browser
         else
           @_browser.emit "error", new Error("Could not parse document at #{URL.format(url)}")

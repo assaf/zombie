@@ -179,9 +179,9 @@ class Browser extends EventEmitter
     Object.defineProperty newWindow, "history", value: options?.history || new History(newWindow)
 
     newWindow.__defineGetter__ "title", ->
-      return newWindow?.document?.title
+      return @document?.title
     newWindow.__defineSetter__ "title", (title)->
-      return newWindow?.document?.title = title
+      @document.title = title
     
     # Present in browsers, not in spec Used by Google Analytics see
     # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
@@ -244,12 +244,13 @@ class Browser extends EventEmitter
       [callback, duration] = [duration, null]
 
     completed = (error)=>
-      @removeListener "done", completed
-      @removeListener "error", completed
       if callback
-        callback error, this
-    @addListener "done", completed
-    @addListener "error", completed
+        do (callback)=>
+          process.nextTick =>
+            callback error, this
+        callback = null
+    @once "done", completed
+    @once "error", completed
 
     @_eventloop.wait @window, duration
     return
@@ -333,7 +334,7 @@ class Browser extends EventEmitter
   # Returns a string
   text: (selector, context)->
     if @document.documentElement
-      return @queryAll(selector, context).map((e)-> e.textContent).join("")
+      return @queryAll(selector, context).map((e)-> e.textContent).join("").trim()
     return @source
 
   # ### browser.html(selector?, context?) => String

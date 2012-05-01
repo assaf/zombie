@@ -125,10 +125,8 @@ describe "Browser", ->
           assert !browser.success
         it "should capture response document", ->
           assert.equal browser.source, "Cannot GET /browser/missing" # Express output
-        it "should return response document form text method", ->
-          assert.equal browser.text(), "Cannot GET /browser/missing" # Express output
-        it "should return response document form html method", ->
-          assert.equal browser.html(), "Cannot GET /browser/missing" # Express output
+        it "should return response document with the error", ->
+          assert.equal browser.text("body"), "Cannot GET /browser/missing" # Express output
 
       describe "500", ->
         browser = new Browser()
@@ -149,10 +147,8 @@ describe "Browser", ->
           assert !browser.success
         it "should capture response document", ->
           assert.equal browser.source, "Ooops, something went wrong"
-        it "should return response document form text method", ->
-          assert.equal browser.text(), "Ooops, something went wrong"
-        it "should return response document form html method", ->
-          assert.equal browser.html(), "Ooops, something went wrong"
+        it "should return response document with the error", ->
+          assert.equal browser.text("body"), "Ooops, something went wrong"
 
       describe "empty page", ->
         browser = new Browser()
@@ -346,7 +342,6 @@ describe "Browser", ->
 
 
   # NOTE: htmlparser doesn't handle tag soup.
-  ###
   describe "tag soup using HTML5 parser", ->
     browser = new Browser()
 
@@ -362,9 +357,8 @@ describe "Browser", ->
       assert.ok browser.querySelector("html head")
       assert.equal browser.text("html body h1"), "Tag soup"
     it "should close tags", ->
-      paras = browser.querySelectorAll("body p").toArray().map((e)-> e.textContent.trim())
+      paras = browser.querySelectorAll("body p").map((e)-> e.textContent.trim())
       assert.deepEqual paras, ["One paragraph", "And another"]
-  ###
 
 
   describe "fork", ->

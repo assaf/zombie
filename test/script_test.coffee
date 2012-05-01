@@ -282,7 +282,6 @@ describe "Scripts", ->
         assert.equal browser.text("title"), "1"
 
     # NOTE: htmlparser can't deal with CDATA sections
-    ###
     describe "with CDATA", ->
       browser = new Browser()
 
@@ -296,10 +295,8 @@ describe "Scripts", ->
 
       it "should run full script", ->
         assert.equal browser.text("title"), "2"
-    ###
 
     # NOTE: htmlparser can't deal with document.write.
-    ###
     describe "using document.write", ->
       browser = new Browser()
 
@@ -320,7 +317,7 @@ describe "Scripts", ->
 
       it "should run script", ->
         assert.equal browser.document.title, "Script document.write"
-    ###
+
 
     describe "using appendChild", ->
       browser = new Browser()

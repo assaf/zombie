@@ -1,6 +1,7 @@
 # Fix things that JSDOM doesn't do quite right.
 HTML = require("jsdom").dom.level3.html
 URL = require("url")
+CoffeeScript = require("coffee-script")
 { raise } = require("./helpers")
 
 
@@ -49,10 +50,10 @@ HTML.resourceLoader.load = (element, href, callback)->
 
 
 # Support for iframes that load content when you set the src attribute.
-HTML.Document.prototype._elementBuilders["iframe"] = (doc, s)->
+HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
   parent = doc.parentWindow
 
-  iframe = new HTML.HTMLIFrameElement(doc, s)
+  iframe = new HTML.HTMLIFrameElement(doc, tag)
   iframe.window = parent.browser.open(parent: parent)
   iframe.window.parent = parent
   iframe._attributes.setNamedItem = (node)->
@@ -65,7 +66,7 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, s)->
 
 # Support CoffeeScript.  Just because.
 HTML.languageProcessors.coffeescript = (element, code, filename)->
-  @javascript(element, require('coffee-script').compile(code), filename)
+  @javascript(element, CoffeeScript.compile(code), filename)
 
 
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
@@ -77,7 +78,9 @@ HTML.languageProcessors.javascript = (element, code, filename)->
       window._evaluate code, filename
     catch error
       unless error instanceof Error
-        error = new Error(error.message)
+        clone = new Error(error.message)
+        clone.stack = error.stack
+        error = clone
       raise element: element, location: filename, from: __filename, error: error
 
 

@@ -2,3 +2,4 @@
 --globals url
 --reporter spec
 --no-colors
+--ignore-leaks
