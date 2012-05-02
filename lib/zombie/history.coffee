@@ -3,6 +3,7 @@ util    = require("util")
 JSDOM   = require("jsdom")
 HTML    = JSDOM.dom.level3.html
 URL     = require("url")
+Scripts = require("./scripts")
 
 
 # History entry. Consists of:
@@ -100,6 +101,8 @@ class History
     document = JSDOM.jsdom(null, HTML, options)
     @_window.document = document
     document.window = document.parentWindow = @_window
+    if @_browser.runScripts
+      Scripts.addInlineScriptSupport document
 
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
     referer = @_browser.referer || @_stack[@_index-1]?.url?.href

@@ -2,9 +2,9 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 0.13.5 2012-05-01
+## Version 0.13.5 2012-05-02
 
-Switched default HTML parser back to
+Switched default HTML parser back to the more forgiving
 [HTML5](https://github.com/aredridel/html5):
 
 - Supports scripts with CDATA
@@ -12,10 +12,11 @@ Switched default HTML parser back to
 - Preserve order of execution between in-line and loaded JS code
 - Support `document.write`
 
-Fix `textContent` of element returning comments.
+Fix `textContent` of elements that have comments in them to not exclude the
+comment text .
 
     438 tests
-    9.6 sec to complete
+    9.7 sec to complete
 
 
 ## Version 0.13.4 2012-05-01

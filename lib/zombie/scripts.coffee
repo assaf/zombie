@@ -25,30 +25,34 @@ HTML.languageProcessors.javascript = (element, code, filename)->
       raise element: element, location: filename, from: __filename, error: error
 
 
-# HTML5 parser doesn't play well with JSDOM and inline scripts.
+# HTML5 parser doesn't play well with JSDOM and inline scripts.  This methods
+# adds proper inline script support.
 #
-# Basically, DOMNodeInsertedIntoDocument event is captured when the script tag
-# is added to the document, at which point it has the src attribute (external
-# scripts) but no text content (inline scripts).  JSDOM will capture the event
-# and try to execute an empty script.
+# Basically, JSDOM listens on the script tag, waiting for
+# DOMNodeInsertedIntoDocument, at which point the script tag may have a src
+# attribute (external) but no text content (internal), so in the later case it
+# attempts to execute an empty string.
 #
-# This code queues the script for processing and also lazily grabs the script's
-# text content late enough that it's already set.
-#
-# Unfortunately, too late for some things to work properly -- basically once the
-# HTML page has been processed -- so that needs to be fixed at some point.
-HTML.Document.prototype._elementBuilders["script"] = (doc, tag)->
-  script = new HTML.HTMLScriptElement(doc, tag)
-  script.addEventListener "DOMNodeInsertedIntoDocument", (event)->
-    unless @src
-      src = @sourceLocation || {}
-      filename = src.file || @_ownerDocument.URL
-
-      if src
-        filename += ":#{src.line}:#{src.col}"
-      filename += "<script>"
-      HTML.resourceLoader.enqueue(this, => @_eval(@text, filename))()
-  return script
+# OTOH when we listen to DOMNodeInserted event on the document, the script tag
+# includes its full text content and we're able to evaluate it correctly.
+addInlineScriptSupport = (document)->
+  # Basically we're going to listen to new script tags as they are inserted into
+  # the DOM and then queue them to be processed.  JSDOM does the same, but
+  # listens on the script element itself, and someone the event it captures
+  # doesn't have any of the script contents.
+  document.addEventListener "DOMNodeInserted", (event)->
+    # Get the script tag from the event itself
+    node = event.relatedNode
+    return unless node.tagName == "SCRIPT"
+    # Don't handle scripts with src URL, JSDOM takes care of these
+    return if node.src
+    code = node.text
+    return unless code
+    # Only process supported languages
+    language = HTML.languageProcessors[node.language]
+    return unless language
+    # Queue so inline scripts execute in order with external scripts
+    HTML.resourceLoader.enqueue(node, -> language(this, code, document.location.href))()
 
 
 # -- Utility methods --
@@ -82,5 +86,5 @@ raise = ({ element, location, from, scope, error })->
   window.browser.dispatchEvent window, event
 
 
-module.exports = { raise }
+module.exports = { raise, addInlineScriptSupport }
 
