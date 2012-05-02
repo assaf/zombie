@@ -2,6 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.13.6 2012-05-02
+
+You can now set document location to `javascript:expression` and it will
+evaluate that expression.
+
+    440 tests
+    9.6 sec to complete
+
+
 ## Version 0.13.5 2012-05-02
 
 Switched default HTML parser back to the more forgiving

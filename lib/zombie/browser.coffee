@@ -288,7 +288,7 @@ class Browser extends EventEmitter
   # Evaluates the CSS selector against the document (or context node) and return array of nodes.
   # (Unlike `document.querySelectorAll` that returns a node list).
   queryAll: (selector, context)->
-    context ||= @document
+    context ||= @document.documentElement
     if selector
       ret = context.querySelectorAll(selector)
       return Array.prototype.slice.call(ret, 0)
@@ -299,7 +299,7 @@ class Browser extends EventEmitter
   #
   # Evaluates the CSS selector against the document (or context node) and return an element.
   query: (selector, context)->
-    context ||= @document
+    context ||= @document.documentElement
     if selector
       context.querySelector(selector)
     else
@@ -363,7 +363,7 @@ class Browser extends EventEmitter
   # Evaluates the XPath expression against the document (or context node) and return the XPath result.  Shortcut for
   # `document.evaluate`.
   xpath: (expression, context)->
-    return @document.evaluate(expression, context || @document)
+    return @document.evaluate(expression, context || @document.documentElement)
 
   # ### browser.document => Document
   #

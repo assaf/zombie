@@ -335,7 +335,7 @@ describe "Scripts", ->
             </head>
             <body>
               <script>
-                document.title = document.title + "element";
+                document.title = document.title + "element.";
               </script>
             </body>
           </html>
@@ -344,8 +344,8 @@ describe "Scripts", ->
           res.send "document.title = document.title + \"appendChild\""
         browser.visit "http://localhost:3003/script/append", done
 
-      it "should run script", -> (browser)->
-        assert.equal browser.document.title, "Script appendChild"
+      it "should run script", ->
+        assert.equal browser.document.title, "element.appendChild"
 
 
   describe "scripts disabled", ->
@@ -369,7 +369,7 @@ describe "Scripts", ->
         res.send "document.title = document.title + 'One'"
       browser.visit "http://localhost:3003/script/order", done
 
-    it "should not run scripts", -> (browser)->
+    it "should not run scripts", ->
       assert.equal browser.document.title, "Zero"
 
 
@@ -378,10 +378,21 @@ describe "Scripts", ->
 
     before (done)->
       browser.visit "file://#{__dirname}/data/file_scheme.html", ->
-        browser.wait 100, done
+        setTimeout done, 100
 
-    it "should run scripts with file url src", -> (browser)->
+    it "should run scripts with file url src", ->
       assert.equal browser.document.title, "file://"
+
+
+  describe "javascript: URL", ->
+    browser = new Browser()
+
+    before (done)->
+      browser.visit "javascript:document.write('hi')", ->
+        done()
+
+    it "should evaluate script in context of window", ->
+      assert.equal browser.text(), "hi"
 
 
   describe "new Image", ->
@@ -390,8 +401,8 @@ describe "Scripts", ->
     before (done)->
       browser.visit "http://localhost:3003/script/living", done
 
-    it "should construct an img tag", -> (browser)->
+    it "should construct an img tag", ->
       assert.equal browser.evaluate("new Image").tagName, "IMG"
-    it "should construct an img tag with width and height", -> (browser)->
+    it "should construct an img tag with width and height", ->
       assert.equal browser.evaluate("new Image(1, 1)").height, 1
 

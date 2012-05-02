@@ -48,3 +48,8 @@ describe "IFrame", ->
       done()
     iframe.src = "/static"
 
+  it "should handle javascript protocol gracefully", ->
+    # Seen this done before, shouldn't trip Zombie
+    iframe.src = "javascript:false"
+    assert true
+

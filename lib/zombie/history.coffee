@@ -63,9 +63,14 @@ class History
   # Make a request to external resource. We use this to fetch pages and
   # submit forms, see _loadPage and _submit.
   _resource: (url, method, data, headers)->
-    method = (method || "GET").toUpperCase()
-    unless url.protocol == "file:" || (url.protocol && url.hostname)
-      throw new Error("Cannot load resource: #{URL.format(url)}")
+    switch url.protocol
+      when "http:", "https:", "file:"
+        undefined # Proceeed to load resource ...
+      when "javascript:"
+        # This means evaluate the expression ...
+        script = url.path
+      else # but not any other protocol for now
+        throw new Error("Cannot load resource: #{URL.format(url)}")
 
     # If the browser has a new window, use it. If a document was already
     # loaded into that window it would have state information we don't want
@@ -86,7 +91,7 @@ class History
         ProcessExternalResources: []
         FetchExternalResources:   ["iframe"]
       parser: @_browser.htmlParser
-      url: URL.format(url)
+      url:    URL.format(url)
 
     # require("html5").HTML5
     if @_browser.runScripts
@@ -104,6 +109,17 @@ class History
     if @_browser.runScripts
       Scripts.addInlineScriptSupport document
 
+    # If the location is javascript:, evaluate the script but don't load
+    # anything
+    if script
+      try
+        @_window._evaluate script, "javascript:"
+        @_browser.emit "loaded", @_browser
+      catch error
+        @_browser.emit "error", error
+      return
+
+    method = (method || "GET").toUpperCase()
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
     referer = @_browser.referer || @_stack[@_index-1]?.url?.href
     headers["referer"] = referer if referer
