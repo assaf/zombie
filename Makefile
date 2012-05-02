@@ -1,15 +1,24 @@
 default : test
-.PHONY : test setup
+.PHONY : build clean publish setup test
 
 
 # Setup everything
 setup :
 	npm install
 
-
 # Run test suite
-test :
+test : setup
 	npm test
+
+
+# Remove temporary files
+clean :
+	rm -rf html man7
+	rm -f lib/zombie/*.js
+
+# CoffeeScript to JavaScript
+build : clean
+	coffee -b -c -l -o lib/zombie lib/zombie/*.coffee
 
 
 # Documentation consists of Markdown files converted to HTML, CSS/images copied over, annotated source code and PDF.
@@ -64,11 +73,6 @@ man7/zombie-%.7 : doc/%.md
 	ronn --roff $< > $@
 
 
-# Clean up temporary directories
-clean :
-	rm -rf html man7
-
-
 # Get version number from package.json, need this for tagging.
 version = $(shell node -e "console.log(JSON.parse(require('fs').readFileSync('package.json')).version)")
 
@@ -78,9 +82,11 @@ publish-docs : html html/source html/zombie.pdf
 	rsync -chr --del --stats html/ labnotes.org:/var/www/zombie/
 
 # npm publish, public-docs and tag
-publish : clean man7 publish-docs
-	git push
+publish : build doc man7
 	npm publish
+	git push
 	git tag v$(version)
 	git push --tags origin master
+	make publish-docs
+	make clean
 

@@ -1,5 +1,5 @@
 Replay    = require("replay")
-Browser   = require("../../lib/zombie.js")
+Browser   = require("../../lib/zombie")
 
 
 # Always run in verbose mode on Travis.
