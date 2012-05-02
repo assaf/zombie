@@ -1,8 +1,6 @@
 # Fix things that JSDOM doesn't do quite right.
 HTML = require("jsdom").dom.level3.html
 URL = require("url")
-CoffeeScript = require("coffee-script")
-{ raise } = require("./helpers")
 
 
 ###
@@ -62,26 +60,6 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
       url = URL.resolve(parent.location.href, URL.parse(node._nodeValue))
       iframe.window.location.href = url
   return iframe
-
-
-# Support CoffeeScript.  Just because.
-HTML.languageProcessors.coffeescript = (element, code, filename)->
-  @javascript(element, CoffeeScript.compile(code), filename)
-
-
-# If JSDOM encounters a JS error, it fires on the element.  We expect it to be
-# fires on the Window.  We also want better stack traces.
-HTML.languageProcessors.javascript = (element, code, filename)->
-  if doc = element.ownerDocument
-    window = doc.parentWindow
-    try
-      window._evaluate code, filename
-    catch error
-      unless error instanceof Error
-        clone = new Error(error.message)
-        clone.stack = error.stack
-        error = clone
-      raise element: element, location: filename, from: __filename, error: error
 
 
 # Support for opacity style property.

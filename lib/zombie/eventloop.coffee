@@ -3,7 +3,7 @@
 
 
 URL = require("url")
-{ raise } = require("./helpers")
+{ raise } = require("./scripts")
 
 
 # Handles the Window event loop, timers and pending requests.
