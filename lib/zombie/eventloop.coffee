@@ -29,15 +29,8 @@ class EventLoop
     # interval.
     execute = (scope, code, notice)=>
       @_browser.log notice
-      try
-        if typeof code == "string" || code instanceof String
-          return window.run code
-        else
-          return code.call window
-      catch error
-        raise element: window.document, from: __filename, scope: scope, error: error
-      finally
-        @_next()
+      window._evaluate code
+      @_next()
 
     # Add new timeout.  If the timeout is short enough, we ask `wait` to automatically wait for it to fire, by storing
     # the time in `timer.next`.  We need to clear `next` after the timer fires or when cancelled.
@@ -118,8 +111,10 @@ class EventLoop
 
   # Dispatch event asynchronously, wait for it to complete.
   dispatch: (target, event)->
-    @perform (done)=>
-      target.dispatchEvent event
+    @perform (done)->
+      window = (target.ownerDocument || target.document).window
+      window._evaluate ->
+        target.dispatchEvent event
       done()
 
   # Process all events from the queue.  This method returns immediately, events

@@ -33,10 +33,11 @@ HTML.resourceLoader.load = (element, href, callback)->
         if /^javascript:/.test(href)
           url = URL.parse(href)
         else
-          url = @resolve(element.window.parent.location, href)
+          window = element.contentWindow
+          url = @resolve(window.parent.location, href)
           loaded = (response, filename)->
             callback response.body, URL.parse(response.url).pathname
-          element.window.browser.resources.get url, @enqueue(element, loaded, url.pathname)
+          window.browser.resources.get url, @enqueue(element, loaded, url.pathname)
       else
         url = URL.parse(@resolve(document, href))
         if url.hostname
@@ -52,16 +53,34 @@ HTML.resourceLoader.load = (element, href, callback)->
 
 # Support for iframes that load content when you set the src attribute.
 HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
-  parent = doc.parentWindow
-
+  parent = doc.window
   iframe = new HTML.HTMLIFrameElement(doc, tag)
-  iframe.window = parent.browser.open(parent: parent)
-  iframe.window.parent = parent
-  iframe._attributes.setNamedItem = (node)->
-    HTML.NamedNodeMap.prototype.setNamedItem.call iframe._attributes, node
-    if node._nodeName == "src" && node._nodeValue
-      url = URL.resolve(parent.location.href, URL.parse(node._nodeValue))
-      iframe.window.location.href = url
+
+  # Need to bypass JSDOM's window/document creation and use ours
+  contentWindow = parent.browser.open(parent: parent)
+  Object.defineProperty iframe, "contentWindow", get: ->
+    return contentWindow
+  Object.defineProperty iframe, "contentDocument", get: ->
+    return contentWindow.document
+
+  # This is also necessary to prevent JSDOM from messing with window/document
+  iframe.setAttribute = (name, value)->
+    HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
+    if name == "name"
+      # Set window name from iframe name attribute.
+      contentWindow.name = iframe.name
+      #parent.__defineGetter__ value, -> return contentWindow
+    else if name == "src" && value
+      # Point IFrame at new location and wait for it to load
+      contentWindow.location = URL.resolve(parent.location, value)
+      contentWindow.document.addEventListener "DOMContentLoaded", (event)->
+        # IFrame could have a new window now, need to update reference and
+        # fire onload event on the iframe element itself.
+        contentWindow = event.target.window
+        onload = parent.document.createEvent("HTMLEvents")
+        onload.initEvent "load", false, false
+        parent.browser._eventloop.dispatch iframe, onload
+
   return iframe
 
 
@@ -95,21 +114,23 @@ HTML.Node.prototype.__defineGetter__ "textContent", ->
     return null
       
 
+# Form elements collection should allow retrieving individual element by its
+# name, e.g. form.elements["username"] => <input name="username">
 HTML.NodeList.prototype.update = ->
-    if @_element && @_version < @_element._version
-      for i in [0.. @_length]
-        delete this[i]
-      if @_names
-        for name in @_names
-          delete this[name]
-      nodes = @_snapshot = @_query()
-      @_length = nodes.length
-      @_names = []
-      for i, node of nodes
-        this[i] = node
-        if name = node.name
-          @_names.push name
-          this[node.name] = node
-      @_version = @_element._version
-    return @_snapshot
+  if @_element && @_version < @_element._version
+    for i in [0.. @_length]
+      delete this[i]
+    if @_names
+      for name in @_names
+        delete this[name]
+    nodes = @_snapshot = @_query()
+    @_length = nodes.length
+    @_names = []
+    for i, node of nodes
+      this[i] = node
+      if name = node.name
+        @_names.push name
+        this[node.name] = node
+    @_version = @_element._version
+  return @_snapshot
 

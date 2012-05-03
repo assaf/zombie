@@ -30,13 +30,14 @@ class Entry
 # Represents window.history.
 class History
   constructor: (window)->
-    @_apply window
+    @_use window
     # History is a stack of Entry objects.
     @_stack = []
     @_index = -1
 
   # Apply to window.
-  _apply: (@_window)->
+  _use: (window)->
+    @_window = window
     @_browser = @_window.browser
     # Add Location/History to window.
     Object.defineProperty @_window, "location",
@@ -75,9 +76,10 @@ class History
     # If the browser has a new window, use it. If a document was already
     # loaded into that window it would have state information we don't want
     # (e.g. window.$) so open a new window.
-    if @_window.top == @_window.parent && @_window.document
-      newWindow = @_browser.open(history: this)
-      @_apply newWindow
+    if @_window.document
+      parent = @_window.parent unless @_window == @_window.parent
+      newWindow = @_browser.open(history: this, parent: parent, name: @_window.name)
+      @_use newWindow
 
     # Create new DOM Level 3 document, add features (load external
     # resources, etc) and associate it with current document. From this
@@ -121,7 +123,7 @@ class History
 
     method = (method || "GET").toUpperCase()
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
-    referer = @_browser.referer || @_stack[@_index-1]?.url?.href
+    referer = @_stack[@_index-1]?.url?.href || @_browser.referer
     headers["referer"] = referer if referer
 
     if credentials = @_browser.credentials
@@ -142,13 +144,20 @@ class History
         @_browser.emit "error", error
       else
         @_browser.response = [response.statusCode, response.headers, response.body]
-        @_stack[@_index].update response.url
+        url = URL.parse(response.url)
+        @_stack[@_index].update url
         # For responses that contain a non-empty body, load it.  Otherwise, we
         # already have an empty document in there courtesy of JSDOM.
         if response.body
           document.open()
           document.write response.body
           document.close()
+
+        if url.hash
+          evt = @_window.document.createEvent("HTMLEvents")
+          evt.initEvent "hashchange", true, false
+          @_browser.dispatchEvent @_window, evt
+
         # Error on any response that's not 2xx, or if we're not smart enough to
         # process the content and generate an HTML DOM tree from it.
         if response.statusCode >= 400

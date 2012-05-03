@@ -158,68 +158,88 @@ class Browser extends EventEmitter
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
     # Add context for evaluating scripts.
-    newWindow = JSDom.createWindow(HTML)
-    Object.defineProperty newWindow, "browser", value: this
+    window = JSDom.createWindow(HTML)
+    Object.defineProperty window, "browser", value: this
 
     # Evaulate in context of window. This can be called with a script (String) or a function.
-    newWindow._evaluate = (code, filename)->
-      if typeof code == "string" || code instanceof String
-        newWindow.run code, filename
-      else
-        code.call newWindow
+    window._evaluate = (code, filename)->
+      try
+        global.window = window # the current window, postMessage needs this
+        if typeof code == "string" || code instanceof String
+          window.run code, filename
+        else
+          code.call window
+      finally
+        global.window = null
 
     # If top window, switch browser to new window, clear any resources and errors.
     if parent = options?.parent
-      newWindow.parent = parent
-      newWindow.top = parent.top
+      Object.defineProperty window, "parent", value: parent
+      Object.defineProperty window, "top", value: parent.top
     else
       @_eventloop.reset()
-      @window = newWindow
+      @window = window
       @errors = []
       @resources.clear()
+      Object.defineProperty window, "parent", value: window
+      Object.defineProperty window, "top", value: window
 
-    @_eventloop.apply newWindow
-    Object.defineProperty newWindow, "history", value: options?.history || new History(newWindow)
+    @_eventloop.apply window
+    Object.defineProperty window, "history", value: options?.history || new History(window)
 
-    newWindow.__defineGetter__ "title", ->
+    window.__defineGetter__ "title", ->
       return @document?.title
-    newWindow.__defineSetter__ "title", (title)->
+    window.__defineSetter__ "title", (title)->
       @document.title = title
     
     # Present in browsers, not in spec Used by Google Analytics see
     # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
-    newWindow.navigator.javaEnabled = ->
+    window.navigator.javaEnabled = ->
       return false
-    newWindow.navigator.userAgent = @userAgent
-    newWindow.name = @windowName
+    window.navigator.userAgent = @userAgent
+    window.name = options?.name || @windowName
     
-    @_cookies.extend newWindow
-    @_storages.extend newWindow
-    @_interact.extend newWindow
-    @_xhr.extend newWindow
-    @_ws.extend newWindow
-    newWindow.screen = new Screen()
-    newWindow.JSON = JSON
+    @_cookies.extend window
+    @_storages.extend window
+    @_interact.extend window
+    @_xhr.extend window
+    @_ws.extend window
+    window.screen = new Screen()
+    window.JSON = JSON
 
     # Constructor for EventSource, URL is relative to document's.
-    newWindow.EventSource = (url)->
-      url = URL.resolve(newWindow.location, url)
-      newWindow.setInterval (->), 100 # We need this to trigger event loop
+    window.EventSource = (url)->
+      url = URL.resolve(window.location, url)
+      window.setInterval (->), 100 # We need this to trigger event loop
       return new EventSource(url)
 
-    newWindow.File = File
-    newWindow.Image = (width, height)->
-      img = new HTML.HTMLImageElement(newWindow.document)
+    window.File = File
+    window.Image = (width, height)->
+      img = new HTML.HTMLImageElement(window.document)
       img.width = width
       img.height = height
       return img
-    newWindow.console = new Console(@silent)
+    window.console = new Console(@silent)
+
+    # Help iframes talking with each other
+    window.postMessage = (data, targetOrigin)=>
+      document = window.document
+      return unless document # iframe not loaded
+      # Create the event now, but dispatch asynchronously
+      event = document.createEvent("MessageEvent")
+      event.initEvent "message", false, false
+      event.data = data
+      event.source = global.window
+      origin = global.window.location
+      event.origin = URL.format(protocol: origin.protocol, host: origin.host)
+      process.nextTick =>
+        @_eventloop.dispatch window, event
 
     # Default onerror handler.
-    newWindow.onerror = (event)=>
+    window.onerror = (event)=>
       error = event.error || new Error("Error loading script")
       @emit "error", error
-    return newWindow
+    return window
 
   # ### browser.error => Error
   #

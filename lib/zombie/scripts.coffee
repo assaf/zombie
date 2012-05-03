@@ -19,9 +19,9 @@ HTML.languageProcessors.javascript = (element, code, filename)->
       window._evaluate code, filename
     catch error
       unless error instanceof Error
-        clone = new Error(error.message)
-        clone.stack = error.stack
-        error = clone
+        cast = new Error(error.message)
+        cast.stack = error.stack
+        error = cast
       raise element: element, location: filename, from: __filename, error: error
 
 

@@ -2,6 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+Added support for `postMessage`.
+
+When following redirect with `#` in it, fire the `hashchange` event.
+
+IFrame window name based on element's `name` attribute.
+
+Fixed IFrame document and window to include Zombie enhancements.
+
+
 ## Version 0.13.6 2012-05-02
 
 You can now set document location to `javascript:expression` and it will

@@ -6,7 +6,7 @@ describe "Facebook Connect", ->
   browser = new Browser()
 
   before (done)->
-    brains.get "/browser/map", (req, res)->
+    brains.get "/browser/facebook", (req, res)->
       res.send """
       <html>
         <head>
@@ -19,6 +19,14 @@ describe "Facebook Connect", ->
                 xfbml      : true,
                 oauth      : true,
               });
+              document.getElementById("connect").addEventListener("click", function(event) {
+                event.preventDefault();
+                console.log("HERE")
+                window.FB.login(function(response) {
+                  console.log("THERE");
+                  console.log(response)
+                }, { scope: null }) 
+              })
             };
             (function(d){
                var js, id = 'facebook-jssdk'; if (d.getElementById(id)) {return;}
@@ -30,6 +38,7 @@ describe "Facebook Connect", ->
         </head>
         <body>
           <div id="fb-root"></div>
+          <a id="connect">Connect</a>
         </body>
       </html>
       """
@@ -37,7 +46,11 @@ describe "Facebook Connect", ->
     brains.ready done
 
   before (done)->
-    browser.visit "http://localhost:3003/browser/map", done
+    browser.visit "http://localhost:3003/browser/facebook", ->
+      browser.clickLink "Connect", ->
+        setTimeout ->
+          done()
+        , 500
 
   it "should show FB Connect option", ->
-    console.log browser.html()
+    console.log browser.evaluate("window.FB.getAuthResponse()")

@@ -96,12 +96,10 @@ describe "Browser", ->
             done()
 
         it "should call callback without error", ->
-          console.dir error
           assert error instanceof Error
         it "should indicate success", ->
           assert browser.success
         it "should pass errors to callback", ->
-          console.log errors
           assert.equal errors.length, 1
           assert.equal errors[0].message, "Cannot read property 'wrong' of undefined"
         it "should set browser errors", ->
