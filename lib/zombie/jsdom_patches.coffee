@@ -94,3 +94,22 @@ HTML.Node.prototype.__defineGetter__ "textContent", ->
   else
     return null
       
+
+HTML.NodeList.prototype.update = ->
+    if @_element && @_version < @_element._version
+      for i in [0.. @_length]
+        delete this[i]
+      if @_names
+        for name in @_names
+          delete this[name]
+      nodes = @_snapshot = @_query()
+      @_length = nodes.length
+      @_names = []
+      for i, node of nodes
+        this[i] = node
+        if name = node.name
+          @_names.push name
+          this[node.name] = node
+      @_version = @_element._version
+    return @_snapshot
+

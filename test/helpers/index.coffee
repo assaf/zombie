@@ -3,7 +3,7 @@ Browser   = require("../../lib/zombie")
 
 
 # Always run in verbose mode on Travis.
-Browser.debug = true if process.env.TRAVIS
+Browser.debug = true if process.env.TRAVIS || process.env.DEBUG
 Browser.silent = !Browser.debug
 
 
