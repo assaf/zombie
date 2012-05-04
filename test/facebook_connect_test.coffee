@@ -21,11 +21,9 @@ describe "Facebook Connect", ->
               });
               document.getElementById("connect").addEventListener("click", function(event) {
                 event.preventDefault();
-                console.log("HERE")
                 window.FB.login(function(response) {
-                  console.log("THERE");
                   console.log(response)
-                }, { scope: null }) 
+                })
               })
             };
             (function(d){
@@ -53,4 +51,5 @@ describe "Facebook Connect", ->
         , 500
 
   it "should show FB Connect option", ->
+    console.dir browser.errors
     console.log browser.evaluate("window.FB.getAuthResponse()")

@@ -262,6 +262,8 @@ describe "Browser", ->
         assert /Zombie.js\/\d\.\d/.test(browser.window.navigator.userAgent)
 
       describe "specified", ->
+        browser = new Browser()
+
         before (done)->
           browser.visit "http://localhost:3003/browser/useragent", { userAgent: "imposter" }, done
 
@@ -309,7 +311,7 @@ describe "Browser", ->
     it "should return status code", ->
       assert.equal browser.statusCode, 200
 
-  describe "follow express redirect", ->
+  describe "follow redirect", ->
     browser = new Browser()
 
     before (done)->
@@ -371,6 +373,126 @@ describe "Browser", ->
 
     it "should not show up as text node", ->
       assert.equal browser.text("body"), "This is  plain text"
+
+
+  describe "windows", ->
+
+    describe "new browser", ->
+      browser = new Browser()
+
+      it "should have about:blank window", ->
+        assert.equal browser.location.href, "about:blank"
+
+      it "should have empty document in that window", ->
+        assert browser.html("html")
+        assert.equal browser.text("html"), ""
+
+
+    describe "open blank window", ->
+      browser = new Browser()
+      window = null
+
+      before (done)->
+        window = browser.window.open(null, "popup")
+        browser.wait done
+
+      it "should create new window", ->
+        assert window
+
+      it "should set window name", ->
+        assert.equal window.name, "popup"
+
+      it "should be about:blank", ->
+        assert.equal window.location.href, "about:blank"
+
+
+    describe "open window to page", ->
+      browser = new Browser()
+      window = null
+
+      before (done)->
+        brains.get "/browser/popup", (req, res)-> res.send """
+          <h1>Popup window</h1>
+          """
+        brains.ready done
+
+      before (done)->
+        window = browser.window.open("http://localhost:3003/browser/popup", "popup")
+        browser.wait done
+
+      it "should create new window", ->
+        assert window
+
+      it "should set window name", ->
+        assert.equal window.name, "popup"
+
+      it "should load page", ->
+        assert.equal window.document.querySelector("h1").textContent, "Popup window"
+
+
+      describe "call open on named window", ->
+        named = null
+
+        before ->
+          named = browser.window.open(null, "popup")
+
+        it "should return existing window", ->
+          assert.equal named, window
+
+        it "should not change document location", ->
+          assert.equal named.location.href, "http://localhost:3003/browser/popup"
+
+
+    describe "open one window from another", ->
+      browser = new Browser()
+
+      before (done)->
+        brains.get "/browser/pop", (req, res)-> res.send """
+          <script>
+            document.title = window.open("/browser/popup", "popup")
+          </script>
+          """
+        brains.get "/browser/popup", (req, res)-> res.send """
+          <h1>Popup window</h1>
+          """
+        brains.ready done
+
+      before (done)->
+        browser.visit "http://localhost:3003/browser/pop", done
+
+      it "should open both windows", ->
+        assert.equal browser.windows.all().length, 2
+        assert.equal browser.windows.get(0).name, ""
+        assert.equal browser.windows.get(1).name, "popup"
+
+      it "should switch to last window", ->
+        assert.equal browser.window, browser.windows.get(1)
+
+      it "should reference opener from opened window", ->
+        assert.equal browser.window.opener, browser.windows.get(0)
+
+
+      describe "and close it", ->
+        before ->
+          browser.window.close()
+
+        it "should lose that window", ->
+          assert.equal browser.windows.all().length, 1
+          assert.equal browser.windows.get(0).name, ""
+          assert !browser.windows.get(1)
+
+        it "should switch to last window", ->
+          assert.equal browser.window, browser.windows.get(0)
+
+
+        describe "and close main window", ->
+          before ->
+            browser.window.close()
+
+          it "should keep that window", ->
+            assert.equal browser.windows.all().length, 1
+            assert.equal browser.windows.get(0).name, ""
+            assert.equal browser.window, browser.windows.get(0)
 
 
   describe "fork", ->

@@ -4,29 +4,23 @@ require "./xpath"
 
 { deprecated }    = require("./helpers")
 Cache             = require("./cache")
-Console           = require("./console")
 Cookies           = require("./cookies")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
-EventSource       = require("eventsource")
 FS                = require("fs")
-History           = require("./history")
 { HTML5 }         = require("html5")
 Interact          = require("./interact")
-JSDom             = require("jsdom")
+JSDOM             = require("jsdom")
 Mime              = require("mime")
 Path              = require("path")
 Resources         = require("./resources")
-Scripts           = require("./scripts")
 Storages          = require("./storage")
 URL               = require("url")
+Windows           = require("./windows")
 XHR               = require("./xhr")
-WebSocket         = require("./websocket")
 
 
-class File
-
-HTML = JSDom.dom.level3.html
+HTML = JSDOM.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "proxy", "referer", "runScripts", "silent", "site", "userAgent", "waitFor", "windowName"]
 
@@ -46,8 +40,6 @@ class Browser extends EventEmitter
     @_storages = new Storages()
     @_interact = Interact.use(this)
     @_xhr = XHR.use(@_cache)
-    @_ws = WebSocket.use(this)
-    @resources = new Resources(this)
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.
@@ -127,8 +119,8 @@ class Browser extends EventEmitter
     # Returns all errors reported while loading this window.
     @errors = []
 
-    # Always start with an open window.
-    @open()
+    @resources = new Resources(this)
+    @windows = new Windows(this)
 
 
   # Changes the browser options, and calls the function with a callback (reset).  When you're done processing, call the
@@ -155,91 +147,16 @@ class Browser extends EventEmitter
   # Windows
   # -------
 
+  # Returns the currently open window
+  @prototype.__defineGetter__ "window", ->
+    return @windows.current
+
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
-    # Add context for evaluating scripts.
-    window = JSDom.createWindow(HTML)
-    Object.defineProperty window, "browser", value: this
-
-    # Evaulate in context of window. This can be called with a script (String) or a function.
-    window._evaluate = (code, filename)->
-      try
-        global.window = window # the current window, postMessage needs this
-        if typeof code == "string" || code instanceof String
-          window.run code, filename
-        else
-          code.call window
-      finally
-        global.window = null
-
-    # If top window, switch browser to new window, clear any resources and errors.
-    if parent = options?.parent
-      Object.defineProperty window, "parent", value: parent
-      Object.defineProperty window, "top", value: parent.top
-    else
-      @_eventloop.reset()
-      @window = window
-      @errors = []
-      @resources.clear()
-      Object.defineProperty window, "parent", value: window
-      Object.defineProperty window, "top", value: window
-
-    @_eventloop.apply window
-    Object.defineProperty window, "history", value: options?.history || new History(window)
-
-    window.__defineGetter__ "title", ->
-      return @document?.title
-    window.__defineSetter__ "title", (title)->
-      @document.title = title
-    
-    # Present in browsers, not in spec Used by Google Analytics see
-    # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
-    window.navigator.javaEnabled = ->
-      return false
-    window.navigator.userAgent = @userAgent
-    window.name = options?.name || @windowName
-    
-    @_cookies.extend window
-    @_storages.extend window
-    @_interact.extend window
-    @_xhr.extend window
-    @_ws.extend window
-    window.screen = new Screen()
-    window.JSON = JSON
-
-    # Constructor for EventSource, URL is relative to document's.
-    window.EventSource = (url)->
-      url = URL.resolve(window.location, url)
-      window.setInterval (->), 100 # We need this to trigger event loop
-      return new EventSource(url)
-
-    window.File = File
-    window.Image = (width, height)->
-      img = new HTML.HTMLImageElement(window.document)
-      img.width = width
-      img.height = height
-      return img
-    window.console = new Console(@silent)
-
-    # Help iframes talking with each other
-    window.postMessage = (data, targetOrigin)=>
-      document = window.document
-      return unless document # iframe not loaded
-      # Create the event now, but dispatch asynchronously
-      event = document.createEvent("MessageEvent")
-      event.initEvent "message", false, false
-      event.data = data
-      event.source = global.window
-      origin = global.window.location
-      event.origin = URL.format(protocol: origin.protocol, host: origin.host)
-      process.nextTick =>
-        @_eventloop.dispatch window, event
-
-    # Default onerror handler.
-    window.onerror = (event)=>
-      error = event.error || new Error("Error loading script")
-      @emit "error", error
-    return window
+    @_eventloop.reset()
+    @errors = []
+    @resources.clear()
+    return @windows.open(options || {})
 
   # ### browser.error => Error
   #
@@ -413,7 +330,7 @@ class Browser extends EventEmitter
   #
   # Returns true if the request for loading the window followed a redirect.
   @prototype.__defineGetter__ "redirected", ->
-    return @resources.first?.response?.redirected
+    return !!@resources.last?.response?.redirected
 
   # ### source => String
   #
@@ -648,7 +565,7 @@ class Browser extends EventEmitter
     if field && field.tagName == "INPUT" && field.type == "file"
       if filename
         stat = FS.statSync(filename)
-        file = new File()
+        file = new (@window.File)()
         file.name = Path.basename(filename)
         file.type = Mime.lookup(filename)
         file.size = stat.size
@@ -908,21 +825,6 @@ class Browser extends EventEmitter
       console.log "Document:\n#{indent html.split("\n")}"
     else
       console.log "No document" unless @document
-
-
-class Screen
-  constructor: ->
-    @width = 1280
-    @height = 800
-    @left = 0
-    @top = 0
-
-  @prototype.__defineGetter__ "availLeft", -> 0
-  @prototype.__defineGetter__ "availTop", -> 0
-  @prototype.__defineGetter__ "availWidth", -> @width
-  @prototype.__defineGetter__ "availHeight", -> @height
-  @prototype.__defineGetter__ "colorDepth", -> 24
-  @prototype.__defineGetter__ "pixelDepth", -> 24
 
 
 Browser.VERSION = VERSION

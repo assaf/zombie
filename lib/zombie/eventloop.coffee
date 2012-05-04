@@ -14,6 +14,7 @@ class EventLoop
     # Requests on wait that cannot be handled yet: there's no event in the queue, but we anticipate one (in-progress XHR
     # request).
     @_waiting = []
+    @_timers = []
 
   # Reset the event loop (clearning any timers, etc) before using a new window.
   reset: ->

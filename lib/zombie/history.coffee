@@ -2,8 +2,11 @@
 util    = require("util")
 JSDOM   = require("jsdom")
 HTML    = JSDOM.dom.level3.html
-URL     = require("url")
 Scripts = require("./scripts")
+URL     = require("url")
+
+
+ABOUT_BLANK = URL.parse("about:blank")
 
 
 # History entry. Consists of:
@@ -33,7 +36,7 @@ class History
     @_use window
     # History is a stack of Entry objects.
     @_stack = []
-    @_index = -1
+    @_index = 0
 
   # Apply to window.
   _use: (window)->
@@ -42,7 +45,7 @@ class History
     # Add Location/History to window.
     Object.defineProperty @_window, "location",
       get: =>
-        return @_stack[@_index]?.location || new Location(this, {})
+        return @_stack[@_index]?.location || new Location(this, ABOUT_BLANK)
       set: (url)=>
         @_assign @_resolve(url)
 
@@ -64,28 +67,11 @@ class History
   # Make a request to external resource. We use this to fetch pages and
   # submit forms, see _loadPage and _submit.
   _resource: (url, method, data, headers)->
-    switch url.protocol
-      when "http:", "https:", "file:"
-        undefined # Proceeed to load resource ...
-      when "javascript:"
-        # This means evaluate the expression ...
-        script = url.path
-      else # but not any other protocol for now
-        throw new Error("Cannot load resource: #{URL.format(url)}")
-
-    # If the browser has a new window, use it. If a document was already
-    # loaded into that window it would have state information we don't want
-    # (e.g. window.$) so open a new window.
-    if @_window.document
-      parent = @_window.parent unless @_window == @_window.parent
-      newWindow = @_browser.open(history: this, parent: parent, name: @_window.name)
-      @_use newWindow
-
     # Create new DOM Level 3 document, add features (load external
     # resources, etc) and associate it with current document. From this
     # point on the browser sees a new document, client register event
     # handler for DOMContentLoaded/error.
-    options =
+    jsdom_opts =
       deferClose: true
       features:
         QuerySelector:            true
@@ -97,75 +83,94 @@ class History
 
     # require("html5").HTML5
     if @_browser.runScripts
-      options.features.ProcessExternalResources.push "script"
-      options.features.FetchExternalResources.push "script"
+      jsdom_opts.features.ProcessExternalResources.push "script"
+      jsdom_opts.features.FetchExternalResources.push "script"
     if @_browser.loadCSS
-      options.features.FetchExternalResources.push "css"
+      jsdom_opts.features.FetchExternalResources.push "css"
 
     # Create an empty document.  We do this here so the document is available
     # before we start loading.  Some code waits for document to load
     # (browser.visit) but some doesn't (set href, then bind onload).
-    document = JSDOM.jsdom(null, HTML, options)
-    @_window.document = document
-    document.window = document.parentWindow = @_window
+    document = JSDOM.jsdom(null, HTML, jsdom_opts)
     if @_browser.runScripts
       Scripts.addInlineScriptSupport document
 
-    # If the location is javascript:, evaluate the script but don't load
-    # anything
-    if script
-      try
-        @_window._evaluate script, "javascript:"
-        @_browser.emit "loaded", @_browser
-      catch error
-        @_browser.emit "error", error
-      return
+    # Associate window and document
+    @_window.document = document
+    document.window = document.parentWindow = @_window
+    # Set this to the same user agent that's loading this page
+    @_window.navigator.userAgent = @_browser.userAgent
 
-    method = (method || "GET").toUpperCase()
-    headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
-    referer = @_stack[@_index-1]?.url?.href || @_browser.referer
-    headers["referer"] = referer if referer
-
-    if credentials = @_browser.credentials
-      switch credentials.scheme.toLowerCase()
-        when "basic"
-          base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
-          headers["authorization"] = "Basic #{base64}"
-        when "bearer"
-          headers["authorization"] = "Bearer #{credentials.token}"
-        when "oauth"
-          headers["authorization"] = "OAuth #{credentials.token}"
-    
-    @_browser.resources.request method, url, data, headers, (error, response)=>
-      if error
-        document.open()
-        document.write error.message
-        document.close()
-        @_browser.emit "error", error
-      else
-        @_browser.response = [response.statusCode, response.headers, response.body]
-        url = URL.parse(response.url)
+    # Let's handle the specifics of each protocol
+    switch url.protocol
+      when "about:"
+        # Blank document. We're done.
         @_stack[@_index].update url
-        # For responses that contain a non-empty body, load it.  Otherwise, we
-        # already have an empty document in there courtesy of JSDOM.
-        if response.body
-          document.open()
-          document.write response.body
-          document.close()
-
-        if url.hash
-          evt = @_window.document.createEvent("HTMLEvents")
-          evt.initEvent "hashchange", true, false
-          @_browser.dispatchEvent @_window, evt
-
-        # Error on any response that's not 2xx, or if we're not smart enough to
-        # process the content and generate an HTML DOM tree from it.
-        if response.statusCode >= 400
-          @_browser.emit "error", new Error("Server returned status code #{response.statusCode}")
-        else if document.documentElement
+        @_browser.emit "loaded", @_browser
+      when "javascript:"
+        # This means evaluate the expression ... do not update location but
+        # start with empty page.
+        unless @_stack[@_index]
+          @_stack[@_index].update ABOUT_BLANK
+        try
+          @_window._evaluate script, "javascript:"
           @_browser.emit "loaded", @_browser
-        else
-          @_browser.emit "error", new Error("Could not parse document at #{URL.format(url)}")
+        catch error
+          @_browser.emit "error", error
+      when "http:", "https:", "file:"
+        # Proceeed to load resource ...
+       
+        method = (method || "GET").toUpperCase()
+        headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
+        referer = @_stack[@_index-1]?.url?.href || @_browser.referer
+        headers["referer"] = referer if referer
+
+        if url.protocol == "file:"
+          url.pathname = "/#{url.host}/#{url.pathname}"
+
+        if credentials = @_browser.credentials
+          switch credentials.scheme.toLowerCase()
+            when "basic"
+              base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
+              headers["authorization"] = "Basic #{base64}"
+            when "bearer"
+              headers["authorization"] = "Bearer #{credentials.token}"
+            when "oauth"
+              headers["authorization"] = "OAuth #{credentials.token}"
+       
+        @_browser.resources.request method, url, data, headers, (error, response)=>
+          if error
+            document.open()
+            document.write error.message
+            document.close()
+            @_browser.emit "error", error
+          else
+            @_browser.response = [response.statusCode, response.headers, response.body]
+            url = URL.parse(response.url)
+            @_stack[@_index].update url
+            # For responses that contain a non-empty body, load it.  Otherwise, we
+            # already have an empty document in there courtesy of JSDOM.
+            if response.body
+              document.open()
+              document.write response.body
+              document.close()
+
+            if url.hash
+              evt = @_window.document.createEvent("HTMLEvents")
+              evt.initEvent "hashchange", true, false
+              @_browser.dispatchEvent @_window, evt
+
+            # Error on any response that's not 2xx, or if we're not smart enough to
+            # process the content and generate an HTML DOM tree from it.
+            if response.statusCode >= 400
+              @_browser.emit "error", new Error("Server returned status code #{response.statusCode}")
+            else if document.documentElement
+              @_browser.emit "loaded", @_browser
+            else
+              @_browser.emit "error", new Error("Could not parse document at #{URL.format(url)}")
+        
+      else # but not any other protocol for now
+        throw new Error("Cannot load resource: #{URL.format(url)}")
 
   # ### history.forward()
   forward: -> @go(1)
@@ -207,7 +212,8 @@ class History
   # Push new state to the stack, do not reload
   pushState: (state, title, url)->
     url = @_resolve(url)
-    @_stack[++@_index] = new Entry(this, url, { state: state, title: title, pop: true })
+    @_advance()
+    @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
 
   # ### history.replaceState(state, title, url)
   #
@@ -229,7 +235,8 @@ class History
     url = @_resolve(url)
     was = @_stack[@_index]?.url # before we destroy stack
     @_stack = @_stack[0..@_index]
-    @_stack[++@_index] = new Entry(this, url)
+    @_advance()
+    @_stack[@_index] = new Entry(this, url)
     @_pageChanged was
 
   # Location uses this to load new page without changing history.
@@ -255,7 +262,8 @@ class History
     headers = { "content-type": enctype || "application/x-www-form-urlencoded" }
     @_stack = @_stack[0..@_index]
     url = @_resolve(url)
-    @_stack[++@_index] = new Entry(this, url)
+    @_advance()
+    @_stack[@_index] = new Entry(this, url)
     @_resource @_stack[@_index].url, method, data, headers
 
   # Used to dump state to console (debuggin)
@@ -285,7 +293,15 @@ class History
       continue if line[0] == "#" || line == ""
       [url, state] = line.split(/\s/)
       options = state && { state: JSON.parse(state), title: null, pop: true }
-      @_stack[++@_index] = new Entry(this, url, state)
+      @_advance()
+      @_stack[@_index] = new Entry(this, url, state)
+
+  # Advance to the next position in history. Used when opening a new page, but
+  # smart enough to not count about:blank in history.
+  _advance: ->
+    current = @_stack[@_index]
+    if current && ~["http:", "https:", "file:"].indexOf(current.url.protocol)
+      ++@_index
 
 
 # ## window.location

@@ -2,7 +2,12 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.14.0 2012-05-03
+
 Added support for `postMessage`.
+
+Added support for `window.open()` and working with more than one window at a
+time.
 
 When following redirect with `#` in it, fire the `hashchange` event.
 
