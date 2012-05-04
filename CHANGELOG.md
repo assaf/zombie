@@ -7,7 +7,7 @@ zombie.js-changelog(7) -- Changelog
 Added support for `postMessage`.
 
 Added support for `window.open()` and working with more than one window at a
-time.
+time (`browser.windows`).
 
 When following redirect with `#` in it, fire the `hashchange` event.
 
@@ -18,7 +18,7 @@ Fixed IFrame document and window to include Zombie enhancements.
 Zombie can now show FB Connect form.
 
     453 tests
-    10.0 sec to complete
+    9.8 sec to complete
 
 
 ## Version 0.13.6 2012-05-02
