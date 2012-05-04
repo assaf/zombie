@@ -113,7 +113,7 @@ class History
         unless @_stack[@_index]
           @_stack[@_index].update ABOUT_BLANK
         try
-          @_window._evaluate script, "javascript:"
+          @_window._evaluate url.pathname, "javascript:"
           @_browser.emit "loaded", @_browser
         catch error
           @_browser.emit "error", error

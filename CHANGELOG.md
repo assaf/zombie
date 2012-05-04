@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 0.14.0 2012-05-03
+## Version 0.13.7 2012-05-03
 
 Added support for `postMessage`.
 
@@ -14,6 +14,8 @@ When following redirect with `#` in it, fire the `hashchange` event.
 IFrame window name based on element's `name` attribute.
 
 Fixed IFrame document and window to include Zombie enhancements.
+
+Zombie can now show FB Connect form.
 
 
 ## Version 0.13.6 2012-05-02

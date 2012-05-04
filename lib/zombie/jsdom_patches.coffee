@@ -55,28 +55,23 @@ HTML.resourceLoader.load = (element, href, callback)->
 HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
   parent = doc.window
   iframe = new HTML.HTMLIFrameElement(doc, tag)
-
-  # Need to bypass JSDOM's window/document creation and use ours
-  contentWindow = parent.browser.open(parent: parent)
+  window = null
   Object.defineProperty iframe, "contentWindow", get: ->
-    return contentWindow
+    return window
   Object.defineProperty iframe, "contentDocument", get: ->
-    return contentWindow.document
+    return window.document
 
   # This is also necessary to prevent JSDOM from messing with window/document
   iframe.setAttribute = (name, value)->
     HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
-    if name == "name"
-      # Set window name from iframe name attribute.
-      contentWindow.name = iframe.name
-      #parent.__defineGetter__ value, -> return contentWindow
-    else if name == "src" && value
+    if name == "src" && value
+      unless window
+        # Need to bypass JSDOM's window/document creation and use ours
+        window = parent.browser.open(name: iframe.name, parent: parent)
+
       # Point IFrame at new location and wait for it to load
-      contentWindow.location = URL.resolve(parent.location, value)
-      contentWindow.document.addEventListener "DOMContentLoaded", (event)->
-        # IFrame could have a new window now, need to update reference and
-        # fire onload event on the iframe element itself.
-        contentWindow = event.target.window
+      window.location = URL.resolve(parent.location, value)
+      window.document.addEventListener "DOMContentLoaded", (event)->
         onload = parent.document.createEvent("HTMLEvents")
         onload.initEvent "load", false, false
         parent.browser._eventloop.dispatch iframe, onload

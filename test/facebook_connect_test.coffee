@@ -45,11 +45,7 @@ describe "Facebook Connect", ->
 
   before (done)->
     browser.visit "http://localhost:3003/browser/facebook", ->
-      browser.clickLink "Connect", ->
-        setTimeout ->
-          done()
-        , 500
+      browser.clickLink "Connect", done
 
-  it "should show FB Connect option", ->
-    console.dir browser.errors
-    console.log browser.evaluate("window.FB.getAuthResponse()")
+  it "should show FB Connect login form", ->
+    assert browser.query(".login_form_container #loginform")
