@@ -15,7 +15,7 @@ describe "Scripts", ->
           <head>
             <script src="/jquery.js"></script>
             <script src="/sammy.js"></script>
-            <script src="app.js"></script>
+            <script src="./app.js"></script>
           </head>
           <body>
             <div id="main">

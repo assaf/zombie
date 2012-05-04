@@ -4,7 +4,13 @@ zombie.js-changelog(7) -- Changelog
 
 ## Version 0.13.8 2012-05-04
 
+Redirection is now handled by Zombie instead of Request, set cookies to the
+right domain.
+
 Run without Coffee-Script.
+
+    453 tests
+    9.7 sec to complete
 
 
 ## Version 0.13.7 2012-05-03

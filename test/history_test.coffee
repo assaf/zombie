@@ -1,5 +1,6 @@
 { assert, brains, Browser } = require("./helpers")
 JSDOM = require("jsdom")
+URL   = require("url")
 
 
 describe "History", ->
@@ -10,9 +11,12 @@ describe "History", ->
 
 
   before (done)->
-    brains.get "/history/boo", (req, res)->
+    brains.get "/history/boo/", (req, res)->
       response = if req.query.redirected then "Redirected" else "Eeek!"
       res.send "<html><title>#{response}</title></html>"
+
+    brains.get "/history/boo", (req, res)->
+      res.redirect URL.format(pathname: "/history/boo/", query: req.query)
 
     brains.get "/history/redirect", (req, res)->
       res.redirect "/history/boo?redirected=true"
@@ -155,7 +159,7 @@ describe "History", ->
         browser.visit "http://localhost:3003/history/redirect", done
 
       it "should redirect to final destination", ->
-        assert.equal browser.location, "http://localhost:3003/history/boo?redirected=true"
+        assert.equal browser.location, "http://localhost:3003/history/boo/?redirected=true"
       it "should pass query parameter", ->
         assert.equal browser.text("title"), "Redirected"
       it "should not add location in history", ->
@@ -172,7 +176,7 @@ describe "History", ->
             done()
 
       it "should redirect to the previous path", ->
-        assert.equal browser.location.href, "http://localhost:3003/history/boo"
+        assert.equal browser.location.href, "http://localhost:3003/history/boo/"
       it "should pass query parameter", ->
         assert /Eeek!/.test(browser.text("title"))
       it "should not add location in history", ->
@@ -229,7 +233,7 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        assert.equal browser.location, "http://localhost:3003/history/boo"
+        assert.equal browser.location, "http://localhost:3003/history/boo/"
       it "should load document", ->
         assert /Eeek!/.test(browser.html())
 
@@ -245,7 +249,7 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        assert.equal browser.location, "http://localhost:3003/history/boo"
+        assert.equal browser.location, "http://localhost:3003/history/boo/"
       it "should load document", ->
         assert /Eeek!/.test(browser.html())
 
@@ -280,7 +284,7 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        assert.equal browser.location, "http://localhost:3003/history/boo"
+        assert.equal browser.location, "http://localhost:3003/history/boo/"
       it "should load document", ->
         assert /Eeek!/.test(browser.html())
 
@@ -298,7 +302,7 @@ describe "History", ->
       it "should not add page to history", ->
         assert.equal browser.history.length, 1
       it "should change location URL", ->
-        assert.equal browser.location, "http://localhost:3003/history/boo"
+        assert.equal browser.location, "http://localhost:3003/history/boo/"
       it "should load document", ->
         assert /Eeek!/.test(browser.html()) 
 
@@ -357,7 +361,7 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        assert.equal browser.location, "http://localhost:3003/history/boo"
+        assert.equal browser.location, "http://localhost:3003/history/boo/"
       it "should load document", ->
         assert /Eeek!/.test(browser.html())
 
@@ -373,7 +377,7 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        assert.equal browser.location, "http://localhost:3003/history/boo"
+        assert.equal browser.location, "http://localhost:3003/history/boo/"
       it "should load document", ->
         assert /Eeek!/.test(browser.html())
 

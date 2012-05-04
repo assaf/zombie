@@ -241,25 +241,47 @@ class Resources extends Array
       multipart:      multipart
       proxy:          browser.proxy
       jar:            jar
-      followRedirect: true
-      followAllRedirects: true
+      followRedirect: false
 
-    Request params, (error, response)->
+    Request params, (error, response)=>
       if error
         browser.log -> "#{method} #{URL.format(url)} => #{error.message}"
         callback error
         return
 
-      # Turn body from string into a String, so we can add property getters.
-      resource.response = new HTTPResponse(@href, response.statusCode, response.headers, response.body)
-      resource.redirects = @redirects.length
-      for cookie in jar.cookies
-        cookies.update cookie.str
+      switch response.statusCode
+        when 301, 307
+          # Do not follow POST redirects automatically, only GET/HEAD
+          if method == "GET" || method == "HEAD"
+            redirect = URL.resolve(url, response.headers['location'])
+        when 302, 303
+          # Follow redirect using GET (e.g. after form submission)
+          redirect = URL.resolve(url, response.headers['location'])
+          method = "GET" unless method == "GET" || method == "HEAD"
 
-      for redirect in @redirects
-        browser.log -> "#{redirect.statusCode} => #{redirect.redirectUri}"
-      browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"
-      callback null, resource.response
+      if redirect
+        # Handle redirection, make sure we're not caught in an infinite loop
+        ++resource.redirects
+        if resource.redirects > 5
+          callback new Error("More than five redirects, giving up")
+          return
+
+        # Set cookies for the redirect-to resource
+        cookies = browser.cookies(redirect.hostname, redirect.pathname)
+        for cookie in jar.cookies
+          cookies.update cookie.str
+        # This URL is the referer, make a request to the next URL
+        headers['referer'] = URL.format(url)
+        browser.log -> "#{response.statusCode} => #{redirect}"
+        @_makeRequest method, redirect, null, headers, resource, callback
+      else
+        # Set cookies
+        for cookie in jar.cookies
+          cookies.update cookie.str
+        # Turn body from string into a String, so we can add property getters.
+        resource.response = new HTTPResponse(url, response.statusCode, response.headers, response.body)
+        browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"
+        callback null, resource.response
 
 
   typeOf = (object)->
