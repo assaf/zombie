@@ -17,6 +17,9 @@ Fixed IFrame document and window to include Zombie enhancements.
 
 Zombie can now show FB Connect form.
 
+    453 tests
+    10.0 sec to complete
+
 
 ## Version 0.13.6 2012-05-02
 

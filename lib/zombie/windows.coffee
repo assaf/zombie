@@ -78,6 +78,7 @@ class Windows
   # This actually handles creation of a new window.
   _create: ({ name, parent, opener })->
     window = JSDOM.createWindow(HTML)
+    global = window.getGlobal()
     @_stack.push window
 
     Object.defineProperty window, "browser", value: @_browser
@@ -90,15 +91,15 @@ class Windows
     Object.defineProperty window, "name", value: name || ""
     # If this is an iframe within a parent window
     if parent
-      Object.defineProperty window, "parent", value: parent
-      Object.defineProperty window, "top", value: parent.top
+      Object.defineProperty window, "parent", value: parent.getGlobal()
+      Object.defineProperty window, "top", value: parent.top.getGlobal()
     else
-      Object.defineProperty window, "parent", value: window
-      Object.defineProperty window, "top", value: window
+      Object.defineProperty window, "parent", value: window.getGlobal()
+      Object.defineProperty window, "top", value: window.getGlobal()
     # Each window maintains its own history
     Object.defineProperty window, "history", value: new History(window)
     # If this was opened from another window
-    Object.defineProperty window, "opener", value: opener
+    Object.defineProperty window, "opener", value: opener?.getGlobal()
 
     # Window title is same as document title
     window.__defineGetter__ "title", ->
@@ -108,7 +109,8 @@ class Windows
 
     # Present in browsers, not in spec Used by Google Analytics see
     # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
-    Object.defineProperty window.navigator, "javaEnabled", value: false
+    window.navigator.javaEnabled = ->
+      return false
    
     # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
     @_browser._cookies.extend window
@@ -145,8 +147,8 @@ class Windows
       event = document.createEvent("MessageEvent")
       event.initEvent "message", false, false
       event.data = data
-      event.source = global.window
-      origin = global.window.location
+      event.source = Windows.inContext
+      origin = event.source.location
       event.origin = URL.format(protocol: origin.protocol, host: origin.host)
       process.nextTick ->
         eventloop.dispatch window, event
@@ -156,13 +158,13 @@ class Windows
     # Evaulate in context of window. This can be called with a script (String) or a function.
     window._evaluate = (code, filename)->
       try
-        global.window = window # the current window, postMessage needs this
+        Windows.inContext = window # the current window, postMessage needs this
         if typeof code == "string" || code instanceof String
-          window.run code, filename
+          global.run code, filename
         else
-          code.call window
+          code.call global
       finally
-        global.window = null
+        Windows.inContext = null
 
     # Default onerror handler.
     window.onerror = (event)=>

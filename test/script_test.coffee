@@ -127,7 +127,12 @@ describe "Scripts", ->
         brains.get "/script/window", (req, res)->
           res.send """
           <html>
-            <script>document.title = [window == this, this == window.window, this == top, top == window.top, this == parent, top == window.parent].join(',')</script>
+            <script>document.title = [window == this,
+                                      this == window.window,
+                                      this == top,
+                                      top == window.top,
+                                      this == parent,
+                                      top == parent].join(',')</script>
           </html>
           """
         browser.visit "http://localhost:3003/script/window", done

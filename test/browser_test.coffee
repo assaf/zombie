@@ -469,7 +469,7 @@ describe "Browser", ->
         assert.equal browser.window, browser.windows.get(1)
 
       it "should reference opener from opened window", ->
-        assert.equal browser.window.opener, browser.windows.get(0)
+        assert.equal browser.window.opener, browser.windows.get(0).top
 
 
       describe "and close it", ->

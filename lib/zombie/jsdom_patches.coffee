@@ -40,15 +40,15 @@ HTML.resourceLoader.load = (element, href, callback)->
           window.browser.resources.get url, @enqueue(element, loaded, url.pathname)
       else
         url = URL.parse(@resolve(document, href))
-        if url.hostname
+        if url.protocol == "file:"
+          loaded = (data, filename)->
+            callback.call this, data, filename
+          file = "/#{url.hostname}#{url.pathname}"
+          @readFile file, @enqueue(element, loaded, file)
+        else
           loaded = (response, filename)->
             callback.call this, response.body, URL.parse(response.url).pathname
           window.browser.resources.get url, @enqueue(element, loaded, url.pathname)
-        else
-          loaded = (data, filename)->
-            callback.call this, data, filename
-          file = @resolve(document, url.pathname)
-          @readFile file, @enqueue(element, loaded, file)
 
 
 # Support for iframes that load content when you set the src attribute.

@@ -52,7 +52,7 @@ describe "IFrame", ->
     assert /Hello World/.test(document.innerHTML)
     assert.equal document.location, "http://localhost:3003/iframe/static"
   it "should reference parent window from iframe", ->
-    assert.equal iframe.contentWindow.parent, browser.window
+    assert.equal iframe.contentWindow.parent, browser.window.top
   it "should not alter the parent", ->
     assert.equal "http://localhost:3003/iframe", browser.window.location
 

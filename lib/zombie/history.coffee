@@ -125,8 +125,9 @@ class History
         referer = @_stack[@_index-1]?.url?.href || @_browser.referer
         headers["referer"] = referer if referer
 
+        Path = require("path")
         if url.protocol == "file:"
-          url.pathname = "/#{url.host}/#{url.pathname}"
+          url = URL.format(protocol: "file:", host: "", pathname: "/#{url.hostname}#{url.pathname}")
 
         if credentials = @_browser.credentials
           switch credentials.scheme.toLowerCase()

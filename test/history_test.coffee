@@ -4,7 +4,9 @@ JSDOM = require("jsdom")
 
 describe "History", ->
 
-  file_url = "file://#{__dirname}/data/index.html"
+  # On OS X path probably starts with /Users, but as URL the first component
+  # ends up as the hostname (stupid), which gets lowered case to /user.
+  file_url = "file://#{__dirname.toLowerCase()}/data/index.html"
 
 
   before (done)->
@@ -39,26 +41,25 @@ describe "History", ->
   describe "new window", ->
     window = new Browser().window
 
-    it "should start out empty", ->
-      assert.equal window.history.length, 0
-    it "should start out with no location", ->
-      assert.equal window.location.href, undefined
+    it "should start out with one location", ->
+      assert.equal window.history.length, 1
+      assert.equal window.location.href, "about:blank"
 
     describe "go forward", ->
       before ->
         window.history.forward()
 
       it "should have no effect", ->
-        assert.equal window.history.length, 0
-        assert.equal window.location.href, undefined
+        assert.equal window.history.length, 1
+        assert.equal window.location.href, "about:blank"
 
     describe "go backwards", ->
       before ->
         window.history.back()
 
       it "should have no effect", ->
-        assert.equal window.history.length, 0
-        assert.equal window.location.href, undefined
+        assert.equal window.history.length, 1
+        assert.equal window.location.href, "about:blank"
 
 
   describe "history", ->
@@ -282,8 +283,6 @@ describe "History", ->
         assert.equal browser.location, "http://localhost:3003/history/boo"
       it "should load document", ->
         assert /Eeek!/.test(browser.html())
-      it "should load document in new window", ->
-        assert browser.window != window
 
     describe "replace", ->
       browser = new Browser()
@@ -302,8 +301,6 @@ describe "History", ->
         assert.equal browser.location, "http://localhost:3003/history/boo"
       it "should load document", ->
         assert /Eeek!/.test(browser.html()) 
-      it "should load document in new window", ->
-        assert browser.window != window
 
     describe "reload", ->
       browser = new Browser()
@@ -323,8 +320,6 @@ describe "History", ->
         assert.equal browser.location, "http://localhost:3003/"
       it "should reload document", ->
         assert /Tap, Tap/.test(browser.html())
-      it "should reload document in new window", ->
-        assert browser.window != window
 
     describe "components", ->
       location = null
