@@ -1,13 +1,15 @@
 # For handling JavaScript, mostly improvements to JSDOM
-CoffeeScript  = require("coffee-script")
-HTML          = require("jsdom").dom.level3.html
+HTML  = require("jsdom").dom.level3.html
 
 
 # -- Patches to JSDOM --
 
-# Support CoffeeScript.  Just because.
-HTML.languageProcessors.coffeescript = (element, code, filename)->
-  @javascript(element, CoffeeScript.compile(code), filename)
+# If you're using CoffeeScript, you get client-side support.
+try
+  CoffeeScript  = require("coffee-script")
+  HTML.languageProcessors.coffeescript = (element, code, filename)->
+    @javascript(element, CoffeeScript.compile(code), filename)
+catch ex
 
 
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be

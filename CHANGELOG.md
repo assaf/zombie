@@ -2,6 +2,11 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.13.8 2012-05-04
+
+Run without Coffee-Script.
+
+
 ## Version 0.13.7 2012-05-03
 
 Added support for `postMessage`.
