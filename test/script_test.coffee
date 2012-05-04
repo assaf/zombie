@@ -9,13 +9,13 @@ describe "Scripts", ->
 
   describe "basic", ->
     before ->
-      brains.get "/script/living", (req, res)->
+      brains.get "/script/living/", (req, res)->
         res.send """
         <html>
           <head>
             <script src="/jquery.js"></script>
             <script src="/sammy.js"></script>
-            <script src="/app.js"></script>
+            <script src="app.js"></script>
           </head>
           <body>
             <div id="main">
@@ -31,7 +31,7 @@ describe "Scripts", ->
         </html>
         """
 
-      brains.get "/app.js", (req, res)->
+      brains.get "/script/living/app.js", (req, res)->
         res.send """
         Sammy("#main", function(app) {
           app.get("#/", function(context) {
@@ -51,12 +51,12 @@ describe "Scripts", ->
       browser = new Browser()
 
       before (done)->
-        browser.visit "http://localhost:3003/script/living", done
+        browser.visit "http://localhost:3003/script/living/", done
 
       it "should execute route", ->
         assert.equal browser.document.title, "The Living"
       it "should change location", ->
-        assert.equal browser.location.href, "http://localhost:3003/script/living#/"
+        assert.equal browser.location.href, "http://localhost:3003/script/living/#/"
 
       describe "move around", ->
         before (done)->
@@ -65,21 +65,21 @@ describe "Scripts", ->
         it "should execute route", ->
           assert.equal browser.text("#main"), "The Living Dead"
         it "should change location", ->
-          assert.equal browser.location.href, "http://localhost:3003/script/living#/dead"
+          assert.equal browser.location.href, "http://localhost:3003/script/living/#/dead"
 
 
     describe "live events", ->
       browser = new Browser()
 
       before (done)->
-        browser.visit "http://localhost:3003/script/living", ->
+        browser.visit "http://localhost:3003/script/living/", ->
           browser.fill "Email", "armbiter@zombies"
           browser.fill "Password", "br41nz"
           browser.pressButton "Sign Me Up"
           browser.wait 500, done
 
       it "should change location", ->
-        assert.equal browser.location.href, "http://localhost:3003/script/living#/"
+        assert.equal browser.location.href, "http://localhost:3003/script/living/#/"
       it "should process event", ->
         assert.equal browser.document.title, "Signed up"
 
@@ -88,7 +88,7 @@ describe "Scripts", ->
       title = null
 
       before (done)->
-        Browser.visit "http://localhost:3003/script/living", (_, browser)->
+        Browser.visit "http://localhost:3003/script/living/", (_, browser)->
           title = browser.evaluate "document.title"
           done()
 
@@ -404,7 +404,7 @@ describe "Scripts", ->
     browser = new Browser()
 
     before (done)->
-      browser.visit "http://localhost:3003/script/living", done
+      browser.visit "http://localhost:3003/script/living/", done
 
     it "should construct an img tag", ->
       assert.equal browser.evaluate("new Image").tagName, "IMG"
