@@ -71,18 +71,16 @@ describe "postMessage", ->
       res.send """
       <html>
         <body>
-          <iframe></iframe>
+          <iframe name="ping" src="/iframe/pong"></iframe>
           <script>
-            var frame = document.getElementsByTagName("iframe")[0];
+            // Give the frame a chance to load before sending message
+            document.getElementsByTagName("iframe")[0].addEventListener("load", function() {
+              window.frames["ping"].postMessage("ping");
+            })
             // Ready to receive response
             window.addEventListener("message", function(event) {
               document.title = event.data;
             })
-            // Give the frame a chance to load before sending message
-            frame.addEventListener("load", function() { 
-              frame.contentWindow.postMessage("ping");
-            })
-            frame.src = "/iframe/pong";
           </script>
         </body>
       </html>

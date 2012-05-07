@@ -57,24 +57,24 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
   iframe = new HTML.HTMLIFrameElement(doc, tag)
   window = null
   Object.defineProperty iframe, "contentWindow", get: ->
+    unless window
+      # Need to bypass JSDOM's window/document creation and use ours
+      window = parent.browser.open(name: iframe.name, parent: parent)
     return window
   Object.defineProperty iframe, "contentDocument", get: ->
     return window.document
 
   # This is also necessary to prevent JSDOM from messing with window/document
   iframe.setAttribute = (name, value)->
-    HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
     if name == "src" && value
-      unless window
-        # Need to bypass JSDOM's window/document creation and use ours
-        window = parent.browser.open(name: iframe.name, parent: parent)
-
       # Point IFrame at new location and wait for it to load
-      window.location = URL.resolve(parent.location, value)
-      window.document.addEventListener "DOMContentLoaded", (event)->
+      iframe.contentWindow.location = URL.resolve(parent.location, value)
+      iframe.contentDocument.addEventListener "DOMContentLoaded", (event)->
         onload = parent.document.createEvent("HTMLEvents")
         onload.initEvent "load", false, false
         parent.browser._eventloop.dispatch iframe, onload
+    else
+      HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)
 
   return iframe
 

@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.13.9 2012-05-07
+
+Make sure you can `window.frames[name].postMessage`.
+
+    453 tests
+    9.9 sec to complete
+
+
 ## Version 0.13.8 2012-05-04
 
 Redirection is now handled by Zombie instead of Request, set cookies to the
