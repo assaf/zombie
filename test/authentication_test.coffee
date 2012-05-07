@@ -84,3 +84,21 @@ describe "Authentication", ->
       it "should have the authentication header", ->
         assert.equal browser.text("body"), "Bearer 12345"
 
+  describe 'Scripts on a credentials page', ->
+    before (done) ->
+      brains.get "/auth/basic", (req, res) ->
+        res.send "<script src='http://localhost:3003/locked.js' type='text/javascript'></script>"
+
+      brains.get "/locked.js", (req, res) ->
+        assert.ok(req.headers.authorization == "asdasd")
+
+      brains.ready done
+
+    describe 'valid credentials', ->
+      browser = new Browser()
+      before (done) ->
+        credentials = { scheme: "basic", user: "username", password: "pass123" }
+        browser.visit "http://localhost:3003/auth/basic", credentials: credentials, done
+
+      it "should have the authentication header", ->
+        assert.equal browser.statusCode, 200
