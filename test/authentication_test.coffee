@@ -89,7 +89,7 @@ describe "Authentication", ->
     before (done) ->
       brains.get "/auth/script", (req, res) ->
         if auth = req.headers.authorization
-	  res.send """
+          res.send """
           <html>
             <head>
               <title>Zero</title>
@@ -101,7 +101,7 @@ describe "Authentication", ->
         else
           res.send "No Credentials", 401
 
-      brains.get "auth/script.js", (req, res) ->
+      brains.get "/auth/script.js", (req, res) ->
         if auth = req.headers.authorization
           res.send "document.title = document.title + 'One'"
         else
