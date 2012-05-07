@@ -129,16 +129,6 @@ class History
         if url.protocol == "file:"
           url = URL.format(protocol: "file:", host: "", pathname: "/#{url.hostname}#{url.pathname}")
 
-        if credentials = @_browser.credentials
-          switch credentials.scheme.toLowerCase()
-            when "basic"
-              base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
-              headers["authorization"] = "Basic #{base64}"
-            when "bearer"
-              headers["authorization"] = "Bearer #{credentials.token}"
-            when "oauth"
-              headers["authorization"] = "OAuth #{credentials.token}"
-       
         @_browser.resources.request method, url, data, headers, (error, response)=>
           if error
             document.open()
