@@ -145,15 +145,6 @@ class Resources extends Array
   # modifies it instead of recording a new one.
   _makeRequest: (method, url, data, headers, resource, callback)->
     browser = @_browser
-    #    if credentials = @_browser.credentials
-    #      switch credentials.scheme.toLowerCase()
-    #        when "basic"
-    #          base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
-    #          headers["authorization"] = "Basic #{base64}"
-    #        when "bearer"
-    #          headers["authorization"] = "Bearer #{credentials.token}"
-    #        when "oauth"
-    #          headers["authorization"] = "OAuth #{credentials.token}"
 
     url = URL.parse(url)
     method = (method || "GET").toUpperCase()
@@ -201,6 +192,17 @@ class Resources extends Array
 
     # Pre 0.3 we need to specify the host name.
     headers["Host"] = url.host
+
+    if credentials = @_browser.credentials
+      switch credentials.scheme.toLowerCase()
+        when "basic"
+          base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
+          headers["authorization"] = "Basic #{base64}"
+        when "bearer"
+          headers["authorization"] = "Bearer #{credentials.token}"
+        when "oauth"
+          headers["authorization"] = "OAuth #{credentials.token}"
+
     url.pathname = "/#{url.pathname || ""}" unless url.pathname && url.pathname[0] == "/"
     url.hash = null
 

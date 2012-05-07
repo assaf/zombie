@@ -85,7 +85,7 @@ describe "Authentication", ->
         assert.equal browser.text("body"), "Bearer 12345"
 
   describe 'Scripts on secure pages', ->
-    browser = new Browser({debug: true, runScripts: true})
+    browser = new Browser()
     before (done) ->
       brains.get "/auth/script", (req, res) ->
         if auth = req.headers.authorization
@@ -99,13 +99,13 @@ describe "Authentication", ->
           </html>
           """
         else
-          res.send "No Credentials", 401
+          res.send "No Credentials on the html page", 401
 
       brains.get "/auth/script.js", (req, res) ->
         if auth = req.headers.authorization
           res.send "document.title = document.title + 'One'"
         else
-          res.send "No Credentials", 401
+          res.send "No Credentials on the javascript", 401
 
       credentials = { scheme: "basic", user: "username", password: "pass123" }
       browser.visit "http://localhost:3003/auth/script", credentials: credentials, done
