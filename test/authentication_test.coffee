@@ -84,21 +84,31 @@ describe "Authentication", ->
       it "should have the authentication header", ->
         assert.equal browser.text("body"), "Bearer 12345"
 
-  describe 'Scripts on a credentials page', ->
+  describe 'Scripts on secure pages', ->
+    browser = new Browser({debug: true, runScripts: true})
     before (done) ->
-      brains.get "/auth/basic", (req, res) ->
-        res.send "<script src='http://localhost:3003/locked.js' type='text/javascript'></script>"
+      brains.get "/auth/script", (req, res) ->
+        if auth = req.headers.authorization
+	  res.send """
+          <html>
+            <head>
+              <title>Zero</title>
+              <script src="/auth/script.js"></script>
+            </head>
+            <body></body>
+          </html>
+          """
+        else
+          res.send "No Credentials", 401
 
-      brains.get "/locked.js", (req, res) ->
-        assert.ok(req.headers.authorization == "asdasd")
+      brains.get "auth/script.js", (req, res) ->
+        if auth = req.headers.authorization
+          res.send "document.title = document.title + 'One'"
+        else
+          res.send "No Credentials", 401
 
-      brains.ready done
+      credentials = { scheme: "basic", user: "username", password: "pass123" }
+      browser.visit "http://localhost:3003/auth/script", credentials: credentials, done
 
-    describe 'valid credentials', ->
-      browser = new Browser()
-      before (done) ->
-        credentials = { scheme: "basic", user: "username", password: "pass123" }
-        browser.visit "http://localhost:3003/auth/basic", credentials: credentials, done
-
-      it "should have the authentication header", ->
-        assert.equal browser.statusCode, 200
+    it "should download the script", ->
+      assert.equal browser.text("title"), "ZeroOne"
