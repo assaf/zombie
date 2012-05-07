@@ -84,3 +84,31 @@ describe "Authentication", ->
       it "should have the authentication header", ->
         assert.equal browser.text("body"), "Bearer 12345"
 
+  describe 'Scripts on secure pages', ->
+    browser = new Browser()
+    before (done) ->
+      brains.get "/auth/script", (req, res) ->
+        if auth = req.headers.authorization
+          res.send """
+          <html>
+            <head>
+              <title>Zero</title>
+              <script src="/auth/script.js"></script>
+            </head>
+            <body></body>
+          </html>
+          """
+        else
+          res.send "No Credentials on the html page", 401
+
+      brains.get "/auth/script.js", (req, res) ->
+        if auth = req.headers.authorization
+          res.send "document.title = document.title + 'One'"
+        else
+          res.send "No Credentials on the javascript", 401
+
+      credentials = { scheme: "basic", user: "username", password: "pass123" }
+      browser.visit "http://localhost:3003/auth/script", credentials: credentials, done
+
+    it "should download the script", ->
+      assert.equal browser.text("title"), "ZeroOne"
