@@ -11,6 +11,32 @@ HTML.HTMLElement.prototype.__defineGetter__ "offsetHeight", -> 100
 ###
 
 
+original = HTML.Element.prototype.setAttribute
+HTML.Element.prototype.setAttribute = (name, value)->
+  # JSDOM intercepts inline event handlers in a similar manner, but doesn't
+  # manage window.event property or allow return false.
+  if /^on.+/.test(name)
+    wrapped = "if ((function() { " + value + " }).call(this,event) === false) event.preventDefault();"
+    this[name] = (event)->
+      # We're the window. This can happen because inline handlers on the body are
+      # proxied to the window.
+      window = if @run then this else @_ownerDocument.parentWindow
+      # In-line event handlers rely on window.event
+      try
+        window.event = event
+        # The handler code probably refers to functions declared in the
+        # window context, so we need to call run().
+        window.run(wrapped)
+      finally
+        window.event = null
+    if @_ownerDocument
+      attr = @._ownerDocument.createAttribute(name)
+      attr.value = value
+      @._attributes.setNamedItem(attr)
+  else
+    original.apply(this, arguments)
+
+
 # Default behavior for clicking on links: navigate to new URL is specified.
 HTML.HTMLAnchorElement.prototype._eventDefaults =
   click: (event)->

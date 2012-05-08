@@ -2,6 +2,23 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.13.10 2012-05-07
+
+Fixed basic/token authentication working for pages but not resources like JS,
+CSS (David Newell).
+
+Old-style event handlers (onclick, onsubmit, etc) now have access to event
+through `window.event`.
+
+Old-style event handlers can return false to prevent default behavior.
+
+Added `window.Event` and its siblings `UIEvent`, `MouseEvent`, `MutationEvent`
+and `StorageEvent`.
+
+    457 tests
+    10.2 sec to complete
+
+
 ## Version 0.13.9 2012-05-07
 
 Make sure you can `window.frames[name].postMessage`.

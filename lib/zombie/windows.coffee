@@ -11,6 +11,7 @@ HTML        = JSDOM.dom.level3.html
 URL         = require("url")
 EventSource = require("eventsource")
 WebSocket   = require("ws")
+Events      = JSDOM.dom.level3.events
 
 
 class Windows
@@ -120,6 +121,11 @@ class Windows
     window.File = File
     window.screen = new Screen()
     window.JSON = JSON
+
+    window.Event = Events.Event
+    window.UIEvent = Events.UIEvent
+    window.MouseEvent = Events.MouseEvent
+    window.MutationEvent = Events.MutationEvent
 
     # Constructor for EventSource, URL is relative to document's.
     window.EventSource = (url)->

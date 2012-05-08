@@ -59,6 +59,7 @@ HTML.HTMLFormElement.prototype.submit = (button)->
 
       process index + 1
     else
+      # No triggering event, just get history to do the submission.
       if button && button.name
         params.push [button.name, button.value]
       history = document.parentWindow.history

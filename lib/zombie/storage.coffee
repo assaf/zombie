@@ -1,6 +1,6 @@
 # See [Web Storage](http://dev.w3.org/html5/webstorage/)
-HTML = require("jsdom").dom.level3.html
-Events = require("jsdom").dom.level3.events
+HTML      = require("jsdom").dom.level3.html
+{ Event } = require("jsdom").dom.level3.events
 
 
 # Storage area. The storage area is shared by multiple documents of the same
@@ -112,7 +112,7 @@ class Storage
 
 # Implementation of the StorageEvent.
 StorageEvent = (storage, url, key, oldValue, newValue)->
-  Events.Event.call this, "storage"
+  Event.call this, "storage"
   @__defineGetter__ "url", ->
     return url
   @__defineGetter__ "storageArea", ->
@@ -123,7 +123,7 @@ StorageEvent = (storage, url, key, oldValue, newValue)->
     return oldValue
   @__defineGetter__ "newValue", ->
     return newValue
-StorageEvent.prototype.__proto__ = Events.Event.prototype
+StorageEvent.prototype.__proto__ = Event.prototype
 
 
 # Additional error codes defines for Web Storage and not in JSDOM.
@@ -149,6 +149,7 @@ class Storages
   # Extend window with local/session storage support.
   extend: (window)->
     storages = this
+    window.StorageEvent = StorageEvent
     Object.defineProperty window, "localStorage",
       get: ->
         return @document?._localStorage ||= storages.local(@location.host)

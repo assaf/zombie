@@ -411,3 +411,34 @@ describe "Scripts", ->
     it "should construct an img tag with width and height", ->
       assert.equal browser.evaluate("new Image(1, 1)").height, 1
 
+
+  describe "Event", ->
+    browser = new Browser()
+
+    it "should be available in global context", ->
+      assert browser.evaluate("Event")
+
+
+  describe "on- event handler", ->
+    browser = new Browser()
+
+    before (done)->
+      brains.get "/script/event", (req, res)->
+        res.send """
+          <form onsubmit="document.title = event.eventType; return false">
+            <button>Submit</button>
+          </form>
+        """
+      brains.ready done
+
+    before (done)->
+      browser.visit "http://localhost:3003/script/event", ->
+        browser.pressButton "Submit", done
+
+    it "should prevent default handling by returning false", ->
+      assert.equal browser.location.href, "http://localhost:3003/script/event"
+
+    it "should have access to window.event", ->
+      assert.equal browser.document.title, "HTMLEvents"
+
+
