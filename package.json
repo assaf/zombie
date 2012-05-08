@@ -21,12 +21,11 @@
   },
   "dependencies": {
     "eventsource":      "~0.0.5",
-    "htmlparser":       "~1.7.6",
     "html5":            "~0.3.5",
     "jsdom":            "=0.2.14",
     "mime":             "~1.2.5",
     "request":          "~2.9.202",
-    "tough-cookie":     "~0.9.12",
+    "tough-cookie":     "~0.9.13",
     "ws":               "~0.4.14"
   },
   "devDependencies": {
