@@ -2,6 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.13.11 2012-05-08
+
+Fix loading URL with document fragment remove document fragment from page
+location.
+
+    459 tests
+    9.9 sec to complete
+
+
 ## Version 0.13.10 2012-05-07
 
 Fixed basic/token authentication working for pages but not resources like JS,

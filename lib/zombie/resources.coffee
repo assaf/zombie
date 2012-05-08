@@ -204,7 +204,6 @@ class Resources extends Array
           headers["authorization"] = "OAuth #{credentials.token}"
 
     url.pathname = "/#{url.pathname || ""}" unless url.pathname && url.pathname[0] == "/"
-    url.hash = null
 
     # First request has not resource, so create it and add to
     # Resources.  After redirect, we have a resource we're using.
@@ -257,7 +256,7 @@ class Resources extends Array
 
     Request params, (error, response)=>
       if error
-        browser.log -> "#{method} #{URL.format(url)} => #{error.message}"
+        browser.log -> "#{method} #{URL.format(url).slice("#")[0]} => #{error.message}"
         callback error
         return
 

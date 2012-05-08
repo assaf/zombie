@@ -418,3 +418,15 @@ describe "History", ->
         it "should point to first page", ->
           assert.equal browser.text("title"), "http://localhost:3003/history/referer"
 
+
+  describe "URL with hash", ->
+    browser = new Browser()
+
+    before (done)->
+      browser.visit "http://localhost:3003#with-hash", done
+
+    it "should load page", ->
+      assert.equal browser.text("title"), "Tap, Tap"
+    it "should set location to hash", ->
+      assert.equal browser.location.hash, "#with-hash"
+
