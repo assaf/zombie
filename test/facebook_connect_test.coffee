@@ -2,8 +2,6 @@
 
 
 describe "Facebook Connect", ->
-  browser = new Browser()
-
   before (done)->
     brains.get "/browser/facebook", (req, res)->
       res.send """
@@ -42,10 +40,30 @@ describe "Facebook Connect", ->
 
     brains.ready done
 
-  before (done)->
-    browser.visit "http://localhost:3003/browser/facebook", ->
-      browser.clickLink "Connect", done
+  describe "initial", ->
+    browser = new Browser()
 
-  it "should show FB Connect login form", ->
-    assert browser.query(".login_form_container #loginform")
+    before (done)->
+      browser.visit "http://localhost:3003/browser/facebook", ->
+        browser.clickLink "Connect", done
+
+    it "should show FB Connect login form", ->
+      assert browser.query(".login_form_container #loginform")
+
+
+      describe "login", ->
+        before (done)->
+          browser.fill("email", "---").fill("pass", "---")
+          browser.pressButton "login", done
+
+        it "should show permission dialog", ->
+          assert button = browser.query("#platform_dialog_content #grant_clicked input")
+          assert.equal button.value, "Log In with Facebook"
+
+        describe "authorize", ->
+          before (done)->
+            browser.pressButton "Log In with Facebook", done
+
+          it "should do something", ->
+            # ???
 

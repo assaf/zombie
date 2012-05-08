@@ -1,15 +1,16 @@
-GET REGEXP /\/dialog\/oauth\?api_key/
+GET REGEXP /\/dialog\/oauth\?api_key=/
+host: www.facebook.com
 
 302 HTTP/1.1
 cache-control: private, no-cache, no-store, must-revalidate
 expires: Sat, 01 Jan 2000 00:00:00 GMT
-location: https://www.facebook.com/login.php?api_key=190950381025985&skip_api_login=1&display=popup&cancel_url=http%3A%2F%2Fstatic.ak.facebook.com%2Fconnect%2Fxd_arbiter.php%3Fversion%3D5%26error_reason%3Duser_denied%26error%3Daccess_denied%26error_description%3DThe%2Buser%2Bdenied%2Byour%2Brequest.%23cb%3Df15395d424%26origin%3Dhttp%253A%252F%252Flocalhost%253A3003%252Ff13f2cb314%26domain%3Dlocalhost%26relation%3Dopener%26frame%3Df31ab5c58&fbconnect=1&next=https%3A%2F%2Fwww.facebook.com%2Fdialog%2Fpermissions.request%3F_path%3Dpermissions.request%26app_id%3D190950381025985%26redirect_uri%3Dhttp%253A%252F%252Fstatic.ak.facebook.com%252Fconnect%252Fxd_arbiter.php%253Fversion%253D5%2523cb%253Df15395d424%2526origin%253Dhttp%25253A%25252F%25252Flocalhost%25253A3003%25252Ff13f2cb314%2526domain%253Dlocalhost%2526relation%253Dopener%2526frame%253Df31ab5c58%26sdk%3Djoey%26display%3Dpopup%26response_type%3Dtoken%252Csigned_request%26domain%3Dlocalhost%26fbconnect%3D1%26from_login%3D1%26client_id%3D190950381025985&rcount=1
+location: https://www.facebook.com/login.php?api_key=190950381025985&skip_api_login=1&display=popup&cancel_url=http%3A%2F%2Fstatic.ak.facebook.com%2Fconnect%2Fxd_arbiter.php%3Fversion%3D5%26error_reason%3Duser_denied%26error%3Daccess_denied%26error_description%3DThe%2Buser%2Bdenied%2Byour%2Brequest.%23cb%3Df42febd2c%26origin%3Dhttp%253A%252F%252Flocalhost%253A3003%252Ff2b184213c%26domain%3Dlocalhost%26relation%3Dopener%26frame%3Df2f923f494&fbconnect=1&next=https%3A%2F%2Fwww.facebook.com%2Fdialog%2Fpermissions.request%3F_path%3Dpermissions.request%26app_id%3D190950381025985%26redirect_uri%3Dhttp%253A%252F%252Fstatic.ak.facebook.com%252Fconnect%252Fxd_arbiter.php%253Fversion%253D5%2523cb%253Df42febd2c%2526origin%253Dhttp%25253A%25252F%25252Flocalhost%25253A3003%25252Ff2b184213c%2526domain%253Dlocalhost%2526relation%253Dopener%2526frame%253Df2f923f494%26sdk%3Djoey%26display%3Dpopup%26response_type%3Dtoken%252Csigned_request%26domain%3Dlocalhost%26fbconnect%3D1%26from_login%3D1%26client_id%3D190950381025985&rcount=1
 pragma: no-cache
 x-content-type-options: nosniff
 x-xss-protection: 0
 content-type: text/html; charset=utf-8
-x-fb-debug: /W2RYfyuelhV9Jx2wT4oUuBmfakElo5XwlylV2svgBc=
-date: Fri, 04 May 2012 03:46:19 GMT
+x-fb-debug: Cc6S/gBb+Jsao7VUoECcAaviIstUuFQ2MKEfSnwwrwA=
+date: Tue, 08 May 2012 21:37:19 GMT
 content-length: 0
 connection: keep-alive
 

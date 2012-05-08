@@ -1,13 +1,13 @@
 GET /connect/xd_arbiter.php?version=5
-host: s-static.ak.facebook.com
+host: static.ak.facebook.com
 
 200 HTTP/1.1
 content-type: text/html; charset=utf-8
-x-fb-debug: Zg3M5/D9AF9/D/5VSgkZaW7p1tYqiXngTg0f8wu0OLA=
+x-fb-debug: H9QhM94bHoYsTo9xKaTqrsTic0q0PbczW70NVSyArTA=
 x-cnection: close
-cache-control: public, max-age=29817448
-expires: Fri, 19 Apr 2013 00:13:29 GMT
-date: Tue, 08 May 2012 21:36:01 GMT
+cache-control: public, max-age=29817434
+expires: Fri, 19 Apr 2013 00:13:14 GMT
+date: Tue, 08 May 2012 21:36:00 GMT
 content-length: 12805
 connection: keep-alive
 

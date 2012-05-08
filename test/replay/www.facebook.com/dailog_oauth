@@ -1,0 +1,16 @@
+GET REGEXP /\/dialog\/oauth\?api_key/
+host: www.facebook.com
+
+302 HTTP/1.1
+cache-control: private, no-cache, no-store, must-revalidate
+expires: Sat, 01 Jan 2000 00:00:00 GMT
+location: http://static.ak.facebook.com/connect/xd_arbiter.php?version=5#cb=f35030b504&origin=http%3A%2F%2Flocalhost%3A3003%2Ffccde47a8&domain=localhost&relation=parent&frame=f3db1a134&error=unknown_user
+pragma: no-cache
+x-content-type-options: nosniff
+x-xss-protection: 0
+content-type: text/html; charset=utf-8
+x-fb-debug: EMkCyzfEdkh9WUw+V6s/np50CRjVagIxV77JRQRP0kE=
+date: Tue, 08 May 2012 21:36:01 GMT
+content-length: 0
+connection: keep-alive
+

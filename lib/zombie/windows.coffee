@@ -64,13 +64,26 @@ class Windows
   all: ->
     return @_stack.slice()
 
-  # Close the specified window
+  # Number of open windows
+  count: ->
+    return @_stack.length
+
+  # Close the specified window (last window if unspecified)
   close: (window)->
+    window ||= @_stack[@_stack.length - 1]
+    return unless window
+    
     delete @_named[window.name]
     @_stack = @_stack.filter((w)-> w != window)
     if @_current = window
       @_current = @_stack[@_stack.length - 1]
     return
+
+  # Switch to the specified window (name or number)
+  switch: (window)->
+    return unless window
+    window = @_named[window] || @_stack[window] || window
+    @_current = window
 
   # Returns the currently open window.
   @prototype.__defineGetter__ "current", ->
