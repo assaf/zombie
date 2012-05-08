@@ -2,7 +2,6 @@
 
 
 describe "Facebook Connect", ->
-  ###
   browser = new Browser()
 
   before (done)->
@@ -49,4 +48,4 @@ describe "Facebook Connect", ->
 
   it "should show FB Connect login form", ->
     assert browser.query(".login_form_container #loginform")
-  ###
+

@@ -34,7 +34,7 @@
     "express":          "~2.5.9",
     "highlight":        "~0.2.2",
     "mocha":            "~1.0.3",
-    "replay":           "~1.4.4",
+    "replay":           "~1.5.0",
     "ronn":             "~0.3.8"
   },
   "repository": {
