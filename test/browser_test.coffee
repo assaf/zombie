@@ -27,11 +27,11 @@ describe "Browser", ->
 
     brains.get "/browser/errored", (req, res)->
       res.send """
-      <html>
-        <head>
-          <script>this.is.wrong</script>
-        </head>
-      </html>
+        <html>
+          <head>
+            <script>this.is.wrong</script>
+          </head>
+        </html>
       """
 
     brains.ready done
@@ -47,6 +47,7 @@ describe "Browser", ->
       it "should create HTML document", ->
         assert browser.document instanceof JSDOM.dom.level3.html.HTMLDocument
       it "should load document from server", ->
+        console.log browser.html()
         assert.equal browser.text("h1"), "Hello World"
       it "should load external scripts", ->
         assert jQuery = browser.window.jQuery, "window.jQuery not available"
