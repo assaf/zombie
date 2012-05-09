@@ -20,13 +20,20 @@ Windows           = require("./windows")
 XHR               = require("./xhr")
 
 
-HTML = JSDOM.dom.level3.html
-MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-BROWSER_OPTIONS   = ["credentials", "debug", "htmlParser", "loadCSS", "proxy", "referer", "runScripts", "silent", "site", "userAgent", "waitFor", "windowName"]
+# Browser options you can set when creating new browser, or on browser instance.
+BROWSER_OPTIONS = ["credentials", "debug", "htmlParser", "loadCSS", "proxy",
+                   "referer", "runScripts", "silent", "site", "userAgent",
+                   "waitFor", "name"]
+
+# Global options you can set on Browser and will be inherited by each new browser.
+GLOBAL_OPTIONS  = ["debug", "htmlParser", "loadCSS", "proxy", "runScripts",
+                   "silent", "site", "userAgent", "waitFor"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
 VERSION = PACKAGE.version
+HTML = JSDOM.dom.level3.html
+MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 
 
 # Use the browser to open up new windows and load documents.
@@ -104,17 +111,15 @@ class Browser extends EventEmitter
     @waitFor = 500
 
     # You can set the browser window.name property
-    @windowName = "nodejs"
+    @name = "nodejs"
 
     # Sets the browser options.
     for name in BROWSER_OPTIONS
-      value = options[name]
-      if typeof value == "undefined"
-        value = Browser[name]
-        unless typeof value == "undefined"
+      if options.hasOwnProperty(name)
+        @[name] = options[name]
+      if !@[name] && ~GLOBAL_OPTIONS.indexOf(name)
+        if value = Browser[name]
           @[name] = value
-      else
-        @[name] = value
 
     # Returns all errors reported while loading this window.
     @errors = []

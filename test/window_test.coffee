@@ -176,3 +176,46 @@ describe "Window", ->
     it ".javaEnabled should be false", ->
       assert.equal browser.window.navigator.javaEnabled(), false
 
+
+  describe "windows", ->
+    browser = new Browser(name: "first")
+
+    before ->
+      browser.open(name: "second")
+      browser.open(name: "third")
+      assert.equal browser.windows.count, 3
+
+    describe "select", ->
+      it "should pick window by name", ->
+        browser.windows.select("second")
+        assert.equal browser.window.name, "second"
+
+      it "should pick window by index", ->
+        browser.windows.select(2)
+        assert.equal browser.window.name, "third"
+
+      it "should be able to select specific window", ->
+        browser.windows.select(browser.windows.all()[0])
+        assert.equal browser.window.name, "first"
+
+    describe "close", ->
+      before ->
+        browser.windows.close(1)
+
+      it "should discard one window", ->
+        assert.equal browser.windows.count, 2
+
+      it "should discard specified window", ->
+        assert.deepEqual browser.windows.all().map((w)-> w.name), ["first", "third"]
+
+      it "should select previous window", ->
+        assert.equal browser.window.name, "first"
+
+      describe "close first", ->
+        before ->
+          browser.windows.close()
+          assert.equal browser.windows.count, 1
+
+        it "should select next available window", ->
+          assert.equal browser.window.name, "third"
+

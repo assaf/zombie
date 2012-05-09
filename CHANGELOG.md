@@ -2,6 +2,17 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.13.14 2012-05-09
+
+Changed browser option `windowName` to just `name.`
+
+Setting browser option to `undefined` no longer resets it to default (that was a
+stupid idea).
+
+    469 tests
+    11.6 sec to complete
+
+
 ## Version 0.13.13 2012-05-09
 
 Should be `windows.select` not `windows.switch`.

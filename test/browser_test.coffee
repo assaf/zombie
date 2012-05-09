@@ -462,7 +462,7 @@ describe "Browser", ->
 
       it "should open both windows", ->
         assert.equal browser.windows.all().length, 2
-        assert.equal browser.windows.get(0).name, ""
+        assert.equal browser.windows.get(0).name, "nodejs"
         assert.equal browser.windows.get(1).name, "popup"
 
       it "should switch to last window", ->
@@ -478,7 +478,7 @@ describe "Browser", ->
 
         it "should lose that window", ->
           assert.equal browser.windows.all().length, 1
-          assert.equal browser.windows.get(0).name, ""
+          assert.equal browser.windows.get(0).name, "nodejs"
           assert !browser.windows.get(1)
 
         it "should switch to last window", ->
@@ -491,7 +491,7 @@ describe "Browser", ->
 
           it "should keep that window", ->
             assert.equal browser.windows.all().length, 1
-            assert.equal browser.windows.get(0).name, ""
+            assert.equal browser.windows.get(0).name, "nodejs"
             assert.equal browser.window, browser.windows.get(0)
 
 

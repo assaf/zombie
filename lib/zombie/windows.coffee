@@ -42,15 +42,15 @@ class Windows
   # parent - Parent window (for frames)
   # url    - If specified, opens that document
   open: (options = {})->
+    name = options.name || @_browser.name || ""
     # If this is an iframe, create a named window but don't keep a reference
     # to it here. Let the document handle that,
     # If window name is _blank, we always create a new window.
     # Otherwise, we return existing window and allow lookup by name.
-    if options.name == "_blank" || options.parent
-      window = @_create(options)
+    if name == "_blank" || options.parent
+      window = @_create(name, options)
     else
-      name = options.name || ""
-      window = @_named[name] ||= @_create(options)
+      window = @_named[name] ||= @_create(name, options)
 
     # If caller supplies URL, use it.  If this is existing window, return
     # without changing location (or contents).  Otherwise, start with empty
@@ -80,7 +80,7 @@ class Windows
 
   # Close the specified window (last window if unspecified)
   close: (window)->
-    window ||= @_current
+    window = @_named[window] || @_stack[window] || window || @_current
     # Make sure we only close an existing window, and we need index if we're
     # closing the current window
     index = @_stack.indexOf(window)
@@ -108,7 +108,7 @@ class Windows
     return @_current
 
   # This actually handles creation of a new window.
-  _create: ({ name, parent, opener })->
+  _create: (name, { parent, opener })->
     window = JSDOM.createWindow(HTML)
     global = window.getGlobal()
     @_stack.push window
