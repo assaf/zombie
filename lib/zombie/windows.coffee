@@ -96,8 +96,8 @@ class Windows
         @_current = @_stack[0]
     return
 
-  # Switch to the specified window.
-  switch: (window)->
+  # Select specified window as the current window.
+  select: (window)->
     return unless window
     window = @_named[window] || @_stack[window] || window
     return unless ~@_stack.indexOf(window)

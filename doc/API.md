@@ -631,7 +631,9 @@ browser on OS X, BSD and Linux.  Probably errors on Windows.
 
 ## Windows
 
-You can use `browser.windows` to manage currently open windows.
+You can use `browser.windows` to manage currently open windows.  Anything you
+tell the browser to do happens in the `current` window, which you can change
+using `select`.  Use `browser.open` to open a new window.
 
 ### windows.all(): Array
 
@@ -658,6 +660,6 @@ named "foo", while 1 returns the second window)
 
 ### windows.select(window) : Window
 
-Switches to the specified window.  You can pass the window name, position, or
-actual `Window` object.
+Selects specified window as the current window.  You can pass the window name,
+position, or actual `Window` object.
 
