@@ -1,7 +1,17 @@
 # Each browser maintains a collection of windows, and this class abstracts it.
+# You can use it to list, switch and close windows.
 #
 # It also abstracts all the gory details of window creation, frames need that
 # too.
+#
+# For example:
+#
+#   # Get currently open window
+#   current = browser.windows.current
+#   # Switch to first open window
+#   browser.windows.select(1)
+#   # Close currently open window
+#   browser.windows.close()
 
 
 Console     = require("./console")
@@ -65,24 +75,32 @@ class Windows
     return @_stack.slice()
 
   # Number of open windows
-  count: ->
+  @prototype.__defineGetter__ "count", ->
     return @_stack.length
 
   # Close the specified window (last window if unspecified)
   close: (window)->
-    window ||= @_stack[@_stack.length - 1]
-    return unless window
-    
+    window ||= @_current
+    # Make sure we only close an existing window, and we need index if we're
+    # closing the current window
+    index = @_stack.indexOf(window)
+    return unless index >= 0
+  
     delete @_named[window.name]
-    @_stack = @_stack.filter((w)-> w != window)
-    if @_current = window
-      @_current = @_stack[@_stack.length - 1]
+    @_stack.splice(index, 1)
+    # If we closed the currently open window, switch to the previous window.
+    if window == @_current
+      if index > 0
+        @_current = @_stack[index - 1]
+      else
+        @_current = @_stack[0]
     return
 
-  # Switch to the specified window (name or number)
+  # Switch to the specified window.
   switch: (window)->
     return unless window
     window = @_named[window] || @_stack[window] || window
+    return unless ~@_stack.indexOf(window)
     @_current = window
 
   # Returns the currently open window.

@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.13.12 2012-05-09
+
+Cleaned up and documented `browser.windows`.
+
+    462 tests
+    11.4 sec to complete
+
+
 ## Version 0.13.11 2012-05-08
 
 Fix loading URL with document fragment remove document fragment from page
