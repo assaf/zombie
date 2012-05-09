@@ -1,0 +1,13 @@
+GET /maps/api/js/ViewportInfoService.GetViewportInfo?1m6&1m2&1dNaN&2dNaN&2m2&1dNaN&2dNaN&2u8&4sen-US&5e0&6sm%40176000000&7b0&8e0&9b0&callback=_xdc_._648kj3&token=121888
+host: maps.googleapis.com
+
+200 HTTP/1.1
+content-type: text/javascript; charset=UTF-8
+date: Wed, 09 May 2012 17:46:15 GMT
+server: mafe
+cache-control: private
+x-xss-protection: 1; mode=block
+x-frame-options: SAMEORIGIN
+transfer-encoding: chunked
+
+_xdc_._648kj3 && _xdc_._648kj3( ["",null,null,null,0] )
