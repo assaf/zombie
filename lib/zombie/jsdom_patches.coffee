@@ -3,12 +3,10 @@ HTML = require("jsdom").dom.level3.html
 URL = require("url")
 
 
-###
 HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
 HTML.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
 HTML.HTMLElement.prototype.__defineGetter__ "offsetWidth",  -> 100
 HTML.HTMLElement.prototype.__defineGetter__ "offsetHeight", -> 100
-###
 
 
 original = HTML.Element.prototype.setAttribute

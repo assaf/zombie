@@ -6,6 +6,8 @@ zombie.js-changelog(7) -- Changelog
 
 Cleaned up and documented `browser.windows`.
 
+Brought back JSDOM offset patches, Google Maps fails badly without these.
+
     462 tests
     11.4 sec to complete
 
