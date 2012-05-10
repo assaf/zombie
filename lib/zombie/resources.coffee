@@ -193,7 +193,7 @@ class Resources extends Array
     # Pre 0.3 we need to specify the host name.
     headers["Host"] = url.host
 
-    if credentials = @_browser.credentials
+    if credentials = @_browser.credentials && (!credentials.site || url.href.indexOf(credentials.site) == 0)
       switch credentials.scheme.toLowerCase()
         when "basic"
           base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
