@@ -183,8 +183,8 @@ handlers (e.g. `jQuery.onready`).
 
 For that reason, navigating to a new page doesn't land you immediately on that
 page: you have to wait for the browser to complete processing of all events.
-You can do that by calling `browser.wait` or passing a callback to methods like
-`visit` and `clickLink.`
+You can do that by calling `browser.wait`, passing a callback to methods like
+`visit` and `clickLink`, or using promises.
 
 ### browser.back(callback)
 
@@ -192,9 +192,7 @@ Navigate to the previous page in history.
 
 ### browser.clickLink(selector, callback)
  
-Clicks on a link.  The first argument is the link text or CSS selector.  Second
-argument is a callback, invoked after all events are allowed to run their
-course.
+Clicks on a link.  The first argument is the link text or CSS selector.
 
 Zombie.js fires a `click` event and has a default event handler that will to the
 link's `href` value, just like a browser would.  However, event handlers may
@@ -202,9 +200,12 @@ intercept the event and do other things, just like a real browser.
 
 For example:
 
-    browser.clickLink("View Cart", function(e, browser, status) {
+    browser.clickLink("View Cart", function() {
       assert.lengthOf(browser.queryAll("#cart .body"), 3);
     });
+
+Just like `wait`, this function either takes a callback or returns a promise,
+and will wait for all events to fire.
 
 ### browser.history : History
 
@@ -253,10 +254,24 @@ In the second form, sets the options for the duration of the request, and resets
 before passing control to the callback.  For example:
 
     browser.visit("http://localhost:3000", { debug: true },
-      function(e, browser, status) {
+      function(e, browser) {
         console.log("The page:", browser.html());
       }
     );
+
+If the last argument is a callback, it will be called with either error, or with
+null and browser object.
+
+Otherwise, returns a promise object you can use to wait for the page to load and
+all events to fire.  For example:
+
+    browser.visit("http://localhost:3000").
+      then(function() {
+        console.log("The page:", browser.html());
+      }).
+      fail(function(error) {
+        console.log("Not good:", error)
+      })
 
 ### browser.redirected : Boolean
 
@@ -287,21 +302,21 @@ the callback function.  Zombie.js can even support jQuery live event handlers.
 Attaches a file to the specified input field.  The second argument is the file
 name (you cannot attach streams).
 
-Without callback, returns this.
+Returns this so you can chain multiple methods.
 
 ### browser.check(field, callback) : this
  
 Checks a checkbox.  The argument can be the field name, label text or a CSS
 selector.
 
-Without callback, returns this.
+Returns this so you can chain multiple methods.
 
 ### browser.choose(field, callback) : this
 
 Selects a radio box option.  The argument can be the field name, label text or a
 CSS selector.
 
-Without callback, returns this.
+Returns this so you can chain multiple methods.
 
 ### browser.field(selector) : Element
 
@@ -318,8 +333,6 @@ name, label text or a CSS selector.  The second argument is the field value.
 For example:
 
     browser.fill("Name", "ArmBiter").fill("Password", "Brains...")
-
-Without callback, returns this.
 
 ### browser.button(selector) : Element
 
@@ -355,20 +368,20 @@ For example:
 
 See also `selectOption`.
 
-Without callback, returns this.
+Returns this so you can chain multiple methods.
 
 ### browser.selectOption(option, callback) : this
 
 Selects the option (an `OPTION` element).
 
-Without callback, returns this.
+Returns this so you can chain multiple methods.
 
 ### browser.uncheck(field, callback) : this
 
 Unchecks a checkbox.  The argument can be the field name, label text or a CSS
 selector.
 
-Without callback, returns this.
+Returns this so you can chain multiple methods.
 
 ### browser.unselect(field, value, callback) : this
  
@@ -377,13 +390,13 @@ CSS selector.  The second value is the option to unselect, by value or label.
 
 You can use this (or `unselectOption`) when dealing with multiple selection.
 
-Without callback, returns this.
+Returns this so you can chain multiple methods.
 
 ### browser.unselectOption(option, callback) : this
 
 Unselects the option (an `OPTION` element).
 
-Without callback, returns this.
+Returns this so you can chain multiple methods.
 
 
 ## State Management
@@ -530,12 +543,14 @@ Fires a DOM event.  You can use this to simulate a DOM event, e.g. clicking a
 link or clicking the mouse.  These events will bubble up and can be cancelled.
 
 The first argument it the event name (e.g. `click`), the second argument is the
-target element of the event.  With a callback, this method will transfer control
-to the callback after running all events.
+target element of the event.
 
-### browser.wait(callback)
-### browser.wait(duration, callback)
-### browser.wait(done, callback)
+Just like `wait`, this method either takes a callback or returns a promise (and
+will wait for events to fire).
+
+### browser.wait(callback?)
+### browser.wait(duration, callback?)
+### browser.wait(done, callback?)
 
 Waits for the browser to complete loading resources and processing JavaScript
 events.
@@ -570,8 +585,9 @@ Even with completion function, the browser won't wait forever.  It will complete
 as soon as it determines there are no more events to wait for, or after 5
 seconds of waiting.
 
-You can also call `wait` with no callback and simply listen to the `done` and
-`error` events getting fired.
+If you call `wait` with a callback as the last argument, it will be notified
+once on completion or when the first error occurs.  If you call `wait` without a
+callback, it returns a promise that you can wait on.
 
 ### Event: 'done'
 `function (browser) { }`

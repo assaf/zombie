@@ -600,11 +600,13 @@ describe "Forms", ->
 
       before (done)->
         browser.visit "http://localhost:3003/forms/form", ->
+          console.log "Visit ..."
           browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").check("You bet").
             check("Certainly").choose("Scary").select("state", "dead").select("looks", "Choose one").
             select("#field-hobbies", "Eat Brains").select("#field-hobbies", "Sleep").check("Brains?").
             fill('#address1_city', 'Paris').fill('#address1_street', 'CDG').
             fill('#address2_city', 'Mikolaiv').fill('#address2_street', 'PGS')
+          console.log "Waiting ..."
           browser.querySelector("form").submit()
           browser.wait done
 

@@ -101,9 +101,9 @@ describe "EventLoop", ->
           browser.window.setTimeout (-> @document.title += "1"), 100
           browser.window.setTimeout (-> @document.title += "2"), 200
           browser.window.setTimeout (-> @document.title += "3"), 300
-          browser.wait 100, ->
+          browser.wait 120, ->
             setTimeout ->
-              browser.wait 100, done
+              browser.wait 120, done
             , 300
 
       it "should not fire", ->

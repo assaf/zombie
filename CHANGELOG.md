@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 0.14.0 2012-05-10
+
+Yes, that is right, Zombie now supports promises.
+
+    486 tests
+    12.0 sec to complete
+
+
 ## Version 0.13.14 2012-05-09
 
 Changed browser option `windowName` to just `name.`

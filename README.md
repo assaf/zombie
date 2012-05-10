@@ -95,9 +95,41 @@ empty).  This is JavaScript, so you don't need to declare all these arguments, a
 [Mocha](http://visionmedia.github.com/mocha/))
 
 
-Most errors that occur – resource loading and JavaScript execution – are not fatal, so rather the stopping processing,
-they are collected in `browser.errors`.  As a convenience, you can get the last error by calling `browser.error`, for
-example:
+Zombie also supports promises.  When you call functions like `visit`, `wait` or
+`clickLink` without a callback, you get a
+(promise)[http://documentup.com/kriskowal/q/#tutorial].  After the browser is
+done processing, it either fulfills or rejects the promise.
+
+For example:
+
+    browser.visit("http://localhost:3000/").
+      then(function() {
+        assert.equal(browser.text("H1"), "Deferred zombies");
+      }).
+      fail(function(error) {
+        console.log("Oops", error);
+      })
+
+Another way to simplify your code is to catch all errors from one place using
+events, for example:
+
+    browser.on("error", function(error) {
+      console.error(error);
+    })
+    browser.visit("http://localhost:3000/").
+      then(function() {
+        assert.equal(browser.text("H1"), "Deferred zombies");
+        // Chaining works by returning a promise here
+        return browser.clickLink("Hit me");
+      }).
+      then(function() {
+        assert.equal(browser.text("H1"), "Ouch");
+      })
+
+
+Most errors that occur – resource loading and JavaScript execution – are not
+fatal, so rather the stopping processing, they are collected in
+`browser.errors`.  For example:
 
     browser.visit("http://localhost:3000/", function () {
       assert.ok(browser.success);
@@ -308,6 +340,8 @@ JavaScript execution contexts using [Contextify](https://github.com/brianmcd/con
 HTTP(S) requests using [Request](https://github.com/mikeal/request)
 
 Cookie support using [Tough Cookie](https://github.com/goinstant/node-cookie)
+
+Promises support via [Q][http://documentup.com/kriskowal/q/]
 
 Magical Zombie Girl by [Toho Scope](http://www.flickr.com/people/tohoscope/)
 

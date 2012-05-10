@@ -12,6 +12,7 @@ FS                = require("fs")
 Interact          = require("./interact")
 JSDOM             = require("jsdom")
 Mime              = require("mime")
+Q                 = require("q")
 Path              = require("path")
 Resources         = require("./resources")
 Storages          = require("./storage")
@@ -53,6 +54,9 @@ class Browser extends EventEmitter
     @on "error", (error)=>
       @errors.push error
       @log error.message, error.stack
+
+    # Pretty reasonable if you have a lot of waiting calls in there (say fill, choose, clickLink)
+    @setMaxListeners 20
 
 
     # Options
@@ -136,8 +140,10 @@ class Browser extends EventEmitter
     if options
       restore = {}
       [restore[k], @[k]] = [@[k], v] for k,v of options
-    fn =>
-      @[k] = v for k,v of restore if restore
+      fn =>
+        @[k] = v for k,v of restore
+    else
+      fn ->
 
   # Return a new browser with a snapshot of this browser's state.
   # Any changes to the forked browser's state do not affect this browser.
@@ -173,8 +179,9 @@ class Browser extends EventEmitter
   # Events
   # ------
 
-  # Waits for the browser to complete loading resources and processing JavaScript events.  When done, calls the callback
-  # with null and browser.
+  # Waits for the browser to complete loading resources and processing JavaScript events.
+  #
+  # You can pass a callback as the last argument.  Without a callback, this method returns a promise.
   #
   # With `duration` as the first argument, this method waits for the specified time (in milliseconds) and any
   # resource/JavaScript to complete processing.  Duration can also be a function, called after each event to determine
@@ -182,26 +189,22 @@ class Browser extends EventEmitter
   #
   # Without duration, Zombie makes best judgement by waiting up to 5 seconds for the page to load resources (scripts,
   # XHR requests, iframes), process DOM events, and fire timeouts events.
-  #
-  # You can also call `wait` with no callback and simply listen to the `done` and `error` events getting fired.
   wait: (duration, callback)->
     if !callback && typeof duration == "function"
       [callback, duration] = [duration, null]
 
-    completed = (error)=>
-      if callback
-        do (callback)=>
-          process.nextTick =>
-            callback error, this
-        callback = null
-    @once "done", completed
-    @once "error", completed
+    deferred = Q.defer()
+    if callback
+      deferred.promise.then(callback).fail(callback)
+
+    @once "done", deferred.makeNodeResolver()
+    @once "error", deferred.makeNodeResolver()
 
     @_eventloop.wait @window, duration
-    return
+    return deferred.promise unless callback
 
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
-  # can be cancelled.  With a callback, this method will call `wait`.
+  # can be cancelled.  Like `wait` this method either takes a callback or returns a promise.
   #
   # name - Even name (e.g `click`)
   # target - Target element (e.g a link)
@@ -211,11 +214,7 @@ class Browser extends EventEmitter
     event = @window.document.createEvent(type)
     event.initEvent name, true, true
     @dispatchEvent target, event
-    if callback
-      @wait (error, browser)->
-        callback error, browser, event
-    else
-      return this
+    return @wait(callback)
 
   # Dispatch asynchronously.
   dispatchEvent: (target, event)->
@@ -359,18 +358,26 @@ class Browser extends EventEmitter
       [callback, options] = [options, null]
     if typeof options != "object"
       [duration, options] = [options, null]
+
+    deferred = Q.defer()
+    if callback
+      deferred.promise.then =>
+        callback null, this, @statusCode, @errors
+      .fail (error)=>
+        callback(error, this, @statusCode, @errors)
+
     @withOptions options, (reset_options)=>
       if site = @site
         site = "http://#{site}" unless /^(https?:|file:)/i.test(site)
         url = URL.resolve(site, URL.parse(URL.format(url)))
       @window.history._assign url
-      if callback
-        @wait duration, (error, browser)=>
-          reset_options()
-          callback error, browser, browser.statusCode, browser.errors
-      else
+      @wait(duration).then ->
         reset_options()
-    return
+        deferred.resolve()
+      .fail (error)->
+        reset_options()
+        deferred.reject(error)
+    return deferred.promise unless callback
 
   # ### browser.location => Location
   #
@@ -403,11 +410,9 @@ class Browser extends EventEmitter
   # selector - CSS selector or link text
   # callback - Called with two arguments: error and browser
   clickLink: (selector, callback)->
-    if link = @link(selector)
-      @fire "click", link, =>
-        callback null, this, @statusCode
-    else
+    unless link = @link(selector)
       throw new Error("No link matching '#{selector}'")
+    return @fire("click", link, callback)
 
   # Return the history object.
   @prototype.__defineGetter__ "history", ->
@@ -476,34 +481,28 @@ class Browser extends EventEmitter
   # Without callback, returns this.
   fill: (selector, value, callback)->
     field = @field(selector)
-    if field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT"))
-      if field.getAttribute("disabled")
-        throw new Error("This INPUT field is disabled")
-      if field.getAttribute("readonly")
-        throw new Error("This INPUT field is readonly")
-      field.value = value
-      @fire "change", field, callback
-      unless callback
-        return this
-    else
+    unless field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT"))
       throw new Error("No INPUT matching '#{selector}'")
+    if field.getAttribute("disabled")
+      throw new Error("This INPUT field is disabled")
+    if field.getAttribute("readonly")
+      throw new Error("This INPUT field is readonly")
+    field.value = value
+    @fire "change", field, callback
+    return this
 
   _setCheckbox: (selector, value, callback)->
     field = @field(selector)
-    if field && field.tagName == "INPUT" && field.type == "checkbox"
-      if field.getAttribute("disabled")
-        throw new Error("This INPUT field is disabled")
-      if field.getAttribute("readonly")
-        throw new Error("This INPUT field is readonly")
-      if field.checked ^ value
-        field.click()
-
-      if callback
-        @wait callback
-      else
-        return this
-    else
+    unless field && field.tagName == "INPUT" && field.type == "checkbox"
       throw new Error("No checkbox INPUT matching '#{selector}'")
+    if field.getAttribute("disabled")
+      throw new Error("This INPUT field is disabled")
+    if field.getAttribute("readonly")
+      throw new Error("This INPUT field is readonly")
+    if field.checked ^ value
+      field.click()
+    @wait callback if callback
+    return this
 
   # ### browser.check(selector, callback) => this
   #
@@ -513,7 +512,7 @@ class Browser extends EventEmitter
   #
   # Without callback, returns this.
   check: (selector, callback)->
-    @_setCheckbox selector, true, callback
+    return @_setCheckbox(selector, true, callback)
 
   # ### browser.uncheck(selector, callback) => this
   #
@@ -523,7 +522,7 @@ class Browser extends EventEmitter
   #
   # Without callback, returns this.
   uncheck: (selector, callback)->
-    @_setCheckbox selector, false, callback
+    return @_setCheckbox(selector, false, callback)
 
   # ### browser.choose(selector, callback) => this
   #
@@ -534,31 +533,27 @@ class Browser extends EventEmitter
   # Without callback, returns this.
   choose: (selector, callback)->
     field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
-    if field && field.tagName == "INPUT" && field.type == "radio"
-      field.click()
-      if callback
-        @wait callback
-      else
-        return this
-    else
+    unless field && field.tagName == "INPUT" && field.type == "radio"
       throw new Error("No radio INPUT matching '#{selector}'")
+    field.click()
+    @wait callback if callback
+    return this
 
   _findOption: (selector, value)->
     field = @field(selector)
-    if field && field.tagName == "SELECT"
-      if field.getAttribute("disabled")
-        throw new Error("This SELECT field is disabled")
-      if field.getAttribute("readonly")
-        throw new Error("This SELECT field is readonly")
-      for option in field.options
-        if option.value == value
-          return option
-      for option in field.options
-        if option.label == value
-          return option
-      throw new Error("No OPTION '#{value}'")
-    else
+    unless field && field.tagName == "SELECT"
       throw new Error("No SELECT matching '#{selector}'")
+    if field.getAttribute("disabled")
+      throw new Error("This SELECT field is disabled")
+    if field.getAttribute("readonly")
+      throw new Error("This SELECT field is readonly")
+    for option in field.options
+      if option.value == value
+        return option
+    for option in field.options
+      if option.label == value
+        return option
+    throw new Error("No OPTION '#{value}'")
 
   # ### browser.attach(selector, filename, callback) => this
   #
@@ -567,21 +562,19 @@ class Browser extends EventEmitter
   # Without callback, returns this.
   attach: (selector, filename, callback)->
     field = @field(selector)
-    if field && field.tagName == "INPUT" && field.type == "file"
-      if filename
-        stat = FS.statSync(filename)
-        file = new (@window.File)()
-        file.name = Path.basename(filename)
-        file.type = Mime.lookup(filename)
-        file.size = stat.size
-        field.files ||= []
-        field.files.push file
-        field.value = filename
-        @fire "change", field, callback
-    else
+    unless field && field.tagName == "INPUT" && field.type == "file"
       throw new Error("No file INPUT matching '#{selector}'")
-    unless callback
-      return this
+    if filename
+      stat = FS.statSync(filename)
+      file = new (@window.File)()
+      file.name = Path.basename(filename)
+      file.type = Mime.lookup(filename)
+      file.size = stat.size
+      field.files ||= []
+      field.files.push file
+      field.value = filename
+    @fire "change", field, callback
+    return this
 
   # ### browser.select(selector, value, callback) => this
   #
@@ -593,7 +586,7 @@ class Browser extends EventEmitter
   # Without callback, returns this.
   select: (selector, value, callback)->
     option = @_findOption(selector, value)
-    @selectOption option, callback
+    return @selectOption(option, callback)
 
   # ### browser.selectOption(option, callback) => this
   #
@@ -608,9 +601,9 @@ class Browser extends EventEmitter
       option.setAttribute("selected", "selected")
       @fire "change", select, callback
     else if callback
-      callback null, false
-    else
-      return this
+      process.nextTick ->
+        callback null, false
+    return this
 
   # ### browser.unselect(selector, value, callback) => this
   #
@@ -622,7 +615,7 @@ class Browser extends EventEmitter
   # Without callback, returns this.
   unselect: (selector, value, callback)->
     option = @_findOption(selector, value)
-    @unselectOption option, callback
+    return @unselectOption(option, callback)
 
   # ### browser.unselectOption(option, callback) => this
   #
@@ -639,9 +632,9 @@ class Browser extends EventEmitter
       option.removeAttribute("selected")
       @fire "change", select, callback
     else if callback
-      callback null, false
-    else
-      return this
+      process.nextTick ->
+        callback null, false
+    return this
 
   # ### browser.button(selector) : Element
   #
@@ -668,13 +661,11 @@ class Browser extends EventEmitter
   # selector - CSS selector, button name or text of BUTTON element
   # callback - Called with two arguments: null and browser
   pressButton: (selector, callback)->
-    if button = @button(selector)
-      if button.getAttribute("disabled")
-        throw new Error("This button is disabled")
-      else
-        @fire "click", button, callback
-    else
+    unless button = @button(selector)
       throw new Error("No BUTTON '#{selector}'")
+    if button.getAttribute("disabled")
+      throw new Error("This button is disabled")
+    return @fire("click", button, callback)
 
 
   # Cookies and storage

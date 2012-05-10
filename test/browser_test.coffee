@@ -550,3 +550,27 @@ describe "Browser", ->
       forked.window.history.back()
       assert.equal "http://localhost:3003/browser/living", forked.location.href
 
+
+  describe "promises", ->
+    before (done)->
+      brains.get "/promises", (req, res)->
+        res.send """
+        <h1>Deferred zombies<h1>
+        <a href="/promises/chained">Hit me</a>
+        """
+      brains.get "/promises/chained", (req, res)->
+        res.send """
+        <h1>Ouch<h1>
+        """
+      brains.ready done
+
+    before (done)->
+      browser = new Browser()
+      browser.visit("http://localhost:3003/promises")
+        .then ->
+          return browser.clickLink("Hit me")
+        .then done
+
+    it "should allow chaining instead of nesting", ->
+      assert true
+
