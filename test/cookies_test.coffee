@@ -16,9 +16,10 @@ describe "Cookies", ->
       res.cookie "_domain1",  "here",     domain: ".localhost"
       res.cookie "_domain2",  "not here", domain: "not.localhost"
       res.cookie "_domain3",  "wrong",    domain: "notlocalhost"
-      res.cookie "_dup",      "specific", path: "/cookies"
-      res.cookie "_dup",      "general",  path: "/"
+      res.cookie "_multiple", "specific", path: "/cookies"
+      res.cookie "_multiple", "general",  path: "/"
       res.cookie "_http_only","value",    httpOnly: true
+      res.cookie "_dup",      "one",      path: "/"
       res.send "<html></html>"
 
     brains.get "/cookies/echo", (req,res)->
@@ -62,7 +63,7 @@ describe "Cookies", ->
         assert cookies.get("_domain2") == undefined
         assert cookies.get("_domain3") == undefined
       it "should access most specific cookie", ->
-        assert.equal cookies.get("_dup"), "specific"
+        assert.equal cookies.get("_multiple"), "specific"
 
 
     describe "host in domain", ->
@@ -95,7 +96,7 @@ describe "Cookies", ->
 
         it "should include only visible cookies", ->
           keys = (key for key, value of pairs).sort()
-          assert.deepEqual keys, "_domain1 _dup _expires1 _expires2 _name _path1 _path4".split(" ")
+          assert.deepEqual keys, "_domain1 _dup _expires1 _expires2 _multiple _name _path1 _path4".split(" ")
         it "should match name to value", ->
          assert.equal pairs._name, "value"
          assert.equal pairs._path1, "yummy"
@@ -132,6 +133,29 @@ describe "Cookies", ->
 
     it "should have access to persistent cookie", ->
       assert.equal cookies.get("_expires4"), "3s"
+
+
+  describe "duplicates", ->
+    browser = new Browser()
+
+    before (done)->
+      brains.get "/cookies2", (req, res)->
+        res.cookie "_dup", "two", path: "/"
+        res.send ""
+      brains.get "/cookies3", (req, res)->
+        res.cookie "_dup", "three", path: "/"
+        res.send ""
+
+      browser.visit "http://localhost:3003/cookies", ->
+        browser.visit "http://localhost:3003/cookies2", ->
+          browser.visit "http://localhost:3003/cookies3", done
+
+    it "should retain last value", ->
+      console.log browser.cookies().all()
+      assert.equal browser.cookies().get("_dup"), "three"
+    it "should only retain last cookie", ->
+      dups = browser.cookies().all().filter((c)-> c.key == "_dup")
+      assert.equal dups.length, 1
 
 
   describe "send cookies", ->
@@ -234,12 +258,12 @@ describe "Cookies", ->
 
         before (done)->
           browser.visit "http://localhost:3003/cookies", ->
-            browser.document.cookie = "foo=qux" # more specific, /cookies/echo hides it
+            browser.document.cookie = "foo=bar" # 
             done()
 
         before (done)->
           browser.visit "http://localhost:3003/cookies/other", ->
-            browser.document.cookie = "bar=qux" # different domain, not visible
+            browser.document.cookie = "foo=qux" # more specific path, not visible to /cookies.echo
             done()
 
         before (done)->
@@ -264,6 +288,7 @@ describe "Cookies", ->
 
       it "should be available from document", ->
         assert.equal browser.cookies().get("foo"), "bar\"baz"
+
 
     describe "setting cookie with semicolon", ->
       before (done)->

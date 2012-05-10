@@ -13,7 +13,7 @@ class Access
 
   # Returns all the cookies for this domain/path.
   all: ->
-    return @_cookies.filter((cookie)=>
+    return @_cookies.all().filter((cookie)=>
       return Tough.domainMatch(@domain, cookie.domain) && Tough.pathMatch(@path, cookie.path) && cookie.TTL() > 0
     ).sort(Tough.cookieCompare)
 
@@ -42,6 +42,9 @@ class Access
     cookie.secure = !!options.secure
     cookie.httpOnly = !!options.httpOnly
 
+    # Delete cookie before setting it, so we only store one cookie (per
+    # domain/path/name)
+    @_cookies.filter((c)=> !(cookie.key == c.key && cookie.domain == c.domain && cookie.path == c.path) )
     if Tough.domainMatch(cookie.domain, @domain) && Tough.pathMatch(cookie.path, @path) && cookie.TTL() > 0
       @_cookies.push cookie
 
@@ -49,11 +52,11 @@ class Access
   #
   # * name -- Cookie name
   remove: (name)->
-    @_cookies = @_cookies.filter((cookie)=> !(cookie.key == name && cookie.domain == @domain && cookie.path == @path) )
+    @_cookies.filter((cookie)=> !(cookie.key == name && cookie.domain == @domain && cookie.path == @path) )
 
   # Clears all cookies.
   clear: ->
-    @_cookies = @_cookies.filter((cookie)=> !(cookie.domain == @domain && cookie.path == @path) )
+    @_cookies.filter((cookie)=> !(cookie.domain == @domain && cookie.path == @path) )
 
   # Update cookies from serialized form. This method works equally well for
   # the Set-Cookie header and value passed to document.cookie setter.
@@ -67,10 +70,11 @@ class Access
       cookie = Cookie.parse(cookie)
       cookie.domain ||= @domain
       cookie.path   ||= @path
-      if Tough.domainMatch(@domain, cookie.domain) && Tough.pathMatch(@path, cookie.path)
-        #@remove cookie.key
-        if cookie.TTL() > 0
-          @_cookies.push cookie
+      # Delete cookie before setting it, so we only store one cookie (per
+      # domain/path/name)
+      @_cookies.filter((c)-> !(cookie.key == c.key && cookie.domain == c.domain && cookie.path == c.path) )
+      if Tough.domainMatch(@domain, cookie.domain) && Tough.pathMatch(@path, cookie.path) && cookie.TTL() > 0
+        @_cookies.push cookie
 
   # Adds Cookie header suitable for sending to the server.
   addHeader: (headers)->
@@ -94,7 +98,7 @@ class Cookies
 
   # Creates and returns cookie access scopes to given host/path.
   access: (hostname, pathname)->
-    return new Access(@_cookies, hostname, pathname)
+    return new Access(this, hostname, pathname)
 
   # Add cookies accessor to window: documents need this.
   extend: (window)->
@@ -120,6 +124,15 @@ class Cookies
       line = line.trim()
       continue if line[0] == "#" || line == ""
       @_cookies.push Cookie.parse(line)
+
+  filter: (fn)->
+    @_cookies = @_cookies.filter(fn)
+
+  push: (cookie)->
+    @_cookies.push cookie
+
+  all: ->
+    @_cookies.slice()
 
 
 # Returns name=value pairs

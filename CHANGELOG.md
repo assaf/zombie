@@ -12,8 +12,10 @@ stupid idea).
 Support for opening link in specified target (named window, `_self`, `_parent`, `_top` or
 `_blank`).
 
-    469 tests
-    11.6 sec to complete
+Fixed Zombie retaining multiple values for the same cookie (domain/path/key).
+
+    485 tests
+    11.9 sec to complete
 
 
 ## Version 0.13.13 2012-05-09
