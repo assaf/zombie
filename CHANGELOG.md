@@ -9,6 +9,9 @@ Changed browser option `windowName` to just `name.`
 Setting browser option to `undefined` no longer resets it to default (that was a
 stupid idea).
 
+Support for opening link in specified target (named window, `_self`, `_parent`, `_top` or
+`_blank`).
+
     469 tests
     11.6 sec to complete
 

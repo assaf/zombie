@@ -45,12 +45,16 @@ class Windows
     name = options.name || @_browser.name || ""
     # If this is an iframe, create a named window but don't keep a reference
     # to it here. Let the document handle that,
-    # If window name is _blank, we always create a new window.
-    # Otherwise, we return existing window and allow lookup by name.
-    if name == "_blank" || options.parent
+    if options.parent
       window = @_create(name, options)
     else
-      window = @_named[name] ||= @_create(name, options)
+      # If window name is _blank, we always create a new window.
+      # Otherwise, we return existing window and allow lookup by name.
+      if name == "_blank"
+        window = @_create(name, options)
+      else
+        window = @_named[name] ||= @_create(name, options)
+      @_stack.push window
 
     # If caller supplies URL, use it.  If this is existing window, return
     # without changing location (or contents).  Otherwise, start with empty
@@ -111,7 +115,6 @@ class Windows
   _create: (name, { parent, opener })->
     window = JSDOM.createWindow(HTML)
     global = window.getGlobal()
-    @_stack.push window
 
     Object.defineProperty window, "browser", value: @_browser
     # Add event loop features (setInterval, dispatchEvent, etc)

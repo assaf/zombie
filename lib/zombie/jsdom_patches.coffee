@@ -35,11 +35,30 @@ HTML.Element.prototype.setAttribute = (name, value)->
     original.apply(this, arguments)
 
 
-# Default behavior for clicking on links: navigate to new URL is specified.
+# Default behavior for clicking on links: navigate to new URL if specified.
 HTML.HTMLAnchorElement.prototype._eventDefaults =
   click: (event)->
     anchor = event.target
-    anchor.ownerDocument.parentWindow.location = anchor.href if anchor.href
+    return unless anchor.href
+
+    window = anchor.ownerDocument.parentWindow
+    browser = window.browser
+    # Decide which window to open this link in
+    switch anchor.target || "_self"
+      when "_self" # open in same window
+        window = window
+      when "_parent" # pick parent window
+        window = window.parent
+      when "_top" # pick top window
+        window = window.top
+      else
+        # If this is a named window, open in existing window or create a new
+        # one.  This also works for _blank (always open new one)
+        window = browser.windows.get(anchor.target) ||
+                 browser.open(name: anchor.target)
+    # Make sure to select window as the current one
+    browser.windows.select(window)
+    window.location = anchor.href
 
 
 # Fix resource loading to keep track of in-progress requests. Need this to wait
