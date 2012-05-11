@@ -212,7 +212,6 @@ describe "Scripts", ->
               var foo = "NotOne";
               var e_foo = e("foo");
               var qux = window.eval.call(window, "foo");
-              console.log(qux)
 
               document.title = eval('e_foo + bar + baz + qux');
             })();

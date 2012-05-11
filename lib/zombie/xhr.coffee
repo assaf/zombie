@@ -68,7 +68,6 @@ XMLHttpRequest = (window)->
         # Make the actual request: called again when dealing with a redirect.
         window.browser.resources.request method, url, data, headers, (error, response)=>
           if error
-            console.error "XHR error", error
             @_error = new html.DOMException(html.NETWORK_ERR, error.message)
             stateChanged 4
             reset()

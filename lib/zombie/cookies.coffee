@@ -106,10 +106,10 @@ class Cookies
       get: ->
         return @browser.cookies(@location.hostname, @location.pathname)
 
-  # Used to dump state to console (debuggin)
+  # Used to dump state to console (debugging)
   dump: ->
     for cookie in @_cookies.sort(Tough.cookieCompare)
-      console.log cookie.toString()
+      process.stdout.write cookie.toString() + "\n"
 
   # browser.saveCookies uses this
   save: ->

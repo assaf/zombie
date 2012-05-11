@@ -3,7 +3,7 @@ deprecated = (message)->
   @shown ||= {}
   unless @shown[message]
     @shown[message] = true
-    console.log message
+    process.stderr.write message
 
 
 module.exports = 

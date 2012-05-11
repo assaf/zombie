@@ -134,7 +134,8 @@ class Resources extends Array
 
   # Dump all resources to the console by calling toString.
   dump: ->
-    console.log this.toString()
+    process.stdout.write this.toString()
+    process.stdout.write "\n"
 
   toString: ->
     @map((resource)-> resource.toString()).join("\n")

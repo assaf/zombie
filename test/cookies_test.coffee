@@ -151,7 +151,6 @@ describe "Cookies", ->
           browser.visit "http://localhost:3003/cookies3", done
 
     it "should retain last value", ->
-      console.log browser.cookies().all()
       assert.equal browser.cookies().get("_dup"), "three"
     it "should only retain last cookie", ->
       dups = browser.cookies().all().filter((c)-> c.key == "_dup")

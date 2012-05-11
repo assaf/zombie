@@ -89,7 +89,6 @@ describe "IFrame", ->
         res.send """
         <script>
           window.addEventListener("message", function(event) {
-            console.log(event.origin)
             if (event.data == "ping")
               event.source.postMessage("pong " + event.origin);
           })

@@ -87,5 +87,5 @@ exports.bcat = (input, port = 8091, browser)->
   bcat = new BCat
   input ||= process.openStdin()
   bcat.serve input, port
-  console.log "open your browser on http://127.0.0.1:#{port}/"
+  process.stdout.write "open your browser on http://127.0.0.1:#{port}/\n\n"
   bcat.open browser, port

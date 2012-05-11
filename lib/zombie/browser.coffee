@@ -834,18 +834,18 @@ class Browser extends EventEmitter
   # debugging and submitting error reports.
   dump: ->
     indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
-    console.log "Zombie: #{VERSION}\n"
-    console.log "URL: #{@window.location.href}"
-    console.log "History:\n#{indent @window.history.dump()}"
-    console.log "Cookies:\n#{indent @_cookies.dump()}"
-    console.log "Storage:\n#{indent @_storages.dump()}"
-    console.log "Eventloop:\n#{indent @_eventloop.dump()}"
+    process.stdout.write "Zombie: #{VERSION}\n\n"
+    process.stdout.write "URL: #{@window.location.href}\n"
+    process.stdout.write "History:\n#{indent @window.history.dump()}\n"
+    process.stdout.write "Cookies:\n#{indent @_cookies.dump()}\n"
+    process.stdout.write "Storage:\n#{indent @_storages.dump()}\n"
+    process.stdout.write "Eventloop:\n#{indent @_eventloop.dump()}\n"
     if @document
       html = @document.outerHTML
       html = html.slice(0, 497) + "..." if html.length > 497
-      console.log "Document:\n#{indent html.split("\n")}"
+      process.stdout.write "Document:\n#{indent html.split("\n")}\n"
     else
-      console.log "No document" unless @document
+      process.stdout.write "No document\n" unless @document
 
 
 # Represents credentials for a given host.
