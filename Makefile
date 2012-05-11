@@ -6,19 +6,33 @@ default : test
 setup :
 	npm install
 
+# CoffeeScript to JavaScript
+build : clean
+	coffee -b -c -l -o lib/zombie lib/zombie/*.coffee
+
 # Run test suite
 test : setup
 	npm test
+
+
+# Run coverage report
+coverage : setup lib-cov
+	mkdir -p html
+	env LIB_PATH=lib-cov mocha -R html-cov > html/coverage.html
+	echo open html/coverage.html
+
+lib-cov : build
+	jscoverage --no-highlight lib lib-cov
+
+html/coverage.html :
+	if [ `which jscoverage` ] ; then make coverage ; fi
 
 
 # Remove temporary files
 clean :
 	rm -rf html man7
 	rm -f lib/zombie/*.js
-
-# CoffeeScript to JavaScript
-build : clean
-	coffee -b -c -l -o lib/zombie lib/zombie/*.coffee
+	rm -rf lib-cov
 
 
 # Documentation consists of Markdown files converted to HTML, CSS/images copied over, annotated source code and PDF.
@@ -77,7 +91,7 @@ man7/zombie-%.7 : doc/%.md
 version = $(shell node -e "console.log(JSON.parse(require('fs').readFileSync('package.json')).version)")
 
 # Publish site only.
-publish-docs : html html/source html/zombie.pdf
+publish-docs : html html/source html/zombie.pdf html/coverage.html
 	@echo "Uploading documentation ..."
 	rsync -chr --del --stats html/ labnotes.org:/var/www/zombie/
 

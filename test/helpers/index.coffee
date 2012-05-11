@@ -1,5 +1,8 @@
+# We switch this directory to instrumented code when running code coverage
+# report
+process.env.LIB_PATH ||= "lib"
 Replay    = require("replay")
-Browser   = require("../../lib/zombie")
+Browser   = require("../../#{process.env.LIB_PATH}/zombie")
 
 
 # Always run in verbose mode on Travis.

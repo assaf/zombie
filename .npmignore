@@ -1,6 +1,7 @@
 npm-debug.log
 node_modules
 lib/**/*.coffee
+lib-cov
 Makefile
 html
 test
