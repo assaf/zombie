@@ -58,6 +58,10 @@ Credential options look like this:
     { credentials: { scheme: "oauth", token: "long and magical" } }             // OAuth 2.0 draft 10
     { credentials: { scheme: "bearer", token: "long and magical" } }            // OAuth 2.0 latest
 
+They can take an optional site argument to associate the credentials with a specific site.
+
+    { credentials: {scheme: "basic", site: "http://www.google.com", username; "who", password: "secret" } }
+
 The proxy URL specifies the host and port of the proxy.  It also supports HTTP
 Basic authentication, for example:
 
