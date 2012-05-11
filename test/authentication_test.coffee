@@ -24,17 +24,27 @@ describe "Authentication", ->
       it "should return status code 401", ->
         assert.equal browser.statusCode, 401
 
+
     describe "with invalid credentials", ->
       browser = new Browser()
       before (done)->
-        credentials = { scheme: "basic", user: "username", password: "wrong" }
-        browser.visit "http://localhost:3003/auth/basic", credentials: credentials, ->
+        browser.authenticate("localhost:3003").basic("username", "wrong")
+        browser.visit "http://localhost:3003/auth/basic", ->
           done()
 
       it "should return status code 401", ->
         assert.equal browser.statusCode, 401
 
     describe "with valid credentials", ->
+      browser = new Browser()
+      before (done)->
+        browser.authenticate("localhost:3003").basic("username", "pass123")
+        browser.visit "http://localhost:3003/auth/basic", done
+
+      it "should have the authentication header", ->
+        assert.equal browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
+
+    describe "legacy credentials", ->
       browser = new Browser()
       before (done)->
         credentials = { scheme: "basic", user: "username", password: "pass123" }
@@ -68,8 +78,8 @@ describe "Authentication", ->
     describe "with invalid credentials", ->
       browser = new Browser()
       before (done)->
-        credentials = { scheme: "bearer", token: "wrong" }
-        browser.visit "http://localhost:3003/auth/oauth2", credentials: credentials, ->
+        browser.authenticate("localhost:3003").bearer("wrong")
+        browser.visit "http://localhost:3003/auth/oauth2", ->
           done()
 
       it "should return status code 401", ->
@@ -78,11 +88,12 @@ describe "Authentication", ->
     describe "with valid credentials", ->
       browser = new Browser()
       before (done)->
-        credentials = { scheme: "bearer", token: "12345" }
-        browser.visit "http://localhost:3003/auth/oauth2", credentials: credentials, done
+        browser.authenticate("localhost:3003").bearer("12345")
+        browser.visit "http://localhost:3003/auth/oauth2", done
 
       it "should have the authentication header", ->
         assert.equal browser.text("body"), "Bearer 12345"
+
 
   describe 'Scripts on secure pages', ->
     browser = new Browser()
@@ -107,8 +118,8 @@ describe "Authentication", ->
         else
           res.send "No Credentials on the javascript", 401
 
-      credentials = { scheme: "basic", user: "username", password: "pass123" }
-      browser.visit "http://localhost:3003/auth/script", credentials: credentials, done
+      browser.authenticate("localhost:3003").basic("username", "pass123")
+      browser.visit "http://localhost:3003/auth/script", done
 
     it "should download the script", ->
       assert.equal browser.text("title"), "ZeroOne"

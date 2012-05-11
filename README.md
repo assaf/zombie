@@ -115,7 +115,7 @@ For example:
       }).
       fail(function(error) {
         console.log("Oops", error);
-      })
+      });
 
 Another way to simplify your code is to catch all errors from one place using
 events, for example:
@@ -131,7 +131,7 @@ events, for example:
       }).
       then(function() {
         assert.equal(browser.text("H1"), "Ouch");
-      })
+      });
 
 
 Most errors that occur – resource loading and JavaScript execution – are not

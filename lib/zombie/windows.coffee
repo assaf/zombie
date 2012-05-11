@@ -188,7 +188,7 @@ class Windows
       event.data = data
       event.source = Windows.inContext
       origin = event.source.location
-      event.origin = URL.format(protocol: origin.protocol, hostname: origin.hostname, port: origin.port)
+      event.origin = URL.format(protocol: origin.protocol, host: origin.host)
       process.nextTick ->
         eventloop.dispatch window, event
 

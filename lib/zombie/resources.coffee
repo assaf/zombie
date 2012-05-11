@@ -192,17 +192,10 @@ class Resources extends Array
 
     # Pre 0.3 we need to specify the host name.
     headers["Host"] = url.host
-
-    if credentials = @_browser.credentials
-      switch credentials.scheme.toLowerCase()
-        when "basic"
-          base64 = new Buffer(credentials.user + ":" + credentials.password).toString("base64")
-          headers["authorization"] = "Basic #{base64}"
-        when "bearer"
-          headers["authorization"] = "Bearer #{credentials.token}"
-        when "oauth"
-          headers["authorization"] = "OAuth #{credentials.token}"
-
+    # Apply authentication credentials
+    credentials = @_browser.authenticate(url.host, false)
+    if credentials
+      credentials.apply(headers)
     url.pathname = "/#{url.pathname || ""}" unless url.pathname && url.pathname[0] == "/"
 
     # First request has not resource, so create it and add to

@@ -22,7 +22,7 @@ XHR               = require("./xhr")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
-BROWSER_OPTIONS = ["credentials", "debug", "htmlParser", "loadCSS", "proxy",
+BROWSER_OPTIONS = ["debug", "htmlParser", "loadCSS", "proxy",
                    "referer", "runScripts", "silent", "site", "userAgent",
                    "waitFor", "name"]
 
@@ -61,21 +61,6 @@ class Browser extends EventEmitter
 
     # Options
     # -------
-
-
-    # Object containing authorization credentials.  Supported schemes include
-    # `basic` (HTTP Basic), `oauth` (OAuth 2.0 draft 10) and `bearer` (OAuth
-    # 2.0 draft 20).  Scheme name is case insensitive.
-    #
-    # Example
-    #   credentials = { scheme: "basic", username: "bloody", password: "hungry" }
-    #   browser.visit("/basic/auth", { credentials: credentials }, function(error, browser) {
-    #   })
-    #
-    #   credentials = { scheme: "bearer", token: "b1004a8" }
-    #   browser.visit("/oauth/2", { credentials: credentials }, function(error, browser) {
-    #   })
-    @credentials = false
 
     # True to have Zombie report what it's doing.
     @debug = false
@@ -125,6 +110,8 @@ class Browser extends EventEmitter
         if value = Browser[name]
           @[name] = value
 
+    @_setCredentials(options.credentials || Browser.credentials)
+
     # Returns all errors reported while loading this window.
     @errors = []
 
@@ -139,11 +126,14 @@ class Browser extends EventEmitter
   withOptions: (options, fn)->
     if options
       restore = {}
-      [restore[k], @[k]] = [@[k], v] for k,v of options
-      fn =>
+      for k,v of options
+        if ~BROWSER_OPTIONS.indexOf(k)
+          [restore[k], @[k]] = [@[k], v]
+      @_setCredentials(options.credentials)
+      return =>
         @[k] = v for k,v of restore
     else
-      fn ->
+      return ->
 
   # Return a new browser with a snapshot of this browser's state.
   # Any changes to the forked browser's state do not affect this browser.
@@ -368,17 +358,17 @@ class Browser extends EventEmitter
       .fail (error)=>
         callback(error, this, @statusCode, @errors)
 
-    @withOptions options, (reset_options)=>
-      if site = @site
-        site = "http://#{site}" unless /^(https?:|file:)/i.test(site)
-        url = URL.resolve(site, URL.parse(URL.format(url)))
-      @window.history._assign url
-      @wait(duration).then ->
-        reset_options()
-        deferred.resolve()
-      .fail (error)->
-        reset_options()
-        deferred.reject(error)
+    reset_options = @withOptions(options)
+    if site = @site
+      site = "http://#{site}" unless /^(https?:|file:)/i.test(site)
+      url = URL.resolve(site, URL.parse(URL.format(url)))
+    @window.history._assign url
+    @wait(duration).then ->
+      reset_options()
+      deferred.resolve()
+    .fail (error)->
+      reset_options()
+      deferred.reject(error)
     return deferred.promise unless callback
 
   # ### browser.location => Location
@@ -431,6 +421,39 @@ class Browser extends EventEmitter
     @window.location.reload()
     if callback
       @wait callback
+
+  # Returns a new Credentials object for the specified host.  These
+  # authentication credentials will only apply when making requests to that
+  # particular host (hostname:port).
+  #
+  # You can also set default credentials by using the host '*'.
+  #
+  # If you need to get the credentials without setting them, call with true as
+  # the second argument.
+  authenticate: (host, create = true)->
+    host ||= "*"
+    credentials = @_credentials?[host]
+    unless credentials
+      if create
+        credentials = new Credentials()
+        @_credentials ||= {}
+        @_credentials[host] = credentials
+      else
+        credentials = @authenticate()
+    return credentials
+
+  # Legacy support, remove in the future.
+  _setCredentials: (credentials)->
+    return unless credentials
+    deprecated "This credentials option is deprecated, please use browser.authenticate(host) instead."
+    switch credentials.scheme.toLowerCase()
+      when "basic"
+        @authenticate().basic(credentials.user || credentials.username, credentials.password)
+      when "bearer"
+        @authenticate().bearer(credentials.token)
+      when "oauth"
+        @authenticate().oauth(credentials.token)
+
 
   # ### browser.saveHistory() => String
   #
@@ -823,6 +846,39 @@ class Browser extends EventEmitter
       console.log "Document:\n#{indent html.split("\n")}"
     else
       console.log "No document" unless @document
+
+
+# Represents credentials for a given host.
+class Credentials
+  # Apply security credentials to the outgoing request headers.
+  apply: (headers)->
+    switch @scheme
+      when "basic"
+        base64 = new Buffer(@user + ":" + @password).toString("base64")
+        headers["authorization"] = "Basic #{base64}"
+      when "bearer"
+        headers["authorization"] = "Bearer #{@token}"
+      when "oauth"
+        headers["authorization"] = "OAuth #{@token}"
+
+  # Use HTTP Basic authentication.  Requires two arguments, username and password.
+  basic: (@user, @password)->
+    @scheme = "basic"
+
+  # Use OAuth 2.0 Bearer (recent drafts).  Requires one argument, the access token.
+  bearer: (@token)->
+    @scheme = "bearer"
+
+  # Use OAuth 2.0 (early drafts).  Requires one argument, the access token.
+  oauth: (@token)->
+    @scheme = "oauth"
+
+  # Reset these credentials.
+  reset: ->
+    delete @scheme
+    delete @token
+    delete @user
+    delete @password
 
 
 Browser.VERSION = VERSION

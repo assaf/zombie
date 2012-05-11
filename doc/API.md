@@ -34,7 +34,6 @@ You can also set options globally for all browsers to inherit:
 
 You can use the following options:
 
-- `credentials` -- Object containing authorization credentials.
 - `debug` -- Have Zombie report what it's doing.  Defaults to true if
   environment variable `DEBUG` is set.
 - `loadCSS` -- Loads external stylesheets.  Defaults to true.
@@ -52,17 +51,28 @@ You can use the following options:
   evaluated script tries to detect whether/where the window is embedded as an
   iframe. Defaults to "nodejs".
 
-Credential options look like this:
-
-    { credentials: { scheme: "basic", username: "who", password: "secret" } }   // HTTP Basic
-    { credentials: { scheme: "oauth", token: "long and magical" } }             // OAuth 2.0 draft 10
-    { credentials: { scheme: "bearer", token: "long and magical" } }            // OAuth 2.0 latest
-
 The proxy URL specifies the host and port of the proxy.  It also supports HTTP
 Basic authentication, for example:
 
     browser.proxy = "http://user:password@proxy:8080"
 
+
+### browser.authenticate(host) : Credentials
+
+Use this to set the authentication credentials for the given host
+(hostname:port).  Returns a credentials object.
+
+Call with no arguments to set the default authentication credentials (apply to
+any host that doesn't have specific credentials).
+
+For example:
+
+    // HTTP Basic takes user and password
+    browser.authenticate().basic("me", "secret")
+    // OAuth 2.0 Bearer takes an access token
+    browser.authenticate("example.com:443").bearer("12345")
+    // Show the authentication credentials in use
+    console.log(browser.authenticate().token)
 
 ### browser.error : Error
 
