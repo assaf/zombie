@@ -6,29 +6,25 @@ zombie.js-changelog(7) -- Changelog
 
 Yes, that is right, Zombie now supports promises.  Like this:
 
-```
-browser.visit("http://localhost:3000/").
-  then(function() {
-    assert.equal(browser.text("H1"), "Deferred zombies");
-    // Chaining works by returning a promise here
-    return browser.clickLink("Hit me");
-  }).
-  then(function() {
-    assert.equal(browser.text("H1"), "Ouch");
-  });
-```
+    browser.visit("http://localhost:3000/").
+      then(function() {
+        assert.equal(browser.text("H1"), "Deferred zombies");
+        // Chaining works by returning a promise here
+        return browser.clickLink("Hit me");
+      }).
+      then(function() {
+        assert.equal(browser.text("H1"), "Ouch");
+      });
 
 A new way to set authentication credentials so they can be applied to specific
 host (e.g. HTTP Basic one host, OAuth Bearer another).  Like this:
 
-```
-// HTTP Basic takes user and password
-browser.authenticate().basic("me", "secret")
-// OAuth 2.0 Bearer takes an access token
-browser.authenticate("example.com:443").bearer("12345")
-// Show the authentication credentials in use
-console.log(browser.authenticate().token)
-```
+    // HTTP Basic takes user and password
+    browser.authenticate().basic("me", "secret")
+    // OAuth 2.0 Bearer takes an access token
+    browser.authenticate("example.com:443").bearer("12345")
+    // Show the authentication credentials in use
+    console.log(browser.authenticate().token)
 
 Successfully testing Facebook Connect using Zombie (see
 `test/facebook_connect_test.coffee`).
