@@ -195,10 +195,12 @@ class Browser extends EventEmitter
 
     deferred = Q.defer()
     if callback
-      deferred.promise.then(callback).fail(callback)
+      deferred.promise
+      .then(callback)
+      .fail(callback)
 
-    @once "done", deferred.makeNodeResolver()
-    @once "error", deferred.makeNodeResolver()
+    @once "done", deferred.resolve
+    @once "error", deferred.reject
 
     @_eventloop.wait @window, duration
     return deferred.promise unless callback

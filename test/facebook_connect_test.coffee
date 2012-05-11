@@ -3,7 +3,7 @@
 
 describe "Facebook Connect", ->
   before (done)->
-    brains.get "/browser/facebook", (req, res)->
+    brains.get "/facebook", (req, res)->
       res.send """
       <html>
         <head>
@@ -15,13 +15,17 @@ describe "Facebook Connect", ->
                 cookie     : true,
                 xfbml      : true,
                 oauth      : true,
+                channelUrl : "http://localhost:3003/facebook/channel"
               });
               document.getElementById("connect").addEventListener("click", function(event) {
                 event.preventDefault();
                 window.FB.login(function(response) {
-                  console.log(response)
+                  window.connected = response.authResponse;
                 })
               })
+              var authResponse = window.FB.getAuthResponse();
+              if (authResponse)
+                window.connected = authResponse;
             };
             (function(d){
                var js, id = 'facebook-jssdk'; if (d.getElementById(id)) {return;}
@@ -44,8 +48,10 @@ describe "Facebook Connect", ->
     browser = new Browser()
 
     before (done)->
-      browser.visit "http://localhost:3003/browser/facebook", ->
-        browser.clickLink "Connect", done
+      browser.visit("http://localhost:3003/facebook")
+        .then ->
+          browser.clickLink "Connect"
+        .then done
 
     it "should show FB Connect login form", ->
       assert browser.query(".login_form_container #loginform")
@@ -62,8 +68,19 @@ describe "Facebook Connect", ->
 
         describe "authorize", ->
           before (done)->
-            browser.pressButton "Log In with Facebook", done
+            # all.js sets a callback with a different ID on each run.  Our
+            # HTTP/S responses were captured with the callback ID f42febd2c.
+            # So we cheat by using this ID and linking it to whatver callback
+            # was registered last.
+            FB = browser.windows.get(0).FB
+            for id, fn of FB.XD._callbacks
+              FB.XD._callbacks["f42febd2c"] = fn
+            browser.pressButton "Log In with Facebook", ->
+              # Go back to the first window
+              browser.windows.close()
+              done()
 
-          it "should do something", ->
-            # ???
+          it "should log user in", ->
+            assert.equal browser.window.connected.userID, "100001620738919"
+            assert browser.window.connected.accessToken
 

@@ -6,8 +6,10 @@ zombie.js-changelog(7) -- Changelog
 
 Yes, that is right, Zombie now supports promises.
 
+And it's able to test Facebook Connect.
+
     486 tests
-    12.0 sec to complete
+    11.9 sec to complete
 
 
 ## Version 0.13.14 2012-05-09

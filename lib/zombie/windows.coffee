@@ -102,7 +102,6 @@ class Windows
 
   # Select specified window as the current window.
   select: (window)->
-    return unless window
     window = @_named[window] || @_stack[window] || window
     return unless ~@_stack.indexOf(window)
     @_current = window
@@ -189,7 +188,7 @@ class Windows
       event.data = data
       event.source = Windows.inContext
       origin = event.source.location
-      event.origin = URL.format(protocol: origin.protocol, host: origin.host)
+      event.origin = URL.format(protocol: origin.protocol, hostname: origin.hostname, port: origin.port)
       process.nextTick ->
         eventloop.dispatch window, event
 
