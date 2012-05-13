@@ -171,6 +171,8 @@ class Resources extends Array
     # Clone headers before we go and modify them.
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
     headers["User-Agent"] = browser.userAgent
+    # We don't support gzip or compress at the moment.
+    headers["Accept-Encoding"] = ""
     if method == "GET" || method == "HEAD"
       # Request paramters go in query string
       url.search = "?" + stringify(data) if data

@@ -8,6 +8,9 @@ Fixed `onload` event not firing on window.
 
 Added `navigator.cookieEnabled` and `navigator.vendor`.
 
+Added empty `Accept-Encoding` header since there's no gzip/compress support at
+the moment.
+
 Upgraded to HTML5 0.3.8.
 
     487 tests
