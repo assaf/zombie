@@ -16,8 +16,7 @@ test : setup
 
 
 # Run coverage report
-coverage : setup lib-cov
-	mkdir -p html
+coverage : setup lib-cov html
 	env LIB_PATH=lib-cov mocha -R html-cov > html/coverage.html
 	echo open html/coverage.html
 
@@ -101,6 +100,5 @@ publish : build doc man7
 	git push
 	git tag v$(version)
 	git push --tags origin master
-	make publish-docs
-	make clean
+	make publish-docs clean
 
