@@ -11,6 +11,8 @@ Added `navigator.cookieEnabled` and `navigator.vendor`.
 Added empty `Accept-Encoding` header since there's no gzip/compress support at
 the moment.
 
+Fixed `Browser` default settings.
+
 Upgraded to HTML5 0.3.8.
 
     487 tests
