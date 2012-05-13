@@ -59,45 +59,10 @@ class Browser extends EventEmitter
     @setMaxListeners 20
 
 
-    # Options
-    # -------
-
-    # True to have Zombie report what it's doing.
-    @debug = false
-
-    # Which parser to use (HTML5 by default). For example:
-    #   zombie.htmlParser = require("html5").HTML5 // HTML5, forgiving
-    #   zombie.htmlParser = require("htmlparser")  // Faster, stricter
-    @htmlParser = HTML5
-
-    # True to load external stylesheets.
-    @loadCSS = true
-    
-    # Proxy URL.
-    #
-    # Example
-    #   proxy = "http://myproxy:8080"
-    #   browser.visit("site", { proxy: proxy }, function(error, browser) {
-    #   })
-    @proxy = null
+    # Default (not global) options
 
     # Send this referer.
     @referer = undefined
-
-    # Run scripts included in or loaded from the page. Defaults to true.
-    @runScripts = true
-
-    # If true, supress `console.log` output from scripts.
-    @silent = false
-
-    # User agent string sent to server.
-    @userAgent = "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{VERSION}"
-
-    # You can use visit with a path, and it will make a request relative to this host/URL.
-    @site = undefined
-
-    # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 0.5 seconds.
-    @waitFor = 500
 
     # You can set the browser window.name property
     @name = "nodejs"
@@ -106,9 +71,8 @@ class Browser extends EventEmitter
     for name in BROWSER_OPTIONS
       if options.hasOwnProperty(name)
         @[name] = options[name]
-      if !@[name] && ~GLOBAL_OPTIONS.indexOf(name)
-        if value = Browser[name]
-          @[name] = value
+      else if ~GLOBAL_OPTIONS.indexOf(name)
+        @[name] = Browser[name]
 
     @_setCredentials(options.credentials || Browser.credentials)
 
@@ -117,6 +81,44 @@ class Browser extends EventEmitter
 
     @resources = new Resources(this)
     @windows = new Windows(this)
+
+
+  # Global options
+  # -------
+
+  # True to have Zombie report what it's doing.
+  @debug: false
+
+  # Which parser to use (HTML5 by default). For example:
+  #   Browser.htmlParser = require("html5").HTML5 // HTML5, forgiving
+  #   Browser.htmlParser = require("htmlparser")  // Faster, stricter
+  @htmlParser: HTML5
+
+  # True to load external stylesheets.
+  @loadCSS: true
+  
+  # Proxy URL.
+  #
+  # Example
+  #   Browser.proxy = "http://myproxy:8080"
+  #   browser.visit("site", function(error, browser) {
+  #   })
+  @proxy: null
+
+  # Run scripts included in or loaded from the page. Defaults to true.
+  @runScripts: true
+
+  # If true, supress `console.log` output from scripts.
+  @silent: false
+
+  # User agent string sent to server.
+  @userAgent: "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{VERSION}"
+
+  # You can use visit with a path, and it will make a request relative to this host/URL.
+  @site: undefined
+
+  # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 0.5 seconds.
+  @waitFor: 500
 
 
   # Changes the browser options, and calls the function with a callback (reset).  When you're done processing, call the

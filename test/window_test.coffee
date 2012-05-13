@@ -17,7 +17,7 @@ describe "Window", ->
         </html>
         """
       brains.ready ->
-        browser.visit "http://localhost:3003/window/title", done
+        browser.visit "/window/title", done
 
     it "should return the document's title", ->
       assert.equal browser.window.title, "Whatever"
@@ -43,7 +43,7 @@ describe "Window", ->
         if message = "Me again"
           browser.window.first = true
       brains.ready ->
-        browser.visit "http://localhost:3003/window/alert", done
+        browser.visit "/window/alert", done
 
     it "should record last alert show to user", ->
       assert browser.prompted("Me again")
@@ -69,7 +69,7 @@ describe "Window", ->
       browser.onconfirm (prompt)->
         return prompt == "more?"
       brains.ready ->
-        browser.visit "http://localhost:3003/window/confirm", done
+        browser.visit "/window/confirm", done
 
     it "should return canned response", ->
       assert browser.window.first
@@ -104,7 +104,7 @@ describe "Window", ->
           return "unknown"
       browser.onprompt "location", false
       brains.ready ->
-        browser.visit "http://localhost:3003/window/prompt", done
+        browser.visit "/window/prompt", done
 
     it "should return canned response", ->
       assert.equal browser.window.first, "31"
@@ -140,7 +140,7 @@ describe "Window", ->
         </html>
         """
       brains.ready ->
-        browser.visit "http://localhost:3003/window/screen", done
+        browser.visit "/window/screen", done
 
     it "should have a screen object available", ->
       assert /width=1280/.test(browser.document.title)
@@ -169,7 +169,7 @@ describe "Window", ->
         </html>
         """
       brains.ready ->
-        browser.visit "http://localhost:3003/window/navigator", done
+        browser.visit "/window/navigator", done
 
     it "should exist", ->
       assert browser.window.navigator
@@ -218,4 +218,43 @@ describe "Window", ->
 
         it "should select next available window", ->
           assert.equal browser.window.name, "third"
+
+
+  describe "onload", ->
+    browser = new Browser()
+
+    before (done)->
+      brains.get "/windows/onload", (req, res)->
+        res.send """
+        <html>
+          <head>
+            <title>The Title!</title>
+            <script type="text/javascript" language="javascript" charset="utf-8">
+              var about = function (e) {
+                var info = document.getElementById('das_link');
+                info.innerHTML = (parseInt(info.innerHTML) + 1) + ' clicks here';
+                e.preventDefault();
+                return false;
+              }
+              window.onload = function () {
+                var info = document.getElementById('das_link');
+                info.addEventListener('click', about, false);
+              }
+            </script>
+          </head>
+          <body>
+            <a id="das_link" href="/no_js.html">0 clicks here</a>
+          </body>
+        </html>
+        """
+      brains.ready done
+
+    before (done)->
+      browser.visit("/windows/onload")
+        .then ->
+          browser.clickLink "#das_link"
+        .then done
+
+    it "should fire when document is done loading", ->
+      assert.equal browser.text("body"), "1 clicks here"
 

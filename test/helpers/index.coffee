@@ -8,6 +8,7 @@ Browser   = require("../../#{process.env.LIB_PATH}/zombie")
 # Always run in verbose mode on Travis.
 Browser.debug = true if process.env.TRAVIS || process.env.DEBUG
 Browser.silent = !Browser.debug
+Browser.site = "localhost:3003"
 
 
 # Redirect all HTTP requests to localhost

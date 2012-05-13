@@ -4,6 +4,8 @@ zombie.js-changelog(7) -- Changelog
 
 ## Version 1.0.1 2012-05-13
 
+Fixed onload event not firing on window.
+
 Upgraded to HTML5 0.3.8.
 
     487 tests

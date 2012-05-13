@@ -101,6 +101,12 @@ class History
     # Set this to the same user agent that's loading this page
     @_window.navigator.userAgent = @_browser.userAgent
 
+    # Fire onload event on window.
+    document.addEventListener "DOMContentLoaded", (event)=>
+      onload = document.createEvent("HTMLEvents")
+      onload.initEvent "load", false, false
+      @_browser.dispatchEvent @_window, onload
+
     # Let's handle the specifics of each protocol
     switch url.protocol
       when "about:"

@@ -440,4 +440,3 @@ describe "Scripts", ->
     it "should have access to window.event", ->
       assert.equal browser.document.title, "HTMLEvents"
 
-

@@ -3,6 +3,7 @@ JSDOM = require("jsdom")
 
 
 describe "Browser", ->
+  browser = null
 
   before (done)->
     brains.get "/browser/scripted", (req, res)->
@@ -40,8 +41,8 @@ describe "Browser", ->
   describe "browsing", ->
 
     describe "open page", ->
-      browser = new Browser()
       before (done)->
+        browser = new Browser()
         browser.visit "http://localhost:3003/browser/scripted", done 
 
       it "should create HTML document", ->
@@ -60,13 +61,14 @@ describe "Browser", ->
       it "should have a parent", ->
         assert browser.window.parent
 
+
     describe "visit", ->
 
       describe "successful", ->
-        browser = new Browser()
         status = error = errors = null
 
         before (done)->
+          browser = new Browser()
           browser.visit "http://localhost:3003/browser/scripted", ->
             [error, browser, status, errors] = arguments
             done()
@@ -87,10 +89,10 @@ describe "Browser", ->
           assert browser.resources
 
       describe "with error", ->
-        browser = new Browser()
         status = error = errors = null
 
         before (done)->
+          browser = new Browser()
           browser.visit "http://localhost:3003/browser/errored", ->
             [error, browser, status, errors] = arguments
             done()
@@ -107,10 +109,10 @@ describe "Browser", ->
           assert.equal browser.errors[0].message, "Cannot read property 'wrong' of undefined"
 
       describe "404", ->
-        browser = new Browser()
         status = error = errors = null
 
         before (done)->
+          browser = new Browser()
           browser.visit "http://localhost:3003/browser/missing", ->
             [error, browser, status, errors] = arguments
             done()
@@ -127,12 +129,15 @@ describe "Browser", ->
           assert.equal browser.text("body"), "Cannot GET /browser/missing" # Express output
 
       describe "500", ->
-        browser = new Browser()
         status = error = errors = null
 
         before (done)->
           brains.get "/browser/500", (req, res)->
             res.send "Ooops, something went wrong", 500
+          brains.ready done
+
+        before (done)->
+          browser = new Browser()
           browser.visit "http://localhost:3003/browser/500", ->
             [error, browser, status, errors] = arguments
             done()
@@ -149,12 +154,15 @@ describe "Browser", ->
           assert.equal browser.text("body"), "Ooops, something went wrong"
 
       describe "empty page", ->
-        browser = new Browser()
         status = error = errors = null
 
         before (done)->
           brains.get "/browser/empty", (req, res)->
             res.send ""
+          brains.ready done
+
+        before (done)->
+          browser = new Browser()
           browser.visit "http://localhost:3003/browser/empty", ->
             [error, browser, status, errors] = arguments
             done()
@@ -168,10 +176,10 @@ describe "Browser", ->
     describe "event emitter", ->
 
       describe "successful", ->
-        browser = new Browser()
         args = null
 
         before (done)->
+          browser = new Browser()
           browser.on "loaded", ->
             args = arguments
             done()
@@ -182,9 +190,9 @@ describe "Browser", ->
           assert args[0].visit
 
       describe "wait over", ->
-        browser = new Browser()
 
         before (done)->
+          browser = new Browser()
           browser.on "done", ->
             done()
           browser.window.location = "http://localhost:3003/browser/scripted"
@@ -194,10 +202,10 @@ describe "Browser", ->
           assert true
 
       describe "error", ->
-        browser = new Browser()
         args = null
 
         before (done)->
+          browser = new Browser()
           browser.on "error", ->
             args = arguments
             done()
@@ -213,8 +221,8 @@ describe "Browser", ->
   describe "with options", ->
 
     describe "per call", ->
-      browser = new Browser()
       before (done)->
+        browser = new Browser()
         browser.visit "http://localhost:3003/browser/scripted", { runScripts: false }, done
 
       it "should set options for the duration of the request", ->
@@ -223,37 +231,26 @@ describe "Browser", ->
         assert.equal browser.runScripts, true
 
     describe "global", ->
-      Browser.site = "http://localhost:3003"
-      browser = new Browser()
       before (done)->
+        Browser.runScripts = false
+        browser = new Browser()
         browser.visit "/browser/scripted", done
 
       it "should set browser options from global options", ->
-        assert.equal browser.site, "http://localhost:3003"
-        assert.equal browser.document.title, "Awesome"
+        assert.equal browser.document.title, "Whatever"
 
       after ->
-        Browser.site = null
-
-    describe  "global with file: url scheme", ->
-      Browser.site = "file://#{__dirname}/data/"
-      browser = new Browser()
-      before (done)->
-        browser.visit "index.html", done
-
-      it "should set the browser options from global options", ->
-        assert.equal browser.site, "file://#{__dirname}/data/"
-        assert /Insanely fast, headless/.test(browser.document.title)
-
-      after ->
-        Browser.site = null
+        Browser.runScripts = true
 
     describe "user agent", ->
-      browser = new Browser()
 
       before (done)->
         brains.get "/browser/useragent", (req, res)->
           res.send "<html><body>#{req.headers["user-agent"]}</body></html>"
+        brains.ready done
+
+      before (done)->
+        browser = new Browser()
         browser.visit "http://localhost:3003/browser/useragent", done
 
       it "should send own version to server", ->
@@ -262,9 +259,9 @@ describe "Browser", ->
         assert /Zombie.js\/\d\.\d/.test(browser.window.navigator.userAgent)
 
       describe "specified", ->
-        browser = new Browser()
 
         before (done)->
+          browser = new Browser()
           browser.visit "http://localhost:3003/browser/useragent", { userAgent: "imposter" }, done
 
         it "should send user agent to server", ->
@@ -274,7 +271,6 @@ describe "Browser", ->
 
 
   describe "click link", ->
-    browser = new Browser()
 
     before (done)->
       brains.get "/browser/head", (req, res)->
@@ -301,6 +297,7 @@ describe "Browser", ->
       brains.ready done
 
     before (done)->
+      browser = new Browser()
       browser.visit "http://localhost:3003/browser/head", ->
         browser.clickLink "Smash", done
 
@@ -312,7 +309,6 @@ describe "Browser", ->
       assert.equal browser.statusCode, 200
 
   describe "follow redirect", ->
-    browser = new Browser()
 
     before (done)->
       brains.get "/browser/killed", (req, res)->
@@ -330,6 +326,7 @@ describe "Browser", ->
       brains.ready done
 
     before (done)->
+      browser = new Browser()
       browser.visit "http://localhost:3003/browser/killed", ->
         browser.pressButton "Submit", done
 
@@ -343,7 +340,6 @@ describe "Browser", ->
 
   # NOTE: htmlparser doesn't handle tag soup.
   describe "tag soup using HTML5 parser", ->
-    browser = new Browser()
 
     before (done)->
       brains.get "/browser/soup", (req, res)-> res.send """
@@ -351,6 +347,7 @@ describe "Browser", ->
         <p>One paragraph
         <p>And another
         """
+      browser = new Browser()
       browser.visit "http://localhost:3003/browser/soup", ->
         done()
 
@@ -362,12 +359,12 @@ describe "Browser", ->
       assert.deepEqual paras, ["One paragraph", "And another"]
 
   describe "comments", ->
-    browser = new Browser()
 
     before (done)->
       brains.get "/browser/comment", (req, res)-> res.send """
         This is <!-- a comment, not --> plain text
         """
+      browser = new Browser()
       browser.visit "http://localhost:3003/browser/comment", ->
         done()
 
@@ -378,7 +375,8 @@ describe "Browser", ->
   describe "windows", ->
 
     describe "new browser", ->
-      browser = new Browser()
+      before ->
+        browser = new Browser()
 
       it "should have about:blank window", ->
         assert.equal browser.location.href, "about:blank"
@@ -389,10 +387,10 @@ describe "Browser", ->
 
 
     describe "open blank window", ->
-      browser = new Browser()
       window = null
 
       before (done)->
+        browser = new Browser()
         window = browser.window.open(null, "popup")
         browser.wait done
 
@@ -407,13 +405,13 @@ describe "Browser", ->
 
 
     describe "open window to page", ->
-      browser = new Browser()
       window = null
 
       before (done)->
         brains.get "/browser/popup", (req, res)-> res.send """
           <h1>Popup window</h1>
           """
+        browser = new Browser()
         brains.ready done
 
       before (done)->
@@ -444,7 +442,6 @@ describe "Browser", ->
 
 
     describe "open one window from another", ->
-      browser = new Browser()
 
       before (done)->
         brains.get "/browser/pop", (req, res)-> res.send """
@@ -458,6 +455,7 @@ describe "Browser", ->
         brains.ready done
 
       before (done)->
+        browser = new Browser()
         browser.visit "http://localhost:3003/browser/pop", done
 
       it "should open both windows", ->
@@ -496,7 +494,6 @@ describe "Browser", ->
 
 
   describe "fork", ->
-    browser = new Browser
     forked = null
 
     before (done)->
@@ -511,6 +508,7 @@ describe "Browser", ->
       brains.ready done
 
     before (done)->
+      browser = new Browser
       browser.visit "http://localhost:3003/browser/living", ->
         browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
         browser.localStorage("www.localhost").setItem("foo", "bar")
