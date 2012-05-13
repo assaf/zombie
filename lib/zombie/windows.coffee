@@ -136,29 +136,33 @@ class Windows
     Object.defineProperty window, "opener", value: opener?.getGlobal()
 
     # Window title is same as document title
-    window.__defineGetter__ "title", ->
-      return @document.title
-    window.__defineSetter__ "title", (title)->
-      @document.title = title
+    Object.defineProperty window, "title",
+      get: ->
+        return @document.title
+      set: (title)->
+        @document.title = title
 
-    # Present in browsers, not in spec Used by Google Analytics see
+    # javaEnabled, present in browsers, not in spec Used by Google Analytics see
     # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
-    window.navigator.javaEnabled = ->
-      return false
+    Object.defineProperties window.navigator,
+      cookieEnabled: { value: true }
+      javaEnabled:   { value: -> false }
+      vendor:        { value: "Zombie Industries" }
    
     # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
     @_browser._cookies.extend window
     @_browser._storages.extend window
     @_browser._interact.extend window
     @_browser._xhr.extend window
-    window.File = File
-    window.screen = new Screen()
-    window.JSON = JSON
 
-    window.Event = Events.Event
-    window.UIEvent = Events.UIEvent
-    window.MouseEvent = Events.MouseEvent
-    window.MutationEvent = Events.MutationEvent
+    Object.defineProperties window,
+      File:           { value: File }
+      Event:          { value: Events.Event }
+      screen:         { value: new Screen() }
+      JSON:           { value: JSON }
+      MouseEvent:     { value: Events.MouseEvent }
+      MutationEvent:  { value: Events.MutationEvent }
+      UIEvent:        { value: Events.UIEvent }
 
     # Constructor for EventSource, URL is relative to document's.
     window.EventSource = (url)->

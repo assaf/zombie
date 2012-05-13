@@ -4,7 +4,9 @@ zombie.js-changelog(7) -- Changelog
 
 ## Version 1.0.1 2012-05-13
 
-Fixed onload event not firing on window.
+Fixed `onload` event not firing on window.
+
+Added `navigator.cookieEnabled` and `navigator.vendor`.
 
 Upgraded to HTML5 0.3.8.
 

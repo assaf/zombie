@@ -256,6 +256,7 @@ describe "Browser", ->
       it "should send own version to server", ->
         assert /Zombie.js\/\d\.\d/.test(browser.text("body")) 
       it "should be accessible from navigator", ->
+        console.dir browser.window.navigator
         assert /Zombie.js\/\d\.\d/.test(browser.window.navigator.userAgent)
 
       describe "specified", ->
