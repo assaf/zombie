@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 1.0.1 2012-05-13
+
+Upgraded to HTML5 0.3.8.
+
+    487 tests
+    11.8 sec to complete
+
+
 ## Version 1.0.0 2012-05-10
 
 Yes, that is right, Zombie now supports promises.  Like this:
