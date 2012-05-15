@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 1.0.1 2012-05-13
+## Version 1.1.0 2012-05-13
 
 Fixed `onload` event not firing on window.
 
