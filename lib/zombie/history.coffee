@@ -170,10 +170,12 @@ class History
         throw new Error("Cannot load resource: #{URL.format(url)}")
 
   # ### history.forward()
-  forward: -> @go(1)
+  forward: ->
+    @go(1)
 
   # ### history.back()
-  back: -> @go(-1)
+  back: ->
+    @go(-1)
 
   # ### history.go(amount)
   go: (amount)->
@@ -185,15 +187,16 @@ class History
     if new_index != @_index && entry = @_stack[new_index]
       @_index = new_index
       if entry.pop
-        if @_window.document
-          # Created with pushState/replaceState, send popstate event
-          evt = @_window.document.createEvent("HTMLEvents")
-          evt.initEvent "popstate", false, false
-          evt.state = entry.state
-          @_browser.dispatchEvent @_window, evt
         # Do not load different page unless we're on a different host
         if was.host != @_stack[@_index]?.url?.host
           @_resource @_stack[@_index].url
+        else
+          # Created with pushState/replaceState, send popstate event
+          popstate = @_window.document.createEvent("HTMLEvents")
+          popstate.initEvent "popstate", false, false
+          popstate.state = entry.state
+          console.log "DISPATCHING!"
+          @_browser.dispatchEvent @_window, popstate
       else
         @_pageChanged was
     return

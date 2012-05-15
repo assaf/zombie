@@ -186,16 +186,15 @@ class Browser extends EventEmitter
       [callback, duration] = [duration, null]
 
     deferred = Q.defer()
+    promise = deferred.promise
     if callback
-      deferred.promise
-      .then(callback)
-      .fail(callback)
+      promise.then(callback, callback)
 
     @once "done", deferred.resolve
     @once "error", deferred.reject
 
     @_eventloop.wait @window, duration
-    return deferred.promise unless callback
+    return promise unless callback
 
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
   # can be cancelled.  Like `wait` this method either takes a callback or returns a promise.
@@ -354,10 +353,11 @@ class Browser extends EventEmitter
       [duration, options] = [options, null]
 
     deferred = Q.defer()
+    promise = deferred.promise
     if callback
-      deferred.promise.then =>
+      promise.then =>
         callback null, this, @statusCode, @errors
-      .fail (error)=>
+      promise.fail (error)=>
         callback(error, this, @statusCode, @errors)
 
     reset_options = @withOptions(options)
@@ -371,7 +371,7 @@ class Browser extends EventEmitter
     .fail (error)->
       reset_options()
       deferred.reject(error)
-    return deferred.promise unless callback
+    return promise unless callback
 
   # ### browser.location => Location
   #
@@ -415,14 +415,12 @@ class Browser extends EventEmitter
   # Navigate back in history.
   back: (callback)->
     @window.history.back()
-    if callback
-      @wait callback
+    return @wait(callback)
 
   # Reloads current page.
   reload: (callback)->
     @window.location.reload()
-    if callback
-      @wait callback
+    return @wait(callback)
 
   # Returns a new Credentials object for the specified host.  These
   # authentication credentials will only apply when making requests to that
@@ -557,7 +555,7 @@ class Browser extends EventEmitter
   #
   # selector - CSS selector, field value or text of the field label
   #
-  # Without callback, returns this.
+  # Returns this.
   choose: (selector, callback)->
     field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
     unless field && field.tagName == "INPUT" && field.type == "radio"
