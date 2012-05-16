@@ -18,7 +18,7 @@ HTML.languageProcessors.javascript = (element, code, filename)->
   if doc = element.ownerDocument
     window = doc.parentWindow
     try
-      window._evaluate code, filename
+      window._evaluate(code, filename)
     catch error
       unless error instanceof Error
         cast = new Error(error.message)

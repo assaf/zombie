@@ -147,6 +147,7 @@ class Windows
     Object.defineProperties window.navigator,
       cookieEnabled: { value: true }
       javaEnabled:   { value: -> false }
+      plugins:       { value: [] }
       vendor:        { value: "Zombie Industries" }
    
     # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc

@@ -7,6 +7,8 @@ zombie.js-changelog(7) -- Changelog
 Fixes `visit` and `wait` silencing any exceptions thrown during the callback's
 execution.
 
+Added empty `navigator.plugins`.
+
     487 tests
     12.1 sec to complete
 
