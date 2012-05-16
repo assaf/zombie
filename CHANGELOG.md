@@ -9,6 +9,8 @@ execution.
 
 Added empty `navigator.plugins`.
 
+Added `atob` and `btoa`.
+
     487 tests
     12.1 sec to complete
 

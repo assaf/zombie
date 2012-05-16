@@ -165,6 +165,12 @@ class Windows
       MutationEvent:  { value: Events.MutationEvent }
       UIEvent:        { value: Events.UIEvent }
 
+    # Base-64 encoding/decoding
+    window.atob = (string)->
+      new Buffer(string, "base64").toString("utf8")
+    window.btoa = (string)->
+      new Buffer(string, "utf8").toString("base64")
+
     # Constructor for EventSource, URL is relative to document's.
     window.EventSource = (url)->
       url = URL.resolve(window.location, url)

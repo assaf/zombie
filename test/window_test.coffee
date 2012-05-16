@@ -177,6 +177,28 @@ describe "Window", ->
       assert.equal browser.window.navigator.javaEnabled(), false
 
 
+  describe "atob", ->
+    window = null
+
+    before ->
+      browser = new Browser()
+      window = browser.window
+
+    it "should decode base-64 string", ->
+      assert.equal window.atob("SGVsbG8sIHdvcmxk"), "Hello, world"
+
+  describe "btoa", ->
+    window = null
+
+    before ->
+      browser = new Browser()
+      window = browser.window
+
+    it "should encode base-64 string", ->
+      assert.equal window.btoa("Hello, world"), "SGVsbG8sIHdvcmxk"
+
+
+
   describe "windows", ->
     browser = new Browser(name: "first")
 
