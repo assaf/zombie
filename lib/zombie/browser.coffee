@@ -188,7 +188,13 @@ class Browser extends EventEmitter
     deferred = Q.defer()
     promise = deferred.promise
     if callback
-      promise.then(callback, callback)
+      promise.then ->
+        # This serves two purposes, one is yielding, the other is propagating
+        # any error thrown from the callback (then/fail swallow errors).
+        process.nextTick callback
+      .fail (error)->
+        process.nextTick ->
+          callback(error)
 
     @once "done", deferred.resolve
     @once "error", deferred.reject
@@ -356,9 +362,13 @@ class Browser extends EventEmitter
     promise = deferred.promise
     if callback
       promise.then =>
-        callback null, this, @statusCode, @errors
+        # This serves two purposes, one is yielding, the other is propagating
+        # any error thrown from the callback (then/fail swallow errors).
+        process.nextTick =>
+          callback null, this, @statusCode, @errors
       promise.fail (error)=>
-        callback(error, this, @statusCode, @errors)
+        process.nextTick =>
+          callback(error, this, @statusCode, @errors)
 
     reset_options = @withOptions(options)
     if site = @site
