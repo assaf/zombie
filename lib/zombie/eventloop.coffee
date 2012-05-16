@@ -110,13 +110,16 @@ class EventLoop
         @_next()
     return
 
-  # Dispatch event asynchronously, wait for it to complete.
+  # Dispatch event asynchronously, wait for it to complete.  Returns true if
+  # preventDefault was set.
   dispatch: (target, event)->
+    preventDefault = false
     @perform (done)->
       window = (target.ownerDocument || target.document).window
       window._evaluate ->
-        target.dispatchEvent event
+        preventDefault = target.dispatchEvent(event)
       done()
+    return preventDefault
 
   # Process all events from the queue.  This method returns immediately, events
   # are processed in the background.  When all events are exhausted, it calls

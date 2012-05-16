@@ -209,9 +209,9 @@ class Browser extends EventEmitter
     @dispatchEvent target, event
     return @wait(callback)
 
-  # Dispatch asynchronously.
+  # Dispatch asynchronously.  Returns true if preventDefault was set.
   dispatchEvent: (target, event)->
-    @_eventloop.dispatch target, event
+    return @_eventloop.dispatch(target, event)
 
 
   # Accessors

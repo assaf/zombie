@@ -127,8 +127,7 @@ HTML.HTMLInputElement.prototype.click = ->
   click = =>
     event = @ownerDocument.createEvent("HTMLEvents")
     event.initEvent "click", true, true
-    @ownerDocument.parentWindow.browser.dispatchEvent this, event
-    return !event._preventDefault
+    return !@ownerDocument.parentWindow.browser.dispatchEvent(this, event)
 
   # If that works out, we follow with a change event
   change = =>
