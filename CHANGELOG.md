@@ -2,6 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 1.1.2 2012-05-16
+
+Trim stack trace at call to `contextify.run`.  Also, if you upgrade, Contextify
+no longer dumps error messages to stderr.
+
+    489 tests
+    11.8 sec to complete
+
+
 ## Version 1.1.1 2012-05-16
 
 Fixes `visit` and `wait` silencing any exceptions thrown during the callback's

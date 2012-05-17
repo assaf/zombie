@@ -76,7 +76,7 @@ raise = ({ element, location, from, scope, error })->
   # "RangeError: Maximum call stack size exceeded" doesn't have a stack trace
   if error.stack
     for line in error.stack.split("\n")
-      break if ~line.indexOf(from)
+      break if ~line.indexOf("contextify/lib/contextify.js")
       partial.push line
   partial.push "    in #{location}"
   error.stack = partial.join("\n")

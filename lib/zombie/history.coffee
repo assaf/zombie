@@ -195,7 +195,6 @@ class History
           popstate = @_window.document.createEvent("HTMLEvents")
           popstate.initEvent "popstate", false, false
           popstate.state = entry.state
-          console.log "DISPATCHING!"
           @_browser.dispatchEvent @_window, popstate
       else
         @_pageChanged was
