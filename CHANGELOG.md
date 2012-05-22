@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 1.1.3 2012-05-16
+
+Added tests for promises.
+
+    493 tests
+    12.1 sec to complete
+
+
 ## Version 1.1.2 2012-05-16
 
 Trim stack trace at call to `contextify.run`.  Also, if you upgrade, Contextify
