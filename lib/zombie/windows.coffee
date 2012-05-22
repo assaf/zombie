@@ -90,7 +90,7 @@ class Windows
     index = @_stack.indexOf(window)
     return unless index >= 0
   
-    # Set `window`'s `closed` property to `true`
+    # Set window's closed property to true
     window.closed = true
 
     delete @_named[window.name]
@@ -145,7 +145,7 @@ class Windows
       set: (title)->
         @document.title = title
 
-    # `window`s have a `closed` property defaulting to `false`
+    # window`s have a closed property defaulting to false
     window.closed = false
 
     # javaEnabled, present in browsers, not in spec Used by Google Analytics see

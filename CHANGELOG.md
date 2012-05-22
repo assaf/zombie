@@ -2,16 +2,18 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 1.1.3 2012-05-16
+## Version 1.1.3 2012-05-22
 
 Fixed setting cookie on redirect to different domain.
 
 Fixed iframe doesn't retain value of src attribute.
 
+Fixed window.close property not set (Jerome Gravel-Niquet).
+
 Added documentation and tests for promises.
 
-    494 tests
-    12.0 sec to complete
+    496 tests
+    11.9 sec to complete
 
 
 ## Version 1.1.2 2012-05-16
