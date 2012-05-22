@@ -256,6 +256,11 @@ class Resources extends Array
         callback error
         return
 
+      # Set cookies
+      for cookie in jar.cookies
+        cookies.update cookie.str
+      # Determine whether to automatically redirect and which method to use
+      # based on the status code
       switch response.statusCode
         when 301, 307
           # Do not follow POST redirects automatically, only GET/HEAD
@@ -273,18 +278,11 @@ class Resources extends Array
           callback new Error("More than five redirects, giving up")
           return
 
-        # Set cookies for the redirect-to resource
-        cookies = browser.cookies(redirect.hostname, redirect.pathname)
-        for cookie in jar.cookies
-          cookies.update cookie.str
         # This URL is the referer, make a request to the next URL
         headers['referer'] = URL.format(url)
         browser.log -> "#{response.statusCode} => #{redirect}"
         @_makeRequest method, redirect, null, headers, resource, callback
       else
-        # Set cookies
-        for cookie in jar.cookies
-          cookies.update cookie.str
         # Turn body from string into a String, so we can add property getters.
         resource.response = new HTTPResponse(url, response.statusCode, response.headers, response.body)
         browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"

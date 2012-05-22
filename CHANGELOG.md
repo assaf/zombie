@@ -4,6 +4,8 @@ zombie.js-changelog(7) -- Changelog
 
 ## Version 1.1.3 2012-05-16
 
+Fixed setting cookie on redirect to different domain.
+
 Added tests for promises.
 
     493 tests
