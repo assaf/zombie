@@ -6,10 +6,12 @@ zombie.js-changelog(7) -- Changelog
 
 Fixed setting cookie on redirect to different domain.
 
+Fixed iframe doesn't retain value of src attribute.
+
 Added tests for promises.
 
-    493 tests
-    12.1 sec to complete
+    494 tests
+    12.0 sec to complete
 
 
 ## Version 1.1.2 2012-05-16
