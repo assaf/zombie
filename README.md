@@ -266,6 +266,149 @@ Let's combine all of that into one example:
 Read more [on the Browser API](API)
 
 
+## Believing
+
+Here are some guidelines for writing tests using Zombie,
+[promises](http://documentup.com/kriskowal/q/) and
+[Mocha](http://visionmedia.github.com/mocha/).
+
+Let's start with a simple example:
+
+    describe("visit", function() {
+      var browser = null;
+
+      before(function(done) {
+        browser = new Browser();
+        browser
+          .visit("/promises")
+          .then(done, done);
+      });
+
+      it("should load the promises page", function() {
+        assert.equal(browser.location.pathname, "/promises");
+      });
+    });
+
+The call to `visit` returns a promise.  Once the page loads successfully, the
+promise will resolve and call the first callback with no arguments.  This will
+run the test and evaluate the assertion.
+
+If there's an error, the promise fails and calls the second callback with an
+error.  It's the same function, but this time calling it with an `Error`
+argument causes Mocha to fail the test.
+
+Now let's try to chain promises together:
+
+    browser
+      .visit("/promises") // Step 1, open a page
+      .then(function() {
+        // Step 2, fill in some form
+        browser.fill("Email", "armbiter@example.com");
+        browser.fill("Password", "b100d");
+      })
+      .then(function() {
+        // Step 3, resolve the next promise with this value.
+        return "OK";
+      })
+      .then(function(value) {
+        // Step 4, previous step got us to resolve with this value.
+        assert.equal(value, "OK");
+      })
+      .then(function() {
+        // Step 5, click the button and wait for something to happen
+        // by returning another promise.
+        return browser.pressButton("Let me in");
+      })
+      .then(done, done);
+
+The first step is easy, it loads a page and returns a promise.  When that
+promise resolves, it calls the function of the second step which fills in two
+form fields.  That step is in itself a promise that resolves to no value.
+
+The third step follows, and here we simply return a value.  As a result, the
+next promise will resolve with that value, as you can see in step 4.  Another
+way to think about it is: step 4 is chained to a new promise with the value
+"OK".
+
+On to step 5 where we press the button, which submits the form and loads the
+response page.  All of that happens after `pressButton` so we want to wait for
+it before moving to the last step.
+
+Luckily, `pressButton` - just like `wait` - returns a promise which gets
+fulfilled after the browser is done processing events and loading resources.  By
+returning this new promise, we cause the next and last step to wait for this
+promise to resolve.
+
+Another way to think about it is: the last step is chained to a new promise
+returned by `pressButton`.  You can use this pattern whenever you need to wait,
+after `visit`, `reload`, `clickLink`, etc.
+
+Note: in CoffeeScript a function that doesn't end with explicit `return`
+statement would return the value of the last statement.  You may need to
+explicitly end functions with empty `return`.
+
+In real life the ability to chain promises like that is useful because it helps
+you structure complex scenarios without nesting callbacks.  Even more
+interesting, you can write simple steps as functions and then combine them into
+different scenarios.  Like so:
+
+    browser
+      .visit("/promises")
+      .then( fillInName.bind(browser) )
+      .then( fillInAddress.bind(browser) )
+      .then( fillInCreditCard.bind(browser) )
+      .then(function() {
+        browser.pressButton("Buy it!")
+      })
+      .then(done, done);
+
+Let's talk a bit about error handling.  In promise land, errors cause the
+promise to be rejected with that `Error` object asn a argument.  However, no
+error is thrown, and so this code will fail silently:
+
+    browser
+      .visit("/promises")
+      .then(function() {
+        assert(false, "I fail!");
+      })
+      .then(done);
+
+Rejection may not be fun, but you've got to handle it.
+
+If a promise gets rejected with an error, that rejection will travel up the
+chain, so you only need to handle it at the very end.  The examples above do
+that by calling `then` with the same Mocha callback for resolved and rejected
+promises.
+
+Alternatively, you can end the chain so any unhandled error will be thrown, like
+so:
+
+    browser
+      .visit("/promises")
+      .then(function() {
+        assert(false, "I fail!");
+      })
+      .fail(done)
+      .then(function() {
+        // Mocha will error the test if you pass value to callback
+        done(true);
+      });
+
+If your test expects an error to happen and must fail only if an error doesn't
+happen, you can write something like this:
+
+    browser
+      .visit("/promises")
+      .then(function() {
+        assert(fale, "I fail!")
+      })
+      .fail(function(error) {
+        done();
+      });
+
+Read more [about promises](http://documentup.com/kriskowal/q/).
+
+
 ## Readiness
 
 Zombie.js supports the following:
@@ -290,7 +433,7 @@ Capybara driver for zombie.js running on top of node.
 **[zombie-jasmine-spike](https://github.com/mileskin/zombie-jasmine-spike)** --
 Spike project for trying out Zombie.js with Jasmine
 
-**[Mocha](https://github.com/visionmedia/mocha)** -- mocha - simple, flexible,
+**[Mocha](http://visionmedia.github.com/mocha/)** -- mocha - simple, flexible,
 fun javascript test framework for node.js & the browser. (BDD, TDD, QUnit styles
 via interfaces)
 
@@ -379,7 +522,7 @@ HTTP(S) requests using [Request](https://github.com/mikeal/request)
 
 Cookie support using [Tough Cookie](https://github.com/goinstant/node-cookie)
 
-Promises support via [Q][http://documentup.com/kriskowal/q/]
+Promises support via [Q](http://documentup.com/kriskowal/q/)
 
 Magical Zombie Girl by [Toho Scope](http://www.flickr.com/people/tohoscope/)
 

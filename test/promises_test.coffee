@@ -75,7 +75,7 @@ describe "Promises", ->
   #       browser.fill "Password", "b100d"
   #     .then ->
   #       browser.pressButton "Let me in"
-  #     .fail done
+  #     .then done, done
   describe "error", ->
     error = null
 
@@ -96,7 +96,7 @@ describe "Promises", ->
   #   browser.visit("/promises")
   #     .then ->
   #       assert.equal browser.document.title, "What I expected"
-  #     .fail done
+  #     .then done, done
   describe "failed assertion", ->
     error = null
 
@@ -114,6 +114,11 @@ describe "Promises", ->
 
 
     # Chaining allows us to capture errors once at the very end of the chain.
+    #
+    # Here we expect an error to happen and that should pass the test.
+    #
+    # If an error doesn't happen, we call done with a value and that would fail
+    # the test.
     describe "chained", ->
       before (done)->
         browser = new Browser()
@@ -124,9 +129,11 @@ describe "Promises", ->
             assert.equal browser.document.title, "Ooops", "I'm here against all odds"
           .then ->
             assert.equal browser.document.title, "Ooops", "I'm here against all odds"
-          , (_)->
+          .fail (_)->
             error = _
             done()
+          .then ->
+            done(true)
 
       it "should reject with an error", ->
         assert.equal error.message, "Assertion haz a fail"

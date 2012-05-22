@@ -8,7 +8,7 @@ Fixed setting cookie on redirect to different domain.
 
 Fixed iframe doesn't retain value of src attribute.
 
-Added tests for promises.
+Added documentation and tests for promises.
 
     494 tests
     12.0 sec to complete
