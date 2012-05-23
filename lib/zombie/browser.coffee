@@ -191,7 +191,8 @@ class Browser extends EventEmitter
       promise.then ->
         # This serves two purposes, one is yielding, the other is propagating
         # any error thrown from the callback (then/fail swallow errors).
-        process.nextTick callback
+        process.nextTick ->
+          callback()
       .fail (error)->
         process.nextTick ->
           callback(error)

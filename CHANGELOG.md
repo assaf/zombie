@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 1.1.4 2012-05-22
+
+Make sure `wait` callback doesn't get the wrong `this`.
+
+    496 tests
+    11.5 sec to complete
+
+
 ## Version 1.1.3 2012-05-22
 
 Fixed setting cookie on redirect to different domain.
