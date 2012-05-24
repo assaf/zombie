@@ -2,6 +2,18 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 1.1.5 2012-05-24
+
+The `wait` function (and its derivatives) now return most recent error in
+callback.
+
+To use promises and duration function, call `wait` with two arguments, second
+one being `null`.
+
+    496 tests
+    12.1 sec to complete
+
+
 ## Version 1.1.4 2012-05-22
 
 Make sure `wait` callback doesn't get the wrong `this`.

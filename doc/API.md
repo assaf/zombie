@@ -591,6 +591,9 @@ For example:
 
     })
 
+Using promises instead of a callback and duration function is tricky: you must
+call `wait` with two arguments, the last one being `null`.
+
 Even with completion function, the browser won't wait forever.  It will complete
 as soon as it determines there are no more events to wait for, or after 5
 seconds of waiting.

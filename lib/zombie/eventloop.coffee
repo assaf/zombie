@@ -171,16 +171,19 @@ class EventLoop
       # Processing XHR/JS events, keep waiting.
       return if @_processing > 0
       try
-        unless is_done && is_done(window)
-          # Not done and no events, so wait for the next timer.
-          timers = (timer.next for timer in @_timers when timer.next)
-          next = Math.min.apply(Math, timers)
-          # If there are no timers, next is Infinity, larger then done_at, no waiting
-          if next <= done_at
-            return
-        done()
-      catch error
+        if is_done && is_done(window)
+          done() # Yay
+          return
+      catch error # Propagate
         done(error)
+        return
+
+      # not done and no events, so wait for the next timer.
+      timers = (timer.next for timer in @_timers when timer.next)
+      next = Math.min(timers...)
+      # if there are no timers, next is infinity, larger then done_at, no waiting
+      if next > done_at
+        done()
 
     # No one is waiting, resume firing timers.
     @_resume() if @_waiting.length == 0

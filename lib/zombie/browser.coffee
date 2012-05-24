@@ -55,9 +55,6 @@ class Browser extends EventEmitter
       @errors.push error
       @log error.message, error.stack
 
-    # Pretty reasonable if you have a lot of waiting calls in there (say fill, choose, clickLink)
-    @setMaxListeners 20
-
 
     # Default (not global) options
 
@@ -182,25 +179,25 @@ class Browser extends EventEmitter
   # Without duration, Zombie makes best judgement by waiting up to 5 seconds for the page to load resources (scripts,
   # XHR requests, iframes), process DOM events, and fire timeouts events.
   wait: (duration, callback)->
-    if !callback && typeof duration == "function"
+    if arguments.length < 2 && typeof duration == "function"
       [callback, duration] = [duration, null]
-
+ 
     deferred = Q.defer()
     promise = deferred.promise
-    if callback
-      promise.then ->
-        # This serves two purposes, one is yielding, the other is propagating
-        # any error thrown from the callback (then/fail swallow errors).
-        process.nextTick ->
-          callback()
-      .fail (error)->
-        process.nextTick ->
+
+    last = @errors[@errors.length - 1]
+    @_eventloop.wait @window, duration, (error)=>
+      newest = @errors[@errors.length - 1]
+      unless error || last == newest
+        error = newest
+      if error
+        deferred.reject(error)
+        if callback
           callback(error)
-
-    @once "done", deferred.resolve
-    @once "error", deferred.reject
-
-    @_eventloop.wait @window, duration
+      else
+        deferred.resolve()
+        if callback
+          callback(error)
     return promise unless callback
 
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
