@@ -10,8 +10,11 @@ callback.
 To use promises and duration function, call `wait` with two arguments, second
 one being `null`.
 
-    496 tests
-    12.1 sec to complete
+Workaround for the tricky `getElementById("foo").querySelector("#foo .bar")`
+behavior that JSDOM doesn't get quite right.
+
+    500 tests
+    12.3 sec to complete
 
 
 ## Version 1.1.4 2012-05-22

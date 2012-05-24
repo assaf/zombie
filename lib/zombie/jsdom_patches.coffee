@@ -1,6 +1,7 @@
 # Fix things that JSDOM doesn't do quite right.
-HTML = require("jsdom").dom.level3.html
-URL = require("url")
+createSizzle  = require("../../node_modules/jsdom/lib/jsdom/selectors/sizzle")
+HTML          = require("jsdom").dom.level3.html
+URL           = require("url")
 
 
 HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
@@ -173,3 +174,39 @@ HTML.NodeList.prototype.update = ->
     @_version = @_element._version
   return @_snapshot
 
+
+
+HTML.HTMLDocument.prototype.querySelector = (selector)->
+  @_sizzle ||= createSizzle(this)
+  return @_sizzle(selector, this)[0]
+HTML.HTMLDocument.prototype.querySelectorAll = (selector)->
+  @_sizzle ||= createSizzle(this)
+  return new HTML.NodeList(@_sizzle(selector, this))
+
+# True if element is child of context node or any of its children.
+descendantOf = (element, context)->
+  parent = element.parentNode
+  if parent
+    return parent == context || descendantOf(parent, context)
+  else
+    return false
+
+# Here comes the tricky part:
+#   getDocumentById("foo").querySelectorAll("#foo div")
+# should magically find the div descendant(s) of #foo, although
+# querySelectorAll can never "see" itself.
+descendants = (element, selector)->
+  document = element.ownerDocument
+  document._sizzle ||= createSizzle(document)
+  unless element.parentNode
+    parent = element.ownerDocument.createElement("div")
+    parent.appendChild(element)
+    element = parent
+  return document._sizzle(selector, element.parentNode || element)
+    .filter((node) -> descendantOf(node, element))
+
+
+HTML.Element.prototype.querySelector = (selector)->
+  return descendants(this, selector)[0]
+HTML.Element.prototype.querySelectorAll = (selector)->
+  return new HTML.NodeList(descendants(this, selector))

@@ -100,5 +100,6 @@ publish : build doc man7
 	git push
 	git tag v$(version)
 	git push --tags origin master
-	make publish-docs clean
+	make publish-docs
+	make clean
 

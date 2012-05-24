@@ -226,18 +226,19 @@ class Browser extends EventEmitter
   # Evaluates the CSS selector against the document (or context node) and return array of nodes.
   # (Unlike `document.querySelectorAll` that returns a node list).
   queryAll: (selector, context)->
-    context ||= @document.documentElement
     if selector
+      context ||= @document
       ret = context.querySelectorAll(selector)
       return Array.prototype.slice.call(ret, 0)
     else
+      context ||= @document.documentElement
       return [context]
 
   # ### browser.query(selector, context?) => Element
   #
   # Evaluates the CSS selector against the document (or context node) and return an element.
   query: (selector, context)->
-    context ||= @document.documentElement
+    context ||= @document
     if selector
       context.querySelector(selector)
     else

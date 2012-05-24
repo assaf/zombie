@@ -3,8 +3,6 @@
 
 describe "Selection", ->
 
-  browser = new Browser()
-
   before (done)->
     brains.get "/browser/walking", (req, res)->
       res.send """
@@ -24,6 +22,7 @@ describe "Selection", ->
             </form>
           </div>
           <div class="now">Walking Aimlessly</div>
+          <button>Do not press!</button>
         </body>
       </html>
       """
@@ -44,60 +43,83 @@ describe "Selection", ->
       $(function() { Sammy("#main").run("#/"); });
       """
 
-    brains.ready ->
-      browser.visit "http://localhost:3003/browser/walking", done
+    brains.ready done
+
+  before (done)->
+    @browser = new Browser()
+    @browser.visit("http://localhost:3003/browser/walking")
+      .then(done, done)
 
 
   describe "queryAll", ->
     it "should return array of nodes", ->
-      nodes = browser.queryAll(".now")
+      nodes = @browser.queryAll(".now")
       assert.equal nodes.length, 1
 
 
   describe "query method", ->
     it "should return single node", ->
-      node = browser.query(".now")
+      node = @browser.query(".now")
       assert.equal node.tagName, "DIV"
+
+
+  describe "the tricky ID", ->
+    before ->
+      @root = @browser.document.getElementById("main")
+
+    it "should find child from id", ->
+      nodes = @root.querySelectorAll("#main button")
+      assert.equal nodes[0].textContent, "Sign Me Up"
+
+    it "should find child from parent", ->
+      nodes = @root.querySelectorAll("button")
+      assert.equal nodes[0].textContent, "Sign Me Up"
+
+    it "should not re-find element itself", ->
+      nodes = @root.querySelectorAll("#main")
+      assert.equal nodes.length, 0
+
+    it "should not find children of siblings", ->
+      nodes = @root.querySelectorAll("button")
+      assert.equal nodes.length, 1
 
 
   describe "query text", ->
     it "should query from document", ->
-      assert.equal browser.text(".now"), "Walking Aimlessly"
+      assert.equal @browser.text(".now"), "Walking Aimlessly"
     it "should query from context (exists)", ->
-      assert.equal browser.text(".now"), "Walking Aimlessly"
+      assert.equal @browser.text(".now"), "Walking Aimlessly"
     it "should query from context (unrelated)", ->
-      assert.equal browser.text(".now", browser.querySelector("form")), ""
+      assert.equal @browser.text(".now", @browser.querySelector("form")), ""
     it "should combine multiple elements", ->
-      assert.equal browser.text("form label"), "Email Password"
+      assert.equal @browser.text("form label"), "Email Password"
 
 
   describe "query html", ->
     it "should query from document", ->
-      assert.equal browser.html(".now"), "<div class=\"now\">Walking Aimlessly</div>"
+      assert.equal @browser.html(".now"), "<div class=\"now\">Walking Aimlessly</div>"
     it "should query from context (exists)", ->
-      assert.equal browser.html(".now", browser.body), "<div class=\"now\">Walking Aimlessly</div>"
+      assert.equal @browser.html(".now", @browser.body), "<div class=\"now\">Walking Aimlessly</div>"
     it "should query from context (unrelated)", ->
-      assert.equal browser.html(".now", browser.querySelector("form")), ""
+      assert.equal @browser.html(".now", @browser.querySelector("form")), ""
     it "should combine multiple elements", ->
-      assert.equal browser.html("title, #main a"), "<title>The Living</title><a href=\"/browser/dead\">Kill</a>"
+      assert.equal @browser.html("title, #main a"), "<title>The Living</title><a href=\"/browser/dead\">Kill</a>"
 
 
   describe "jQuery", ->
-    $ = null
-
     before ->
-      $ = browser.evaluate('window.jQuery')
+      @$ = @browser.evaluate('window.jQuery')
 
     it "should query by id", ->
-      assert.equal $('#main').size(), 1
+      assert.equal @$('#main').size(), 1
     it "should query by element name", ->
-      assert.equal $('form').attr('action'), '#/dead'
+      assert.equal @$('form').attr('action'), '#/dead'
     it "should query by element name (multiple)", ->
-      assert.equal $('label').size(), 2
+      assert.equal @$('label').size(), 2
     it "should query with descendant selectors", ->
-      assert.equal $('body #main a').text(), 'Kill'
+      assert.equal @$('body #main a').text(), 'Kill'
     it "should query in context", ->
-      assert.equal $('body').find('#main a', 'body').text(), 'Kill'
+      assert.equal @$('body').find('#main a', 'body').text(), 'Kill'
     it "should query in context with find()", ->
-      assert.equal $('body').find('#main a').text(), 'Kill'
+      assert.equal @$('body').find('#main a').text(), 'Kill'
 

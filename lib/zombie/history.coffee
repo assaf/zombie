@@ -74,7 +74,6 @@ class History
     jsdom_opts =
       deferClose: true
       features:
-        QuerySelector:            true
         MutationEvents:           "2.0"
         ProcessExternalResources: []
         FetchExternalResources:   ["iframe"]
