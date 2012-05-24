@@ -36,38 +36,36 @@ describe "IFrame", ->
       """
     brains.ready done
 
-  browser = new Browser()
-  iframe = null
-
   before (done)->
-    browser.visit "http://localhost:3003/iframe", ->
-      iframe = browser.querySelector("iframe")
-      done()
+    @browser = new Browser()
+    @browser.visit("http://localhost:3003/iframe")
+      .then =>
+        @iframe = @browser.querySelector("iframe")
+        return
+      .then(done, done)
 
   it "should fire onload event", ->
-    assert.equal browser.document.title, "Whatever"
+    assert.equal @browser.document.title, "Whatever"
   it "should load iframe document", ->
-    document = iframe.contentWindow.document
+    document = @iframe.contentWindow.document
     assert.equal "Whatever", document.title
     assert /Hello World/.test(document.innerHTML)
     assert.equal document.location, "http://localhost:3003/iframe/static"
   it "should set frame src attribute", ->
-    assert.equal iframe.src, "/iframe/static"
+    assert.equal @iframe.src, "/iframe/static"
   it "should reference parent window from iframe", ->
-    assert.equal iframe.contentWindow.parent, browser.window.top
+    assert.equal @iframe.contentWindow.parent, @browser.window.top
   it "should not alter the parent", ->
-    assert.equal "http://localhost:3003/iframe", browser.window.location
+    assert.equal "http://localhost:3003/iframe", @browser.window.location
 
 
   it "should handle javascript protocol gracefully", ->
-    # Seen this done before, shouldn't trip Zombie
-    iframe.src = "javascript:false"
+    # Seen this in the wild, checking that it doesn't blow up
+    @iframe.src = "javascript:false"
     assert true
 
 
   describe "postMessage", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/iframe/ping", (req, res)->
         res.send """
@@ -96,11 +94,14 @@ describe "IFrame", ->
           })
         </script>
         """
-      brains.ready ->
-        browser.visit "http://localhost:3003/iframe/ping", done
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/iframe/ping", done
 
     it "should pass messages back and forth", ->
-      assert.equal browser.document.title, "pong http://localhost:3003"
+      assert.equal @browser.document.title, "pong http://localhost:3003"
 
 
   describe "link target", ->
@@ -135,102 +136,109 @@ describe "IFrame", ->
       source = null
 
       before (done)->
-        browser = new Browser()
-        browser.visit "http://localhost:3003/iframe/top", ->
-          source = browser.window
-          browser.clickLink "self", done
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/iframe/top", =>
+          @source = @browser.window
+          @browser.clickLink "self", done
 
       it "should open link", ->
-        assert.equal browser.location.pathname, "/target/_self"
+        assert.equal @browser.location.pathname, "/target/_self"
 
       it "should open link in same window", ->
-        assert.equal browser.window, source
+        assert.equal @browser.window, @source
 
 
     describe "_blank", ->
 
       before (done)->
-        browser = new Browser()
-        browser.visit "http://localhost:3003/iframe/top", ->
-          assert.equal browser.windows.count, 1
-          browser.clickLink "blank", done
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/iframe/top", =>
+          assert.equal @browser.windows.count, 1
+          @browser.clickLink "blank", done
 
       it "should open link", ->
-        assert.equal browser.location.pathname, "/target/_blank"
+        assert.equal @browser.location.pathname, "/target/_blank"
 
       it "should open link in new window", ->
-        assert.equal browser.windows.count, 2
-        assert.equal browser.window, browser.windows.get(1)
+        assert.equal @browser.windows.count, 2
+        assert.equal @browser.window, @browser.windows.get(1)
 
 
     describe "_top", ->
       before (done)->
-        browser = new Browser()
-        browser.visit "http://localhost:3003/iframe/top", ->
-          two_deep = browser.window.frames["child"].frames["child"].document
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/iframe/top", =>
+          two_deep = @browser.window.frames["child"].frames["child"].document
           link = two_deep.querySelector("a[target=_top]")
           event = link.ownerDocument.createEvent("HTMLEvents")
           event.initEvent "click", true, true
           link.dispatchEvent(event)
-          browser.wait done
+          @browser.wait done
 
       it "should open link", ->
-        assert.equal browser.location.pathname, "/target/_top"
+        assert.equal @browser.location.pathname, "/target/_top"
 
       it "should open link in top window", ->
-        assert.equal browser.windows.count, 1
+        assert.equal @browser.windows.count, 1
 
 
     describe "_parent", ->
       before (done)->
-        browser = new Browser()
-        browser.visit "http://localhost:3003/iframe/top", ->
-          two_deep = browser.window.frames["child"].frames["child"].document
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/iframe/top", =>
+          two_deep = @browser.window.frames["child"].frames["child"].document
           link = two_deep.querySelector("a[target=_parent]")
           event = link.ownerDocument.createEvent("HTMLEvents")
           event.initEvent "click", true, true
           link.dispatchEvent(event)
-          browser.wait done
+          @browser.wait done
 
       it "should open link", ->
-        assert.equal browser.window.frames["child"].location.pathname, "/target/_parent"
+        assert.equal @browser.window.frames["child"].location.pathname, "/target/_parent"
 
       it "should open link in child window", ->
-        assert.equal browser.location.pathname, "/iframe/top"
-        assert.equal browser.windows.count, 1
+        assert.equal @browser.location.pathname, "/iframe/top"
+        assert.equal @browser.windows.count, 1
 
 
     describe "window", ->
 
       describe "new", ->
         before (done)->
-          browser = new Browser()
-          browser.visit "http://localhost:3003/iframe/top", ->
-            browser.clickLink "new window", done
+          @browser = new Browser()
+          @browser.visit("http://localhost:3003/iframe/top")
+            .then =>
+              @browser.clickLink "new window"
+            .then(done, done)
 
         it "should open link", ->
-          assert.equal browser.location.pathname, "/target/new-window"
+          assert.equal @browser.location.pathname, "/target/new-window"
 
         it "should open link in new window", ->
-          assert.equal browser.windows.count, 2
+          assert.equal @browser.windows.count, 2
 
         it "should select new window", ->
-          assert.equal browser.windows.get(1), browser.window
+          assert.equal @browser.windows.get(1), @browser.window
 
 
       describe "existing", ->
         before (done)->
-          browser = new Browser()
-          browser.visit "http://localhost:3003/iframe/top", ->
-            browser.clickLink "new window", ->
-              browser.visit "http://localhost:3003/iframe/top", ->
-                browser.clickLink "existing window", done
+          @browser = new Browser()
+          @browser.visit("http://localhost:3003/iframe/top")
+            .then =>
+              @browser.clickLink "new window"
+            .then =>
+              @browser.visit "http://localhost:3003/iframe/top"
+            .then =>
+              @browser.clickLink "existing window"
+            .then(done, done)
 
         it "should open link", ->
-          assert.equal browser.location.pathname, "/target/existing-window"
+          assert.equal @browser.location.pathname, "/target/existing-window"
 
         it "should open link in existing window", ->
-          assert.equal browser.windows.count, 2
+          assert.equal @browser.windows.count, 2
 
         it "should select existing window", ->
-          assert.equal browser.windows.get(0), browser.window
+          assert.equal @browser.windows.get(0), @browser.window
+

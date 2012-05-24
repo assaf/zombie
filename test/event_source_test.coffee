@@ -3,8 +3,6 @@
 
 describe "EventSource", ->
 
-  events = null
-
   before (done)->
     brains.get "/streaming", (req, res)->
       res.send """
@@ -36,13 +34,16 @@ describe "EventSource", ->
 
   before (done)->
     browser = new Browser()
-    browser.visit "http://localhost:3003/streaming"
-    completed = (window)->
-      return window.events && window.events.length == 2
-    browser.wait completed, =>
-      events = browser.evaluate("window.events")
-      done()
+    browser.visit("http://localhost:3003/streaming")
+      .then =>
+        browser.wait (window)->
+          return window.events && window.events.length == 2
+        , null
+      .then =>
+        @events = browser.evaluate("window.events")
+        return
+      .then(done, done)
 
   it "should stream to browser", ->
-    assert.deepEqual events, ["first", "second"]
+    assert.deepEqual @events, ["first", "second"]
 

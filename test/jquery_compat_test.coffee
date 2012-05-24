@@ -54,32 +54,31 @@ test = (version)->
       brains.ready done
 
 
-    browser = new Browser()
-
     before (done)->
-      browser.visit "http://localhost:3003/compat/jquery-#{version}", done
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/compat/jquery-#{version}", done
 
     describe "selecting an option in a select element", ->
       before (done)->
-        browser.select "select", "1"
+        @browser.select "select", "1"
         done()
 
       it "should fire the change event", ->
-        assert.equal browser.text("#option"), "1"
+        assert.equal @browser.text("#option"), "1"
 
     describe "jQuery.post", ->
       before (done)->
-        browser.clickLink "Post", done
+        @browser.clickLink "Post", done
 
       it "should perform an AJAX POST request", ->
-        assert /foo=bar/.test(browser.text("#response"))
+        assert /foo=bar/.test(@browser.text("#response"))
 
     describe "jQuery.globalEval", ->
       it "should work as expected", ->
-        browser.evaluate("(function () {
+        @browser.evaluate("(function () {
           $.globalEval('var globalEvalWorks = true;');
         })();")
-        assert.ok browser.window.globalEvalWorks
+        assert.ok @browser.window.globalEvalWorks
 
 
 describe "Compatibility with jQuery", ->

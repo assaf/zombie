@@ -143,562 +143,579 @@ describe "Forms", ->
 
 
   describe "fill field", ->
-    browser = new Browser()
-
     before (done)->
-      browser.visit "http://localhost:3003/forms/form", ->
-        for field in ["email", "likes", "name", "password", "invalidtype", "email2"]
-          do (field)->
-            browser.querySelector("#field-#{field}").addEventListener "change", ->
-              browser["#{field}Changed"] = true
-        done()
+      @browser = new Browser()
+      @browser.visit("http://localhost:3003/forms/form")
+        .then =>
+          for field in ["email", "likes", "name", "password", "invalidtype", "email2"]
+            do (field)=>
+              @browser.querySelector("#field-#{field}").addEventListener "change", =>
+                @browser["#{field}Changed"] = true
+          return
+        .then(done, done)
 
     describe "text input enclosed in label", ->
       before ->
-        browser.fill "Name", "ArmBiter"
+        @browser.fill "Name", "ArmBiter"
 
       it "should set text field", ->
-        assert.equal browser.querySelector("#field-name").value, "ArmBiter"
+        assert.equal @browser.querySelector("#field-name").value, "ArmBiter"
       it "should fire change event", ->
-        assert browser.nameChanged
+        assert @browser.nameChanged
 
     describe "email input referenced from label", ->
       before ->
-        browser.fill "Email", "armbiter@example.com"
+        @browser.fill "Email", "armbiter@example.com"
 
       it "should set email field", ->
-        assert.equal browser.querySelector("#field-email").value, "armbiter@example.com"
+        assert.equal @browser.querySelector("#field-email").value, "armbiter@example.com"
       it "should fire change event", ->
-        assert browser.emailChanged
+        assert @browser.emailChanged
 
     describe "textarea by field name", ->
       before ->
-        browser.fill "likes", "Arm Biting"
+        @browser.fill "likes", "Arm Biting"
 
       it "should set textarea", ->
-        assert.equal browser.querySelector("#field-likes").value, "Arm Biting"
+        assert.equal @browser.querySelector("#field-likes").value, "Arm Biting"
       it "should fire change event", ->
-        assert browser.likesChanged
+        assert @browser.likesChanged
 
     describe "password input by selector", ->
       before (done)->
-        browser.fill ":password[name=password]", "b100d", done
+        @browser.fill ":password[name=password]", "b100d", done
 
       it "should set password", ->
-        assert.equal browser.querySelector("#field-password").value, "b100d"
+        assert.equal @browser.querySelector("#field-password").value, "b100d"
       it "should fire change event", ->
-        assert browser.passwordChanged
+        assert @browser.passwordChanged
 
     describe "input without a valid type", ->
       before ->
-        browser.fill ":input[name=invalidtype]", "some value"
+        @browser.fill ":input[name=invalidtype]", "some value"
 
       it "should set value", ->
-        assert.equal browser.querySelector("#field-invalidtype").value, "some value"
+        assert.equal @browser.querySelector("#field-invalidtype").value, "some value"
       it "should fire change event", ->
-        assert browser.invalidtypeChanged
+        assert @browser.invalidtypeChanged
 
     describe "email2 input by node", ->
       before ->
-        browser.fill browser.querySelector("#field-email2"), "headchomper@example.com"
+        @browser.fill @browser.querySelector("#field-email2"), "headchomper@example.com"
 
       it "should set email2 field", ->
-        assert.equal browser.querySelector("#field-email2").value, "headchomper@example.com"
+        assert.equal @browser.querySelector("#field-email2").value, "headchomper@example.com"
       it "should fire change event", ->
-        assert browser.email2Changed
+        assert @browser.email2Changed
 
     describe "disabled input can not be modified", ->
       it "should raise error", ->
         assert.throws ->
-          browser.fill browser.querySelector("#disabled_input_field"), "yeahh"
+          @browser.fill @browser.querySelector("#disabled_input_field"), "yeahh"
 
     describe "readonly input can not be modified", ->
       it "should raise error", ->
         assert.throws ->
-          browser.fill browser.querySelector("#readonly_input_field"), "yeahh"
+          @browser.fill @browser.querySelector("#readonly_input_field"), "yeahh"
 
     describe "should callback", ->
       before (done)->
-        browser.fill browser.querySelector("#field-email3"), "headchomper@example.com", done
+        @browser.fill @browser.querySelector("#field-email3"), "headchomper@example.com", done
 
       it "should fire the callback", ->
-        assert.equal browser.querySelector("#field-email3").value, "headchomper@example.com"
+        assert.equal @browser.querySelector("#field-email3").value, "headchomper@example.com"
 
 
   describe "check box", ->
-    browser = new Browser()
-
     before (done)->
-      browser.visit "http://localhost:3003/forms/form", ->
-        for field in ["hungry", "brains", "green"]
-          do (field)->
-            browser.querySelector("#field-#{field}").addEventListener "click", ->
-              browser["#{field}Clicked"] = true
-            browser.querySelector("#field-#{field}").addEventListener "change", ->
-              browser["#{field}Changed"] = true
-        done()
+      @browser = new Browser()
+      @browser.visit("http://localhost:3003/forms/form")
+        .then =>
+          for field in ["hungry", "brains", "green"]
+            do (field)=>
+              @browser.querySelector("#field-#{field}").addEventListener "click", =>
+                @browser["#{field}Clicked"] = true
+              @browser.querySelector("#field-#{field}").addEventListener "change", =>
+                @browser["#{field}Changed"] = true
+          return
+        .then(done, done)
 
     describe "checkbox enclosed in label", ->
       before (done)->
-        browser.check "You bet"
-        browser.wait done
+        @browser.check "You bet"
+        @browser.wait done
 
       it "should check checkbox", ->
-        assert browser.querySelector("#field-hungry").checked
+        assert @browser.querySelector("#field-hungry").checked
       it "should fire change event", ->
-        assert browser.hungryChanged
+        assert @browser.hungryChanged
       it "should fire clicked event", ->
-        assert browser.hungryClicked
+        assert @browser.hungryClicked
 
       describe "with callback", ->
         before (done)->
-          browser.check "Brains?", done
+          @browser.check "Brains?", done
 
         it "should callback", ->
-          assert browser.querySelector("#field-brains").checked
+          assert @browser.querySelector("#field-brains").checked
 
     describe "checkbox referenced from label", ->
       before (done)->
-        browser.check "Brains?"
-        browser.wait done
+        @browser.check "Brains?"
+        @browser.wait done
 
       it "should check checkbox", ->
-        assert browser.querySelector("#field-brains").checked
+        assert @browser.querySelector("#field-brains").checked
       it "should fire change event", ->
-        assert browser.brainsChanged
+        assert @browser.brainsChanged
 
       describe "uncheck with callback", ->
-        browser2 = new Browser()
-
         before (done)->
-          browser2.visit "http://localhost:3003/forms/form", ->
-            browser2.check "Brains?"
-            browser2.uncheck "Brains?", done
+          @new_browser = new Browser()
+          @new_browser.visit "http://localhost:3003/forms/form", =>
+            @new_browser.check "Brains?"
+            @new_browser.uncheck "Brains?", done
 
         it "should callback", ->
-          assert !browser2.querySelector("#field-brains").checked
+          assert !@new_browser.querySelector("#field-brains").checked
 
     describe "checkbox by name", ->
       before (done)->
-        browser.check "green"
-        browser.greenChanged = false
-        browser.uncheck "green"
-        browser.wait done
+        @browser.check "green"
+        @browser.greenChanged = false
+        @browser.uncheck "green"
+        @browser.wait done
 
       it "should uncheck checkbox", ->
-        assert !browser.querySelector("#field-green").checked
+        assert !@browser.querySelector("#field-green").checked
       it "should fire change event", ->
-        assert browser.greenChanged
+        assert @browser.greenChanged
 
     describe "check callback", ->
       before (done)->
-        browser.check "uncheck", done
+        @browser.check "uncheck", done
 
       it "should callback", ->
-        assert browser.querySelector("#field-uncheck").checked
+        assert @browser.querySelector("#field-uncheck").checked
 
     describe "uncheck callback", ->
       before (done)->
-        browser.uncheck "check", done
+        @browser.uncheck "check", done
 
       it "should callback", ->
-        assert !browser.querySelector("#field-check").checked
+        assert !@browser.querySelector("#field-check").checked
 
     describe "prevent default", ->
-      values = null
-
       before (done)->
-        check_box = browser.$$("#field-prevent-check")
-        values = [check_box.checked]
-        check_box.addEventListener "click", (event)->
-          values.push check_box.checked
+        check_box = @browser.$$("#field-prevent-check")
+        @values = [check_box.checked]
+        check_box.addEventListener "click", (event)=>
+          @values.push check_box.checked
           event.preventDefault()
-        browser.check check_box, ->
-          values.push check_box.checked
-          done()
+        @browser.check check_box
+        @values.push check_box.checked
+        done()
 
       it "should turn checkbox on then off", ->
-        assert.deepEqual values, [false, true, false]
+        assert.deepEqual @values, [false, true, false]
 
 
   describe "radio buttons", ->
-    browser = new Browser()
-
     before (done)->
-      browser.visit "http://localhost:3003/forms/form", ->
-        for field in ["scary", "notscary"]
-          do (field)->
-            browser.querySelector("#field-#{field}").addEventListener "click", ->
-              browser["#{field}Clicked"] = true
-            browser.querySelector("#field-#{field}").addEventListener "change", ->
-              browser["#{field}Changed"] = true
-        done()
+      @browser = new Browser()
+      @browser.visit("http://localhost:3003/forms/form")
+        .then =>
+          for field in ["scary", "notscary"]
+            do (field)=>
+              @browser.querySelector("#field-#{field}").addEventListener "click", =>
+                @browser["#{field}Clicked"] = true
+              @browser.querySelector("#field-#{field}").addEventListener "change", =>
+                @browser["#{field}Changed"] = true
+          return
+        .then(done, done)
 
     describe "radio button enclosed in label", ->
       before ->
-        browser.choose "Scary"
+        @browser.choose "Scary"
 
       it "should check radio", ->
-        assert browser.querySelector("#field-scary").checked
+        assert @browser.querySelector("#field-scary").checked
       it "should fire click event", ->
-        assert browser.scaryClicked
+        assert @browser.scaryClicked
       it "should fire change event", ->
-        assert browser.scaryChanged
+        assert @browser.scaryChanged
 
       describe "with callback", ->
-        browser = new Browser()
-
         before (done)->
-          browser.visit "http://localhost:3003/forms/form", ->
-            browser.choose "Scary", done
+          @browser = new Browser()
+          @browser.visit "http://localhost:3003/forms/form", =>
+            @browser.choose "Scary", done
 
         it "should callback", ->
-          assert browser.querySelector("#field-scary").checked
+          assert @browser.querySelector("#field-scary").checked
 
     describe "radio button by value", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.choose "no"
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/form", =>
+          @browser.choose "no"
           done()
 
       it "should check radio", ->
-        assert browser.querySelector("#field-notscary").checked
+        assert @browser.querySelector("#field-notscary").checked
       it "should uncheck other radio", ->
-        assert !browser.querySelector("#field-scary").checked
+        assert !@browser.querySelector("#field-scary").checked
 
     describe "prevent default", ->
-      values = null
-
       before (done)->
-        radio = browser.$$("#field-prevent-radio")
-        values = [radio.checked]
-        radio.addEventListener "click", (event)->
-          values.push radio.checked
+        radio = @browser.$$("#field-prevent-radio")
+        @values = [radio.checked]
+        radio.addEventListener "click", (event)=>
+          @values.push radio.checked
           event.preventDefault()
-        browser.choose radio, ->
-          values.push radio.checked
+        @browser.choose radio, =>
+          @values.push radio.checked
           done()
 
       it "should turn radio on then off", ->
-        assert.deepEqual values, [false, true, false]
+        assert.deepEqual @values, [false, true, false]
 
 
   describe "select option", ->
-    browser = new Browser()
-
     before (done)->
-      browser.visit "http://localhost:3003/forms/form", ->
-        for field in ["looks", "state", "kills"]
-          do (field)->
-            browser.querySelector("#field-#{field}").addEventListener "change", ->
-              browser["#{field}Changed"] = true
-        done()
+      @browser = new Browser()
+      @browser.visit("http://localhost:3003/forms/form")
+        .then =>
+          for field in ["looks", "state", "kills"]
+            do (field)=>
+              @browser.querySelector("#field-#{field}").addEventListener "change", =>
+                @browser["#{field}Changed"] = true
+          return
+        .then(done, done)
 
     describe "enclosed in label using option label", ->
       before ->
-        browser.select "Looks", "Bloody"
+        @browser.select "Looks", "Bloody"
 
       it "should set value", ->
-        assert.equal browser.querySelector("#field-looks").value, "blood"
+        assert.equal @browser.querySelector("#field-looks").value, "blood"
       it "should select first option", ->
-        selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-looks").options)
+        selected = (!!option.getAttribute("selected") for option in @browser.querySelector("#field-looks").options)
         assert.deepEqual selected, [true, false, false]
       it "should fire change event", ->
-        assert browser.looksChanged
+        assert @browser.looksChanged
 
     describe "select name using option value", ->
       before ->
-        browser.select "state", "dead"
+        @browser.select "state", "dead"
 
       it "should set value", ->
-        assert.equal browser.querySelector("#field-state").value, "dead"
+        assert.equal @browser.querySelector("#field-state").value, "dead"
       it "should select second option", ->
-        selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-state").options)
+        selected = (!!option.getAttribute("selected") for option in @browser.querySelector("#field-state").options)
         assert.deepEqual selected, [false, true, false]
       it "should fire change event", ->
-        assert browser.stateChanged
+        assert @browser.stateChanged
 
     describe "select option value directly", ->
       before ->
-        browser.selectOption browser.querySelector("#option-killed-thousands")
+        @browser.selectOption @browser.querySelector("#option-killed-thousands")
 
       it "should set value", ->
-        assert.equal browser.querySelector("#field-kills").value, "Thousands"
+        assert.equal @browser.querySelector("#field-kills").value, "Thousands"
       it "should select second option", ->
-        selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-kills").options)
+        selected = (!!option.getAttribute("selected") for option in @browser.querySelector("#field-kills").options)
         assert.deepEqual selected, [false, false, true]
       it "should fire change event", ->
-        assert browser.killsChanged
+        assert @browser.killsChanged
 
     describe "select callback", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.select "unselected_state", "dead", done
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/form", =>
+          @browser.select "unselected_state", "dead", done
 
       it "should callback", ->
-        assert.equal browser.querySelector("#field-unselected-state").value, "dead"
+        assert.equal @browser.querySelector("#field-unselected-state").value, "dead"
 
     describe "select option callback", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.selectOption browser.querySelector("#option-killed-thousands"), done
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/form", =>
+          @browser.selectOption @browser.querySelector("#option-killed-thousands"), done
 
       it "should callback", ->
-        assert.equal browser.querySelector("#field-kills").value, "Thousands"
+        assert.equal @browser.querySelector("#field-kills").value, "Thousands"
 
 
   describe "multiple select option", ->
-    browser = new Browser()
-
     before (done)->
-      browser.visit "http://localhost:3003/forms/form", ->
-        browser.querySelector("#field-hobbies").addEventListener "change", ->
-          browser["hobbiesChanged"] = true
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/forms/form", =>
+        @browser.querySelector("#field-hobbies").addEventListener "change", =>
+          @browser["hobbiesChanged"] = true
         done()
 
     describe "select name using option value", ->
       before ->
-        browser.select "#field-hobbies", "Eat Brains"
-        browser.select "#field-hobbies", "Sleep"
+        @browser.select "#field-hobbies", "Eat Brains"
+        @browser.select "#field-hobbies", "Sleep"
 
       it "should select first and second options", ->
-        selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-hobbies").options)
+        selected = (!!option.getAttribute("selected") for option in @browser.querySelector("#field-hobbies").options)
         assert.deepEqual selected, [true, false, true]
       it "should fire change event", ->
-        assert browser.hobbiesChanged
+        assert @browser.hobbiesChanged
       it "should not fire change event if nothing changed", ->
-        browser["hobbiesChanged"] = false
-        browser.select "#field-hobbies", "Eat Brains"
-        assert !browser.hobbiesChanged
+        @browser["hobbiesChanged"] = false
+        @browser.select "#field-hobbies", "Eat Brains"
+        assert !@browser.hobbiesChanged
 
     describe "unselect name using option value", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.select "#field-hobbies", "Eat Brains"
-          browser.select "#field-hobbies", "Sleep"
-          browser.unselect "#field-hobbies", "Sleep"
-          done()
+        @browser = new Browser()
+        @browser.visit("http://localhost:3003/forms/form")
+          .then =>
+            @browser.select "#field-hobbies", "Eat Brains"
+            @browser.select "#field-hobbies", "Sleep"
+            @browser.unselect "#field-hobbies", "Sleep"
+            return
+          .then(done, done)
 
       it "should unselect items", ->
-        selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-hobbies").options)
+        selected = (!!option.getAttribute("selected") for option in @browser.querySelector("#field-hobbies").options)
         assert.deepEqual selected, [true, false, false]
 
     describe "with callback", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.unselect "#field-hobbies", "Eat Brains"
-          browser.unselect "#field-hobbies", "Sleep"
-          browser.select "#field-hobbies", "Eat Brains", done
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/form", =>
+          @browser.unselect "#field-hobbies", "Eat Brains"
+          @browser.unselect "#field-hobbies", "Sleep"
+          @browser.select "#field-hobbies", "Eat Brains", done
 
       it "should unselect callback", ->
-        selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-hobbies").options)
+        selected = (!!option.getAttribute("selected") for option in @browser.querySelector("#field-hobbies").options)
         assert.deepEqual selected, [true, false, false]
 
 
   describe "fields not contained in a form", ->
-    browser = new Browser()
-
     before (done)->
-      browser.visit "http://localhost:3003/forms/form", done
+      @browser = new Browser()
+      @browser.visit("http://localhost:3003/forms/form")
+        .then(done, done)
 
     it "should fill text field", ->
-      assert browser.fill "Hunter", "Bruce"
+      assert @browser.fill "Hunter", "Bruce"
     it "should fill textarea", ->
-      assert browser.fill "hunter_hobbies", "Trying to get home"
+      assert @browser.fill "hunter_hobbies", "Trying to get home"
     it "should fill password", ->
-      assert browser.fill "#hunter-password", "klaatubarada"
+      assert @browser.fill "#hunter-password", "klaatubarada"
     it "should fill input with invalid type", ->
-      assert browser.fill ":input[name=hunter_invalidtype]", "necktie?"
+      assert @browser.fill ":input[name=hunter_invalidtype]", "necktie?"
     it "should check checkbox", ->
-      assert browser.check "Chainsaw"
+      assert @browser.check "Chainsaw"
     it "should choose radio", ->
-      assert browser.choose "Powerglove"
+      assert @browser.choose "Powerglove"
     it "should choose select", ->
-      assert browser.select "Type", "Evil"
+      assert @browser.select "Type", "Evil"
 
 
   describe "reset form", ->
 
     describe "by calling reset", ->
-      browser = new Browser()
 
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").
-            check("You bet").choose("Scary").select("state", "dead")
-          browser.querySelector("form").reset()
-          done()
+        @browser = new Browser()
+        @browser.visit("http://localhost:3003/forms/form")
+          .then =>
+            @browser
+              .fill("Name", "ArmBiter")
+              .fill("likes", "Arm Biting")
+              .check("You bet")
+              .choose("Scary")
+              .select("state", "dead")
+            @browser.querySelector("form").reset()
+            return
+          .then(done, done)
 
       it "should reset input field to original value", ->
-        assert.equal browser.querySelector("#field-name").value, ""
+        assert.equal @browser.querySelector("#field-name").value, ""
       it "should reset textarea to original value", ->
-        assert.equal browser.querySelector("#field-likes").value, "Warm brains"
+        assert.equal @browser.querySelector("#field-likes").value, "Warm brains"
       it "should reset checkbox to original value", ->
-        assert !browser.querySelector("#field-hungry").value
+        assert !@browser.querySelector("#field-hungry").value
       it "should reset radio to original value", ->
-        assert !browser.querySelector("#field-scary").checked
-        assert browser.querySelector("#field-notscary").checked
+        assert !@browser.querySelector("#field-scary").checked
+        assert @browser.querySelector("#field-notscary").checked
       it "should reset select to original option", ->
-        assert.equal browser.querySelector("#field-state").value, "alive"
+        assert.equal @browser.querySelector("#field-state").value, "alive"
 
     describe "with event handler", ->
-      browser = new Browser()
-      event = null
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.querySelector("form :reset").addEventListener "click", ->
-            event = arguments[0]
-            done()
-          browser.querySelector("form :reset").click()
+        browser = new Browser()
+        browser.visit("http://localhost:3003/forms/form")
+          .then =>
+            browser.querySelector("form :reset").addEventListener "click", (@event)=>
+              done()
+          .then ->
+            browser.querySelector("form :reset").click()
 
       it "should fire click event", ->
-        assert.equal event.type, "click"
+        assert.equal @event.type, "click"
 
     describe "with preventDefault", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.fill("Name", "ArmBiter")
-          browser.querySelector("form :reset").addEventListener "click", (event)->
-            event.preventDefault()
-          browser.querySelector("form :reset").click()
-          done()
+        @browser = new Browser()
+        @browser.visit("http://localhost:3003/forms/form")
+          .then =>
+            @browser.fill("Name", "ArmBiter")
+            @browser.querySelector("form :reset").addEventListener "click", (event)->
+              event.preventDefault()
+          .then =>
+            @browser.querySelector("form :reset").click()
+          .then(done, done)
 
       it "should not reset input field", ->
-        assert.equal browser.querySelector("#field-name").value, "ArmBiter"
+        assert.equal @browser.querySelector("#field-name").value, "ArmBiter"
 
     describe "by clicking reset input", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.fill("Name", "ArmBiter")
-          browser.querySelector("form :reset").click()
-          done()
+        @browser = new Browser()
+        @browser.visit("http://localhost:3003/forms/form")
+          .then =>
+            @browser.fill("Name", "ArmBiter")
+            @browser.querySelector("form :reset").click()
+          .then(done, done)
 
       it "should reset input field to original value", ->
-        assert.equal browser.querySelector("#field-name").value, ""
+        assert.equal @browser.querySelector("#field-name").value, ""
 
 
   # Submitting form
   describe "submit form", ->
 
     describe "by calling submit", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").check("You bet").
-            check("Certainly").choose("Scary").select("state", "dead").select("looks", "Choose one").
-            select("#field-hobbies", "Eat Brains").select("#field-hobbies", "Sleep").check("Brains?").
-            fill('#address1_city', 'Paris').fill('#address1_street', 'CDG').
-            fill('#address2_city', 'Mikolaiv').fill('#address2_street', 'PGS')
-          browser.querySelector("form").submit()
-          browser.wait done
+        @browser = new Browser()
+        @browser.visit("http://localhost:3003/forms/form")
+          .then =>
+            @browser
+              .fill("Name", "ArmBiter")
+              .fill("likes", "Arm Biting")
+              .check("You bet")
+              .check("Certainly")
+              .choose("Scary")
+              .select("state", "dead")
+              .select("looks", "Choose one")
+              .select("#field-hobbies", "Eat Brains")
+              .select("#field-hobbies", "Sleep")
+              .check("Brains?")
+              .fill('#address1_city', 'Paris')
+              .fill('#address1_street', 'CDG')
+              .fill('#address2_city', 'Mikolaiv')
+              .fill('#address2_street', 'PGS')
+            @browser.querySelector("form").submit()
+            @browser.wait()
+          .then(done, done)
 
       it "should open new page", ->
-        assert.equal browser.location, "http://localhost:3003/forms/submit"
+        assert.equal @browser.location, "http://localhost:3003/forms/submit"
       it "should add location to history", ->
-        assert.equal browser.window.history.length, 2
+        assert.equal @browser.window.history.length, 2
       it "should send text input values to server", ->
-        assert.equal browser.text("#name"), "ArmBiter"
+        assert.equal @browser.text("#name"), "ArmBiter"
       it "should send textarea values to server", ->
-        assert.equal browser.text("#likes"), "Arm Biting"
+        assert.equal @browser.text("#likes"), "Arm Biting"
       it "should send radio button to server", ->
-        assert.equal browser.text("#scary"), "yes"
+        assert.equal @browser.text("#scary"), "yes"
       it "should send unknown types to server", ->
-        assert.equal browser.text("#unknown"), "yes"
+        assert.equal @browser.text("#unknown"), "yes"
       it "should send checkbox with default value to server (brains)", ->
-        assert.equal browser.text("#brains"), "yes"
+        assert.equal @browser.text("#brains"), "yes"
       it "should send checkbox with default value to server (green)", ->
-        assert.equal browser.text("#green"), "Super green!"
+        assert.equal @browser.text("#green"), "Super green!"
       it "should send multiple checkbox values to server", ->
-        assert.equal browser.text("#hungry"), '["you bet","certainly"]'
+        assert.equal @browser.text("#hungry"), '["you bet","certainly"]'
       it "should send selected option to server", ->
-        assert.equal browser.text("#state"), "dead"
+        assert.equal @browser.text("#state"), "dead"
       it "should send first selected option if none was chosen to server", ->
-        assert.equal browser.text("#unselected_state"), "alive"
-        assert.equal browser.text("#looks"), ""
+        assert.equal @browser.text("#unselected_state"), "alive"
+        assert.equal @browser.text("#looks"), ""
       it "should send multiple selected options to server", ->
-        assert.equal browser.text("#hobbies"), '["Eat Brains","Sleep"]'
+        assert.equal @browser.text("#hobbies"), '["Eat Brains","Sleep"]'
       it "should send nested attributes in the order they are declared", ->
-        assert.equal browser.text("#addresses"), '["CDG","Paris","PGS","Mikolaiv"]'
+        assert.equal @browser.text("#addresses"), '["CDG","Paris","PGS","Mikolaiv"]'
       it "should send empty text fields", ->
-        assert.equal browser.text("#empty-text"), ""
+        assert.equal @browser.text("#empty-text"), ""
       it "should send checked field with no value", ->
-        assert.equal browser.text("#empty-checkbox"), "1"
+        assert.equal @browser.text("#empty-checkbox"), "1"
 
 
     describe "by clicking button", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").pressButton "Hit Me", done
+        @browser = new Browser()
+        @browser.visit("http://localhost:3003/forms/form")
+          .then =>
+            @browser
+              .fill("Name", "ArmBiter")
+              .fill("likes", "Arm Biting")
+            return @browser.pressButton("Hit Me")
+          .then(done, done)
 
       it "should open new page", ->
-        assert.equal browser.location, "http://localhost:3003/forms/submit"
+        assert.equal @browser.location, "http://localhost:3003/forms/submit"
       it "should add location to history", ->
-        assert.equal browser.window.history.length, 2
+        assert.equal @browser.window.history.length, 2
       it "should send button value to server", ->
-        assert.equal browser.text("#clicked"), "hit-me"
+        assert.equal @browser.text("#clicked"), "hit-me"
       it "should send input values to server", ->
-        assert.equal browser.text("#name"), "ArmBiter"
-        assert.equal browser.text("#likes"), "Arm Biting"
+        assert.equal @browser.text("#name"), "ArmBiter"
+        assert.equal @browser.text("#likes"), "Arm Biting"
       it "should not send other button values to server", ->
-        assert.equal browser.text("#image_clicked"), "undefined"
+        assert.equal @browser.text("#image_clicked"), "undefined"
 
     describe "by clicking image button", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").pressButton "#image_submit", done
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/form", =>
+          @browser
+            .fill("Name", "ArmBiter")
+            .fill("likes", "Arm Biting")
+            .pressButton "#image_submit", done
 
       it "should open new page", ->
-        assert.equal browser.location, "http://localhost:3003/forms/submit"
+        assert.equal @browser.location, "http://localhost:3003/forms/submit"
       it "should add location to history", ->
-        assert.equal browser.window.history.length, 2
+        assert.equal @browser.window.history.length, 2
       it "should send image value to server", ->
-        assert.equal browser.text("#image_clicked"), "Image Submit"
+        assert.equal @browser.text("#image_clicked"), "Image Submit"
       it "should send input values to server", ->
-        assert.equal browser.text("#name"), "ArmBiter"
-        assert.equal browser.text("#likes"), "Arm Biting"
+        assert.equal @browser.text("#name"), "ArmBiter"
+        assert.equal @browser.text("#likes"), "Arm Biting"
       it "should not send other button values to server", ->
-        assert.equal browser.text("#clicked"), "undefined"
+        assert.equal @browser.text("#clicked"), "undefined"
 
     describe "by clicking input", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/form", ->
-          browser.fill("Name", "ArmBiter").fill("likes", "Arm Biting").pressButton "Submit", done
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/form", =>
+          @browser
+            .fill("Name", "ArmBiter")
+            .fill("likes", "Arm Biting")
+            .pressButton "Submit", done
 
       it "should open new page", ->
-        assert.equal browser.location, "http://localhost:3003/forms/submit"
+        assert.equal @browser.location, "http://localhost:3003/forms/submit"
       it "should add location to history", ->
-        assert.equal browser.window.history.length, 2
+        assert.equal @browser.window.history.length, 2
       it "should send submit value to server", ->
-        assert.equal browser.text("#clicked"), "Submit"
+        assert.equal @browser.text("#clicked"), "Submit"
       it "should send input values to server", ->
-        assert.equal browser.text("#name"), "ArmBiter"
-        assert.equal browser.text("#likes"), "Arm Biting"
+        assert.equal @browser.text("#name"), "ArmBiter"
+        assert.equal @browser.text("#likes"), "Arm Biting"
 
     describe "cancel event", ->
-      browser = new Browser()
-
       before (done)->
         brains.get "/forms/cancel", (req, res)->
           res.send """
@@ -720,11 +737,15 @@ describe "Forms", ->
             </body>
           </html>
           """
-        browser.visit "http://localhost:3003/forms/cancel", ->
-          browser.pressButton "Submit", done()
+        @browser = new Browser()
+
+        @browser.visit("http://localhost:3003/forms/cancel")
+          .then =>
+            return @browser.pressButton("Submit")
+          .then(done, done)
 
       it "should not change page", ->
-        assert.equal browser.location.href, "http://localhost:3003/forms/cancel"
+        assert.equal @browser.location.href, "http://localhost:3003/forms/cancel"
 
 
   # File upload
@@ -764,37 +785,33 @@ describe "Forms", ->
 
 
     describe "text", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/upload", ->
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/upload", =>
           filename = __dirname + "/data/random.txt"
-          browser.attach("text", filename).pressButton "Upload", done
+          @browser.attach("text", filename).pressButton "Upload", done
 
       it "should upload file", ->
-        assert.equal browser.text("body").trim(), "Random text"
+        assert.equal @browser.text("body").trim(), "Random text"
       it "should upload include name", ->
-        assert.equal browser.text("title"), "random.txt"
+        assert.equal @browser.text("title"), "random.txt"
 
 
     describe "binary", ->
-      browser = new Browser()
-      filename = __dirname + "/data/zombie.jpg"
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/upload", ->
-          browser.attach("image", filename).pressButton "Upload", done
+        @browser = new Browser()
+        @filename = __dirname + "/data/zombie.jpg"
+        @browser.visit "http://localhost:3003/forms/upload", =>
+          @browser.attach("image", @filename).pressButton "Upload", done
 
       it "should upload include name", ->
-        assert.equal browser.text("title"), "zombie.jpg"
+        assert.equal @browser.text("title"), "zombie.jpg"
       it "should upload file", ->
-        digest = Crypto.createHash("md5").update(File.readFileSync(filename)).digest("hex")
-        assert.equal browser.text("body").trim(), digest
+        digest = Crypto.createHash("md5").update(File.readFileSync(@filename)).digest("hex")
+        assert.equal @browser.text("body").trim(), digest
 
 
     describe "mixed", ->
-      browser = new Browser()
-
       before (done)->
         brains.get "/forms/mixed", (req, res)->
           res.send """
@@ -817,44 +834,41 @@ describe "Forms", ->
           </html>
           """
 
-        browser.visit "http://localhost:3003/forms/mixed", ->
-          browser
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/mixed", =>
+          @browser
             .fill("username", "hello")
             .attach("logfile", "#{__dirname}/data/random.txt")
             .pressButton "Save", done
 
       it "should upload file", ->
-        assert.equal browser.text("body").trim(), "Random text"
+        assert.equal @browser.text("body").trim(), "Random text"
       it "should upload include name", ->
-        assert.equal browser.text("title"), "random.txt"
+        assert.equal @browser.text("title"), "random.txt"
 
 
     describe "empty", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/upload", ->
-          browser.attach "text", ""
-          browser.pressButton "Upload", done
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/upload", =>
+          @browser.attach "text", ""
+          @browser.pressButton "Upload", done
 
       it "should not upload any file", ->
-        assert.equal browser.text("body").trim(), "nothing"
+        assert.equal @browser.text("body").trim(), "nothing"
 
 
     describe "not set", ->
-      browser = new Browser()
-
       before (done)->
-        browser.visit "http://localhost:3003/forms/upload", ->
-          browser.pressButton "Upload", done
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/upload", =>
+          @browser.pressButton "Upload", done
 
       it "should not send inputs without names", ->
-        assert.equal browser.text("body").trim(), "nothing"
+        assert.equal @browser.text("body").trim(), "nothing"
 
 
   describe "file upload with JS", ->
-    browser = new Browser()
-
     before ->
       brains.get "/forms/upload-js", (req, res)->
         res.send """
@@ -885,20 +899,23 @@ describe "Forms", ->
         """
 
     before (done)->
-      browser.visit "http://localhost:3003/forms/upload-js", ->
-        filename = "#{__dirname}/data/random.txt"
-        browser.attach "my_file", filename, done
+      @browser = new Browser()
+      @browser.visit("http://localhost:3003/forms/upload-js")
+        .then =>
+          filename = "#{__dirname}/data/random.txt"
+          return @browser.attach("my_file", filename)
+        .then(done, done)
           
       it "should call callback", ->
-        assert.equal browser.text("title"), "Upload done"
+        assert.equal @browser.text("title"), "Upload done"
       it "should have filename", ->
-        assert.equal browser.text("#filename"), "random.txt"
+        assert.equal @browser.text("#filename"), "random.txt"
       it "should know file type", ->
-        assert.equal browser.text("#type"), "text/plain"
+        assert.equal @browser.text("#type"), "text/plain"
       it "should know file size", ->
-        assert.equal browser.text("#size"), "12"
+        assert.equal @browser.text("#size"), "12"
       it "should be of type File", ->
-        assert.equal browser.text("#is_file"), "true"
+        assert.equal @browser.text("#is_file"), "true"
 
 
   describe "content length", ->
@@ -913,8 +930,6 @@ describe "Forms", ->
           """
 
     describe "post form urlencoded having content", ->
-      browser = new Browser()
-
       before (done)->
         brains.get "/forms/urlencoded", (req, res)->
           res.send """
@@ -927,19 +942,20 @@ describe "Forms", ->
             </body>
           </html>
           """
-        browser.visit "http://localhost:3003/forms/urlencoded", ->
-          browser.fill("text", "bite").pressButton "submit", done
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/forms/urlencoded", =>
+          @browser
+            .fill("text", "bite")
+            .pressButton "submit", done
 
       it "should send content-length header", ->
-        assert browser.lastRequest.headers["content-length"]
+        assert @browser.lastRequest.headers["content-length"]
       it "should match expected content-length", ->
-        assert.equal browser.lastRequest.headers["content-length"], "text=bite".length
+        assert.equal @browser.lastRequest.headers["content-length"], "text=bite".length
       it "should have body with content of input field", ->
-        assert.equal browser.text("body"), "bite"
+        assert.equal @browser.text("body"), "bite"
           
     describe "post form urlencoded being empty", ->
-      browser = new Browser()
-
       before (done)->
         brains.get "/forms/urlencoded/empty", (req, res)->
           res.send """
@@ -951,12 +967,16 @@ describe "Forms", ->
             </body>
           </html>
           """
-        browser.visit "http://localhost:3003/forms/urlencoded/empty", ->
-          browser.pressButton "submit", ->
-            done() # 404 since there's no get for this form
+        @browser = new Browser()
+        @browser.visit("http://localhost:3003/forms/urlencoded/empty")
+          .then =>
+            return @browser.pressButton("submit")
+          .then ->
+            done(true)
+          .finally(done) # 404 since there's no get for this form
 
       it "should send content-length header", ->
-        assert browser.lastRequest.headers.hasOwnProperty("content-length")
+        assert @browser.lastRequest.headers.hasOwnProperty("content-length")
       it "should have size of 0", ->
-        assert.equal browser.lastRequest.headers["content-length"], 0
+        assert.equal @browser.lastRequest.headers["content-length"], 0
 

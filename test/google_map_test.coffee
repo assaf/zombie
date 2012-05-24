@@ -3,8 +3,6 @@
 
 describe "Google map", ->
 
-  browser = new Browser()
-
   before (done)->
     brains.get "/browser/map", (req, res)->
       res.send """
@@ -30,12 +28,13 @@ describe "Google map", ->
     brains.ready done
 
   before (done)->
-    browser.visit "http://localhost:3003/browser/map", done
+    @browser = new Browser()
+    @browser.visit "http://localhost:3003/browser/map", done
 
   it "should load map", ->
-    assert browser.window.map
+    assert @browser.window.map
   it "should set bounds", ->
-    bounds = browser.window.map.getBounds()
+    bounds = @browser.window.map.getBounds()
     assert bounds, "No map bounds yet"
     assert bounds.getNorthEast()
     assert bounds.getSouthWest()
