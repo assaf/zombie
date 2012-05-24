@@ -6,10 +6,11 @@ HTML  = require("jsdom").dom.level3.html
 
 # If you're using CoffeeScript, you get client-side support.
 try
-  CoffeeScript  = require("coffee-script")
+  CoffeeScript = require("coffee-script")
   HTML.languageProcessors.coffeescript = (element, code, filename)->
     @javascript(element, CoffeeScript.compile(code), filename)
 catch ex
+  # Oh, well
 
 
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
@@ -55,6 +56,7 @@ addInlineScriptSupport = (document)->
     return unless language
     # Queue so inline scripts execute in order with external scripts
     HTML.resourceLoader.enqueue(node, -> language(this, code, document.location.href))()
+    return
 
 
 # -- Utility methods --
@@ -86,6 +88,7 @@ raise = ({ element, location, from, scope, error })->
   event.message = error.message
   event.error = error
   window.browser.dispatchEvent window, event
+  return
 
 
 module.exports = { raise, addInlineScriptSupport }
