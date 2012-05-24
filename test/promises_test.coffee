@@ -2,7 +2,6 @@
 
 
 describe "Promises", ->
-  browser = null
 
   before (done)->
     brains.get "/promises", (req, res)->
@@ -23,12 +22,12 @@ describe "Promises", ->
 
   describe "visit", ->
     before (done)->
-      browser = new Browser()
-      browser.visit("/promises")
+      @browser = new Browser()
+      @browser.visit("/promises")
         .then(done, done)
 
     it "should resolve when page is done loading", ->
-      assert.equal browser.document.title, "Loaded"
+      assert.equal @browser.document.title, "Loaded"
 
 
     # You can chain multiple promises together, each one is used to
@@ -46,25 +45,25 @@ describe "Promises", ->
     # like you expect, resolving of that promise takes us to the fourth step.
     describe "chained", ->
       before (done)->
-        browser = new Browser()
-        browser.visit("/promises")
-          .then ->
+        @browser = new Browser()
+        @browser.visit("/promises")
+          .then =>
             # This value is used to resolve the next value
             return "Then"
-          .then (value)->
-            browser.document.title = value
-          .then (value)->
+          .then (value)=>
+            @browser.document.title = value
+          .then (value)=>
             assert.equal value, "Then"
             # The document title changes only if we wait for the event loop
-            browser.window.setTimeout ->
-              browser.document.title = "Later"
+            @browser.window.setTimeout ->
+              @document.title = "Later"
             , 0
             # This promise is used to resolve the next one
-            browser.wait()
+            return @browser.wait()
           .then(done, done)
 
       it "should resolve when page is done loading", ->
-        assert.equal browser.document.title, "Later"
+        assert.equal @browser.document.title, "Later"
 
 
   # In practice you would do something like:
@@ -77,18 +76,15 @@ describe "Promises", ->
   #       browser.pressButton "Let me in"
   #     .then done, done
   describe "error", ->
-    error = null
-
     before (done)->
       browser = new Browser()
       browser.visit("/promises/nosuch")
         .then(done)
-        .fail (_)->
-          error = _
+        .fail (@error)=>
           done()
 
     it "should reject with an error", ->
-      assert.equal error.message, "Server returned status code 404"
+      assert.equal @error.message, "Server returned status code 404"
 
 
   # In practice you would do something like:
@@ -98,19 +94,16 @@ describe "Promises", ->
   #       assert.equal browser.document.title, "What I expected"
   #     .then done, done
   describe "failed assertion", ->
-    error = null
-
     before (done)->
       browser = new Browser()
       browser.visit("/promises")
         .then ->
           assert.equal browser.document.title, "Ooops", "Assertion haz a fail"
-        .fail (_)->
-          error = _
+        .fail (@error)=>
           done()
 
     it "should reject with an error", ->
-      assert.equal error.message, "Assertion haz a fail"
+      assert.equal @error.message, "Assertion haz a fail"
 
 
     # Chaining allows us to capture errors once at the very end of the chain.
@@ -129,13 +122,11 @@ describe "Promises", ->
             assert.equal browser.document.title, "Ooops", "I'm here against all odds"
           .then ->
             assert.equal browser.document.title, "Ooops", "I'm here against all odds"
-          .fail (_)->
-            error = _
+          .fail (@error)=>
             done()
-          .then ->
-            done(true)
+          .finally(done)
 
       it "should reject with an error", ->
-        assert.equal error.message, "Assertion haz a fail"
+        assert.equal @error.message, "Assertion haz a fail"
 
 

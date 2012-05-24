@@ -15,43 +15,44 @@ describe "Authentication", ->
           res.send "Missing credentials", 401
       brains.ready done
 
+
     describe "without credentials", ->
-      browser = new Browser()
       before (done)->
-        browser.visit "http://localhost:3003/auth/basic", ->
-          done()
+        @browser = new Browser()
+        @browser.visit("http://localhost:3003/auth/basic").
+          finally(done)
 
       it "should return status code 401", ->
-        assert.equal browser.statusCode, 401
+        assert.equal @browser.statusCode, 401
 
 
     describe "with invalid credentials", ->
-      browser = new Browser()
       before (done)->
-        browser.authenticate("localhost:3003").basic("username", "wrong")
-        browser.visit "http://localhost:3003/auth/basic", ->
-          done()
+        @browser = new Browser()
+        @browser.authenticate("localhost:3003").basic("username", "wrong")
+        @browser.visit("http://localhost:3003/auth/basic")
+          .finally(done)
 
       it "should return status code 401", ->
-        assert.equal browser.statusCode, 401
+        assert.equal @browser.statusCode, 401
 
     describe "with valid credentials", ->
-      browser = new Browser()
       before (done)->
-        browser.authenticate("localhost:3003").basic("username", "pass123")
-        browser.visit "http://localhost:3003/auth/basic", done
+        @browser = new Browser()
+        @browser.authenticate("localhost:3003").basic("username", "pass123")
+        @browser.visit "http://localhost:3003/auth/basic", done
 
       it "should have the authentication header", ->
-        assert.equal browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
+        assert.equal @browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
 
     describe "legacy credentials", ->
-      browser = new Browser()
       before (done)->
+        @browser = new Browser()
         credentials = { scheme: "basic", user: "username", password: "pass123" }
-        browser.visit "http://localhost:3003/auth/basic", credentials: credentials, done
+        @browser.visit "http://localhost:3003/auth/basic", credentials: credentials, done
 
       it "should have the authentication header", ->
-        assert.equal browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
+        assert.equal @browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
 
 
   describe "OAuth bearer", ->
@@ -67,36 +68,35 @@ describe "Authentication", ->
       brains.ready done
 
     describe "without credentials", ->
-      browser = new Browser()
       before (done)->
-        browser.visit "http://localhost:3003/auth/oauth2", ->
-          done()
+        @browser = new Browser()
+        @browser.visit("http://localhost:3003/auth/oauth2")
+          .finally(done)
 
       it "should return status code 401", ->
-        assert.equal browser.statusCode, 401
+        assert.equal @browser.statusCode, 401
 
     describe "with invalid credentials", ->
-      browser = new Browser()
       before (done)->
-        browser.authenticate("localhost:3003").bearer("wrong")
-        browser.visit "http://localhost:3003/auth/oauth2", ->
-          done()
+        @browser = new Browser()
+        @browser.authenticate("localhost:3003").bearer("wrong")
+        @browser.visit("http://localhost:3003/auth/oauth2")
+          .finally(done)
 
       it "should return status code 401", ->
-        assert.equal browser.statusCode, 401
+        assert.equal @browser.statusCode, 401
 
     describe "with valid credentials", ->
-      browser = new Browser()
       before (done)->
-        browser.authenticate("localhost:3003").bearer("12345")
-        browser.visit "http://localhost:3003/auth/oauth2", done
+        @browser = new Browser()
+        @browser.authenticate("localhost:3003").bearer("12345")
+        @browser.visit "http://localhost:3003/auth/oauth2", done
 
       it "should have the authentication header", ->
-        assert.equal browser.text("body"), "Bearer 12345"
+        assert.equal @browser.text("body"), "Bearer 12345"
 
 
-  describe 'Scripts on secure pages', ->
-    browser = new Browser()
+  describe "Scripts on secure pages", ->
     before (done) ->
       brains.get "/auth/script", (req, res) ->
         if auth = req.headers.authorization
@@ -118,8 +118,9 @@ describe "Authentication", ->
         else
           res.send "No Credentials on the javascript", 401
 
-      browser.authenticate("localhost:3003").basic("username", "pass123")
-      browser.visit "http://localhost:3003/auth/script", done
+      @browser = new Browser()
+      @browser.authenticate("localhost:3003").basic("username", "pass123")
+      @browser.visit "http://localhost:3003/auth/script", done
 
     it "should download the script", ->
-      assert.equal browser.text("title"), "ZeroOne"
+      assert.equal @browser.text("title"), "ZeroOne"
