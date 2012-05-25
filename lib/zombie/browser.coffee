@@ -521,7 +521,7 @@ class Browser extends EventEmitter
       throw new Error("This INPUT field is disabled")
     if field.getAttribute("readonly")
       throw new Error("This INPUT field is readonly")
-    @window._focused = field
+    field.focus()
     field.value = value
     @fire "change", field, callback
     return this
@@ -613,7 +613,7 @@ class Browser extends EventEmitter
     if option && !option.getAttribute("selected")
       select = @xpath("./ancestor::select", option).value[0]
       option.setAttribute("selected", "selected")
-      @window._focused = select
+      select.focus()
       @fire "change", select, callback
     else if callback
       process.nextTick ->
@@ -645,7 +645,7 @@ class Browser extends EventEmitter
       unless select.multiple
         throw new Error("Cannot unselect in single select")
       option.removeAttribute("selected")
-      @window._focused = select
+      select.focus()
       @fire "change", select, callback
     else if callback
       process.nextTick ->
@@ -670,7 +670,7 @@ class Browser extends EventEmitter
       field.files ||= []
       field.files.push file
       field.value = filename
-    @window._focused = field
+    field.focus()
     @fire "change", field, callback
     return this
 
@@ -703,7 +703,7 @@ class Browser extends EventEmitter
       throw new Error("No BUTTON '#{selector}'")
     if button.getAttribute("disabled")
       throw new Error("This button is disabled")
-    @window._focused = button
+    button.focus()
     return @fire("click", button, callback)
 
   # ### browser.focused => element

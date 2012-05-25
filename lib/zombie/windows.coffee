@@ -223,35 +223,17 @@ class Windows
 
     # -- Focusing --
     
-    # Handle change to in-focus element
-    focused = null
-    Object.defineProperty window, "_focused",
-      get: ->
-        return focused
-      set: (element)->
-        unless element == focused
-          if focused
-            onblur = window.document.createEvent("HTMLEvents")
-            onblur.initEvent "blur", false, false
-            previous = focused
-            previous.dispatchEvent onblur
-          if element
-            onfocus = window.document.createEvent("HTMLEvents")
-            onfocus.initEvent "focus", false, false
-            element.dispatchEvent onfocus
-          focused = element
-
     # If window goes in/out of focus, notify focused input field
     window.addEventListener "focus", (event)->
-      if window._focused
+      if window.document.activeElement
         onfocus = window.document.createEvent("HTMLEvents")
         onfocus.initEvent "focus", false, false
-        window._focused.dispatchEvent onfocus
+        window.document.activeElement.dispatchEvent onfocus
     window.addEventListener "blur", (event)->
-      if window._focused
+      if window.document.activeElement
         onblur = window.document.createEvent("HTMLEvents")
         onblur.initEvent "blur", false, false
-        window._focused.dispatchEvent onblur
+        window.document.activeElement.dispatchEvent onblur
 
     # -- JavaScript evaluation 
 
