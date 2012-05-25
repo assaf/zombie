@@ -44,18 +44,17 @@ addInlineScriptSupport = (document)->
   # listens on the script element itself, and someone the event it captures
   # doesn't have any of the script contents.
   document.addEventListener "DOMNodeInserted", (event)->
-    # Get the script tag from the event itself
-    node = event.relatedNode
+    node = event.target # Node being inserted
     return unless node.tagName == "SCRIPT"
-    # Don't handle scripts with src URL, JSDOM takes care of these
-    return if node.src
-    code = node.text
-    return unless code
-    # Only process supported languages
-    language = HTML.languageProcessors[node.language]
-    return unless language
-    # Queue so inline scripts execute in order with external scripts
-    HTML.resourceLoader.enqueue(node, -> language(this, code, document.location.href))()
+    # Process scripts in order.
+    HTML.resourceLoader.enqueue(node, ->
+      code = node.text
+      # Only process supported languages
+      language = HTML.languageProcessors[node.language]
+      if code && language
+        # Queue so inline scripts execute in order with external scripts
+        language(this, code, document.location.href)
+    )()
     return
 
 

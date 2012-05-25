@@ -2,6 +2,11 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 1.1.6 2012-05-24
+
+Tweak to in-line script processing to fix a problem no one reported.
+
+
 ## Version 1.1.5 2012-05-24
 
 The `wait` function (and its derivatives) now return most recent error in

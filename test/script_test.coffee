@@ -179,7 +179,8 @@ describe "Scripts", ->
           </head>
           <body>
             <script>
-            document.title = document.title + "Two";</script>
+              document.title = document.title + "Two";
+            </script>
           </body>
         </html>
         """
