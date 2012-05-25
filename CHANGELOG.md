@@ -4,15 +4,15 @@ zombie.js-changelog(7) -- Changelog
 
 ## Version 1.1.6 2012-05-24
 
-Tweak to in-line script processing to fix a problem no one reported.
-
 Fire `focus` and `blur` events when filling fields, selecting fields, pressing
 button and switching windows.
 
 Both `focus` and `blur` methods now work and you can get the `activeElement`.
 
+Tweak to in-line script processing to fix a problem no one reported.
+
     513 tests
-    12.9 sec to complete
+    12.3 sec to complete
 
 
 ## Version 1.1.5 2012-05-24

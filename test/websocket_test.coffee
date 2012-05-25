@@ -12,8 +12,6 @@ describe "WebSockets", ->
 
 
   describe "socket", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/websockets/creating", (req, res)->
         res.send """
@@ -32,16 +30,17 @@ describe "WebSockets", ->
           </script>
         </html>
         """
-      brains.ready ->
-        browser.visit "http://localhost:3003/websockets/creating", done
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "/websockets/creating", done
 
     it "should be possible", ->
-      assert.equal browser.text("#ws-url"), "ws://localhost:3003"
+      assert.equal @browser.text("#ws-url"), "ws://localhost:3003"
 
 
   describe "connecting", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/websockets/connecting", (req, res)->
         res.send """
@@ -56,17 +55,19 @@ describe "WebSockets", ->
           </script>
         </html>
         """
-      browser.onalert ->
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "/websockets/connecting"
+      @browser.onalert ->
         done()
-      browser.visit "http://localhost:3003/websockets/connecting"
 
     it "should raise an event", ->
-      assert browser.prompted("open")
+      assert @browser.prompted("open")
 
 
   describe "message", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/websockets/message", (req, res)->
         res.send """
@@ -81,17 +82,19 @@ describe "WebSockets", ->
           </script>
         </html>
         """
-      browser.onalert ->
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "/websockets/message"
+      @browser.onalert ->
         done()
-      browser.visit "http://localhost:3003/websockets/message"
 
     it "should raise an event with correct data", ->
-      assert browser.prompted("Hello")
+      assert @browser.prompted("Hello")
 
 
   describe "closing", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/websockets/closing", (req, res)->
         res.send """
@@ -107,11 +110,14 @@ describe "WebSockets", ->
           </script>
         </html>
         """
-      browser = new Browser()
-      browser.onalert ->
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "/websockets/closing"
+      @browser.onalert ->
         done()
-      browser.visit "http://localhost:3003/websockets/closing"
 
     it "should raise an event", ->
-      assert browser.prompted("close")
+      assert @browser.prompted("close")
 

@@ -24,22 +24,21 @@ describe "Resources", ->
     brains.ready done
 
 
-  browser = new Browser()
-
   before (done)->
-    browser.visit "http://localhost:3003/browser/resource", done
+    @browser = new Browser()
+    @browser.visit "http://localhost:3003/browser/resource", done
 
   it "should exist on the browser", ->
-    assert browser.resources
+    assert @browser.resources
   it "should have a length", ->
-    assert.equal browser.resources.length, 2
+    assert.equal @browser.resources.length, 2
   it "should include jquery", ->
-    assert.equal browser.resources[1].url, "http://localhost:3003/jquery-1.7.1.js"
+    assert.equal @browser.resources[1].url, "http://localhost:3003/jquery-1.7.1.js"
   it "should include the 'self' url", ->
-    assert.equal browser.resources[0].url, "http://localhost:3003/browser/resource"
+    assert.equal @browser.resources[0].url, "http://localhost:3003/browser/resource"
   it "should have a 'dump' method", ->
     try
-      browser.resources.toString()
+      @browser.resources.toString()
     catch e
       assert false, "calling dump method throws an error [" + e + "]"
 
