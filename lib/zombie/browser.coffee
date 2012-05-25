@@ -521,6 +521,7 @@ class Browser extends EventEmitter
       throw new Error("This INPUT field is disabled")
     if field.getAttribute("readonly")
       throw new Error("This INPUT field is readonly")
+    @window._focused = field
     field.value = value
     @fire "change", field, callback
     return this
@@ -589,27 +590,6 @@ class Browser extends EventEmitter
         return option
     throw new Error("No OPTION '#{value}'")
 
-  # ### browser.attach(selector, filename, callback) => this
-  #
-  # Attaches a file to the specified input field.  The second argument is the file name.
-  #
-  # Without callback, returns this.
-  attach: (selector, filename, callback)->
-    field = @field(selector)
-    unless field && field.tagName == "INPUT" && field.type == "file"
-      throw new Error("No file INPUT matching '#{selector}'")
-    if filename
-      stat = FS.statSync(filename)
-      file = new (@window.File)()
-      file.name = Path.basename(filename)
-      file.type = Mime.lookup(filename)
-      file.size = stat.size
-      field.files ||= []
-      field.files.push file
-      field.value = filename
-    @fire "change", field, callback
-    return this
-
   # ### browser.select(selector, value, callback) => this
   #
   # Selects an option.
@@ -633,6 +613,7 @@ class Browser extends EventEmitter
     if option && !option.getAttribute("selected")
       select = @xpath("./ancestor::select", option).value[0]
       option.setAttribute("selected", "selected")
+      @window._focused = select
       @fire "change", select, callback
     else if callback
       process.nextTick ->
@@ -664,10 +645,33 @@ class Browser extends EventEmitter
       unless select.multiple
         throw new Error("Cannot unselect in single select")
       option.removeAttribute("selected")
+      @window._focused = select
       @fire "change", select, callback
     else if callback
       process.nextTick ->
         callback null, false
+    return this
+
+  # ### browser.attach(selector, filename, callback) => this
+  #
+  # Attaches a file to the specified input field.  The second argument is the file name.
+  #
+  # Without callback, returns this.
+  attach: (selector, filename, callback)->
+    field = @field(selector)
+    unless field && field.tagName == "INPUT" && field.type == "file"
+      throw new Error("No file INPUT matching '#{selector}'")
+    if filename
+      stat = FS.statSync(filename)
+      file = new (@window.File)()
+      file.name = Path.basename(filename)
+      file.type = Mime.lookup(filename)
+      file.size = stat.size
+      field.files ||= []
+      field.files.push file
+      field.value = filename
+    @window._focused = field
+    @fire "change", field, callback
     return this
 
   # ### browser.button(selector) : Element
@@ -699,7 +703,14 @@ class Browser extends EventEmitter
       throw new Error("No BUTTON '#{selector}'")
     if button.getAttribute("disabled")
       throw new Error("This button is disabled")
+    @window._focused = button
     return @fire("click", button, callback)
+
+  # ### browser.focused => element
+  #
+  # Returns the element in focus.
+  focused: ->
+    return @window._focused
 
 
   # Cookies and storage

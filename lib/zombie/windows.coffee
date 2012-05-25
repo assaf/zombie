@@ -221,6 +221,38 @@ class Windows
       process.nextTick ->
         eventloop.dispatch window, event
 
+    # -- Focusing --
+    
+    # Handle change to in-focus element
+    focused = null
+    Object.defineProperty window, "_focused",
+      get: ->
+        return focused
+      set: (element)->
+        unless element == focused
+          if focused
+            onblur = window.document.createEvent("HTMLEvents")
+            onblur.initEvent "blur", false, false
+            previous = focused
+            previous.dispatchEvent onblur
+          if element
+            onfocus = window.document.createEvent("HTMLEvents")
+            onfocus.initEvent "focus", false, false
+            element.dispatchEvent onfocus
+          focused = element
+
+    # If window goes in/out of focus, notify focused input field
+    window.addEventListener "focus", (event)->
+      if window._focused
+        onfocus = window.document.createEvent("HTMLEvents")
+        onfocus.initEvent "focus", false, false
+        window._focused.dispatchEvent onfocus
+    window.addEventListener "blur", (event)->
+      if window._focused
+        onblur = window.document.createEvent("HTMLEvents")
+        onblur.initEvent "blur", false, false
+        window._focused.dispatchEvent onblur
+
     # -- JavaScript evaluation 
 
     # Evaulate in context of window. This can be called with a script (String) or a function.

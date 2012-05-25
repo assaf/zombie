@@ -127,7 +127,10 @@ HTML.HTMLInputElement.prototype.click = ->
   click = =>
     event = @ownerDocument.createEvent("HTMLEvents")
     event.initEvent "click", true, true
-    return !@ownerDocument.parentWindow.browser.dispatchEvent(this, event)
+    cancelled = @ownerDocument.parentWindow.browser.dispatchEvent(this, event)
+    unless cancelled
+      @ownerDocument.parentWindow._focused = this
+    return !cancelled
 
   # If that works out, we follow with a change event
   change = =>
@@ -158,7 +161,7 @@ HTML.HTMLInputElement.prototype.click = ->
             change()
           else
             for radio in radios
-              radio.checked = radio == checked
+              radio.checked = (radio == checked)
         else
           click()
     else

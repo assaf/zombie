@@ -409,6 +409,11 @@ Unselects the option (an `OPTION` element).
 Returns this so you can chain multiple methods.
 
 
+### browser.focused : element
+
+Returns the element in focus.
+
+
 ## State Management
 
 The browser maintains state as you navigate from one page to another.  Zombie.js

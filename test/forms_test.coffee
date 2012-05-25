@@ -218,12 +218,29 @@ describe "Forms", ->
         assert.throws ->
           @browser.fill @browser.querySelector("#readonly_input_field"), "yeahh"
 
-    describe "should callback", ->
-      before (done)->
         @browser.fill @browser.querySelector("#field-email3"), "headchomper@example.com", done
 
       it "should fire the callback", ->
         assert.equal @browser.querySelector("#field-email3").value, "headchomper@example.com"
+
+    describe "any field", ->
+      before ->
+        @field1 = @browser.querySelector("#field-email2")
+        @field2 = @browser.querySelector("#field-email3")
+
+      it "should fire focus event on selected field", (done)->
+        @browser.fill @field1, "something"
+        @field2.addEventListener "focus", ->
+          done()
+          done = null
+        @browser.fill @field2, "else"
+
+      it "should fire blur event on previous field", (done)->
+        @browser.fill @field1, "something"
+        @field1.addEventListener "blur", ->
+          done()
+          done = null
+        @browser.fill @field2, "else"
 
 
   describe "check box", ->
@@ -319,6 +336,27 @@ describe "Forms", ->
       it "should turn checkbox on then off", ->
         assert.deepEqual @values, [false, true, false]
 
+    describe "any checkbox", ->
+      before ->
+        @field1 = @browser.querySelector("#field-check")
+        @field2 = @browser.querySelector("#field-uncheck")
+
+      it "should fire focus event on selected field", (done)->
+        @browser.uncheck @field1
+        @browser.check @field1
+        @field2.addEventListener "focus", ->
+          done()
+          done = null
+        @browser.check @field2
+
+      it "should fire blur event on previous field", (done)->
+        @browser.uncheck @field1
+        @browser.check @field1
+        @field1.addEventListener "blur", ->
+          done()
+          done = null
+        @browser.check @field2
+
 
   describe "radio buttons", ->
     before (done)->
@@ -379,6 +417,25 @@ describe "Forms", ->
 
       it "should turn radio on then off", ->
         assert.deepEqual @values, [false, true, false]
+
+    describe "any radio button", ->
+      before ->
+        @field1 = @browser.querySelector("#field-scary")
+        @field2 = @browser.querySelector("#field-notscary")
+
+      it "should fire focus event on selected field", (done)->
+        @browser.choose @field1
+        @field2.addEventListener "focus", ->
+          done()
+          done = null
+        @browser.choose @field2
+
+      it "should fire blur event on previous field", (done)->
+        @browser.choose @field1
+        @field1.addEventListener "blur", ->
+          done()
+          done = null
+        @browser.choose @field2
 
 
   describe "select option", ->
@@ -446,6 +503,25 @@ describe "Forms", ->
 
       it "should callback", ->
         assert.equal @browser.querySelector("#field-kills").value, "Thousands"
+
+    describe "any selection", ->
+      before ->
+        @field1 = @browser.querySelector("#field-email2")
+        @field2 = @browser.querySelector("#field-kills")
+
+      it "should fire focus event on selected field", (done)->
+        @browser.fill @field1, "something"
+        @field2.addEventListener "focus", ->
+          done()
+          done = null
+        @browser.select @field2, "Five"
+
+      it "should fire blur event on previous field", (done)->
+        @browser.fill @field1, "something"
+        @field1.addEventListener "blur", ->
+          done()
+          done = null
+        @browser.select @field2, "Five"
 
 
   describe "multiple select option", ->
@@ -674,6 +750,30 @@ describe "Forms", ->
         assert.equal @browser.text("#likes"), "Arm Biting"
       it "should not send other button values to server", ->
         assert.equal @browser.text("#image_clicked"), "undefined"
+
+    describe "pressButton", ->
+      before (done)->
+        @browser = new Browser()
+        @browser.visit("http://localhost:3003/forms/form")
+          .then =>
+            @field1 = @browser.querySelector("#field-email2")
+            return
+          .then(done, done)
+
+      it "should fire focus event on button", (done)->
+        @browser.fill @field1, "something"
+        @browser.button("Hit Me").addEventListener "focus", ->
+          done()
+          done = null
+        @browser.pressButton("Hit Me")
+
+      it "should fire blur event on previous field", (done)->
+        @browser.fill @field1, "something"
+        @field1.addEventListener "blur", ->
+          done()
+          done = null
+        @browser.pressButton("Hit Me")
+
 
     describe "by clicking image button", ->
       before (done)->
