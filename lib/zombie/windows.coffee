@@ -66,7 +66,7 @@ class Windows
 
     # If this is a top window, it becomes the current browser window
     unless options.parent
-      @_current = window
+      @select window
     return window
 
   # Returns specific window by its name or position (e.g. "foo" returns the
@@ -98,16 +98,28 @@ class Windows
     # If we closed the currently open window, switch to the previous window.
     if window == @_current
       if index > 0
-        @_current = @_stack[index - 1]
+        @select @_stack[index - 1]
       else
-        @_current = @_stack[0]
+        @select @_stack[0]
     return
 
   # Select specified window as the current window.
   select: (window)->
     window = @_named[window] || @_stack[window] || window
     return unless ~@_stack.indexOf(window)
-    @_current = window
+    [previous, @_current] = [@_current, window]
+    unless previous == window
+      # Fire onfocus and onblur event
+      onfocus = window.document.createEvent("HTMLEvents")
+      onfocus.initEvent "focus", false, false
+      process.nextTick ->
+        window.dispatchEvent onfocus
+      if previous
+        onblur = window.document.createEvent("HTMLEvents")
+        onblur.initEvent "blur", false, false
+        process.nextTick ->
+          previous.dispatchEvent onblur
+    return
 
   # Returns the currently open window.
   @prototype.__defineGetter__ "current", ->
