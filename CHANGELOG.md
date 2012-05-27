@@ -4,10 +4,19 @@ zombie.js-changelog(7) -- Changelog
 
 ## Version 1.1.7 2012-05-27
 
-Create DOM document after Web page has loaded.
+Create DOM document after Web page has loaded.  If you want to set document
+location and wait for document to load, so this:
+
+  browser.location = url;
+  browser.on("loaded", function() {
+    // Called after document has loaded
+    ...
+  })
 
 Remove 'Content Type' and 'Content Length' on redirect (re-fixed.)
 
+    513 tests
+    12.2 sec to complete
 
 
 ## Version 1.1.6 2012-05-26
