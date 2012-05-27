@@ -67,52 +67,15 @@ class History
   # Make a request to external resource. We use this to fetch pages and
   # submit forms, see _loadPage and _submit.
   _resource: (url, method, data, headers)->
-    # Create new DOM Level 3 document, add features (load external
-    # resources, etc) and associate it with current document. From this
-    # point on the browser sees a new document, client register event
-    # handler for DOMContentLoaded/error.
-    jsdom_opts =
-      deferClose: true
-      features:
-        MutationEvents:           "2.0"
-        ProcessExternalResources: []
-        FetchExternalResources:   ["iframe"]
-      parser: @_browser.htmlParser
-      url:    URL.format(url)
-
-    # require("html5").HTML5
-    if @_browser.runScripts
-      jsdom_opts.features.ProcessExternalResources.push "script"
-      jsdom_opts.features.FetchExternalResources.push "script"
-    if @_browser.loadCSS
-      jsdom_opts.features.FetchExternalResources.push "css"
-
-    # Create an empty document.  We do this here so the document is available
-    # before we start loading.  Some code waits for document to load
-    # (browser.visit) but some doesn't (set href, then bind onload).
-    document = JSDOM.jsdom(null, HTML, jsdom_opts)
-    if @_browser.runScripts
-      Scripts.addInlineScriptSupport document
-
-    # Associate window and document
-    @_window.document = document
-    document.window = document.parentWindow = @_window
-    # Set this to the same user agent that's loading this page
-    @_window.navigator.userAgent = @_browser.userAgent
-
-    # Fire onload event on window.
-    document.addEventListener "DOMContentLoaded", (event)=>
-      onload = document.createEvent("HTMLEvents")
-      onload.initEvent "load", false, false
-      @_browser.dispatchEvent @_window, onload
-
     # Let's handle the specifics of each protocol
     switch url.protocol
       when "about:"
         # Blank document. We're done.
+        @_createDocument(@_window, ABOUT_BLANK)
         @_stack[@_index].update url
         @_browser.emit "loaded", @_browser
       when "javascript:"
+        @_createDocument(@_window, ABOUT_BLANK)
         # This means evaluate the expression ... do not update location but
         # start with empty page.
         unless @_stack[@_index]
@@ -123,9 +86,6 @@ class History
         catch error
           @_browser.emit "error", error
       when "http:", "https:", "file:"
-        # Proceeed to load resource ...
-       
-        method = (method || "GET").toUpperCase()
         headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
         referer = @_stack[@_index-1]?.url?.href || @_browser.referer
         headers["referer"] = referer if referer
@@ -134,7 +94,10 @@ class History
         if url.protocol == "file:"
           url = URL.format(protocol: "file:", host: "", pathname: "/#{url.hostname}#{url.pathname}")
 
+        # Proceeed to load resource ...
+        method = (method || "GET").toUpperCase()
         @_browser.resources.request method, url, data, headers, (error, response)=>
+          document = @_createDocument(@_window, response.url)
           if error
             document.open()
             document.write error.message
@@ -167,6 +130,50 @@ class History
         
       else # but not any other protocol for now
         throw new Error("Cannot load resource: #{URL.format(url)}")
+
+  # Create an empty document, set it up and return it.
+  _createDocument: (window, url)->
+    # Create new DOM Level 3 document, add features (load external resources,
+    # etc) and associate it with current document. From this point on the
+    # browser sees a new document, client register event handler for
+    # DOMContentLoaded/error.
+    jsdom_opts =
+      deferClose: true
+      features:
+        MutationEvents:           "2.0"
+        ProcessExternalResources: []
+        FetchExternalResources:   ["iframe"]
+      parser: @_browser.htmlParser
+      url:    URL.format(url)
+
+    # require("html5").HTML5
+    if @_browser.runScripts
+      jsdom_opts.features.ProcessExternalResources.push "script"
+      jsdom_opts.features.FetchExternalResources.push "script"
+    if @_browser.loadCSS
+      jsdom_opts.features.FetchExternalResources.push "css"
+
+    document = JSDOM.jsdom(null, HTML, jsdom_opts)
+
+    # Add support for running in-line scripts
+    if @_browser.runScripts
+      Scripts.addInlineScriptSupport document
+
+    # Associate window and document
+    window.document = document
+    document.window = document.parentWindow = window
+    # Set this to the same user agent that's loading this page
+    window.navigator.userAgent = @_browser.userAgent
+
+    # Fire onload event on window.
+    document.addEventListener "DOMContentLoaded", (event)=>
+      onload = document.createEvent("HTMLEvents")
+      onload.initEvent "load", false, false
+      window.dispatchEvent onload
+
+    return document
+
+
 
   # ### history.forward()
   forward: ->

@@ -113,7 +113,7 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
     if name == "src" && value
       # Point IFrame at new location and wait for it to load
       iframe.contentWindow.location = URL.resolve(parent.location, value)
-      iframe.contentDocument.addEventListener "DOMContentLoaded", (event)->
+      iframe.contentWindow.addEventListener "load", (event)->
         onload = parent.document.createEvent("HTMLEvents")
         onload.initEvent "load", false, false
         parent.browser._eventloop.dispatch iframe, onload

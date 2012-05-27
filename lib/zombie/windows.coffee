@@ -108,17 +108,16 @@ class Windows
     window = @_named[window] || @_stack[window] || window
     return unless ~@_stack.indexOf(window)
     [previous, @_current] = [@_current, window]
-    unless previous == window
+
+    if window.document && previous != window
       # Fire onfocus and onblur event
       onfocus = window.document.createEvent("HTMLEvents")
       onfocus.initEvent "focus", false, false
-      process.nextTick ->
-        window.dispatchEvent onfocus
+      window.dispatchEvent onfocus
       if previous
         onblur = window.document.createEvent("HTMLEvents")
         onblur.initEvent "blur", false, false
-        process.nextTick ->
-          previous.dispatchEvent onblur
+        previous.dispatchEvent onblur
     return
 
   # Returns the currently open window.

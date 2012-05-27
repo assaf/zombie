@@ -214,7 +214,7 @@ describe "History", ->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/", =>
           @browser.window.location.pathname = "/history/boo"
-          @browser.window.document.addEventListener "DOMContentLoaded", ->
+          @browser.on "loaded", ->
             done()
 
       it "should add page to history", ->
@@ -229,7 +229,7 @@ describe "History", ->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/", =>
           @browser.window.location.href = "/history/boo"
-          @browser.window.document.addEventListener "DOMContentLoaded", ->
+          @browser.on "loaded", ->
             done()
 
       it "should add page to history", ->
@@ -260,7 +260,7 @@ describe "History", ->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/", =>
           @browser.window.location.assign "http://localhost:3003/history/boo"
-          @browser.document.addEventListener "DOMContentLoaded", ->
+          @browser.on "loaded", ->
             done()
 
       it "should add page to history", ->
@@ -275,7 +275,7 @@ describe "History", ->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/", =>
           @browser.window.location.replace "http://localhost:3003/history/boo"
-          @browser.window.document.addEventListener "DOMContentLoaded", ->
+          @browser.on "loaded", ->
             done()
 
       it "should not add page to history", ->
@@ -291,7 +291,7 @@ describe "History", ->
         @browser.visit "http://localhost:3003/", =>
           @browser.window.document.innerHTML = "Wolf"
           @browser.reload()
-          @browser.window.document.addEventListener "DOMContentLoaded", ->
+          @browser.on "loaded", ->
             done()
 
       it "should not add page to history", ->
@@ -328,7 +328,7 @@ describe "History", ->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/", =>
           @browser.window.location = "http://localhost:3003/history/boo"
-          @browser.window.document.addEventListener "DOMContentLoaded", ->
+          @browser.on "loaded", ->
             done()
 
       it "should add page to history", ->
@@ -343,7 +343,7 @@ describe "History", ->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/", =>
           @browser.window.document.location = "http://localhost:3003/history/boo"
-          @browser.window.document.addEventListener "DOMContentLoaded", ->
+          @browser.on "loaded", ->
             done()
 
       it "should add page to history", ->

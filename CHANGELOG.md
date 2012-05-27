@@ -2,6 +2,12 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 1.1.7 2012-05-27
+
+Create DOM document after Web page has loaded.
+
+
+
 ## Version 1.1.6 2012-05-26
 
 Fire `focus` and `blur` events when filling fields, selecting fields, pressing
