@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 1.1.6 2012-05-24
+## Version 1.1.6 2012-05-26
 
 Fire `focus` and `blur` events when filling fields, selecting fields, pressing
 button and switching windows.
