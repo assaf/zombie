@@ -1,5 +1,4 @@
 GET /connect/xd_arbiter.php?version=5
-host: s-static.ak.facebook.com
 
 200 HTTP/1.1
 content-type: text/html; charset=utf-8

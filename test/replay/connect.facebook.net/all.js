@@ -1,5 +1,4 @@
 GET /en_US/all.js
-host: connect.facebook.net
 
 200 HTTP/1.1
 content-type: application/x-javascript; charset=utf-8

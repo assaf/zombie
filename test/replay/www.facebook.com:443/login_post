@@ -1,6 +1,5 @@
 POST REGEXP /\/login.php\?login_attempt=/
 content-type: application/x-www-form-urlencoded
-host: www.facebook.com
 
 302 HTTP/1.1
 cache-control: private, no-cache, no-store, must-revalidate

@@ -233,6 +233,12 @@ class Resources extends Array
                 body:                         content
         else
           body = (data || "").toString()
+    else
+      # In case of a redirect that switches to GET, make sure we don't send
+      # these headers.
+      delete headers["content-type"]
+      delete headers["content-length"]
+      delete headers["content-transfer-encoding"]
 
     # We're going to use cookies later when recieving response.
     cookies = browser.cookies(url.hostname, url.pathname)

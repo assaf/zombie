@@ -1,6 +1,4 @@
 GET REGEXP /\/dialog\/permissions.request\?_path=/
-content-type: application/x-www-form-urlencoded
-host: www.facebook.com
 
 200 HTTP/1.1
 cache-control: private, no-cache, no-store, must-revalidate

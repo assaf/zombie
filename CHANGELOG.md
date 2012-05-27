@@ -6,6 +6,8 @@ zombie.js-changelog(7) -- Changelog
 
 Create DOM document after Web page has loaded.
 
+Remove 'Content Type' and 'Content Length' on redirect (re-fixed.)
+
 
 
 ## Version 1.1.6 2012-05-26

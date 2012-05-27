@@ -1,5 +1,4 @@
 GET /rsrc.php/v1/y6/r/mJ0Qh2-fdEH.js
-host: s-static.ak.fbcdn.net
 
 200 HTTP/1.1
 access-control-allow-origin: *
