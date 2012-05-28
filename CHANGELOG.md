@@ -8,6 +8,8 @@ Set `accept-encoding` to "identity".
 
 Allow `browser.select` to use the option text.
 
+`JSON.parse` now respects `Array.prototype`.
+
 
 ## Version 1.1.7 2012-05-27
 

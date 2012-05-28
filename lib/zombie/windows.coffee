@@ -177,7 +177,6 @@ class Windows
       File:           { value: File }
       Event:          { value: Events.Event }
       screen:         { value: new Screen() }
-      JSON:           { value: JSON }
       MouseEvent:     { value: Events.MouseEvent }
       MutationEvent:  { value: Events.MutationEvent }
       UIEvent:        { value: Events.UIEvent }

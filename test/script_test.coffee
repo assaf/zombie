@@ -416,3 +416,12 @@ describe "Scripts", ->
     it "should have access to window.event", ->
       assert.equal @browser.document.title, "HTMLEvents"
 
+
+  describe "JSON parsing", ->
+    it "should respect prototypes", ->
+      browser = new Browser()
+      assert browser.evaluate("""
+        Array.prototype.method = function() {};
+        JSON.parse("[0, 1]").method;
+      """)
+
