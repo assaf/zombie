@@ -685,9 +685,9 @@ class Browser extends EventEmitter
   button: (selector)->
     if button = @querySelector(selector)
       return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
-    for button in @querySelectorAll("form button")
+    for button in @querySelectorAll("button")
       return button if button.textContent.trim() == selector
-    inputs = @querySelectorAll("form :submit, form :reset, form :button")
+    inputs = @querySelectorAll(":submit, :reset, :button")
     for input in inputs
       return input if input.name == selector
     for input in inputs

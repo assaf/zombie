@@ -29,6 +29,10 @@ test = (version)->
 
             <input id="edit-subject" value="subject">
             <textarea id="edit-note">note</textarea>
+
+            <form action="/zombie/dead-end">
+              <button class="some-class">Click Me</button>
+            </form>
           </body>
 
           <script>
@@ -96,6 +100,24 @@ test = (version)->
         assert @browser.query("textarea#edit-note").textContent
         @browser.window.$("textarea#edit-note").val("")
         assert !@browser.query("textarea#edit-note").textContent
+
+
+    # Using new event delegation introduced in 1.7
+    if version > "1.7"
+
+      describe "event handling", ->
+        it "should catch live event handler", (done)->
+          @browser.window.$(@browser.document).live "click", ".some-class", (event)->
+            done()
+          @browser.pressButton "Click Me"
+
+        it "should respect preventDefault in event delegation", (done)->
+          @browser.window.$(@browser.document).on "click", ".some-class", (event)->
+            event.preventDefault()
+            return
+          @browser.pressButton "Click Me", =>
+            assert @browser.location.pathname != "/zombie/dead-end"
+            done()
 
 
 describe "Compatibility with jQuery", ->
