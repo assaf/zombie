@@ -172,7 +172,7 @@ class Resources extends Array
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
     headers["User-Agent"] = browser.userAgent
     # We don't support gzip or compress at the moment.
-    headers["Accept-Encoding"] = ""
+    headers["Accept-Encoding"] = "identity"
     if method == "GET" || method == "HEAD"
       # Request paramters go in query string
       url.search = "?" + stringify(data) if data

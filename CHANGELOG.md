@@ -2,6 +2,11 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 1.1.8 2012-05-27
+
+Set `accept-encoding` to "identity".
+
+
 ## Version 1.1.7 2012-05-27
 
 Create DOM document after Web page has loaded.  If you want to set document

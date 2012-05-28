@@ -86,7 +86,7 @@ raise = ({ element, location, from, scope, error })->
   event.initEvent "error", false, false
   event.message = error.message
   event.error = error
-  window.browser.dispatchEvent window, event
+  window.dispatchEvent event
   return
 
 
