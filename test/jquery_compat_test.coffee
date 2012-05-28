@@ -26,6 +26,9 @@ test = (version)->
             <a href="#post">Post</a>
 
             <div id="response"></div>
+
+            <input id="edit-subject" value="subject">
+            <textarea id="edit-note">note</textarea>
           </body>
 
           <script>
@@ -58,6 +61,7 @@ test = (version)->
       @browser = new Browser()
       @browser.visit "http://localhost:3003/compat/jquery-#{version}", done
 
+
     describe "selecting an option in a select element", ->
       before (done)->
         @browser.select "select", "1"
@@ -66,6 +70,7 @@ test = (version)->
       it "should fire the change event", ->
         assert.equal @browser.text("#option"), "1"
 
+
     describe "jQuery.post", ->
       before (done)->
         @browser.clickLink "Post", done
@@ -73,12 +78,24 @@ test = (version)->
       it "should perform an AJAX POST request", ->
         assert /foo=bar/.test(@browser.text("#response"))
 
+
     describe "jQuery.globalEval", ->
       it "should work as expected", ->
         @browser.evaluate("(function () {
           $.globalEval('var globalEvalWorks = true;');
         })();")
         assert.ok @browser.window.globalEvalWorks
+
+
+    describe "setting val to empty", ->
+      it "should set to empty", ->
+        assert @browser.query("input#edit-subject").value
+        @browser.window.$("input#edit-subject").val("")
+        assert !@browser.query("input#edit-subject").value
+
+        assert @browser.query("textarea#edit-note").textContent
+        @browser.window.$("textarea#edit-note").val("")
+        assert !@browser.query("textarea#edit-note").textContent
 
 
 describe "Compatibility with jQuery", ->
