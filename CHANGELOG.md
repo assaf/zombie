@@ -12,8 +12,10 @@ Allow `browser.select` to use the option text.
 
 Implemented `window.resizeBy` and `window.resizeTo`.
 
-If attribute not set, `getAttribute` returns `null` as per the standard browser
-behavior (and contrary to spec).
+If DOM attribute is not set, `getAttribute` will return `null` just like any
+browser (though the spec insists on empty string).
+
+Reload document when forking browser.
 
 
 ## Version 1.1.7 2012-05-27
