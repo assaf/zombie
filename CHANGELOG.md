@@ -2,11 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 1.1.8 2012-05-27
+## Version 1.2.0 2012-05-28
 
-Set `accept-encoding` to "identity".
+Added `browser.load` for loading HTML instead of hitting a URL.
 
 Allow `browser.select` to use the option text.
+
+Reload document when forking browser.
+
+Set `accept-encoding` to "identity".
 
 `JSON.parse` now respects `Array.prototype`.
 
@@ -15,9 +19,10 @@ Implemented `window.resizeBy` and `window.resizeTo`.
 If DOM attribute is not set, `getAttribute` will return `null` just like any
 browser (though the spec insists on empty string).
 
-Reload document when forking browser.
+Fix all file loading (document and resources) to use same code path.
 
-Added `browser.load` for loading HTML instead of hitting a URL.
+    531 tests
+    12.5 sec to complete
 
 
 ## Version 1.1.7 2012-05-27
