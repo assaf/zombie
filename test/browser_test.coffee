@@ -372,6 +372,26 @@ describe "Browser", ->
       assert.equal browser.text("body"), "This is  plain text"
 
 
+  describe "load HTML string", ->
+    before (done)->
+      @browser = new Browser()
+      @browser.load("""
+          <title>Load</title>
+          <script>document.title = document.title + " html"</script>
+          <div id="main"></div>
+        """)
+          .then(done, done)
+
+    it "should use about:blank URL", ->
+      assert.equal @browser.location.href, "about:blank"
+
+    it "should load document", ->
+      assert @browser.query("#main")
+
+    it "should execute JavaScript", ->
+      assert.equal @browser.document.title, "Load html"
+
+
   describe "windows", ->
 
     describe "new browser", ->

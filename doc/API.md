@@ -254,6 +254,12 @@ Returns the status code returned for this page request (200, 303, etc).
 
 Returns true if the status code is 2xx.
 
+### browser.load(html, callback)
+
+Loads this HTML, processes events and calls the callback.
+
+Without a callback, returns a promise.
+
 ### browser.visit(url, callback)
 ### browser.visit(url, options, callback)
 

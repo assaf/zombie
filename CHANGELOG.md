@@ -17,6 +17,8 @@ browser (though the spec insists on empty string).
 
 Reload document when forking browser.
 
+Added `browser.load` for loading HTML instead of hitting a URL.
+
 
 ## Version 1.1.7 2012-05-27
 

@@ -184,8 +184,6 @@ class Browser extends EventEmitter
       [callback, duration] = [duration, null]
  
     deferred = Q.defer()
-    promise = deferred.promise
-
     last = @errors[@errors.length - 1]
     @_eventloop.wait @window, duration, (error)=>
       newest = @errors[@errors.length - 1]
@@ -193,13 +191,11 @@ class Browser extends EventEmitter
         error = newest
       if error
         deferred.reject(error)
-        if callback
-          callback(error)
       else
         deferred.resolve()
-        if callback
-          callback(error)
-    return promise unless callback
+      if callback
+        callback(error)
+    return deferred.promise unless callback
 
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
   # can be cancelled.  Like `wait` this method either takes a callback or returns a promise.
@@ -359,29 +355,52 @@ class Browser extends EventEmitter
       [duration, options] = [options, null]
 
     deferred = Q.defer()
-    promise = deferred.promise
-    if callback
-      promise.then =>
-        # This serves two purposes, one is yielding, the other is propagating
-        # any error thrown from the callback (then/fail swallow errors).
-        process.nextTick =>
-          callback null, this, @statusCode, @errors
-      promise.fail (error)=>
-        process.nextTick =>
-          callback(error, this, @statusCode, @errors)
-
     reset_options = @withOptions(options)
     if site = @site
       site = "http://#{site}" unless /^(https?:|file:)/i.test(site)
       url = URL.resolve(site, URL.parse(URL.format(url)))
     @window.history._assign url
-    @wait(duration).then ->
+    @wait duration, (error)=>
       reset_options()
-      deferred.resolve()
-    .fail (error)->
-      reset_options()
-      deferred.reject(error)
-    return promise unless callback
+      if error
+        deferred.reject(error)
+      else
+        deferred.resolve()
+      if callback
+        callback error, this, @statusCode, @errors
+    return deferred.promise unless callback
+
+
+  # ### browser.load(html, callback)
+  #
+  # Loads the HTML, processes events and calls the callback.
+  #
+  # Without a callback, returns a promise.
+  load: (html, callback)->
+    try
+      @errors = []
+      @document.open()
+      @document.write html
+      @document.close()
+    catch error
+      @emit "error", error
+
+    # Find (first of any) errors caught during document.write
+    first = @errors[0]
+    if first
+      # Call callback or resolve promise
+      if callback
+        process.nextTick ->
+          callback(first)
+        return
+      else
+        deferred = Q.defer()
+        deferred.reject(first)
+        return deferred.promise
+    else
+      # Otherwise wait for all events to process, wait handles errors
+      return @wait(callback)
+
 
   # ### browser.location => Location
   #
