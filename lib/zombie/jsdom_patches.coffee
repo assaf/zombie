@@ -36,6 +36,17 @@ HTML.Element.prototype.setAttribute = (name, value)->
     original.apply(this, arguments)
 
 
+# Essentially all web browsers (Firefox, Internet Explorer, recent versions of
+# Opera, Safari, Konqueror, and iCab, as a non-exhaustive list) return null when
+# the specified attribute does not exist on the specified element. The DOM
+# specification says that the correct return value in this case is actually the
+# empty string, and some DOM implementations implement this behavior.
+# -- https://developer.mozilla.org/en/DOM/element.getAttribute#Notes
+HTML.Element.prototype.getAttribute = (name)->
+  attribute = @_attributes.getNamedItem(name)
+  return attribute && attribute.value
+
+
 # Default behavior for clicking on links: navigate to new URL if specified.
 HTML.HTMLAnchorElement.prototype._eventDefaults =
   click: (event)->

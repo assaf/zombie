@@ -12,6 +12,9 @@ Allow `browser.select` to use the option text.
 
 Implemented `window.resizeBy` and `window.resizeTo`.
 
+If attribute not set, `getAttribute` returns `null` as per the standard browser
+behavior (and contrary to spec).
+
 
 ## Version 1.1.7 2012-05-27
 

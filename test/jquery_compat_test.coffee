@@ -102,22 +102,40 @@ test = (version)->
         assert !@browser.query("textarea#edit-note").textContent
 
 
+    # See issue 235 https://github.com/assaf/zombie/issues/235
+    if version > "1.6"
+      describe "undefined attribute", ->
+        it "should return undefined", ->
+          assert.equal @browser.window.$("#response").attr("class"), undefined
+
+      describe "closest with attribute selector", ->
+        it "should find element", ->
+          @browser.window.$("#response").html("<div class='ok'>")
+          assert.equal @browser.window.$("#response .ok").closest("[id]").attr("id"), "response"
+
+
     # Using new event delegation introduced in 1.7
     if version > "1.7"
 
       describe "event handling", ->
         it "should catch live event handler", (done)->
-          @browser.window.$(@browser.document).live "click", ".some-class", (event)->
-            done()
-          @browser.pressButton "Click Me"
+          browser = new Browser()
+          browser.visit "http://localhost:3003/compat/jquery-#{version}", ->
+            browser.window.$(browser.document).live "click", ".some-class", (event)->
+              done()
+            browser.pressButton "Click Me"
 
         it "should respect preventDefault in event delegation", (done)->
-          @browser.window.$(@browser.document).on "click", ".some-class", (event)->
-            event.preventDefault()
-            return
-          @browser.pressButton "Click Me", =>
-            assert @browser.location.pathname != "/zombie/dead-end"
-            done()
+          browser = new Browser()
+          browser.visit("http://localhost:3003/compat/jquery-#{version}")
+            .then ->
+              browser.window.$(browser.document).on "click", ".some-class", (event)->
+                event.preventDefault()
+                return
+              browser.pressButton "Click Me"
+            .then ->
+              assert browser.location.pathname != "/zombie/dead-end"
+            .then(done, done)
 
 
 describe "Compatibility with jQuery", ->

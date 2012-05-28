@@ -644,7 +644,7 @@ describe "Forms", ->
           .then(done, done)
 
       it "should reset input field to original value", ->
-        assert.equal @browser.querySelector("#field-name").value, ""
+        assert.equal @browser.querySelector("#field-name").value, null
       it "should reset textarea to original value", ->
         assert.equal @browser.querySelector("#field-likes").value, "Warm brains"
       it "should reset checkbox to original value", ->
@@ -693,7 +693,7 @@ describe "Forms", ->
           .then(done, done)
 
       it "should reset input field to original value", ->
-        assert.equal @browser.querySelector("#field-name").value, ""
+        assert.equal @browser.querySelector("#field-name").value, null
 
 
   # Submitting form
