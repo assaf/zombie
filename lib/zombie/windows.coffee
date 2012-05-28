@@ -205,6 +205,12 @@ class Windows
       return img
     window.console = new Console(@_browser.silent)
 
+    window.resizeTo = (width, height)->
+      window.outerWidth = window.innerWidth = width
+      window.outerHeight = window.innerHeight = height
+    window.resizeBy = (width, height)->
+      window.resizeTo window.outerWidth + width,  window.outerHeight + height
+
     # Help iframes talking with each other
     window.postMessage = (data, targetOrigin)=>
       document = window.document

@@ -310,3 +310,13 @@ describe "Window", ->
     it "should fire when document is done loading", ->
       assert.equal browser.text("body"), "1 clicks here"
 
+
+  describe "resize", ->
+    it "should change window dimensions", ->
+      browser = new Browser()
+      assert.equal browser.window.innerWidth, 1024
+      assert.equal browser.window.innerHeight, 768
+      browser.window.resizeBy(-224, -168)
+      assert.equal browser.window.innerWidth, 800
+      assert.equal browser.window.innerHeight, 600
+

@@ -10,6 +10,8 @@ Allow `browser.select` to use the option text.
 
 `JSON.parse` now respects `Array.prototype`.
 
+Implemented `window.resizeBy` and `window.resizeTo`.
+
 
 ## Version 1.1.7 2012-05-27
 
