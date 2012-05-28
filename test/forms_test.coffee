@@ -81,6 +81,13 @@ describe "Forms", ->
               <option id="hobbies-messy">Make Messy</option>
               <option>Sleep</option>
             </select>
+            
+            <select name="months" id="field-months">
+              <option value=""></option>
+              <option value="jan_2011"> Jan 2011 </option>
+              <option value="feb_2011"> Feb 2011 </option>
+              <option value="mar_2011"> Mar 2011 </option>
+            </select>
 
             <input type="unknown" name="unknown" value="yes">
             <input type="reset" value="Reset">
@@ -474,6 +481,18 @@ describe "Forms", ->
       it "should select second option", ->
         selected = (!!option.getAttribute("selected") for option in @browser.querySelector("#field-state").options)
         assert.deepEqual selected, [false, true, false]
+      it "should fire change event", ->
+        assert @browser.stateChanged
+
+    describe "select name using option text", ->
+      before ->
+        @browser.select "months", "Jan 2011"
+
+      it "should set value", ->
+        assert.equal @browser.querySelector("#field-months").value, "jan_2011"
+      it "should select second option", ->
+        selected = (!!option.getAttribute("selected") for option in @browser.querySelector("#field-months").options)
+        assert.deepEqual selected, [false, true, false, false]
       it "should fire change event", ->
         assert @browser.stateChanged
 

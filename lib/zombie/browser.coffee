@@ -588,6 +588,9 @@ class Browser extends EventEmitter
     for option in field.options
       if option.label == value
         return option
+    for option in field.options
+      if option.textContent.trim() == value
+        return option
     throw new Error("No OPTION '#{value}'")
 
   # ### browser.select(selector, value, callback) => this

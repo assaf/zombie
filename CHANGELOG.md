@@ -6,6 +6,8 @@ zombie.js-changelog(7) -- Changelog
 
 Set `accept-encoding` to "identity".
 
+Allow `browser.select` to use the option text.
+
 
 ## Version 1.1.7 2012-05-27
 
