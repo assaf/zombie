@@ -3,8 +3,6 @@
 
 describe "XPath", ->
 
-  browser = new Browser()
-
   before (done)->
     brains.get "/xpath", (req, res)-> res.send """
     <html>
@@ -55,67 +53,59 @@ describe "XPath", ->
       </body>
     </html>
     """
+    brains.ready done
 
-    brains.ready ->
-      browser.visit "http://localhost:3003/xpath", done
+  before (done)->
+    @browser = new Browser()
+    @browser.visit "http://localhost:3003/xpath", done
 
 
   describe "evaluate nodes", ->
-    result = null
-
     before ->
-      result = browser.xpath("//a")
+      @result = @browser.xpath("//a")
 
     it "should return result type node-set", ->
-      assert.equal result.type, "node-set"
+      assert.equal @result.type, "node-set"
     it "should return eleven nodes", ->
-      assert.equal result.value.length, 11
+      assert.equal @result.value.length, 11
     it "should return first anchor", ->
-      assert.equal result.value[0].textContent, "First anchor"
+      assert.equal @result.value[0].textContent, "First anchor"
     it "should return third anchor", ->
-      assert.equal result.value[2].textContent, "Third anchor"
+      assert.equal @result.value[2].textContent, "Third anchor"
 
   describe "evaluate with id", ->
-    result = null
-
     before ->
-      result = browser.xpath('//*[@id="post-2"]/h2')
+      @result = @browser.xpath('//*[@id="post-2"]/h2')
 
     it "should return one node", ->
-      assert.equal result.value.length, 1
+      assert.equal @result.value.length, 1
     it "should return second post title", ->
-      assert.equal result.value[0].textContent, "Second post"
+      assert.equal @result.value[0].textContent, "Second post"
 
   describe "evaluate number", ->
-    result = null
-
     before ->
-      result = browser.xpath("count(//a)")
+      @result = @browser.xpath("count(//a)")
 
     it "should return result type number", ->
-      assert.equal result.type, "number"
+      assert.equal @result.type, "number"
     it "should return number of nodes", ->
-      assert.equal result.value, 11
+      assert.equal @result.value, 11
 
   describe "evaluate string", ->
-    result = null
-
     before ->
-      result = browser.xpath("'foobar'")
+      @result = @browser.xpath("'foobar'")
 
     it "should return result type string", ->
-      assert.equal result.type, "string"
+      assert.equal @result.type, "string"
     it "should return number of nodes", ->
-      assert.equal result.value, "foobar"
+      assert.equal @result.value, "foobar"
 
   describe "evaluate boolean", ->
-    result = null
-
     before ->
-      result = browser.xpath("2 + 2 = 4")
+      @result = @browser.xpath("2 + 2 = 4")
 
     it "should return result type boolean", ->
-      assert.equal result.type, "boolean"
+      assert.equal @result.type, "boolean"
     it "should return number of nodes", ->
-      assert.equal result.value, true
+      assert.equal @result.value, true
 

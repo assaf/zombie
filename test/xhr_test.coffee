@@ -4,8 +4,6 @@
 describe "XMLHttpRequest", ->
 
   describe "asynchronous", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/xhr/async", (req, res)->
         res.send """
@@ -26,18 +24,19 @@ describe "XMLHttpRequest", ->
         """
       brains.get "/xhr/async/backend", (req, res)->
         res.send "Three"
-      brains.ready ->
-        browser.visit "http://localhost:3003/xhr/async", done
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/xhr/async", done
 
     it "should load resource asynchronously", ->
-      assert.equal browser.window.title, "OneTwoThree"
+      assert.equal @browser.window.title, "OneTwoThree"
     it "should run callback in global context", ->
-      assert.equal browser.window.foo, "barbar"
+      assert.equal @browser.window.foo, "barbar"
 
 
   describe "response headers", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/xhr/headers", (req, res)->
         res.send """
@@ -59,19 +58,20 @@ describe "XMLHttpRequest", ->
         res.setHeader "Header-Two", "value2"
         res.setHeader "Header-Three", "value3"
         res.send ""
-      brains.ready ->
-        browser.visit "http://localhost:3003/xhr/headers", done
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/xhr/headers", done
 
     it "should return all headers as string", ->
-      assert ~browser.document.allHeaders.indexOf("header-one: value1\nheader-two: value2\nheader-three: value3")
+      assert ~@browser.document.allHeaders.indexOf("header-one: value1\nheader-two: value2\nheader-three: value3")
     it "should return individual headers", ->
-      assert.equal browser.document.headerOne, "value1"
-      assert.equal browser.document.headerThree, "value3"
+      assert.equal @browser.document.headerOne, "value1"
+      assert.equal @browser.document.headerThree, "value3"
 
 
   describe "cookies", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/xhr/cookies", (req, res)->
         res.cookie "xhr", "send", path: "/xhr"
@@ -91,18 +91,19 @@ describe "XMLHttpRequest", ->
         cookie = req.cookies["xhr"]
         res.cookie "xhr", "return", path: "/xhr"
         res.send cookie
-      brains.ready ->
-        browser.visit "http://localhost:3003/xhr/cookies", done
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/xhr/cookies", done
 
     it "should send cookies to XHR request", ->
-      assert.equal browser.document.received, "send"
+      assert.equal @browser.document.received, "send"
     it "should return cookies from XHR request", ->
-      assert /xhr=return/.test(browser.document.cookie)
+      assert /xhr=return/.test(@browser.document.cookie)
   
 
   describe "redirect", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/xhr/redirect", (req, res)-> res.send """
         <html>
@@ -118,18 +119,19 @@ describe "XMLHttpRequest", ->
         res.redirect "/xhr/redirect/target"
       brains.get "/xhr/redirect/target", (req, res)->
         res.send "redirected " + req.headers["x-requested-with"]
-      brains.ready ->
-        browser.visit "http://localhost:3003/xhr/redirect", done
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/xhr/redirect", done
 
     it "should follow redirect", ->
-      assert /redirected/.test(browser.window.response)
+      assert /redirected/.test(@browser.window.response)
     it "should resend headers", ->
-      assert /XMLHttpRequest/.test(browser.window.response)
+      assert /XMLHttpRequest/.test(@browser.window.response)
 
 
   describe "handle POST requests with no data", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/xhr/post/empty", (req, res)->
         res.send """
@@ -144,9 +146,12 @@ describe "XMLHttpRequest", ->
         """
       brains.post "/xhr/post/empty", (req, res)->
         res.send "posted", 201
-      brains.ready ->
-        browser.visit "http://localhost:3003/xhr/post/empty", done
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/xhr/post/empty", done
 
     it "should post with no data", ->
-      assert.equal browser.document.title, "201posted"
+      assert.equal @browser.document.title, "201posted"
 

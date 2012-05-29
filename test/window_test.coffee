@@ -18,21 +18,22 @@ describe "Window", ->
           </script>
         </html>
         """
-      browser.onalert (message)->
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.onalert (message)=>
         if message = "Me again"
-          browser.window.first = true
-      brains.ready ->
-        browser.visit "/window/alert", done
+          @browser.window.first = true
+      @browser.visit "/window/alert", done
 
     it "should record last alert show to user", ->
-      assert browser.prompted("Me again")
+      assert @browser.prompted("Me again")
     it "should call onalert function with message", ->
-      assert browser.window.first
+      assert @browser.window.first
 
 
   describe ".confirm", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/window/confirm", (req, res)->
         res.send """
@@ -44,27 +45,28 @@ describe "Window", ->
           </script>
         </html>
         """
-      browser.onconfirm "continue?", true
-      browser.onconfirm (prompt)->
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.onconfirm "continue?", true
+      @browser.onconfirm (prompt)->
         return prompt == "more?"
-      brains.ready ->
-        browser.visit "/window/confirm", done
+      @browser.visit "/window/confirm", done
 
     it "should return canned response", ->
-      assert browser.window.first
+      assert @browser.window.first
     it "should return response from function", ->
-      assert browser.window.second
+      assert @browser.window.second
     it "should return false if no response/function", ->
-      assert.equal browser.window.third, false
+      assert.equal @browser.window.third, false
     it "should report prompted question", ->
-      assert browser.prompted("continue?")
-      assert browser.prompted("silent?")
-      assert !browser.prompted("missing?")
+      assert @browser.prompted("continue?")
+      assert @browser.prompted("silent?")
+      assert !@browser.prompted("missing?")
 
 
   describe ".prompt", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/window/prompt", (req, res)->
         res.send """
@@ -77,34 +79,35 @@ describe "Window", ->
           </script>
         </html>
         """
-      browser.onprompt "age", 31
-      browser.onprompt (message, def)->
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.onprompt "age", 31
+      @browser.onprompt (message, def)->
         if message == "gender"
           return "unknown"
-      browser.onprompt "location", false
-      brains.ready ->
-        browser.visit "/window/prompt", done
+      @browser.onprompt "location", false
+      @browser.visit "/window/prompt", done
 
     it "should return canned response", ->
-      assert.equal browser.window.first, "31"
+      assert.equal @browser.window.first, "31"
     it "should return response from function", ->
-      assert.equal browser.window.second, "unknown"
+      assert.equal @browser.window.second, "unknown"
     it "should return null if cancelled", ->
-      assert.equal browser.window.third, null
+      assert.equal @browser.window.third, null
     it "should return empty string if no response/function", ->
-      assert.equal browser.window.fourth, ""
+      assert.equal @browser.window.fourth, ""
     it "should report prompts", ->
-      assert browser.prompted("age")
-      assert browser.prompted("gender")
-      assert browser.prompted("location")
-      assert !browser.prompted("not asked")
+      assert @browser.prompted("age")
+      assert @browser.prompted("gender")
+      assert @browser.prompted("location")
+      assert !@browser.prompted("not asked")
 
 
   # -- This part deals with various windows properties ---
 
   describe ".title", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/window/title", (req, res)->
         res.send """
@@ -115,19 +118,20 @@ describe "Window", ->
           <body>Hello World</body>
         </html>
         """
-      brains.ready ->
-        browser.visit "/window/title", done
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "/window/title", done
 
     it "should return the document's title", ->
-      assert.equal browser.window.title, "Whatever"
+      assert.equal @browser.window.title, "Whatever"
     it "should set the document's title", ->
-      browser.window.title = "Overwritten"
-      assert.equal browser.window.title, browser.document.title
+      @browser.window.title = "Overwritten"
+      assert.equal @browser.window.title, @browser.document.title
 
 
   describe ".screen", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/window/screen", (req, res)->
         res.send """
@@ -143,25 +147,26 @@ describe "Window", ->
           </script>
         </html>
         """
-      brains.ready ->
-        browser.visit "/window/screen", done
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "/window/screen", done
 
     it "should have a screen object available", ->
-      assert /width=1280/.test(browser.document.title)
-      assert /height=800/.test(browser.document.title)
-      assert /left=0/.test(browser.document.title)
-      assert /top=0/.test(browser.document.title)
-      assert /availLeft=0/.test(browser.document.title)
-      assert /availTop=0/.test(browser.document.title)
-      assert /availWidth=1280/.test(browser.document.title)
-      assert /availHeight=800/.test(browser.document.title)
-      assert /colorDepth=24/.test(browser.document.title)
-      assert /pixelDepth=24/.test(browser.document.title)
+      assert /width=1280/.test(@browser.document.title)
+      assert /height=800/.test(@browser.document.title)
+      assert /left=0/.test(@browser.document.title)
+      assert /top=0/.test(@browser.document.title)
+      assert /availLeft=0/.test(@browser.document.title)
+      assert /availTop=0/.test(@browser.document.title)
+      assert /availWidth=1280/.test(@browser.document.title)
+      assert /availHeight=800/.test(@browser.document.title)
+      assert /colorDepth=24/.test(@browser.document.title)
+      assert /pixelDepth=24/.test(@browser.document.title)
 
 
   describe ".navigator", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/window/navigator", (req, res)->
         res.send """
@@ -172,33 +177,28 @@ describe "Window", ->
           <body>Hello World</body>
         </html>
         """
-      brains.ready ->
-        browser.visit "/window/navigator", done
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "/window/navigator", done
 
     it "should exist", ->
-      assert browser.window.navigator
+      assert @browser.window.navigator
     it ".javaEnabled should be false", ->
-      assert.equal browser.window.navigator.javaEnabled(), false
+      assert.equal @browser.window.navigator.javaEnabled(), false
 
 
   describe "atob", ->
-    window = null
-
-    before ->
+    it "should decode base-64 string", ->
       browser = new Browser()
       window = browser.window
-
-    it "should decode base-64 string", ->
       assert.equal window.atob("SGVsbG8sIHdvcmxk"), "Hello, world"
 
   describe "btoa", ->
-    window = null
-
-    before ->
+    it "should encode base-64 string", ->
       browser = new Browser()
       window = browser.window
-
-    it "should encode base-64 string", ->
       assert.equal window.btoa("Hello, world"), "SGVsbG8sIHdvcmxk"
 
 
@@ -273,8 +273,6 @@ describe "Window", ->
 
 
   describe "onload", ->
-    browser = new Browser()
-
     before (done)->
       brains.get "/windows/onload", (req, res)->
         res.send """
@@ -302,13 +300,12 @@ describe "Window", ->
       brains.ready done
 
     before (done)->
-      browser.visit("/windows/onload")
-        .then ->
-          browser.clickLink "#das_link"
-        .then done
+      @browser.visit "/windows/onload", (error)=>
+        @browser.clickLink "#das_link"
+        done(error)
 
     it "should fire when document is done loading", ->
-      assert.equal browser.text("body"), "1 clicks here"
+      assert.equal @browser.text("body"), "1 clicks here"
 
 
   describe "resize", ->
