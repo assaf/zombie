@@ -418,6 +418,9 @@ class Browser extends EventEmitter
   #
   # Finds and returns a link by its text content or selector.
   link: (selector)->
+    # If the link has already been queried, return itself
+    if selector instanceof HTML.Element
+      return selector
     if link = @querySelector(selector)
       return link if link.tagName == "A"
     for link in @querySelectorAll("body a")
@@ -703,6 +706,9 @@ class Browser extends EventEmitter
   #
   # selector - CSS selector, button name or text of BUTTON element
   button: (selector)->
+    # If the button has already been queried, return itself
+    if selector instanceof HTML.Element
+      return selector
     if button = @querySelector(selector)
       return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
     for button in @querySelectorAll("button")
