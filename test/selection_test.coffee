@@ -105,6 +105,23 @@ describe "Selection", ->
     it "should combine multiple elements", ->
       assert.equal @browser.html("title, #main a"), "<title>The Living</title><a href=\"/browser/dead\">Kill</a>"
 
+  describe "button", ->
+    describe "when passed a valid HTML element", ->
+      it "should return the already queried element", ->
+        elem = @browser.querySelector "button:first"
+        assert.equal @browser.button(elem), elem
+
+  describe "link", ->
+    describe "when passed a valid HTML element", ->
+      it "should return the already queried element", ->
+        elem = @browser.querySelector "a:first"
+        assert.equal @browser.link(elem), elem
+
+  describe "field", ->
+    describe "when passed a valid HTML element", ->
+      it "should return the already queried element", ->
+        elem = @browser.querySelector "input[name='email']"
+        assert.equal @browser.field(elem), elem
 
   describe "jQuery", ->
     before ->
