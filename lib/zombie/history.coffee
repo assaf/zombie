@@ -97,13 +97,14 @@ class History
         # Proceeed to load resource ...
         method = (method || "GET").toUpperCase()
         @_browser.resources.request method, url, data, headers, (error, response)=>
-          document = @_createDocument(@_window, response.url)
           if error
+            document = @_createDocument(@_window, url)
             document.open()
             document.write error.message
             document.close()
             @_browser.emit "error", error
           else
+            document = @_createDocument(@_window, response.url)
             @_browser.response = [response.statusCode, response.headers, response.body]
             url = URL.parse(response.url)
             @_stack[@_index].update url
