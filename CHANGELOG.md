@@ -6,6 +6,8 @@ Fixed `a.href` to not break when missing `href` attribute.
 
 Note that `browser.text` no longer preserves white space.
 
+Fixed JS execution bug that messes with require.js.
+
 
 ## Version 1.2.0 2012-05-28
 

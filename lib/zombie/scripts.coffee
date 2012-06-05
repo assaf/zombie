@@ -46,6 +46,8 @@ addInlineScriptSupport = (document)->
   document.addEventListener "DOMNodeInserted", (event)->
     node = event.target # Node being inserted
     return unless node.tagName == "SCRIPT"
+    # Let JSDOM deal with script tags with src attribute
+    return if node.src
     # Process scripts in order.
     HTML.resourceLoader.enqueue(node, ->
       code = node.text

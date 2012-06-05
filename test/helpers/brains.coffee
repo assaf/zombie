@@ -25,6 +25,9 @@ brains.get "/jquery-:version.js", (req, res)->
   version = req.params.version
   File.readFile "#{__dirname}/../scripts/jquery-#{version}.js", (err, data)->
     res.send data
+brains.get "/scripts/*", (req, res)->
+  File.readFile "#{__dirname}/../scripts/#{req.params}", (err, data)->
+    res.send data
 
 
 active = false
