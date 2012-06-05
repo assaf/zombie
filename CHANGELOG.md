@@ -2,6 +2,9 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+Note that `browser.text` no longer preserves white space.
+
+
 ## Version 1.2.0 2012-05-28
 
 Added `browser.load` for loading HTML instead of hitting a URL.

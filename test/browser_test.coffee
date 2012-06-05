@@ -340,7 +340,7 @@ describe "Browser", ->
         done()
 
     it "should not show up as text node", ->
-      assert.equal @browser.text("body"), "This is  plain text"
+      assert.equal @browser.text("body"), "This is plain text"
 
 
   describe "load HTML string", ->

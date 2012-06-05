@@ -273,7 +273,7 @@ class Browser extends EventEmitter
   # Returns a string
   text: (selector, context)->
     if @document.documentElement
-      return @queryAll(selector, context).map((e)-> e.textContent).join("").trim()
+      return @queryAll(selector, context).map((e)-> e.textContent).join("").trim().replace(/\s+/g, " ")
     return @source
 
   # ### browser.html(selector?, context?) => String
