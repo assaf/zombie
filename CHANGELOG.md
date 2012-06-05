@@ -2,19 +2,24 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-Fixed `a.href` to not break when missing `href` attribute.
+## Version 1.3.0 2012-06-05
 
-Note that `browser.text` no longer preserves white space.
-
-Fixed JS execution bug that messes with require.js.
-
-Fixed failing to create empty document on HTTP error.
+Note that `browser.text` now trims and strips consecutive whitespace.
 
 Added maximum waiting period with the `maxWait` browser option, which defaults
 to 5 seconds.
 
 You can set `maxWait` and `wait` duration as number of milliseconds or textual
 value like "5s", "1m", etc.
+
+Fixed `a.href` to not break when missing `href` attribute.
+
+Fixed JS execution bug that messes with require.js.
+
+Fixed failing to create empty document on HTTP error.
+
+    531 tests
+    12.8 sec to complete
 
 
 ## Version 1.2.0 2012-05-28
