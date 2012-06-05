@@ -2,6 +2,7 @@
 # abstracted in the API as `browser.wait`.
 
 
+ms  = require("ms")
 URL = require("url")
 { raise } = require("./scripts")
 
@@ -139,7 +140,7 @@ class EventLoop
     else
       unless duration && duration != 0
         duration = @_browser.waitFor
-      done_at = Date.now() + (duration || 0)
+      done_at = Date.now() + ms(duration || 0)
 
     # Called once at the end of the loop. Also, set to null when done, since
     # waiting may be called multiple times.
@@ -162,7 +163,7 @@ class EventLoop
         @_browser.emit "done"
 
     # don't block forever
-    terminate = setTimeout(done, 5000)
+    terminate = setTimeout(done, ms(@_browser.maxWait))
 
     # Duration is a function, proceed until function returns false.
     waiting = =>

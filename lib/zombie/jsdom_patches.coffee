@@ -44,7 +44,7 @@ HTML.Element.prototype.setAttribute = (name, value)->
 # -- https://developer.mozilla.org/en/DOM/element.getAttribute#Notes
 HTML.Element.prototype.getAttribute = (name)->
   attribute = @_attributes.getNamedItem(name)
-  return attribute && attribute.value
+  return attribute?.value
 
 # These two patches are required by the above fix.
 HTML.HTMLAnchorElement.prototype.__defineGetter__ "href", ->

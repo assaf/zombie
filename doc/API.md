@@ -37,6 +37,8 @@ You can use the following options:
 - `debug` -- Have Zombie report what it's doing.  Defaults to true if
   environment variable `DEBUG` is set.
 - `loadCSS` -- Loads external stylesheets.  Defaults to true.
+- `maxWait` -- Maximum wait time (when calling `visit`, `wait`, etc).  Defaults
+  to 5 seconds.
 - `proxy` -- Proxy URL.
 - `runScripts` -- Run scripts included in or loaded from the page.  Defaults to
   true.
@@ -583,8 +585,8 @@ checking page state, long polling).
 
 There are two mechanisms to determine completion of processing.  You can tell
 the browser to give up after certain time by passing the duration as first
-argument, or by setting the browser option `waitFor`.  The default value is 500,
-since waiting 0.5 seconds is good enough for most pages.
+argument, or by setting the browser option `waitFor`.  The default value is 0.5
+seconds.
 
 You can also tell the browser to wait for something to happen on the page by
 passing a function as the first argument.  That function is called repeatedly
@@ -607,7 +609,7 @@ call `wait` with two arguments, the last one being `null`.
 
 Even with completion function, the browser won't wait forever.  It will complete
 as soon as it determines there are no more events to wait for, or after 5
-seconds of waiting.
+seconds of waiting (you can change this with `maxWait` option).
 
 If you call `wait` with a callback as the last argument, it will be notified
 once on completion or when the first error occurs.  If you call `wait` without a

@@ -22,12 +22,12 @@ XHR               = require("./xhr")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
-BROWSER_OPTIONS = ["debug", "htmlParser", "loadCSS", "proxy",
+BROWSER_OPTIONS = ["debug", "htmlParser", "loadCSS", "maxWait", "proxy",
                    "referer", "runScripts", "silent", "site", "userAgent",
                    "waitFor", "name"]
 
 # Global options you can set on Browser and will be inherited by each new browser.
-GLOBAL_OPTIONS  = ["debug", "htmlParser", "loadCSS", "proxy", "runScripts",
+GLOBAL_OPTIONS  = ["debug", "htmlParser", "loadCSS", "maxWait", "proxy", "runScripts",
                    "silent", "site", "userAgent", "waitFor"]
 
 
@@ -93,6 +93,9 @@ class Browser extends EventEmitter
 
   # True to load external stylesheets.
   @loadCSS: true
+
+  # Maximum time to wait (visit, wait, etc).
+  @maxWait: "5s"
   
   # Proxy URL.
   #
@@ -115,7 +118,7 @@ class Browser extends EventEmitter
   @site: undefined
 
   # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 0.5 seconds.
-  @waitFor: 500
+  @waitFor: "0.5s"
 
 
   # Changes the browser options, and calls the function with a callback (reset).  When you're done processing, call the

@@ -10,6 +10,12 @@ Fixed JS execution bug that messes with require.js.
 
 Fixed failing to create empty document on HTTP error.
 
+Added maximum waiting period with the `maxWait` browser option, which defaults
+to 5 seconds.
+
+You can set `maxWait` and `wait` duration as number of milliseconds or textual
+value like "5s", "1m", etc.
+
 
 ## Version 1.2.0 2012-05-28
 
