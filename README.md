@@ -295,12 +295,12 @@ If there's an error, the promise fails and calls the second callback (also
 `done`) with an error.  Calling it with an `Error` argument causes Mocha to fail
 the test.
 
-Now let's try to chain promises together:
+Now let's chain promises together:
 
     browser
       .visit("/promises") // Step 1, open a page
       .then(function() {
-        // Step 2, fill in some form
+        // Step 2, fill-in the form
         browser.fill("Email", "armbiter@example.com");
         browser.fill("Password", "b100d");
       })
@@ -320,8 +320,8 @@ Now let's try to chain promises together:
       .then(done, done);
 
 The first step is easy, it loads a page and returns a promise.  When that
-promise resolves, it calls the function of the second step which fills in two
-form fields.  That step is in itself a promise that resolves to no value.
+promise resolves, it calls the function of the second step which fills the two
+form fields.  That step is itself a promise that resolves with no value.
 
 The third step follows, and here we simply return a value.  As a result, the
 next promise will resolve with that value, as you can see in the fourth step.
@@ -330,26 +330,24 @@ value "OK".
 
 On to step five where we press the button, which submits the form and loads the
 response page.  All of that happens after `pressButton`, so we want to wait for
-it before moving to the last step.
+it before moving to the sixth and last step.
 
 Luckily, `pressButton` - just like `wait` - returns a promise which gets
 fulfilled after the browser is done processing events and loading resources.  By
-returning this new promise, we cause the next and last step to wait for this
-promise to resolve.
+returning this new promise, we cause the next step to wait for this promise to
+resolve.
 
-Another way to think about it is: the very last step is chained to a new promise
-returned by `pressButton`.  You can use this pattern whenever you need to wait,
-after `visit`, `reload`, `clickLink`, etc.
+In short: the very last step is chained to a new promise returned by
+`pressButton`.  You can use this pattern whenever you need to wait, after
+`visit`, `reload`, `clickLink`, etc.
 
-**Note:** in CoffeeScript a function that doesn't end with explicit `return`
+**Note:** In CoffeeScript a function that doesn't end with explicit `return`
 statement would return the value of the last statement.  If you're seeing
-promises resolved with unexpected values, you may need to explicitly end
-functions with an empty `return`.
+promises resolved with unexpected values, you may need to end your function
+with a `return`.
 
-In real life the ability to chain promises like that is useful because it helps
-you structure complex scenarios without nesting callbacks.  Even more
-interesting, you can write reusable steps as functions and then combine them
-into complex scenarios.  Like so:
+In real life the ability to chain promises helps us structure complex scenarios
+out of reusable steps.  Like so:
 
     browser
       .visit("/promises")
@@ -361,13 +359,12 @@ into complex scenarios.  Like so:
       })
       .then(done, done);
 
-**Note:** This usage of `bind` is one way to allow a function defined in some
-other context to use the `Browser` object available in this context.
+**Note:** This usage of `bind` is one way to allow a function defined in another
+context to use the `Browser` object available in this context.
 
-Let's talk a bit about error handling.  In promise-land, an error causes the
-promise to be Qrejected with that `Error` object as an argument.  However,
-errors are not re-thrown out of the promise, and so this code will fail
-silently:
+Let's talk about error handling.  In promise-land, an error causes the promise
+to be rejected.  However, errors are not re-thrown out of the promise, and so
+this code will fail silently:
 
     browser
       .visit("/promises")
@@ -378,15 +375,14 @@ silently:
       })
       .then(done);
 
-Rejection may not be fun, but you've got to handle it.
+Rejection may not be fun, but you've got to deal with it.
 
-If a promise gets rejected with an error, that rejection will travel down the
-chain, so you only need to handle it at the very end.  The examples we started
-with do that by calling `then` with the same callback for both resolved and
-rejected promises.
+When a promise gets rejected, that rejection travels down the chain, so you only
+need to catch it at the very end.  The examples we started with do that by
+calling `then` with the same callback for handling the resolved and rejected
+cases.
 
-If your test case expects an error to happen and must fail only if an error
-doesn't happen, write it like this:
+If your test case expects an error to happen, write it like this:
 
     browser
       .visit("/promises")
@@ -395,27 +391,25 @@ doesn't happen, write it like this:
       })
       .fail(function(error) {
         // Error happened, test is done.  Otherwise, done never
-        // gets called and test will fail.
+        // gets called and Mocha will fail this test.
         done();
       });
 
 Another way of dealing with errors:
 
     before(function(done) {
-      browser
+      this.browser = new Browser();
+      this.browser
         .visit("/no-such-page")
         .finally(done);
     });
 
     it("should report an error", function() {
-      assert(browser.error);
+      assert(this.browser.error);
     })
 
-This is particular to Mocha.  If we used `then(done)`, the callback would never
-get called since the promise gets rejected (no such page to load).  If we used
-`fail(done)` the callback would be called with an error, causing the test to
-fail.  But `finally` calls our callback whether the promise got resolved or
-rejected.
+Unlike `then`, the `finally` callback gets called on either success or failure
+and with no value.
 
 Read more [about promises](http://documentup.com/kriskowal/q/).
 
