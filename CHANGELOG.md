@@ -2,6 +2,8 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+Fixed `a.href` to not break when missing `href` attribute.
+
 Note that `browser.text` no longer preserves white space.
 
 

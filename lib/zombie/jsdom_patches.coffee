@@ -46,6 +46,12 @@ HTML.Element.prototype.getAttribute = (name)->
   attribute = @_attributes.getNamedItem(name)
   return attribute && attribute.value
 
+# These two patches are required by the above fix.
+HTML.HTMLAnchorElement.prototype.__defineGetter__ "href", ->
+  return HTML.resourceLoader.resolve(@_ownerDocument, @getAttribute('href') || "")
+HTML.HTMLLinkElement.prototype.__defineGetter__ "href", ->
+  return HTML.resourceLoader.resolve(@_ownerDocument, @getAttribute('href') || "")
+
 
 # Default behavior for clicking on links: navigate to new URL if specified.
 HTML.HTMLAnchorElement.prototype._eventDefaults =
