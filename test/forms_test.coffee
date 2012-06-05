@@ -644,7 +644,7 @@ describe "Forms", ->
           .then(done, done)
 
       it "should reset input field to original value", ->
-        assert.equal @browser.querySelector("#field-name").value, null
+        assert.equal @browser.querySelector("#field-name").value, ""
       it "should reset textarea to original value", ->
         assert.equal @browser.querySelector("#field-likes").value, "Warm brains"
       it "should reset checkbox to original value", ->
@@ -693,7 +693,7 @@ describe "Forms", ->
           .then(done, done)
 
       it "should reset input field to original value", ->
-        assert.equal @browser.querySelector("#field-name").value, null
+        assert.equal @browser.querySelector("#field-name").value, ""
 
 
   # Submitting form
@@ -1094,7 +1094,7 @@ describe "Forms", ->
           </html>
           """
         @browser = new Browser()
-        @browser.visit("http://localhost:3003/forms/urlencoded/empty")
+        @browser.visit("/forms/urlencoded/empty")
           .then =>
             return @browser.pressButton("submit")
           .then ->
@@ -1105,4 +1105,39 @@ describe "Forms", ->
         assert @browser.lastRequest.headers.hasOwnProperty("content-length")
       it "should have size of 0", ->
         assert.equal @browser.lastRequest.headers["content-length"], 0
+
+
+  # DOM specifies that getAttribute returns empty string if no value, but in
+  # practice it always returns `null`. However, the `name` and `value`
+  # properties must return empty string.
+  describe "inputs", ->
+    before (done)->
+      brains.get "/forms/inputs", (req, res)->
+        res.send """
+        <html>
+          <body>
+            <form>
+              <input type="text">
+              <textarea></textarea>
+              <select></select>
+              <button></button>
+            </form>
+          </body>
+        </html>
+        """
+      @browser = new Browser()
+      @browser.visit "/forms/inputs", done
+
+    it "should return empty string if name attribute not set", ->
+      for tagName in ["form", "input", "textarea", "select", "button"] 
+        assert.equal @browser.query(tagName).getAttribute("name"), null
+        assert.equal @browser.query(tagName).name, ""
+    it "should return empty string if value attribute not set", ->
+      for tagName in ["input", "textarea", "select", "button"] 
+        assert.equal @browser.query(tagName).getAttribute("value"), null
+        assert.equal @browser.query(tagName).value, ""
+    it "should return empty string if id attribute not set", ->
+      for tagName in ["form", "input", "textarea", "select", "button"] 
+        assert.equal @browser.query(tagName).getAttribute("id"), null
+        assert.equal @browser.query(tagName).id, ""
 

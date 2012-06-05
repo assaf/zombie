@@ -2,6 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 1.3.1 2012-06-05
+
+The `id`, `name` and `value` properties should be empty strings if the
+corresponding attribute is not set.
+
+    537 tests
+    13.0 sec to complete
+
+
 ## Version 1.3.0 2012-06-05
 
 Note that `browser.text` now trims and strips consecutive whitespace.

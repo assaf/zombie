@@ -43,9 +43,10 @@ HTML.HTMLFormElement.prototype.submit = (button)->
           if field.multiple
             params.push [name, selected]
           else
-            value = selected.shift()
-            if !value? && option = field.options[0]
-              value = option.value
+            if selected.length > 0
+              value = selected[0]
+            else
+              value = field.options[0]?.value
             params.push [name, value]
         else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
           if field.checked

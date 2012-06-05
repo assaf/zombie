@@ -44,13 +44,29 @@ HTML.Element.prototype.setAttribute = (name, value)->
 # -- https://developer.mozilla.org/en/DOM/element.getAttribute#Notes
 HTML.Element.prototype.getAttribute = (name)->
   attribute = @_attributes.getNamedItem(name)
-  return attribute?.value
+  return attribute?.value || null
 
 # These two patches are required by the above fix.
 HTML.HTMLAnchorElement.prototype.__defineGetter__ "href", ->
   return HTML.resourceLoader.resolve(@_ownerDocument, @getAttribute('href') || "")
 HTML.HTMLLinkElement.prototype.__defineGetter__ "href", ->
   return HTML.resourceLoader.resolve(@_ownerDocument, @getAttribute('href') || "")
+
+# These properties return empty string when attribute is not set.
+HTML.HTMLElement.prototype.__defineGetter__ "id", ->
+  return @getAttribute("id") || ""
+# These elements have a name property that must return empty string
+for element in [HTML.HTMLFormElement, HTML.HTMLMenuElement, HTML.HTMLSelectElement,
+                HTML.HTMLInputElement, HTML.HTMLTextAreaElement, HTML.HTMLButtonElement,
+                HTML.HTMLAnchorElement, HTML.HTMLImageElement, HTML.HTMLObjectElement,
+                HTML.HTMLParamElement, HTML.HTMLAppletElement, HTML.HTMLMapElement,
+                HTML.HTMLFrameElement, HTML.HTMLIFrameElement]
+  element.prototype.__defineGetter__ "name", ->
+    return @getAttribute("name") || ""
+# These elements have a value property that must return empty string
+for element in [HTML.HTMLInputElement, HTML.HTMLButtonElement, HTML.HTMLParamElement]
+  element.prototype.__defineGetter__ "value", ->
+    return @getAttribute("value") || ""
 
 
 # Default behavior for clicking on links: navigate to new URL if specified.
