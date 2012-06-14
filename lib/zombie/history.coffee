@@ -42,6 +42,24 @@ class History
   _use: (window)->
     @_window = window
     @_browser = @_window.browser
+    # do we support html5 history?
+    if !!@_browser.history5
+      # ### history.pushState(state, title, url)
+      #
+      # Push new state to the stack, do not reload
+      @pushState = (state, title, url)->
+        url = @_resolve(url)
+        @_advance()
+        @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
+
+      # ### history.replaceState(state, title, url)
+      #
+      # Replace existing state in the stack, do not reload
+      @replaceState = (state, title, url)->
+        @_index = 0 if @_index < 0
+        url = @_resolve(url)
+        @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
+
     # Add Location/History to window.
     Object.defineProperty @_window, "location",
       get: =>
@@ -212,22 +230,6 @@ class History
   # Number of states/URLs in the history.
   @prototype.__defineGetter__ "length", ->
     return @_stack.length
-
-  # ### history.pushState(state, title, url)
-  #
-  # Push new state to the stack, do not reload
-  pushState: (state, title, url)->
-    url = @_resolve(url)
-    @_advance()
-    @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
-
-  # ### history.replaceState(state, title, url)
-  #
-  # Replace existing state in the stack, do not reload
-  replaceState: (state, title, url)->
-    @_index = 0 if @_index < 0
-    url = @_resolve(url)
-    @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
 
   # Resolve URL based on current page URL.
   _resolve: (url)->
