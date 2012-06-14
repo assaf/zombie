@@ -194,7 +194,7 @@ class Resources extends Array
           headers["content-type"] ||= "text/plain;charset=UTF-8"
 
     # Pre 0.3 we need to specify the host name.
-    headers["Host"] = url.host
+    headers["Host"] = if browser.hostHeader? then browser.hostHeader else url.host
     # Apply authentication credentials
     credentials = @_browser.authenticate(url.host, false)
     if credentials
