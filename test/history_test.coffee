@@ -114,6 +114,17 @@ describe "History", ->
         it "should include state", ->
           assert.equal @event.state.is, "end"
 
+    describe "pushState4", ->
+      before (done)->
+        browser = new Browser({history5: false})
+        browser.visit "http://localhost:3003/", =>
+          @window = browser.window
+          done()
+
+      it "should have no browser.pushState", ->
+        assert.equal @window.history.pushState, undefined
+      it "should have no browser.replaceState", ->
+        assert.equal @window.history.replaceState, undefined
 
     describe "replaceState", ->
       before (done)->

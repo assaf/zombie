@@ -145,7 +145,8 @@ describe "IFrame", ->
         assert.equal @browser.location.pathname, "/target/_self"
 
       it "should open link in same window", ->
-        assert.equal @browser.window, @source
+        assert.equal @browser.window.name, @source.name
+        assert.equal @browser.window.history, @source.history
 
 
     describe "_blank", ->
