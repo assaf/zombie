@@ -300,6 +300,7 @@ describe "Window", ->
       brains.ready done
 
     before (done)->
+      @browser = new Browser()
       @browser.visit "/windows/onload", (error)=>
         @browser.clickLink "#das_link"
         done(error)
@@ -316,4 +317,67 @@ describe "Window", ->
       browser.window.resizeBy(-224, -168)
       assert.equal browser.window.innerWidth, 800
       assert.equal browser.window.innerHeight, 600
+  
+  describe "properties", ->
+    before (done)->
+      brains.get "/windows/propertiesA", (req, res)->
+        res.send """
+        <html>
+          <head>
+            <title>Properties A</title>
+            <script type="text/javascript" language="javascript" charset="utf-8">
+              window.magic = "A";
+              window.propa = "A";
+            </script>
+          </head>
+          <body>
+          </body>
+        </html>
+        """
+      brains.get "/windows/propertiesB", (req, res)->
+        res.send """
+        <html>
+          <head>
+            <title>Properties B</title>
+            <script type="text/javascript" language="javascript" charset="utf-8">
+              window.magic = "B";
+              window.propb = "B";
+            </script>
+          </head>
+          <body>
+          </body>
+        </html>
+        """
+      brains.ready done
+      
+    before (done)->
+      @browser = browser = new Browser()
+      @browser.visit "/windows/propertiesA", (error) ->
+        browser.window.crossover = "crossover"
+        browser.visit "/windows/propertiesB", (error) ->
+          done(error)
+
+    describe "go forward", ->
+      it "should not carry from one page to the next", ->
+        assert !@browser.window.crossover
+      it "should have window.magic set to 'B'", ->
+        assert.equal @browser.window.magic, "B"
+      it "should have window.propb set to 'B'", ->
+        assert.equal @browser.window.propb, "B"
+      it "should have window.propa undefined", ->
+        assert !@browser.window.propa
+    
+    describe "go backward", ->
+      before (done)->
+        @browser.back (error) ->
+          done(error)
+      
+      it "should restore crossover", ->
+        assert.equal @browser.window.crossover, "crossover"
+      it "should have window.magic set to 'A", ->
+        assert.equal @browser.window.magic, "A"
+      it "should have window.propa set to 'A'", ->
+        assert.equal @browser.window.propa, "A"
+      it "should have window.propb undefined", ->
+        assert !@browser.window.propb
 
