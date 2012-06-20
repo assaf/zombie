@@ -37,23 +37,40 @@ class History
     # History is a stack of Entry objects.
     @_stack = []
     @_index = 0
+    @_browser = window.browser
+
+    # do we support html5 history?
+    if !!@_browser.history5
+      # ### history.pushState(state, title, url)
+      #
+      # Push new state to the stack, do not reload
+      @pushState = (state, title, url)->
+        url = @_resolve(url)
+        @_advance()
+        @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
+
+      # ### history.replaceState(state, title, url)
+      #
+      # Replace existing state in the stack, do not reload
+      @replaceState = (state, title, url)->
+        @_index = 0 if @_index < 0
+        url = @_resolve(url)
+        @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
 
   # Apply to window.
   _use: (window)->
     @_window = window
-    @_browser = @_window.browser
     # Add Location/History to window.
     Object.defineProperty @_window, "location",
       get: =>
         return @_stack[@_index]?.location || new Location(this, ABOUT_BLANK)
       set: (url)=>
         @_assign @_resolve(url)
-
+    
   # Called when we switch to a new page with the URL of the old page.
   _pageChanged: (was)->
     url = @_stack[@_index]?.url
     if !was || was.host != url.host || was.pathname != url.pathname || was.query != url.query
-      # We're on a different site or different page, load it
       @_resource url
     else if was.hash != url.hash
       # Hash changed. Do not reload page, but do send hashchange
@@ -160,11 +177,13 @@ class History
     if @_browser.runScripts
       Scripts.addInlineScriptSupport document
 
-    # Associate window and document
-    window.document = document
-    document.window = document.parentWindow = window
+    @_window.document = document
+    @_use @_window._window || @_window
+    document.window = document.parentWindow = @_window
+    
     # Set this to the same user agent that's loading this page
-    window.navigator.userAgent = @_browser.userAgent
+    @_window.navigator.userAgent = @_browser.userAgent
+
 
     # Fire onload event on window.
     document.addEventListener "DOMContentLoaded", (event)=>
@@ -204,6 +223,8 @@ class History
           popstate.state = entry.state
           @_browser.dispatchEvent @_window, popstate
       else
+        @_window.go(amount)
+        @_use @_window._window || @_window
         @_pageChanged was
     return
  
@@ -212,22 +233,6 @@ class History
   # Number of states/URLs in the history.
   @prototype.__defineGetter__ "length", ->
     return @_stack.length
-
-  # ### history.pushState(state, title, url)
-  #
-  # Push new state to the stack, do not reload
-  pushState: (state, title, url)->
-    url = @_resolve(url)
-    @_advance()
-    @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
-
-  # ### history.replaceState(state, title, url)
-  #
-  # Replace existing state in the stack, do not reload
-  replaceState: (state, title, url)->
-    @_index = 0 if @_index < 0
-    url = @_resolve(url)
-    @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
 
   # Resolve URL based on current page URL.
   _resolve: (url)->
