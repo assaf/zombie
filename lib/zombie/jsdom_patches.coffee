@@ -52,6 +52,11 @@ HTML.HTMLAnchorElement.prototype.__defineGetter__ "href", ->
 HTML.HTMLLinkElement.prototype.__defineGetter__ "href", ->
   return HTML.resourceLoader.resolve(@_ownerDocument, @getAttribute('href') || "")
 
+# this patch is required for jsdom < 0.2.15
+HTML.HTMLAnchorElement.prototype.__defineGetter__ "hostname", ->
+  return URL.parse(@getAttribute('href') || "").hostname
+
+
 # These properties return empty string when attribute is not set.
 HTML.HTMLElement.prototype.__defineGetter__ "id", ->
   return @getAttribute("id") || ""
