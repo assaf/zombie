@@ -309,6 +309,35 @@ describe "Browser", ->
       assert.equal @browser.statusCode, 200
 
 
+  describe "reload on meta refresh", ->
+
+    before (done)->
+      brains.get "/browser/refresh", (req, res)->
+        res.send """
+        <html>
+          <head>
+            <meta http-equiv="refresh" content="1; url=/browser/refreshed">
+          </head>
+          <body>
+            <div>ciao</div>
+          </body>
+        </html>
+        """
+      brains.ready done
+
+    before (done)->
+      Browser.visit "http://localhost:3003/browser/refresh", (@error, @browser, @status, @errors)=>
+        done()
+
+    it "should be at initial location", ->
+      assert.equal @browser.location.href, "http://localhost:3003/browser/refresh"
+    it "should refresh after given time", (done) ->
+      @browser.wait 1200, =>
+        assert.equal @browser.location.href, "http://localhost:3003/browser/refreshed"
+        done()
+
+
+
   # NOTE: htmlparser doesn't handle tag soup.
   describe "tag soup using HTML5 parser", ->
 

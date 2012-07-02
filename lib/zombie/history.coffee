@@ -120,6 +120,18 @@ class History
               evt.initEvent "hashchange", true, false
               @_browser.dispatchEvent @_window, evt
 
+            # register refresh timer
+            refresh = document.querySelector("meta[http-equiv='refresh']")
+            if refresh
+              content = refresh.getAttribute("content")
+              [nothing, refresh_timeout] = content.match /^\s*(\d+)/i
+              [nothing, refresh_url] = content.match /(?:^|;)\s*url\s*=\s*(.*?)\s*(?:;|$)/i
+              refresh_timeout = parseInt(refresh_timeout, 10) * 1000
+              refresh_url ||= url
+              @_window.setTimeout(=>
+                  @_window.location = refresh_url
+              , refresh_timeout)
+
             # Error on any response that's not 2xx, or if we're not smart enough to
             # process the content and generate an HTML DOM tree from it.
             if response.statusCode >= 400
