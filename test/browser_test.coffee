@@ -239,6 +239,22 @@ describe "Browser", ->
         it "should be accessible from navigator", ->
           assert.equal @browser.window.navigator.userAgent, "imposter"
 
+    describe "custom headers", ->
+
+      before (done)->
+        brains.get "/browser/custom_headers", (req, res)->
+          res.send "<html><body>#{req.headers["x-custom-header"]}</body></html>"
+        brains.ready done
+
+      describe "specified", ->
+
+        before (done)->
+          @browser = new Browser()
+          @browser.customHeaders = "x-custom-header": "dummy"
+          @browser.visit "http://localhost:3003/browser/custom_headers", done
+
+        it "should send the custom header to server", ->
+          assert.equal @browser.text("body"), "dummy"
 
   describe "click link", ->
 
