@@ -104,7 +104,7 @@ asynchronous testing frameworks like
 
 Zombie also supports promises.  When you call functions like `visit`, `wait` or
 `clickLink` without a callback, you get a
-(promise)[http://documentup.com/kriskowal/q/#tutorial].  After the browser is
+[promise](http://documentup.com/kriskowal/q/#tutorial).  After the browser is
 done processing, it either fulfills or rejects the promise.
 
 For example:
