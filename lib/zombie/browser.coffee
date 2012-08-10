@@ -145,6 +145,8 @@ class Browser extends EventEmitter
     forked.loadStorage @saveStorage()
     forked.loadHistory @saveHistory()
     forked.location = @location
+    for name in BROWSER_OPTIONS
+        forked[name] = @[name]
     return forked
 
 
