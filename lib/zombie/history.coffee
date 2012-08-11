@@ -25,7 +25,6 @@ class Entry
 
   update: (url)->
     @url = URL.parse(URL.format(url))
-    @location = new Location(@history, @url)
 
 
 # ## window.history
@@ -37,6 +36,7 @@ class History
     # History is a stack of Entry objects.
     @_stack = []
     @_index = 0
+    @_location = new Location(this, ABOUT_BLANK)
 
   # Apply to window.
   _use: (window)->
@@ -45,7 +45,11 @@ class History
     # Add Location/History to window.
     Object.defineProperty @_window, "location",
       get: =>
-        return @_stack[@_index]?.location || new Location(this, ABOUT_BLANK)
+
+        if @_stack[@_index]
+            @_location._url = @_stack[@_index].url
+
+        return @_location
       set: (url)=>
         @_assign @_resolve(url)
 
