@@ -7,7 +7,7 @@ describe "History", ->
 
   # On OS X path probably starts with /Users, but as URL the first component
   # ends up as the hostname (stupid), which gets lowered case to /user.
-  file_url = "file://#{__dirname.toLowerCase()}/data/index.html"
+  file_url = "file://#{__dirname}/data/index.html"
 
 
   before (done)->
