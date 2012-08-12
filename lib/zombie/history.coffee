@@ -36,7 +36,11 @@ class History
     # History is a stack of Entry objects.
     @_stack = []
     @_index = 0
-    @_location = new Location(this, ABOUT_BLANK)
+    @_location = new Location(this)
+
+    Object.defineProperty @, "current",
+        get: =>
+          @_stack[@_index]?.url || ABOUT_BLANK
 
   # Apply to window.
   _use: (window)->
@@ -45,8 +49,6 @@ class History
     # Add Location/History to window.
     Object.defineProperty @_window, "location",
       get: =>
-        if @_stack[@_index]
-            @_location._url = @_stack[@_index].url
         return @_location
       set: (url)=>
         @_assign @_resolve(url)
@@ -316,7 +318,7 @@ class History
 #
 # Represents window.location and document.location.
 class Location
-  constructor: (@_history, @_url)->
+  constructor: (@_history)->
 
   # ### location.assign(url)
   assign: (newUrl)->
@@ -332,11 +334,11 @@ class Location
 
   # ### location.toString() => String
   toString: ->
-    return URL.format(@_url)
+    return URL.format(@_history.current)
 
   # ### location.href => String
   @prototype.__defineGetter__ "href", ->
-    return @_url?.href
+    return @_history.current?.href
 
   # ### location.href = url
   @prototype.__defineSetter__ "href", (new_url)->
@@ -346,9 +348,9 @@ class Location
   for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search"]
     do (prop)=>
       @prototype.__defineGetter__ prop, ->
-        @_url?[prop] || ""
+        @_history.current?[prop] || ""
       @prototype.__defineSetter__ prop, (value)->
-        newUrl = URL.parse(@_url?.href)
+        newUrl = URL.parse(@_history.current?.href)
         newUrl[prop] = value
         @_history._assign URL.format(newUrl)
 
