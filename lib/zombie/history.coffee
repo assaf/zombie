@@ -16,7 +16,7 @@ ABOUT_BLANK = URL.parse("about:blank")
 # - url -- URL object of current location
 # - location -- Location object
 class Entry
-  constructor: (@history, url, options)->
+  constructor: (url, options)->
     if options
       @state = options.state
       @title = options.title
@@ -25,7 +25,6 @@ class Entry
 
   update: (url)->
     @url = URL.parse(URL.format(url))
-    @location = new Location(@history, @url)
 
 
 # ## window.history
@@ -37,6 +36,11 @@ class History
     # History is a stack of Entry objects.
     @_stack = []
     @_index = 0
+    @_location = new Location(this)
+
+    Object.defineProperty @, "current",
+        get: =>
+          @_stack[@_index]?.url || ABOUT_BLANK
 
   # Apply to window.
   _use: (window)->
@@ -45,7 +49,7 @@ class History
     # Add Location/History to window.
     Object.defineProperty @_window, "location",
       get: =>
-        return @_stack[@_index]?.location || new Location(this, ABOUT_BLANK)
+        return @_location
       set: (url)=>
         @_assign @_resolve(url)
 
@@ -219,7 +223,7 @@ class History
   pushState: (state, title, url)->
     url = @_resolve(url)
     @_advance()
-    @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
+    @_stack[@_index] = new Entry(url, { state: state, title: title, pop: true })
 
   # ### history.replaceState(state, title, url)
   #
@@ -227,7 +231,7 @@ class History
   replaceState: (state, title, url)->
     @_index = 0 if @_index < 0
     url = @_resolve(url)
-    @_stack[@_index] = new Entry(this, url, { state: state, title: title, pop: true })
+    @_stack[@_index] = new Entry(url, { state: state, title: title, pop: true })
 
   # Resolve URL based on current page URL.
   _resolve: (url)->
@@ -242,7 +246,7 @@ class History
     was = @_stack[@_index]?.url # before we destroy stack
     @_stack = @_stack[0..@_index]
     @_advance()
-    @_stack[@_index] = new Entry(this, url)
+    @_stack[@_index] = new Entry(url)
     @_pageChanged was
 
   # Location uses this to load new page without changing history.
@@ -250,7 +254,7 @@ class History
     url = @_resolve(url)
     was = @_stack[@_index]?.url # before we destroy stack
     @_index = 0 if @_index < 0
-    @_stack[@_index] = new Entry(this, url)
+    @_stack[@_index] = new Entry(url)
     @_pageChanged was
 
   # Location uses this to force a reload (location.reload), history uses this
@@ -269,7 +273,7 @@ class History
     @_stack = @_stack[0..@_index]
     url = @_resolve(url)
     @_advance()
-    @_stack[@_index] = new Entry(this, url)
+    @_stack[@_index] = new Entry(url)
     @_resource @_stack[@_index].url, method, data, headers
 
   # Used to dump state to console (debuggin)
@@ -300,7 +304,7 @@ class History
       [url, state] = line.split(/\s/)
       options = state && { state: JSON.parse(state), title: null, pop: true }
       @_advance()
-      @_stack[@_index] = new Entry(this, url, state)
+      @_stack[@_index] = new Entry(url, state)
 
   # Advance to the next position in history. Used when opening a new page, but
   # smart enough to not count about:blank in history.
@@ -314,7 +318,7 @@ class History
 #
 # Represents window.location and document.location.
 class Location
-  constructor: (@_history, @_url)->
+  constructor: (@_history)->
 
   # ### location.assign(url)
   assign: (newUrl)->
@@ -330,11 +334,11 @@ class Location
 
   # ### location.toString() => String
   toString: ->
-    return URL.format(@_url)
+    return URL.format(@_history.current)
 
   # ### location.href => String
   @prototype.__defineGetter__ "href", ->
-    return @_url?.href
+    return @_history.current?.href
 
   # ### location.href = url
   @prototype.__defineSetter__ "href", (new_url)->
@@ -344,9 +348,9 @@ class Location
   for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search"]
     do (prop)=>
       @prototype.__defineGetter__ prop, ->
-        @_url?[prop] || ""
+        @_history.current?[prop] || ""
       @prototype.__defineSetter__ prop, (value)->
-        newUrl = URL.parse(@_url?.href)
+        newUrl = URL.parse(@_history.current?.href)
         newUrl[prop] = value
         @_history._assign URL.format(newUrl)
 
