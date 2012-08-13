@@ -22,13 +22,13 @@ XHR               = require("./xhr")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
-BROWSER_OPTIONS = ["debug", "htmlParser", "loadCSS", "maxWait", "proxy",
+BROWSER_OPTIONS = ["debug", "headers", "htmlParser", "loadCSS", "maxWait", "proxy",
                    "referer", "runScripts", "silent", "site", "userAgent",
-                   "waitFor", "name", "customHeaders"]
+                   "waitFor", "name"]
 
 # Global options you can set on Browser and will be inherited by each new browser.
-GLOBAL_OPTIONS  = ["debug", "htmlParser", "loadCSS", "maxWait", "proxy", "runScripts",
-                   "silent", "site", "userAgent", "waitFor", "customHeaders"]
+GLOBAL_OPTIONS  = ["debug", "headers", "htmlParser", "loadCSS", "maxWait", "proxy",
+                   "runScripts", "silent", "site", "userAgent", "waitFor"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -121,7 +121,7 @@ class Browser extends EventEmitter
   @waitFor: "0.5s"
 
   # Additional headers to be sent with each HTTP request
-  @customHeaders: {}
+  @headers: {}
 
   # Changes the browser options, and calls the function with a callback (reset).  When you're done processing, call the
   # reset function to bring options back to their previous values.

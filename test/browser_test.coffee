@@ -250,7 +250,8 @@ describe "Browser", ->
 
         before (done)->
           @browser = new Browser()
-          @browser.customHeaders = "x-custom-header": "dummy"
+          @browser.headers =
+            "x-custom-header": "dummy"
           @browser.visit "http://localhost:3003/browser/custom_headers", done
 
         it "should send the custom header to server", ->

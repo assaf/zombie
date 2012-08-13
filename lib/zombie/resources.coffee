@@ -247,8 +247,9 @@ class Resources extends Array
     jar = Request.jar()
 
     # Merge custom headers
-    for name, value of browser.customHeaders
-      headers[name] = value
+    if browser.headers
+      for name, value of browser.headers
+        headers[name] = value
 
     params = 
       method:         method

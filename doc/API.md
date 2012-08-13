@@ -36,6 +36,7 @@ You can use the following options:
 
 - `debug` -- Have Zombie report what it's doing.  Defaults to true if
   environment variable `DEBUG` is set.
+- `headers` -- Additional HTTP headers to be sent with each browser request.
 - `loadCSS` -- Loads external stylesheets.  Defaults to true.
 - `maxWait` -- Maximum wait time (when calling `visit`, `wait`, etc).  Defaults
   to 5 seconds.
@@ -52,9 +53,6 @@ You can use the following options:
 - `windowName` -- Sets the browser's window.name property; useful when an
   evaluated script tries to detect whether/where the window is embedded as an
   iframe. Defaults to "nodejs".
-- `customHeaders` -- Additional HTTP headers to be sent with each browser
-  request. Override any header previously set. Format is { header: value, ... }.
-  Defaults to {}.
 
 The proxy URL specifies the host and port of the proxy.  It also supports HTTP
 Basic authentication, for example:
