@@ -52,6 +52,9 @@ You can use the following options:
 - `windowName` -- Sets the browser's window.name property; useful when an
   evaluated script tries to detect whether/where the window is embedded as an
   iframe. Defaults to "nodejs".
+- `customHeaders` -- Additional HTTP headers to be sent with each browser
+  request. Override any header previously set. Format is { header: value, ... }.
+  Defaults to {}.
 
 The proxy URL specifies the host and port of the proxy.  It also supports HTTP
 Basic authentication, for example:

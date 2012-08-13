@@ -246,6 +246,10 @@ class Resources extends Array
     # We only use the JAR for response cookies
     jar = Request.jar()
 
+    # Merge custom headers
+    for name, value of browser.customHeaders
+      headers[name] = value
+
     params = 
       method:         method
       url:            url
