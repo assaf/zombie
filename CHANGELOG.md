@@ -2,23 +2,23 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 1.3.2 2012-06-05
+## Version 1.4.0 2012-08-12
 
 Support for browser custom headers ():
 
   browser.headers =
     "Accept-Language": "da, en-gb"
 
-Upgraded dependencies, tested with Node 0.8.6.
+browser.fork() now copies browser options (Jakub Kulhan).
 
 Share the same location instance between history stack entries (David Stendardi)
 
 Do not down-case file: URLs.
 
-browser.fork() now copies browser options (Jakub Kulhan).
+Upgraded dependencies, tested with Node 0.8.6.
 
     540 tests
-    14.9 sec to complete
+    14.4 sec to complete
 
 
 ## Version 1.3.1 2012-06-05
