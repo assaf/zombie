@@ -2,6 +2,14 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 1.3.2 2012-06-05
+
+Upgraded dependencies, tested with Node 0.8.6.
+
+    537 tests
+    13.5 sec to complete
+
+
 ## Version 1.3.1 2012-06-05
 
 The `id`, `name` and `value` properties should be empty strings if the

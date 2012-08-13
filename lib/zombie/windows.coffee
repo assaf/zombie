@@ -247,7 +247,7 @@ class Windows
         Windows.inContext = window # the current window, postMessage needs this
         if typeof code == "string" || code instanceof String
           global.run code, filename
-        else
+        else if code
           code.call global
       finally
         Windows.inContext = null

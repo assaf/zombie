@@ -22,21 +22,21 @@
   "dependencies": {
     "eventsource":      "~0.0.5",
     "html5":            "~0.3.8",
-    "jsdom":            "=0.2.14",
-    "mime":             "~1.2.5",
+    "jsdom":            "~0.2.15",
+    "mime":             "~1.2.7",
     "ms":               "~0.1.0",
-    "q":                "~0.8.4",
-    "request":          "~2.9.202",
+    "q":                "~0.8.6",
+    "request":          "~2.10.0",
     "tough-cookie":     "~0.9.13",
-    "ws":               "~0.4.14"
+    "ws":               "~0.4.21"
   },
   "devDependencies": {
-    "coffee-script":    "~1.3.1",
+    "coffee-script":    "~1.3.3",
     "docco":            "~0.3.0",
-    "express":          "~2.5.9",
+    "express":          "~2.5.11",
     "highlight":        "~0.2.2",
-    "mocha":            "~1.0.3",
-    "replay":           "~1.5.0",
+    "mocha":            "~1.3.2",
+    "replay":           "~1.5.3",
     "ronn":             "~0.3.8"
   },
   "repository": {
