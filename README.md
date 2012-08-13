@@ -74,7 +74,7 @@ for detailed instructions and troubleshooting.
 ## Walking
 
 To start off we're going to need a browser.  A browser maintains state across
-requests: history, cookies, HTML 5 local and session stroage, etc.  A browser
+requests: history, cookies, HTML5 local and session stroage, etc.  A browser
 has a main window, and typically a document loaded into that window.
 
 You can create a new `Browser` and point it at a document, either by setting the
@@ -99,12 +99,12 @@ and in fact can access them as `browser.statusCode` and `browser.errors`.
 
 (Why would the first callback argument be `null`?  It works great when using
 asynchronous testing frameworks like
-[Mocha](http://visionmedia.github.com/mocha/))
+[Mocha](http://visionmedia.github.com/mocha/).)
 
 
 Zombie also supports promises.  When you call functions like `visit`, `wait` or
 `clickLink` without a callback, you get a
-(promise)[http://documentup.com/kriskowal/q/#tutorial].  After the browser is
+[promise](http://documentup.com/kriskowal/q/#tutorial).  After the browser is
 done processing, it either fulfills or rejects the promise.
 
 For example:
@@ -214,7 +214,7 @@ API](http://www.w3.org/DOM/DOMTR), or several of the convenience functions we're
 going to cover next.
 
 To click a link on the page, use `clickLink` with selector and callback.  The
-first argument can be a CSS selector (see _Hunting_), the `A` element, or the
+first argument can be a CSS selector (see _[Hunting](#hunting)_), the `A` element, or the
 text contents of the `A` element you want to click.
 
 The second argument is a callback, which much like the `visit` callback gets
@@ -241,7 +241,7 @@ element, the field name (its `name` attribute), or the text that shows on the
 label associated with that field.
 
 Zombie.js supports text fields, password fields, text areas, and also the new
-HTML 5 fields types like email, search and url.
+HTML5 fields types like email, search and url.
 
 The `fill` function returns a reference to the browser, so you can chain several
 functions together.  Its sibling functions `check` and `uncheck` (for check
