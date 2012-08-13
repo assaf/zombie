@@ -24,7 +24,15 @@ class Entry
     @update url
 
   update: (url)->
-    @url = URL.parse(URL.format(url))
+    # Do not allow URL to down-case file URLs
+    if /^file:/i.test(url)
+      @url =
+        protocol: "file:"
+        hostname: ""
+        pathname: url.slice(6)
+        href:     url
+    else
+      @url = URL.parse(URL.format(url))
 
 
 # ## window.history
@@ -93,10 +101,6 @@ class History
         headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
         referer = @_stack[@_index-1]?.url?.href || @_browser.referer
         headers["referer"] = referer if referer
-
-        Path = require("path")
-        if url.protocol == "file:"
-          url = URL.format(protocol: "file:", host: "", pathname: "/#{url.hostname}#{url.pathname}")
 
         # Proceeed to load resource ...
         method = (method || "GET").toUpperCase()
@@ -236,7 +240,11 @@ class History
   # Resolve URL based on current page URL.
   _resolve: (url)->
     if url
-      return URL.resolve(@_stack[@_index]?.url, url)
+      # URL.resolve() down cases file URLs, and we don't want that
+      if /^\w+:/i.test(url)
+        return url
+      else
+        return URL.resolve(@_stack[@_index]?.url, url)
     else # Yes, this could happen
       return @_stack[@_index]?.url
 

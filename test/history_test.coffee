@@ -5,9 +5,7 @@ URL   = require("url")
 
 describe "History", ->
 
-  # On OS X path probably starts with /Users, but as URL the first component
-  # ends up as the hostname (stupid), which gets lowered case to /user.
-  file_url = "file://#{__dirname.toLowerCase()}/data/index.html"
+  file_url = "file://#{__dirname}/data/index.html"
 
 
   before (done)->
@@ -201,7 +199,7 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal @browser.history.length, 1
       it "should change location URL", ->
-        assert.equal @browser.location, file_url
+        assert.equal @browser.location.href, file_url
       it "should load document", ->
         assert ~@browser.html("title").indexOf("Insanely fast, headless full-stack testing using Node.js")
       it "should set window location", ->
