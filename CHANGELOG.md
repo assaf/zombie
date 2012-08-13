@@ -6,6 +6,8 @@ zombie.js-changelog(7) -- Changelog
 
 Upgraded dependencies, tested with Node 0.8.6.
 
+Share the same location instance between history stack entries (David Stendardi)
+
     537 tests
     13.5 sec to complete
 
