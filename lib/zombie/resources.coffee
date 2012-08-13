@@ -246,7 +246,7 @@ class Resources extends Array
     # We only use the JAR for response cookies
     jar = Request.jar()
 
-    # Merge custom headers
+    # Merge custom headers. Do this last, so you can over-ride any header.
     if browser.headers
       for name, value of browser.headers
         headers[name] = value
