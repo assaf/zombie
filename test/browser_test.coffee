@@ -513,6 +513,19 @@ describe "Browser", ->
     it "should have two browser objects", ->
       assert @forked && @browser
       assert @browser != @forked
+    it "should use same options", ->
+      assert.equal @browser.debug, @forked.debug
+      assert.equal @browser.htmlParser, @forked.htmlParser
+      assert.equal @browser.loadCSS, @forked.loadCSS
+      assert.equal @browser.maxWait, @forked.maxWait
+      assert.equal @browser.proxy, @forked.proxy
+      assert.equal @browser.referer, @forked.referer
+      assert.equal @browser.runScripts, @forked.runScripts
+      assert.equal @browser.silent, @forked.silent
+      assert.equal @browser.site, @forked.site
+      assert.equal @browser.userAgent, @forked.userAgent
+      assert.equal @browser.waitFor, @forked.waitFor
+      assert.equal @browser.name, @forked.name
     it "should navigate independently", ->
       assert.equal @browser.location.href, "http://localhost:3003/browser/living"
       assert.equal @forked.location, "http://localhost:3003/browser/dead"
