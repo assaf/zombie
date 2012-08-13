@@ -10,6 +10,8 @@ Share the same location instance between history stack entries (David Stendardi)
 
 Do not down-case file: URLs.
 
+browser.fork() now copies browser options (Jakub Kulhan).
+
     537 tests
     13.5 sec to complete
 
