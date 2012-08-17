@@ -22,7 +22,7 @@ class EventLoop
     # Prevent any existing timers from firing.
     if @_timers
       for timer in @_timers
-        global.clearTimeout timer.handle
+        timer.stop()
     @_timers = []
   
   # Add event-loop features to window (mainly timers).
