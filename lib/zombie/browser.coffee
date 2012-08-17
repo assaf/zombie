@@ -85,7 +85,6 @@ class Browser extends EventEmitter
     @_storages.clear()
     @resources.clear()
     @windows.destroyAll()
-    console.info 'info: ===== destroyed browser ====='
 
   # Global options
   # -------
