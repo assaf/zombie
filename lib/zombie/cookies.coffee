@@ -96,6 +96,10 @@ class Cookies
   constructor: ->
     @_cookies = []
 
+  # Removes all cookies.
+  clear: ->
+    @_cookies = []
+
   # Creates and returns cookie access scopes to given host/path.
   access: (hostname, pathname)->
     return new Access(this, hostname, pathname)

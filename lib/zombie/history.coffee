@@ -105,6 +105,8 @@ class History
         # Proceeed to load resource ...
         method = (method || "GET").toUpperCase()
         @_browser.resources.request method, url, data, headers, (error, response)=>
+          # If window was destroyed already, skip this request
+          return if @_window._destroyed
           if error
             document = @_createDocument(@_window, url)
             document.open()

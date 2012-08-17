@@ -136,6 +136,11 @@ class Storages
     @_locals = {}
     @_sessions = {}
 
+  # Clears all storages
+  clear: ->
+    @_locals = {}
+    @_sessions = {}
+
   # Return local Storage based on the document origin (hostname/port).
   local: (host)->
     area = @_locals[host] ?= new StorageArea()

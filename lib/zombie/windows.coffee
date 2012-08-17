@@ -82,6 +82,19 @@ class Windows
   @prototype.__defineGetter__ "count", ->
     return @_stack.length
 
+  # Destroys all windows
+  destroyAll: ->
+    while (@count > 0)
+      @destroy @_current
+
+  # Destroys the specified window
+  destroy: (window)->
+    @close window
+    return if window._destroyed
+    # Destroy the window
+    window.dispose()
+    Object.defineProperty window, '_destroyed', value: true
+
   # Close the specified window (last window if unspecified)
   close: (window)->
     window = @_named[window] || @_stack[window] || window || @_current
@@ -127,7 +140,6 @@ class Windows
   # This actually handles creation of a new window.
   _create: (name, { parent, opener })->
     window = JSDOM.createWindow(HTML)
-    global = window.getGlobal()
 
     Object.defineProperty window, "browser", value: @_browser
     # Add event loop features (setInterval, dispatchEvent, etc)
@@ -139,15 +151,20 @@ class Windows
     Object.defineProperty window, "name", value: name || ""
     # If this is an iframe within a parent window
     if parent
-      Object.defineProperty window, "parent", value: parent.getGlobal()
-      Object.defineProperty window, "top", value: parent.top.getGlobal()
+      Object.defineProperty window, "parent", get: -> 
+        unless parent._destroyed then parent.getGlobal() else null
+      Object.defineProperty window, "top", get: -> 
+        unless parent.top._destroyed then parent.top.getGlobal() else null
     else
-      Object.defineProperty window, "parent", value: window.getGlobal()
-      Object.defineProperty window, "top", value: window.getGlobal()
+      Object.defineProperty window, "parent", get: -> 
+        unless window._destroyed then window.getGlobal() else null
+      Object.defineProperty window, "top", get: -> 
+        unless window._destroyed then window.getGlobal() else null
     # Each window maintains its own history
     Object.defineProperty window, "history", value: new History(window)
     # If this was opened from another window
-    Object.defineProperty window, "opener", value: opener?.getGlobal()
+    Object.defineProperty window, "opener", get: -> 
+      unless opener?._destroyed then opener?.getGlobal() else null
 
     # Window title is same as document title
     Object.defineProperty window, "title",
@@ -246,9 +263,9 @@ class Windows
       try
         Windows.inContext = window # the current window, postMessage needs this
         if typeof code == "string" || code instanceof String
-          global.run code, filename
+          this.getGlobal().run code, filename
         else if code
-          code.call global
+          code.call this.getGlobal()
       finally
         Windows.inContext = null
 

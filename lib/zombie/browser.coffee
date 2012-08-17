@@ -79,6 +79,13 @@ class Browser extends EventEmitter
     @resources = new Resources(this)
     @windows = new Windows(this)
 
+  destroy: () ->
+    @_cookies.clear()
+    @_eventloop.reset()
+    @_storages.clear()
+    @resources.clear()
+    @windows.destroyAll()
+    console.info 'info: ===== destroyed browser ====='
 
   # Global options
   # -------
