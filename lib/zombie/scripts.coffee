@@ -89,6 +89,7 @@ raise = ({ element, location, from, scope, error })->
   event.message = error.message
   event.error = error
   window.dispatchEvent event
+  element.ownerDocument.parentWindow.browser.emit('error', error)
   return
 
 
