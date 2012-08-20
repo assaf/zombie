@@ -501,6 +501,15 @@ describe "Browser", ->
             assert.equal @browser.windows.get(0).name, "nodejs"
             assert.equal @browser.window, @browser.windows.get(0)
 
+          describe "abd close browser", ->
+            before ->
+              assert.equal @browser.windows.all().length, 1
+              @browser.close()
+
+            it "should close all window", ->
+              assert.equal @browser.windows.all().length, 0
+
+
   describe "fork", ->
     before (done)->
       brains.get "/browser/living", (req, res)->

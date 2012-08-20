@@ -9,7 +9,11 @@ Support for browser custom headers ():
   browser.headers =
     "Accept-Language": "da, en-gb"
 
-browser.fork() now copies browser options (Jakub Kulhan).
+`browser.fork()` now copies browser options (Jakub Kulhan).
+
+Fixed `window.close()` to properly dispose of the context, and added
+`browser.close()` to properly close all windows and cleanup.  If you're running
+into memory issues, use either method.
 
 Share the same location instance between history stack entries (David Stendardi)
 

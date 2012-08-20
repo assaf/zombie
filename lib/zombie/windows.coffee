@@ -90,13 +90,16 @@ class Windows
     index = @_stack.indexOf(window)
     return unless index >= 0
   
-    # Set window's closed property to true
-    window.closed = true
+    # Make sure we only close the window (and dispose of its context) once
+    unless window.closed
+      window.closed = true
+      window._close()
 
     delete @_named[window.name]
     @_stack.splice(index, 1)
     # If we closed the currently open window, switch to the previous window.
     if window == @_current
+      @_current = null
       if index > 0
         @select @_stack[index - 1]
       else
@@ -261,6 +264,10 @@ class Windows
     window.open = (url, name, features)=>
       url = URL.resolve(window.location, url) if url
       return @open(url: url, name: name, opener: window)
+
+    # We need the JSDOM method that disposes of the context, but also over-ride
+    # with our method that checks permission and removes from windows list
+    window._close = window.close
 
     window.close = =>
       # Can only close a window opened from another window

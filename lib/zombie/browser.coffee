@@ -344,6 +344,13 @@ class Browser extends EventEmitter
   @prototype.__defineGetter__ "source", ->
     return @response?[2]
 
+  # ### close
+  #
+  # Close all windows, dispose of all resources. You want to call this if you're running out of memory.
+  close: ->
+    while @windows.current
+      @windows.close()
+
 
   # Navigation
   # ----------

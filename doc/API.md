@@ -77,6 +77,11 @@ For example:
     // Show the authentication credentials in use
     console.log(browser.authenticate().token)
 
+### browser.close()
+
+Close all windows, dispose of all resources. You want to call this if you're
+running out of memory.
+
 ### browser.error : Error
 
 Returns the last error reported while loading this window.
