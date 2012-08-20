@@ -17,6 +17,8 @@ Do not down-case file: URLs.
 
 Upgraded dependencies, tested with Node 0.8.6.
 
+Fail if Contextify module not available.
+
     540 tests
     14.4 sec to complete
 

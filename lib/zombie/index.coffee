@@ -2,6 +2,12 @@ Util    = require("util")
 Browser = require("./browser")
 
 
+try
+  Contextify = require("jsdom/node_modules/contextify")
+catch ex
+  throw new LoadError("Zombie will not run correctly without the Contextify module")
+
+
 # ### zombie.visit(url, callback)
 # ### zombie.visit(url, options, callback)
 #
