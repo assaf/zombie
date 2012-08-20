@@ -15,9 +15,13 @@ Share the same location instance between history stack entries (David Stendardi)
 
 Do not down-case file: URLs.
 
+Implement Node.contains (Dave Dopson).
+
 Upgraded dependencies, tested with Node 0.8.6.
 
 Fail if Contextify module not available.
+
+
 
     540 tests
     14.4 sec to complete
