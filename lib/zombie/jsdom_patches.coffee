@@ -1,5 +1,7 @@
 # Fix things that JSDOM doesn't do quite right.
-createSizzle  = require("../../node_modules/jsdom/lib/jsdom/selectors/sizzle")
+Path          = require("path")
+sizzle = Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/sizzle")
+createSizzle  = require(sizzle)
 HTML          = require("jsdom").dom.level3.html
 URL           = require("url")
 

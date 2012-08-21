@@ -2,7 +2,7 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 1.4.0 2012-08-12
+## Version 1.4.0 2012-08-20
 
 Support for browser custom headers ():
 
@@ -25,10 +25,8 @@ Upgraded dependencies, tested with Node 0.8.6, jQuery 1.8.0, require.js 2.0.6.
 
 Fail if Contextify module not available.
 
-
-
-    540 tests
-    14.4 sec to complete
+    549 tests
+    14.5 sec to complete
 
 
 ## Version 1.3.1 2012-06-05
