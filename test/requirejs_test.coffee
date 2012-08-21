@@ -8,7 +8,7 @@ describe "require.js", ->
       res.send """
       <html>
         <head>
-          <script data-main="/requirejs/index" src="/scripts/require-js-2.0.1.js"></script>
+          <script data-main="/requirejs/index" src="/scripts/require.js"></script>
         </head>
         <body>
         </body>

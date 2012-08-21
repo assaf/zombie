@@ -1,5 +1,6 @@
-Express   = require("express")
-File      = require("fs")
+Express = require("express")
+File    = require("fs")
+Path    = require("path")
 
 
 # An express server we use to test the browser.
@@ -24,6 +25,10 @@ brains.get "/jquery.js", (req, res)->
 brains.get "/jquery-:version.js", (req, res)->
   version = req.params.version
   File.readFile "#{__dirname}/../scripts/jquery-#{version}.js", (err, data)->
+    res.send data
+brains.get "/scripts/require.js", (req, res)->
+  file = Path.resolve(require.resolve("requirejs"), "../../require.js")
+  File.readFile file, (err, data)->
     res.send data
 brains.get "/scripts/*", (req, res)->
   File.readFile "#{__dirname}/../scripts/#{req.params}", (err, data)->

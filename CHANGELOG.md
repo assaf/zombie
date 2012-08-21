@@ -21,7 +21,7 @@ Do not down-case file: URLs.
 
 Implement Node.contains (Dave Dopson).
 
-Upgraded dependencies, tested with Node 0.8.6, jQuery 1.8.0.
+Upgraded dependencies, tested with Node 0.8.6, jQuery 1.8.0, require.js 2.0.6.
 
 Fail if Contextify module not available.
 
