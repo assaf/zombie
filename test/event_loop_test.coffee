@@ -104,18 +104,33 @@ describe "EventLoop", ->
             @browser.window.setTimeout (-> @document.title += "3"), 300
             return
           .then =>
-            @browser.wait 120
+            @browser.wait 120 # wait long enough to fire no. 1
           .then =>
             deferred = Q.defer()
+            # Pause for 300 seconds, nothing fires
             setTimeout =>
-              @browser.wait(120)
-                .then(deferred.resolve)
+              # wait long enough to fire no. 2, not long enough to fire no. 3
+              @browser.wait(120).then(deferred.resolve)
             , 300
             return deferred.promise
           .finally(done)
 
       it "should not fire", ->
         assert.equal @browser.document.title, "12"
+
+    describe "zero wait", ->
+      before (done)->
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/eventloop/timeout", =>
+          @browser.window.setTimeout ->
+            @document.title += " Two"
+          , 0
+          @browser.wait =>
+            @title = @browser.document.title
+            done()
+
+      it "should wait for event to fire", ->
+        assert.equal @title, "One Two"
 
 
   describe "setInterval", ->
@@ -156,11 +171,13 @@ describe "EventLoop", ->
         @browser = new Browser()
         @browser.visit("http://localhost:3003/eventloop/interval")
           .then =>
+            # Fire every 100 ms
             @browser.window.setInterval ->
               @document.title += "."
             , 100
             return
           .then =>
+            # Only wait for first 3 events
             @browser.wait(350)
           .then(done, done)
 

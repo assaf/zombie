@@ -19,11 +19,16 @@ Share the same location instance between history stack entries (David Stendardi)
 
 Do not down-case file: URLs.
 
-Implement Node.contains (Dave Dopson).
+Implemented `Node.contains` (Dave Dopson).
+
+Setting `element.style.width` now reflected in value of `element.clientWidth`
+and `element.offsetWidth` (and same for height).
 
 Upgraded dependencies, tested with Node 0.8.6, jQuery 1.8.0, require.js 2.0.6.
 
 Fail if Contextify module not available.
+
+Fixed edge case where timers may fire after `browser.wait` returns.
 
     549 tests
     14.5 sec to complete

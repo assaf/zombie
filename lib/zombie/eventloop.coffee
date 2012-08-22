@@ -27,74 +27,88 @@ class EventLoop
   
   # Add event-loop features to window (mainly timers).
   apply: (window)->
-    # Excecute function or evaluate string.  Scope is used for error messages, to distinguish between timeout and
-    # interval.
-    execute = (scope, code, notice)=>
-      @_browser.log notice
-      window._evaluate code
-      @_next()
+    # Remove timer.
+    remove = (timer)=>
+      # Make sure we don't resume it
+      timer.next = null
+      index = @_timers.indexOf(timer)
+      @_timers.splice(index, 1) if ~index
 
     # Add new timeout.  If the timeout is short enough, we ask `wait` to automatically wait for it to fire, by storing
     # the time in `timer.next`.  We need to clear `next` after the timer fires or when cancelled.
     window.setTimeout = (fn, delay)=>
-      delay = Math.max(delay || 0, 1) # zero won't work, see below
+      return unless fn
+      index = EventLoop.timer = (EventLoop.timer || 0) + 1
       timer =
-        # Start timer, but only schedule it during browser.wait.
-        start: =>
-          timer.next = Date.now() + delay
-          if @_waiting.length > 0
-            timer.resume()
-        # Resume timer when entering browser.wait.
-        resume: ->
-          if timer.next
-            timer.next = Date.now() + delay
-            timer.handle = global.setTimeout(=>
-              delete timer.next
-              execute "Timeout", fn, "Firing timeout after #{delay}ms delay"
-            , timer.next - Date.now())
-        # Pause timer when leaving browser.wait.
-        pause: ->
+        handle: null
+        timeout: true
+        # Resume timer: when created, and when entering browser.wait again.
+        resume: =>
+          return if timer.handle
+          timer.next = Date.now() + Math.max(delay || 0, 0)
           delay = timer.next - Date.now()
+          if delay <= 0
+            @perform (done)=>
+              remove(timer)
+              process.nextTick =>
+                @_browser.log "Firing timeout after #{delay}ms delay"
+                window._evaluate fn
+                done()
+          else
+            timer.handle = global.setTimeout(=>
+              @perform (done)=>
+                remove(timer)
+                @_browser.log "Firing timeout after #{delay}ms delay"
+                window._evaluate fn
+                done()
+            , delay)
+
+        pause: ->
+          # Pause timer when leaving browser.wait.  Reset remaining delay so we
+          # start fresh on next browser.wait.
           global.clearTimeout(timer.handle)
-        # Cancel (clear) timer.
+          timer.handle = null
+          delay = timer.next - Date.now()
         stop: ->
-          timer.pause()
-          delete timer.next
-      timer.start()
+          global.clearTimeout(timer.handle)
+          remove(timer)
+      # Add timer and start the clock.
       @_timers.push timer
+      timer.resume()
       return timer
 
-    window.setInterval = (fn, interval)=>
+    window.setInterval = (fn, interval = 0)=>
+      return unless fn
       timer =
-        # Start timer, but only schedule it during browser.wait.
-        start: =>
-          timer.next = true
-          if @_waiting.length > 0
-            timer.resume()
-        # Resume timer when entering browser.wait.
-        resume: ->
-          if timer.next
-            timer.handle = global.setInterval(=>
+        handle: null
+        interval: true
+        resume: => # Resume timer when entering browser.wait.
+          return if timer.handle
+          timer.next = Date.now() + interval
+          timer.handle = global.setInterval(=>
+            @perform (done)=>
               timer.next = Date.now() + interval
-              execute "Interval", fn, "Firing interval every #{interval}ms"
-            , interval)
-            timer.next = Date.now() + interval
-        # Pause timer when leaving browser.wait.
-        pause: ->
+              @_browser.log "Firing interval every #{interval}ms"
+              window._evaluate fn
+              done()
+          , interval)
+        pause: -> # Pause timer when leaving browser.wait.
+          # Pause timer when leaving browser.wait.  Reset remaining delay so we
           global.clearInterval(timer.handle)
-        # Cancel (clear) timer.
+          timer.handle = null
         stop: ->
-          timer.pause()
-          delete timer.next
-      timer.start()
+          global.clearInterval(timer.handle)
+          remove(timer)
+      # Add timer and start the clock.
       @_timers.push timer
+      timer.resume()
       return timer
 
     window.clearTimeout = (timer)->
-      if timer && timer.stop && timer.next
+      if timer && timer.timeout && timer.stop
         timer.stop()
     window.clearInterval = (timer)->
-      if timer && timer.stop && timer.next
+      if timer && timer.interval && timer.stop
         timer.stop()
 
 
@@ -180,7 +194,7 @@ class EventLoop
         return
 
       # not done and no events, so wait for the next timer.
-      timers = (timer.next for timer in @_timers when timer.next)
+      timers = (timer.next for timer in @_timers)
       next = Math.min(timers...)
       # if there are no timers, next is infinity, larger then done_at, no waiting
       if next > done_at
