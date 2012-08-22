@@ -8,8 +8,6 @@ URL           = require("url")
 
 HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
 HTML.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
-HTML.HTMLElement.prototype.__defineGetter__ "offsetWidth",  -> 100
-HTML.HTMLElement.prototype.__defineGetter__ "offsetHeight", -> 100
 
 
 original = HTML.Element.prototype.setAttribute
@@ -164,6 +162,26 @@ Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
         @_opacity = opacity.toString()
     else
       delete @_opacity
+
+# Changing style.height/width affects clientHeight/Weight and offsetHeight/Width
+["height", "width"].forEach (prop)->
+  internal = "_#{prop}"
+  client = "client#{prop[0].toUpperCase()}#{prop.slice(1)}"
+  offset = "offset#{prop[0].toUpperCase()}#{prop.slice(1)}"
+  Object.defineProperty HTML.CSSStyleDeclaration.prototype, prop,
+    get: ->
+      return this[internal] || ""
+    set: (value)->
+      if /^\d+px$/.test(value)
+        this[internal] = value
+      else if !value
+        delete this[internal]
+  Object.defineProperty HTML.HTMLElement.prototype, client,
+    get: ->
+      return parseInt(this[internal] || 100)
+  Object.defineProperty HTML.HTMLElement.prototype, offset,
+    get: ->
+      return parseInt(this[internal] || 100)
 
 
 # textContent returns the textual content of nodes like text, comment,
