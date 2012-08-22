@@ -38,7 +38,6 @@ class EventLoop
     # the time in `timer.next`.  We need to clear `next` after the timer fires or when cancelled.
     window.setTimeout = (fn, delay)=>
       return unless fn
-      index = EventLoop.timer = (EventLoop.timer || 0) + 1
       timer =
         handle: null
         timeout: true
@@ -46,11 +45,10 @@ class EventLoop
         resume: =>
           return if timer.handle
           timer.next = Date.now() + Math.max(delay || 0, 0)
-          delay = timer.next - Date.now()
           if delay <= 0
             @perform (done)=>
-              remove(timer)
               process.nextTick =>
+                remove(timer)
                 @_browser.log "Firing timeout after #{delay}ms delay"
                 window._evaluate fn
                 done()
@@ -130,7 +128,10 @@ class EventLoop
   dispatch: (target, event)->
     preventDefault = false
     @perform (done)->
-      window = (target.ownerDocument || target.document).window
+      if target._evaluate 
+        window = target
+      else
+        window = (target.ownerDocument || target.document).window
       window._evaluate ->
         preventDefault = target.dispatchEvent(event)
       done()
