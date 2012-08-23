@@ -1,4 +1,4 @@
 --compilers coffee:coffee-script
---globals url
+--timeout 5s
 --reporter spec
 --growl
