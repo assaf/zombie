@@ -29,8 +29,6 @@ class EventLoop
   apply: (window)->
     # Remove timer.
     remove = (timer)=>
-      # Make sure we don't resume it
-      timer.next = null
       index = @_timers.indexOf(timer)
       @_timers.splice(index, 1) if ~index
 
@@ -46,6 +44,7 @@ class EventLoop
           return if timer.handle
           timer.next = Date.now() + Math.max(delay || 0, 0)
           if delay <= 0
+            # Something weird happens if we use setTimeout(fn, 0), seems that the timer never fires
             remove(timer)
             @perform (done)=>
               process.nextTick =>
@@ -210,16 +209,20 @@ class EventLoop
   _next: ->
     for waiting in @_waiting
       process.nextTick waiting
+    return
 
   # Pause any timers from firing while we're not listening.
   _pause: ->
-    for timer in @_timers when timer.next
+    for timer in @_timers
       timer.pause()
+    return
 
   # Resumes any timers.
   _resume: ->
-    for timer in @_timers when timer.next
+    # Note: timer.resume modifies _timers
+    for timer in @_timers.slice()
       timer.resume()
+    return
 
   dump: ->
     return [ "The time:   #{new Date}",

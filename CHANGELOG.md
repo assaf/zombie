@@ -2,7 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
-## Version 1.4.0 2012-08-20
+## Version 1.4.1 2012-08-22
+
+Fixed another timer edge case.
+
+    550 tests
+    14.5 sec to complete
+
+
+## Version 1.4.0 2012-08-22
 
 Support for browser custom headers ():
 
