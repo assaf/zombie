@@ -30,7 +30,7 @@ Fail if Contextify module not available.
 
 Fixed edge case where timers may fire after `browser.wait` returns.
 
-    549 tests
+    550 tests
     14.5 sec to complete
 
 

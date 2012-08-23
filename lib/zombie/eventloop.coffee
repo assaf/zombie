@@ -46,9 +46,9 @@ class EventLoop
           return if timer.handle
           timer.next = Date.now() + Math.max(delay || 0, 0)
           if delay <= 0
+            remove(timer)
             @perform (done)=>
               process.nextTick =>
-                remove(timer)
                 @_browser.log "Firing timeout after #{delay}ms delay"
                 window._evaluate fn
                 done()
