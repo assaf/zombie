@@ -40,6 +40,7 @@ You can use the following options:
 - `loadCSS` -- Loads external stylesheets.  Defaults to true.
 - `maxWait` -- Maximum wait time (when calling `visit`, `wait`, etc).  Defaults
   to 5 seconds.
+- `maxRedirects` -- Tells the browser how many redirects to follow before aborting a request. Defaults to 5
 - `proxy` -- Proxy URL.
 - `runScripts` -- Run scripts included in or loaded from the page.  Defaults to
   true.
