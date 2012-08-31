@@ -193,7 +193,7 @@ HTML.Document.prototype._elementBuilders["button"] = (doc, s)->
 
 # The element in focus.
 HTML.HTMLDocument.prototype.__defineGetter__ "activeElement", ->
-  return document._focused
+  @parentWindow.document._focused
 
 # Change the current element in focus
 focus = (document, element)->
