@@ -285,8 +285,8 @@ class Resources extends Array
       if redirect
         # Handle redirection, make sure we're not caught in an infinite loop
         ++resource.redirects
-        if resource.redirects > 5
-          callback new Error("More than five redirects, giving up")
+        if resource.redirects > browser.maxRedirects
+          callback new Error("More than " + browser.maxRedirects + " redirects, giving up")
           return
 
         # This URL is the referer, make a request to the next URL
