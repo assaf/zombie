@@ -756,7 +756,7 @@ class Browser extends EventEmitter
   #
   # Returns the element in focus.
   focused: ->
-    return @window._focused
+    return @window.document._focused
 
 
   # Cookies and storage
