@@ -263,7 +263,7 @@ class Resources extends Array
 
     Request params, (error, response)=>
       if error
-        browser.log -> "#{method} #{URL.format(url).slice("#")[0]} => #{error.message}"
+        browser.log -> "#{method} #{URL.format(url).split("#")[0]} => #{error.message}"
         callback error
         return
 
