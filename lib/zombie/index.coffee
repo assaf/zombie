@@ -8,7 +8,7 @@ try
   contextify = Path.resolve(require.resolve("jsdom"), "../../node_modules/contextify")
   require contextify
 catch ex
-  throw new Error("Zombie will not run correctly without the Contextify module")
+  throw new Error("To use Zombie, Contextify must be installed as a dependency of JSDOM (not Zombie itself)")
 
 
 # ### zombie.visit(url, callback)
