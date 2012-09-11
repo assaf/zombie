@@ -44,45 +44,43 @@ describe "Facebook Connect", ->
 
     brains.ready done
 
-  describe "initial", ->
+  before (done)->
+    @browser = new Browser()
+    @browser.visit("http://localhost:3003/facebook")
+      .then =>
+        @browser.clickLink "Connect"
+      .then(done, done)
 
+  it "should show FB Connect login form", ->
+    assert @browser.query(".login_form_container #loginform")
+
+  describe "login", ->
     before (done)->
-      @browser = new Browser()
-      @browser.visit("http://localhost:3003/facebook")
-        .then =>
-          @browser.clickLink "Connect"
+      @browser.fill("email", "---").fill("pass", "---")
+      @browser.pressButton("login")
         .then(done, done)
 
-    it "should show FB Connect login form", ->
-      assert @browser.query(".login_form_container #loginform")
+    it "should show permission dialog", ->
+      assert button = @browser.query("#platform_dialog_content #grant_clicked input")
+      assert.equal button.value, "Log In with Facebook"
 
-    describe "login", ->
+    describe "authorize", ->
       before (done)->
-        @browser.fill("email", "---").fill("pass", "---")
-        @browser.pressButton("login")
+        # all.js sets a callback with a different ID on each run.  Our
+        # HTTP/S responses were captured with the callback ID f42febd2c.
+        # So we cheat by using this ID and linking it to whatver callback
+        # was registered last.
+        FB = @browser.windows.get(0).FB
+        for id, fn of FB.XD._callbacks
+          FB.XD._callbacks["f42febd2c"] = fn
+        @browser.pressButton("Log In with Facebook")
+          .then =>
+            # Go back to the first window
+            @browser.windows.close()
+            return
           .then(done, done)
 
-      it "should show permission dialog", ->
-        assert button = @browser.query("#platform_dialog_content #grant_clicked input")
-        assert.equal button.value, "Log In with Facebook"
-
-      describe "authorize", ->
-        before (done)->
-          # all.js sets a callback with a different ID on each run.  Our
-          # HTTP/S responses were captured with the callback ID f42febd2c.
-          # So we cheat by using this ID and linking it to whatver callback
-          # was registered last.
-          FB = @browser.windows.get(0).FB
-          for id, fn of FB.XD._callbacks
-            FB.XD._callbacks["f42febd2c"] = fn
-          @browser.pressButton("Log In with Facebook")
-            .then =>
-              # Go back to the first window
-              @browser.windows.close()
-              return
-            .then(done, done)
-
-        it "should log user in", ->
-          assert.equal @browser.window.connected.userID, "100001620738919"
-          assert @browser.window.connected.accessToken
+      it "should log user in", ->
+        assert.equal @browser.window.connected.userID, "100001620738919"
+        assert @browser.window.connected.accessToken
 

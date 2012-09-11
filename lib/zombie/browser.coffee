@@ -215,7 +215,7 @@ class Browser extends EventEmitter
   # callback - Wait for events to be processed, then call me (optional)
   fire: (name, target, callback)->
     type = if name in MOUSE_EVENT_NAMES then "MouseEvents" else "HTMLEvents"
-    event = @window.document.createEvent(type)
+    event = @document.createEvent(type)
     event.initEvent name, true, true
     @dispatchEvent target, event
     return @wait(callback)
@@ -250,6 +250,8 @@ class Browser extends EventEmitter
       context.querySelector(selector)
     else
       return context
+
+  # WebKit offers this.
   $$: (selector, context)->
     return @query(selector, context)
 
@@ -261,7 +263,7 @@ class Browser extends EventEmitter
   #
   # Returns an Element or null
   querySelector: (selector)->
-    return @window.document?.querySelector(selector)
+    return @document.querySelector(selector)
 
   # ### browser.querySelectorAll(selector) => NodeList
   #
@@ -271,7 +273,7 @@ class Browser extends EventEmitter
   #
   # Returns a NodeList or null
   querySelectorAll: (selector)->
-    return @window.document?.querySelectorAll(selector)
+    return @document.querySelectorAll(selector)
 
   # ### browser.text(selector, context?) => String
   #
@@ -315,13 +317,13 @@ class Browser extends EventEmitter
   #
   # Returns the main window's document. Only valid after opening a document (see `browser.open`).
   @prototype.__defineGetter__ "document", ->
-    return @window?.document
+    return @window.document
 
   # ### browser.body => Element
   #
   # Returns the body Element of the current document.
   @prototype.__defineGetter__ "body", ->
-    return @window.document?.querySelector("body")
+    return @document.querySelector("body")
 
   # ### browser.statusCode => Number
   #
@@ -756,7 +758,7 @@ class Browser extends EventEmitter
   #
   # Returns the element in focus.
   focused: ->
-    return @window.document._focused
+    return @document._focused
 
 
   # Cookies and storage
