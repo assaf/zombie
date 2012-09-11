@@ -1,5 +1,7 @@
-# An event loop.  Allows us to block waiting for asynchronous events (timers, XHR, script loading, etc).  This is
-# abstracted in the API as `browser.wait`.
+# The event loop.
+#
+# Each window has its own event loop, which tracks timeouts and intervals,
+# and incomplete asynchronous events (XHR, script loading, etc).
 
 
 ms  = require("ms")
@@ -9,28 +11,32 @@ URL = require("url")
 
 # Handles the Window event loop, timers and pending requests.
 class EventLoop
-  constructor: (@_browser)->
+
+  constructor: (@window)->
+    @browser = @window.browser
     # Size of processing queue (number of ongoing tasks).
-    @_processing = 0
+    @processing = 0
     # Requests on wait that cannot be handled yet: there's no event in the queue, but we anticipate one (in-progress XHR
     # request).
-    @_waiting = []
-    @_timers = []
+    @waiting = []
+    @timers = []
+    # Add setTimeout, setInterval, et al to window object
+    @apply(@window)
 
   # Reset the event loop (clearning any timers, etc) before using a new window.
   reset: ->
     # Prevent any existing timers from firing.
-    if @_timers
-      for timer in @_timers
+    if @timers
+      for timer in @timers
         global.clearTimeout timer.handle
-    @_timers = []
+    @timers = []
   
   # Add event-loop features to window (mainly timers).
   apply: (window)->
     # Remove timer.
     remove = (timer)=>
-      index = @_timers.indexOf(timer)
-      @_timers.splice(index, 1) if ~index
+      index = @timers.indexOf(timer)
+      @timers.splice(index, 1) if ~index
 
     # Add new timeout.  If the timeout is short enough, we ask `wait` to automatically wait for it to fire, by storing
     # the time in `timer.next`.  We need to clear `next` after the timer fires or when cancelled.
@@ -48,14 +54,14 @@ class EventLoop
             remove(timer)
             @perform (done)=>
               process.nextTick =>
-                @_browser.log "Firing timeout after #{delay}ms delay"
+                @browser.log "Firing timeout after #{delay}ms delay"
                 window._evaluate fn
                 done()
           else
             timer.handle = global.setTimeout(=>
               @perform (done)=>
                 remove(timer)
-                @_browser.log "Firing timeout after #{delay}ms delay"
+                @browser.log "Firing timeout after #{delay}ms delay"
                 window._evaluate fn
                 done()
             , delay)
@@ -70,7 +76,7 @@ class EventLoop
           global.clearTimeout(timer.handle)
           remove(timer)
       # Add timer and start the clock.
-      @_timers.push timer
+      @timers.push timer
       timer.resume()
       return timer
 
@@ -85,7 +91,7 @@ class EventLoop
           timer.handle = global.setInterval(=>
             @perform (done)=>
               timer.next = Date.now() + interval
-              @_browser.log "Firing interval every #{interval}ms"
+              @browser.log "Firing interval every #{interval}ms"
               window._evaluate fn
               done()
           , interval)
@@ -97,7 +103,7 @@ class EventLoop
           global.clearInterval(timer.handle)
           remove(timer)
       # Add timer and start the clock.
-      @_timers.push timer
+      @timers.push timer
       timer.resume()
       return timer
 
@@ -115,11 +121,11 @@ class EventLoop
   # be anything and is called synchronous with a `done` function; when it's done processing, it lets the event loop know
   # by calling the done function.
   perform: (fn)->
-    ++@_processing
+    ++@processing
     fn =>
-      --@_processing
-      if @_processing == 0
-        @_next()
+      --@processing
+      if @processing == 0
+        @next()
     return
 
   # Dispatch event asynchronously, wait for it to complete.  Returns true if
@@ -153,7 +159,7 @@ class EventLoop
       done_at = Infinity
     else
       unless duration && duration != 0
-        duration = @_browser.waitFor
+        duration = @browser.waitFor
       done_at = Date.now() + ms(duration || 0)
 
     # Called once at the end of the loop. Also, set to null when done, since
@@ -162,8 +168,8 @@ class EventLoop
       # Mark as done so we don't run it again.
       done = null
       # Remove from waiting list, pause timers if last waiting.
-      @_waiting = (fn for fn in @_waiting when fn != waiting)
-      @_pause() if @_waiting.length == 0
+      @waiting = (fn for fn in @waiting when fn != waiting)
+      @pause() if @waiting.length == 0
       if terminate
         clearTimeout(terminate)
 
@@ -172,19 +178,19 @@ class EventLoop
         process.nextTick ->
           callback error, window
       if error
-        @_browser.emit "error", error
+        @browser.emit "error", error
       else
-        @_browser.emit "done"
+        @browser.emit "done"
 
     # don't block forever
-    terminate = setTimeout(done, ms(@_browser.maxWait))
+    terminate = setTimeout(done, ms(@browser.maxWait))
 
     # Duration is a function, proceed until function returns false.
     waiting = =>
       # May be called multiple times from nextTick
       return unless done
       # Processing XHR/JS events, keep waiting.
-      return if @_processing > 0
+      return if @processing > 0
       try
         if is_done && is_done(window)
           done() # Yay
@@ -194,41 +200,42 @@ class EventLoop
         return
 
       # not done and no events, so wait for the next timer.
-      timers = (timer.next for timer in @_timers)
+      timers = (timer.next for timer in @timers)
       next = Math.min(timers...)
       # if there are no timers, next is infinity, larger then done_at, no waiting
       if next > done_at
         done()
 
     # No one is waiting, resume firing timers.
-    @_resume() if @_waiting.length == 0
-    @_waiting.push waiting
-    @_next()
+    @resume() if @waiting.length == 0
+    @waiting.push waiting
+    @next()
     return
 
-  _next: ->
-    for waiting in @_waiting
+  # Kick off all the waiting callbacks.
+  next: ->
+    for waiting in @waiting
       process.nextTick waiting
     return
 
   # Pause any timers from firing while we're not listening.
-  _pause: ->
-    for timer in @_timers
+  pause: ->
+    for timer in @timers
       timer.pause()
     return
 
   # Resumes any timers.
-  _resume: ->
+  resume: ->
     # Note: timer.resume modifies _timers
-    for timer in @_timers.slice()
+    for timer in @timers.slice()
       timer.resume()
     return
 
   dump: ->
     return [ "The time:   #{new Date}",
-             "Timers:     #{@_timers.length}",
-             "Processing: #{@_processing}",
-             "Waiting:    #{@_waiting.length}" ]
+             "Timers:     #{@timers.length}",
+             "Processing: #{@processing}",
+             "Waiting:    #{@waiting.length}" ]
 
 
 module.exports = EventLoop

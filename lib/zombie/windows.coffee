@@ -15,6 +15,7 @@
 
 
 Console     = require("./console")
+EventLoop   = require("./eventloop")
 History     = require("./history")
 JSDOM       = require("jsdom")
 HTML        = JSDOM.dom.level3.html
@@ -134,8 +135,7 @@ class Windows
 
     Object.defineProperty window, "browser", value: @_browser
     # Add event loop features (setInterval, dispatchEvent, etc)
-    eventloop = @_browser._eventloop
-    eventloop.apply window
+    Object.defineProperty window, "_eventloop", value: new EventLoop(window)
 
     # -- DOM Window features
 
@@ -226,7 +226,7 @@ class Windows
       origin = event.source.location
       event.origin = URL.format(protocol: origin.protocol, host: origin.host)
       process.nextTick ->
-        eventloop.dispatch window, event
+        window._eventloop.dispatch window, event
 
     # -- Focusing --
     

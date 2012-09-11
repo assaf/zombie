@@ -2,6 +2,7 @@ require "./jsdom_patches"
 require "./forms"
 require "./xpath"
 
+
 { deprecated }    = require("./helpers")
 Cache             = require("./cache")
 Cookies           = require("./cookies")
@@ -39,15 +40,14 @@ MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 
 # Use the browser to open up new windows and load documents.
 #
-# The browser maintains state for cookies and localStorage.
+# The browser maintains state for cookies and local storage.
 class Browser extends EventEmitter
   constructor: (options = {}) ->
-    @_cache = new Cache()
+    @cache = new Cache()
     @_cookies = new Cookies()
-    @_eventloop = new EventLoop(this)
     @_storages = new Storages()
     @_interact = Interact.use(this)
-    @_xhr = XHR.use(@_cache)
+    @_xhr = XHR.use()
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.
@@ -164,7 +164,7 @@ class Browser extends EventEmitter
 
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
-    @_eventloop.reset()
+    @window._eventloop.reset()
     @errors = []
     @resources.clear()
     return @windows.open(options || {})
@@ -195,7 +195,7 @@ class Browser extends EventEmitter
  
     deferred = Q.defer()
     last = @errors[@errors.length - 1]
-    @_eventloop.wait @window, duration, (error)=>
+    @window._eventloop.wait @window, duration, (error)=>
       newest = @errors[@errors.length - 1]
       unless error || last == newest
         error = newest
@@ -222,7 +222,7 @@ class Browser extends EventEmitter
 
   # Dispatch asynchronously.  Returns true if preventDefault was set.
   dispatchEvent: (target, event)->
-    return @_eventloop.dispatch(target, event)
+    return @window._eventloop.dispatch(target, event)
 
 
   # Accessors
@@ -905,7 +905,7 @@ class Browser extends EventEmitter
     process.stdout.write "History:\n#{indent @window.history.dump()}\n"
     process.stdout.write "Cookies:\n#{indent @_cookies.dump()}\n"
     process.stdout.write "Storage:\n#{indent @_storages.dump()}\n"
-    process.stdout.write "Eventloop:\n#{indent @_eventloop.dump()}\n"
+    process.stdout.write "Eventloop:\n#{indent @window._eventloop.dump()}\n"
     if @document
       html = @document.outerHTML
       html = html.slice(0, 497) + "..." if html.length > 497

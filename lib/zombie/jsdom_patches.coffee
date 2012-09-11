@@ -143,7 +143,7 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
       iframe.contentWindow.addEventListener "load", (event)->
         onload = parent.document.createEvent("HTMLEvents")
         onload.initEvent "load", false, false
-        parent.browser._eventloop.dispatch iframe, onload
+        parent._eventloop.dispatch iframe, onload
       HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
     else
       HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)
