@@ -2,6 +2,15 @@ zombie.js-changelog(7) -- Changelog
 ===================================
 
 
+## Version 2.0.0
+
+`console.log`, `console.error` and friends now emit a `console` event from the
+browser.  First argument is the output type (e.g. "log"), second is the
+formatted text.
+
+`console.error` and `console.assert` output to standard error (unless silent).
+
+
 ## Version 1.4.1 2012-08-22
 
 Fixed another timer edge case.

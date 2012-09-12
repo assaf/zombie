@@ -8,6 +8,7 @@ Cache             = require("./cache")
 Cookies           = require("./cookies")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
+{ format }        = require("util")
 FS                = require("fs")
 { HTML5 }         = require("html5")
 Interact          = require("./interact")
@@ -915,16 +916,14 @@ class Browser extends EventEmitter
   #     browser.log("Opening page:", url);
   #     browser.log(function() { return "Opening page: " + url });
   log: ->
-    if @debug
-      values = ["Zombie:"]
-      if typeof arguments[0] == "function"
-        try
-          values.push arguments[0]()
-        catch ex
-          values.push ex
-      else
-        values.push arg for arg in arguments
-      console.log.apply null, values
+    unless @debug
+      return
+    if typeof(arguments[0]) == "function"
+      args = [arguments[0]()]
+    else
+      args = arguments
+    process.stdout.write(format("Zombie:", args...))
+    process.stdout.write("\n")
 
   # Dump information to the consolt: Zombie version, current URL, history, cookies, event loop, etc.  Useful for
   # debugging and submitting error reports.

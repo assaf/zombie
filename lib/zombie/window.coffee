@@ -77,7 +77,7 @@ createWindow = ({ browser, name, parent, opener, url })->
       document.title = title
 
   Object.defineProperty window, "console",
-    value: new Console(browser.silent)
+    value: new Console(browser)
 
   # javaEnabled, present in browsers, not in spec Used by Google Analytics see
   # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled

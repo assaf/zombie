@@ -1,63 +1,81 @@
-Util = require("util")
+# Implements console.log, console.error, console.time, et al and emits a
+# console event for each output.
+
+
+{ format } = require("util")
 
 
 class Console
-  constructor: (@_silent)->
+  constructor: (@browser)->
 
-  assert: console.assert.bind(console)
+  assert: (expression)->
+    if expression
+      return
+    message = "Assertion failed:#{format("", Array.prototype.slice.call(arguments, 1)...)}"
+    @browser.emit("console", "assert", message)
+    unless @browser.silent
+      process.stderr.write(message + "\n")
+    throw new Error(message)
 
   count: (name)->
-    @_counters ||= {}
-    @_counters[name] ||= 0
-    @_counters[name]++
-    @log "#{name}: #{@_counters[name]}"
-
-  debug: ->
-    @log.apply(this, arguments)
-
-  error: ->
-    @log.apply(this, arguments)
+    @counters ||= {}
+    @counters[name] ||= 0
+    @counters[name]++
+    message = "#{name}: #{@counters[name]}"
+    @browser.emit("console", "count", message)
+    unless @browser.silent
+      process.stdout.write(message + "\n")
 
   group: ->
   groupCollapsed: ->
   groupEnd: ->
 
-  info: ->
-    @log.apply(this, arguments)
-
-  log: ->
-    formatted = ((if typeof arg == "string" then arg else Util.inspect(arg, console.showHidden, console.depth)) for arg in arguments)
-    if typeof Util.format == "function"
-      output = Util.format.apply(this, formatted) + "\n"
-    else
-      output = formatted.join(" ") + "\n"
-    @_output ||= []
-    @_output.push output
-    unless @_silent
-      process.stdout.write output
-
-  warn: ->
-    @log.apply(this, arguments)
-
   time: (name)->
-    @_timers ||= {}
-    @_timers[name] = Date.now()
+    @timers ||= {}
+    @timers[name] = Date.now()
 
   timeEnd: (name)->
-    return unless @_timers
-    start = @_timers[name]
+    return unless @timers
+    start = @timers[name]
     return unless start
-    delete @_timers[name]
-    @log "#{name}: #{Date.now() - start}ms"
+    delete @timers[name]
+    message = "#{name}: #{Date.now() - start}ms"
+    @browser.emit("console", "time", message)
+    unless @browser.silent
+      process.stdout.write(message + "\n")
 
   trace: ->
     stack = (new Error).stack.split("\n")
     stack[0] = "console.trace()"
-    @log stack.join("\n")
+    message = stack.join("\n")
+    @browser.emit("console", "trace", message)
+    unless @browser.silent
+      process.stdout.write(message + "\n")
 
-  # Returns all output captured by this console.
-  @prototype.__defineGetter__ "output", ->
-    return (if @_output then @_output.join("\n") else "")
+
+# info, log and warn all go to stdout unless browser.silent
+for level in ["info", "log", "warn"]
+  do (level)->
+    Console.prototype[level] = ->
+      message = format(arguments...)
+      @browser.emit("console", level, message)
+      unless @browser.silent
+        process.stdout.write(message + "\n")
+
+# error go to stderr unless browser.silent
+Console.prototype.error = ->
+  message = format(arguments...)
+  @browser.emit("console", "error", message)
+  unless @browser.silent
+    process.stderr.write(message + "\n")
+
+# debug go to stdout but only in debug mode
+Console.prototype.debug = ->
+  message = format(arguments...)
+  @browser.emit("console", "debug", message)
+  if @browser.debug && !@browser.silent
+    process.stdout.write(message + "\n")
 
 
 module.exports = Console
+
