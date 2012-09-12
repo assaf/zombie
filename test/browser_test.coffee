@@ -480,7 +480,7 @@ describe "Browser", ->
           @closed_window = @browser.window
           @browser.window.close()
 
-        it "should lose that window", ->
+        it "should close that window", ->
           assert.equal @browser.windows.all().length, 1
           assert.equal @browser.windows.get(0).name, "nodejs"
           assert !@browser.windows.get(1)

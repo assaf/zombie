@@ -56,6 +56,30 @@ class Browser extends EventEmitter
       @log error.message, error.stack
 
 
+    # Window becomes inactive
+    @on "active", (window)=>
+      onfocus = window.document.createEvent("HTMLEvents")
+      onfocus.initEvent("focus", false, false)
+      window.dispatchEvent(onfocus)
+      if window.document.activeElement
+        onfocus = window.document.createEvent("HTMLEvents")
+        onfocus.initEvent("focus", false, false)
+        window.document.activeElement.dispatchEvent(onfocus)
+
+    # Window becomes inactive
+    @on "inactive", (window)->
+      if window.document.activeElement
+        onblur = window.document.createEvent("HTMLEvents")
+        onblur.initEvent("blur", false, false)
+        window.document.activeElement.dispatchEvent(onblur)
+      onblur = window.document.createEvent("HTMLEvents")
+      onblur.initEvent("blur", false, false)
+      window.dispatchEvent(onblur)
+
+    # Window has been closed
+    @on "closed", (window)->
+
+
     # Default (not global) options
 
     # Send this referer.
@@ -194,7 +218,10 @@ class Browser extends EventEmitter
       [callback, duration] = [duration, null]
  
     deferred = Q.defer()
+    if callback
+      deferred.promise.then(callback, callback)
     last = @errors[@errors.length - 1]
+
     @window._eventloop.wait @window, duration, (error)=>
       newest = @errors[@errors.length - 1]
       unless error || last == newest
@@ -203,8 +230,6 @@ class Browser extends EventEmitter
         deferred.reject(error)
       else
         deferred.resolve()
-      if callback
-        callback(error)
     return deferred.promise unless callback
 
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
@@ -352,9 +377,12 @@ class Browser extends EventEmitter
   # ### close
   #
   # Close all windows, dispose of all resources. You want to call this if you're running out of memory.
-  close: ->
-    while @windows.current
-      @windows.close()
+  close: (window)->
+    if window
+      @windows.close(window)
+    else
+      while @windows.current
+        @windows.close()
 
 
   # Navigation

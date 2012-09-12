@@ -138,11 +138,8 @@ describe "Window", ->
         <html>
           <script>
             var props = [];
-
-            for (key in window.screen) {
+            for (key in window.screen)
               props.push(key + "=" + window.screen[key]);
-            }
-
             document.title = props.join(", ");
           </script>
         </html>

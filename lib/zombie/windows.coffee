@@ -14,15 +14,7 @@
 #   browser.windows.close()
 
 
-Console     = require("./console")
-EventLoop   = require("./eventloop")
-History     = require("./history")
-JSDOM       = require("jsdom")
-HTML        = JSDOM.dom.level3.html
-URL         = require("url")
-EventSource = require("eventsource")
-WebSocket   = require("ws")
-Events      = JSDOM.dom.level3.events
+createWindow = require("./window")
 
 
 class Windows
@@ -42,31 +34,26 @@ class Windows
   # opener - When opening one window from another
   # parent - Parent window (for frames)
   # url    - If specified, opens that document
-  open: (options = {})->
-    name = options.name || @_browser.name || ""
+  open: ({ name, opener, parent, url })->
+    name ||= @_browser.name || ""
+    create = =>
+      return createWindow(browser: @_browser, name: name, opener: opener, parent: parent, url: url)
+
     # If this is an iframe, create a named window but don't keep a reference
     # to it here. Let the document handle that,
-    if options.parent
-      window = @_create(name, options)
+    if parent
+      window = create()
     else
       # If window name is _blank, we always create a new window.
       # Otherwise, we return existing window and allow lookup by name.
       if name == "_blank"
-        window = @_create(name, options)
+        window = create()
       else
-        window = @_named[name] ||= @_create(name, options)
+        window = @_named[name] ||= create()
       @_stack.push window
 
-    # If caller supplies URL, use it.  If this is existing window, return
-    # without changing location (or contents).  Otherwise, start with empty
-    # document.
-    if options.url
-      window.location = options.url
-    else if !window.document
-      window.location = "about:blank"
-
     # If this is a top window, it becomes the current browser window
-    unless options.parent
+    unless parent
       @select window
     return window
 
@@ -93,209 +80,33 @@ class Windows
   
     # Make sure we only close the window (and dispose of its context) once
     unless window.closed
-      window.closed = true
-      window._close()
-
-    delete @_named[window.name]
-    @_stack.splice(index, 1)
-    # If we closed the currently open window, switch to the previous window.
-    if window == @_current
-      @_current = null
-      if index > 0
-        @select @_stack[index - 1]
-      else
-        @select @_stack[0]
+      window.close()
+      delete @_named[window.name]
+      @_stack.splice(index, 1)
+      # If we closed the currently open window, switch to the previous window.
+      if window == @_current
+        @_current = null
+        if index > 0
+          @select @_stack[index - 1]
+        else
+          @select @_stack[0]
     return
 
   # Select specified window as the current window.
   select: (window)->
     window = @_named[window] || @_stack[window] || window
     return unless ~@_stack.indexOf(window)
-    [previous, @_current] = [@_current, window]
-
-    if window.document && previous != window
-      # Fire onfocus and onblur event
-      onfocus = window.document.createEvent("HTMLEvents")
-      onfocus.initEvent "focus", false, false
-      window.dispatchEvent onfocus
-      if previous
-        onblur = window.document.createEvent("HTMLEvents")
-        onblur.initEvent "blur", false, false
-        previous.dispatchEvent onblur
+    if window != @_current
+      if @_current
+        @_browser.emit "inactive", @_current
+      @_current = window
+      @_browser.emit "active", window
     return
 
   # Returns the currently open window.
   @prototype.__defineGetter__ "current", ->
     return @_current
 
-  # This actually handles creation of a new window.
-  _create: (name, { parent, opener })->
-    window = JSDOM.createWindow(HTML)
-    global = window.getGlobal()
-
-    Object.defineProperty window, "browser", value: @_browser
-    # Add event loop features (setInterval, dispatchEvent, etc)
-    Object.defineProperty window, "_eventloop", value: new EventLoop(window)
-
-    # -- DOM Window features
-
-    Object.defineProperty window, "name", value: name || ""
-    # If this is an iframe within a parent window
-    if parent
-      Object.defineProperty window, "parent", value: parent.getGlobal()
-      Object.defineProperty window, "top", value: parent.top.getGlobal()
-    else
-      Object.defineProperty window, "parent", value: window.getGlobal()
-      Object.defineProperty window, "top", value: window.getGlobal()
-    # Each window maintains its own history
-    Object.defineProperty window, "history", value: new History(window)
-    # If this was opened from another window
-    Object.defineProperty window, "opener", value: opener?.getGlobal()
-
-    # Window title is same as document title
-    Object.defineProperty window, "title",
-      get: ->
-        return @document.title
-      set: (title)->
-        @document.title = title
-
-    # window`s have a closed property defaulting to false
-    window.closed = false
-
-    # javaEnabled, present in browsers, not in spec Used by Google Analytics see
-    # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
-    Object.defineProperties window.navigator,
-      cookieEnabled: { value: true }
-      javaEnabled:   { value: -> false }
-      plugins:       { value: [] }
-      vendor:        { value: "Zombie Industries" }
-   
-    # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
-    @_browser._cookies.extend window
-    @_browser._storages.extend window
-    @_browser._interact.extend window
-    @_browser._xhr.extend window
-
-    Object.defineProperties window,
-      File:           { value: File }
-      Event:          { value: Events.Event }
-      screen:         { value: new Screen() }
-      MouseEvent:     { value: Events.MouseEvent }
-      MutationEvent:  { value: Events.MutationEvent }
-      UIEvent:        { value: Events.UIEvent }
-
-    # Base-64 encoding/decoding
-    window.atob = (string)->
-      new Buffer(string, "base64").toString("utf8")
-    window.btoa = (string)->
-      new Buffer(string, "utf8").toString("base64")
-
-    # Constructor for EventSource, URL is relative to document's.
-    window.EventSource = (url)->
-      url = URL.resolve(window.location, url)
-      window.setInterval (->), 100 # We need this to trigger event loop
-      return new EventSource(url)
-
-    # Web sockets
-    window.WebSocket = (url, protocol)->
-      origin = "#{window.location.protocol}//#{window.location.host}"
-      return new WebSocket(url, origin: origin, protocol: protocol)
-
-    window.Image = (width, height)->
-      img = new HTML.HTMLImageElement(window.document)
-      img.width = width
-      img.height = height
-      return img
-    window.console = new Console(@_browser.silent)
-
-    window.resizeTo = (width, height)->
-      window.outerWidth = window.innerWidth = width
-      window.outerHeight = window.innerHeight = height
-    window.resizeBy = (width, height)->
-      window.resizeTo window.outerWidth + width,  window.outerHeight + height
-
-    # Help iframes talking with each other
-    window.postMessage = (data, targetOrigin)=>
-      document = window.document
-      return unless document # iframe not loaded
-      # Create the event now, but dispatch asynchronously
-      event = document.createEvent("MessageEvent")
-      event.initEvent "message", false, false
-      event.data = data
-      event.source = Windows.inContext
-      origin = event.source.location
-      event.origin = URL.format(protocol: origin.protocol, host: origin.host)
-      process.nextTick ->
-        window._eventloop.dispatch window, event
-
-    # -- Focusing --
-    
-    # If window goes in/out of focus, notify focused input field
-    window.addEventListener "focus", (event)->
-      if window.document.activeElement
-        onfocus = window.document.createEvent("HTMLEvents")
-        onfocus.initEvent "focus", false, false
-        window.document.activeElement.dispatchEvent onfocus
-    window.addEventListener "blur", (event)->
-      if window.document.activeElement
-        onblur = window.document.createEvent("HTMLEvents")
-        onblur.initEvent "blur", false, false
-        window.document.activeElement.dispatchEvent onblur
-
-    # -- JavaScript evaluation 
-
-    # Evaulate in context of window. This can be called with a script (String) or a function.
-    window._evaluate = (code, filename)->
-      try
-        Windows.inContext = window # the current window, postMessage needs this
-        if typeof code == "string" || code instanceof String
-          global.run code, filename
-        else if code
-          code.call global
-      finally
-        Windows.inContext = null
-
-    # Default onerror handler.
-    window.onerror = (event)=>
-      error = event.error || new Error("Error loading script")
-      @_browser.emit "error", error
-
-    # Open one window from another.
-    window.open = (url, name, features)=>
-      url = URL.resolve(window.location, url) if url
-      return @open(url: url, name: name, opener: window)
-
-    # We need the JSDOM method that disposes of the context, but also over-ride
-    # with our method that checks permission and removes from windows list
-    window._close = window.close
-
-    window.close = =>
-      # Can only close a window opened from another window
-      if opener
-        @close(window)
-      else
-        @_browser.log("Scripts may not close windows that were not opened by script")
-      return
-
-    return window
-
-
-class Screen
-  constructor: ->
-    @width = 1280
-    @height = 800
-    @left = 0
-    @top = 0
-
-  @prototype.__defineGetter__ "availLeft", -> 0
-  @prototype.__defineGetter__ "availTop", -> 0
-  @prototype.__defineGetter__ "availWidth", -> @width
-  @prototype.__defineGetter__ "availHeight", -> @height
-  @prototype.__defineGetter__ "colorDepth", -> 24
-  @prototype.__defineGetter__ "pixelDepth", -> 24
-
-
-class File
 
 
 module.exports = Windows

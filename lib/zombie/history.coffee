@@ -60,6 +60,9 @@ class History
         return @_location
       set: (url)=>
         @_assign @_resolve(url)
+    Object.defineProperty @_window.document, "URL",
+      get: =>
+        return @_window.location.href
 
   # Called when we switch to a new page with the URL of the old page.
   _pageChanged: (was)->
@@ -142,46 +145,7 @@ class History
 
   # Create an empty document, set it up and return it.
   _createDocument: (window, url)->
-    # Create new DOM Level 3 document, add features (load external resources,
-    # etc) and associate it with current document. From this point on the
-    # browser sees a new document, client register event handler for
-    # DOMContentLoaded/error.
-    jsdom_opts =
-      deferClose: true
-      features:
-        MutationEvents:           "2.0"
-        ProcessExternalResources: []
-        FetchExternalResources:   ["iframe"]
-      parser: @_browser.htmlParser
-      url:    URL.format(url)
-
-    # require("html5").HTML5
-    if @_browser.runScripts
-      jsdom_opts.features.ProcessExternalResources.push "script"
-      jsdom_opts.features.FetchExternalResources.push "script"
-    if @_browser.loadCSS
-      jsdom_opts.features.FetchExternalResources.push "css"
-
-    document = JSDOM.jsdom(null, HTML, jsdom_opts)
-
-    # Add support for running in-line scripts
-    if @_browser.runScripts
-      Scripts.addInlineScriptSupport document
-
-    # Associate window and document
-    window.document = document
-    document.window = document.parentWindow = window
-    # Set this to the same user agent that's loading this page
-    window.navigator.userAgent = @_browser.userAgent
-
-    # Fire onload event on window.
-    document.addEventListener "DOMContentLoaded", (event)=>
-      onload = document.createEvent("HTMLEvents")
-      onload.initEvent "load", false, false
-      window.dispatchEvent onload
-
-    return document
-
+    return window.document
 
 
   # ### history.forward()

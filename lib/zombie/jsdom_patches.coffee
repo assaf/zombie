@@ -1,6 +1,6 @@
 # Fix things that JSDOM doesn't do quite right.
 Path          = require("path")
-sizzle = Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/sizzle")
+sizzle        = Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/sizzle")
 createSizzle  = require(sizzle)
 HTML          = require("jsdom").dom.level3.html
 URL           = require("url")
@@ -111,12 +111,12 @@ HTML.resourceLoader.load = (element, href, callback)->
           url = URL.parse(href)
         else
           window = element.contentWindow
-          url = @resolve(window.parent.location, href)
+          url = HTML.resourceLoader.resolve(window.parent.location, href)
           loaded = (response, filename)->
             callback response.body, URL.parse(response.url).pathname
           window.browser.resources.get url, @enqueue(element, loaded, url.pathname)
       else
-        url = URL.parse(@resolve(document, href))
+        url = URL.parse(HTML.resourceLoader.resolve(document, href))
         loaded = (response, filename)->
           callback.call this, response.body, URL.parse(response.url).pathname
         window.browser.resources.get url, @enqueue(element, loaded, url.pathname)
