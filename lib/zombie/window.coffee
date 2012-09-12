@@ -37,10 +37,16 @@ createWindow = ({ browser, name, parent, opener, url })->
   Object.defineProperty window, "browser",
     value: browser
 
+  # -- Document --
+
   # Each window has its own document
   document = createDocument(browser)
-  window.document = document
-  document.window = document.parentWindow = window
+  Object.defineProperty window, "document",
+    value: document
+  Object.defineProperty document, "window",
+    value: window
+  Object.defineProperty document, "parentWindow",
+    value: parent || window
 
   # Each window has its own event loop
   Object.defineProperty window, "_eventloop",
@@ -179,7 +185,7 @@ createWindow = ({ browser, name, parent, opener, url })->
 
   # Open one window from another.
   window.open = (url, name, features)=>
-    url = URL.resolve(window.location, url) if url
+    url = url && URL.resolve(window.location, url)
     return browser.open(name: name, url: url, opener: window)
 
   # Indicates if window was closed
@@ -188,18 +194,17 @@ createWindow = ({ browser, name, parent, opener, url })->
 
   # We need the JSDOM method that disposes of the context, but also over-ride
   # with our method that checks permission and removes from windows list
-  internalClose = window.close.bind(window)
+  dispose = window.close.bind(window)
 
   # Actualy window.close checks who's attempting to close the window.
   window.close = ->
     # Only opener window can close window; any code that's not running from
     # within a window's context can also close window.
     if inContext == opener || inContext == null
-      unless closed
-        internalClose()
-        closed = true
-        browser.close(window)
-        browser.emit("closed", window)
+      browser.emit("inactive", window)
+      dispose()
+      closed = true
+      browser.emit("closed", window)
     else
       browser.log("Scripts may not close windows that were not opened by script")
     return

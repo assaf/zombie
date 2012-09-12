@@ -4,6 +4,10 @@ zombie.js-changelog(7) -- Changelog
 
 ## Version 2.0.0
 
+`browser.tabs` replaces `browser.windows`. Is now an array so you can access a
+tab directly (e.g. `browser.tabs[0]`), and also switch tabs more easily (e.g.
+`browser.tabs.current = 0`).
+
 `console.log`, `console.error` and friends now emit a `console` event from the
 browser.  First argument is the output type (e.g. "log"), second is the
 formatted text.

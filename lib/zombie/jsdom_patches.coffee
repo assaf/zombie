@@ -1,4 +1,5 @@
 # Fix things that JSDOM doesn't do quite right.
+createWindow  = require("./window")
 Path          = require("path")
 sizzle        = Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/sizzle")
 createSizzle  = require(sizzle)
@@ -130,7 +131,7 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
   Object.defineProperty iframe, "contentWindow", get: ->
     unless window
       # Need to bypass JSDOM's window/document creation and use ours
-      window = parent.browser.open(name: iframe.name, parent: parent)
+      window = createWindow(browser: parent.browser, name: iframe.name, parent: parent)
     return window
   Object.defineProperty iframe, "contentDocument", get: ->
     return window.document

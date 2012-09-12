@@ -19,14 +19,14 @@ Path              = require("path")
 Resources         = require("./resources")
 Storages          = require("./storage")
 URL               = require("url")
-Windows           = require("./windows")
+Tabs              = require("./tabs")
 XHR               = require("./xhr")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
-BROWSER_OPTIONS = ["debug", "headers", "htmlParser", "loadCSS", "maxWait", "proxy",
-                   "referer", "runScripts", "silent", "site", "userAgent",
-                   "waitFor", "name", "maxRedirects"]
+BROWSER_OPTIONS = ["debug", "headers", "htmlParser", "loadCSS", "maxWait", "name",
+                   "proxy", "referer", "runScripts", "silent", "site", "userAgent",
+                   "waitFor", "maxRedirects"]
 
 # Global options you can set on Browser and will be inherited by each new browser.
 GLOBAL_OPTIONS  = ["debug", "headers", "htmlParser", "loadCSS", "maxWait", "proxy",
@@ -50,6 +50,9 @@ class Browser extends EventEmitter
     @_interact = Interact.use(this)
     @_xhr = XHR.use()
 
+    Object.defineProperty this, "tabs",
+      value: new Tabs(this)
+
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.
     @on "error", (error)=>
@@ -62,17 +65,17 @@ class Browser extends EventEmitter
       onfocus = window.document.createEvent("HTMLEvents")
       onfocus.initEvent("focus", false, false)
       window.dispatchEvent(onfocus)
-      if window.document.activeElement
+      if active = window.document.activeElement
         onfocus = window.document.createEvent("HTMLEvents")
         onfocus.initEvent("focus", false, false)
-        window.document.activeElement.dispatchEvent(onfocus)
+        active.dispatchEvent(onfocus)
 
     # Window becomes inactive
     @on "inactive", (window)->
-      if window.document.activeElement
+      if active = window.document.activeElement
         onblur = window.document.createEvent("HTMLEvents")
         onblur.initEvent("blur", false, false)
-        window.document.activeElement.dispatchEvent(onblur)
+        active.dispatchEvent(onblur)
       onblur = window.document.createEvent("HTMLEvents")
       onblur.initEvent("blur", false, false)
       window.dispatchEvent(onblur)
@@ -102,7 +105,9 @@ class Browser extends EventEmitter
     @errors = []
 
     @resources = new Resources(this)
-    @windows = new Windows(this)
+
+    # Always start with one open tab/window
+    @tabs.open(name: @name)
 
 
   # Global options
@@ -185,14 +190,14 @@ class Browser extends EventEmitter
 
   # Returns the currently open window
   @prototype.__defineGetter__ "window", ->
-    return @windows.current
+    return @tabs.current
 
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
     @window._eventloop.reset()
     @errors = []
     @resources.clear()
-    return @windows.open(options || {})
+    return @tabs.open(options || {})
 
   # ### browser.error => Error
   #
@@ -377,13 +382,15 @@ class Browser extends EventEmitter
 
   # ### close
   #
-  # Close all windows, dispose of all resources. You want to call this if you're running out of memory.
+  # Close the currently open tab, or the tab opened to the specified window.
   close: (window)->
-    if window
-      @windows.close(window)
-    else
-      while @windows.current
-        @windows.close()
+    @tabs.close(window)
+
+  # ### done
+  #
+  # Close all windows, clean state. You're going to need to call this to free up memory.
+  done: ->
+    @tabs.closeAll()
 
 
   # Navigation

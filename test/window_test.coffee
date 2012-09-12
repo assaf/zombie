@@ -199,76 +199,6 @@ describe "Window", ->
       assert.equal window.btoa("Hello, world"), "SGVsbG8sIHdvcmxk"
 
 
-  # -- Opening/closing/switching windows --
-
-  describe "windows", ->
-
-    before ->
-      @browser = new Browser(name: "first")
-      @browser.open(name: "second")
-      @browser.open(name: "third")
-      assert.equal @browser.windows.count, 3
-      @windows = @browser.windows.all()
-
-    describe "select", ->
-      it "should pick window by name", ->
-        @browser.windows.select("second")
-        assert.equal @browser.window.name, "second"
-
-      it "should pick window by index", ->
-        @browser.windows.select(2)
-        assert.equal @browser.window.name, "third"
-
-      it "should be able to select specific window", ->
-        @browser.windows.select(@windows[0])
-        assert.equal @browser.window.name, "first"
-
-      it "should fire onfocus event", (done)->
-        @browser.windows.select @windows[0]
-        @windows[1].addEventListener "focus", ->
-          done()
-          done = null # will be called multiple times from other tests
-        @browser.windows.select @windows[1]
-
-      it "should fire onblur event", (done)->
-        @browser.windows.select @windows[0]
-        @windows[0].addEventListener "blur", ->
-          done()
-          done = null # will be called multiple times from other tests
-        @browser.windows.select @windows[2]
-
-
-    describe "close", ->
-      before ->
-        @browser.windows.select @windows[0]
-        @browser.windows.close(1)
-
-      it "should discard one window", ->
-        assert.equal @browser.windows.count, 2
-
-      it "should discard specified window", ->
-        assert.deepEqual @browser.windows.all().map((w)-> w.name), ["first", "third"]
-
-      it "should select previous window", ->
-        assert.equal @browser.window.name, "first"
-
-
-      describe "close first", ->
-        before ->
-          @windows[2].addEventListener "focus", =>
-            @onfocus = true
-          @browser.windows.close()
-
-        it "should close one window", ->
-          assert.equal @browser.windows.count, 1
-
-        it "should select next available window", ->
-          assert.equal @browser.window.name, "third"
-
-        it "should fire onfocus event", ->
-          assert @onfocus
-
-
   describe "onload", ->
     before (done)->
       brains.get "/windows/onload", (req, res)->
@@ -297,9 +227,9 @@ describe "Window", ->
       brains.ready done
 
     before (done)->
+      @browser = new Browser()
       @browser.visit "/windows/onload", (error)=>
-        @browser.clickLink "#das_link"
-        done(error)
+        @browser.clickLink "#das_link", done
 
     it "should fire when document is done loading", ->
       assert.equal @browser.text("body"), "1 clicks here"
