@@ -153,15 +153,15 @@ describe "IFrame", ->
       before (done)->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/iframe/top", =>
-          assert.equal @browser.windows.count, 1
+          assert.equal @browser.tabs.length, 1
           @browser.clickLink "blank", done
 
       it "should open link", ->
         assert.equal @browser.location.pathname, "/target/_blank"
 
       it "should open link in new window", ->
-        assert.equal @browser.windows.count, 2
-        assert.equal @browser.window, @browser.windows.get(1)
+        assert.equal @browser.tabs.length, 2
+        assert.equal @browser.window, @browser.tabs[1]
 
 
     describe "_top", ->
@@ -179,7 +179,7 @@ describe "IFrame", ->
         assert.equal @browser.location.pathname, "/target/_top"
 
       it "should open link in top window", ->
-        assert.equal @browser.windows.count, 1
+        assert.equal @browser.tabs.length, 1
 
 
     describe "_parent", ->
@@ -198,7 +198,7 @@ describe "IFrame", ->
 
       it "should open link in child window", ->
         assert.equal @browser.location.pathname, "/iframe/top"
-        assert.equal @browser.windows.count, 1
+        assert.equal @browser.tabs.length, 1
 
 
     describe "window", ->
@@ -215,10 +215,10 @@ describe "IFrame", ->
           assert.equal @browser.location.pathname, "/target/new-window"
 
         it "should open link in new window", ->
-          assert.equal @browser.windows.count, 2
+          assert.equal @browser.tabs.length, 2
 
         it "should select new window", ->
-          assert.equal @browser.windows.get(1), @browser.window
+          assert.equal @browser.tabs[1], @browser.window
 
 
       describe "existing", ->
@@ -237,8 +237,8 @@ describe "IFrame", ->
           assert.equal @browser.location.pathname, "/target/existing-window"
 
         it "should open link in existing window", ->
-          assert.equal @browser.windows.count, 2
+          assert.equal @browser.tabs.length, 2
 
         it "should select existing window", ->
-          assert.equal @browser.windows.get(0), @browser.window
+          assert.equal @browser.tabs[0], @browser.window
 

@@ -70,13 +70,13 @@ describe "Facebook Connect", ->
         # HTTP/S responses were captured with the callback ID f42febd2c.
         # So we cheat by using this ID and linking it to whatver callback
         # was registered last.
-        FB = @browser.windows.get(0).FB
+        FB = @browser.tabs[0].FB
         for id, fn of FB.XD._callbacks
           FB.XD._callbacks["f42febd2c"] = fn
         @browser.pressButton("Log In with Facebook")
           .then =>
             # Go back to the first window
-            @browser.windows.close()
+            @browser.close()
             return
           .then(done, done)
 
