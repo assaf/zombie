@@ -106,9 +106,6 @@ class Browser extends EventEmitter
 
     @resources = new Resources(this)
 
-    # Always start with one open tab/window
-    @tabs.open(name: @name)
-
 
   # Global options
   # -------
@@ -194,9 +191,9 @@ class Browser extends EventEmitter
 
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
-    @window._eventLoop.reset()
+    if @window
+      @window._eventLoop.reset()
     @errors = []
-    @resources.clear()
     return @tabs.open(options || {})
 
   # ### browser.error => Error
@@ -414,7 +411,11 @@ class Browser extends EventEmitter
     if site = @site
       site = "http://#{site}" unless /^(https?:|file:)/i.test(site)
       url = URL.resolve(site, URL.parse(URL.format(url)))
-    @window.history._assign url
+
+    if @window
+      @window.location = url
+    else
+      @tabs.open(name: @name, url: url)
     @wait duration, (error)=>
       reset_options()
       if error
@@ -461,19 +462,24 @@ class Browser extends EventEmitter
   #
   # Return the location of the current document (same as `window.location`).
   @prototype.__defineGetter__ "location", ->
-    return @window.location
+    if @window
+      return @window.location
   #
   # ### browser.location = url
   #
   # Changes document location, loads new document if necessary (same as setting `window.location`).
   @prototype.__defineSetter__ "location", (url)->
-    @window.location = url
+    if @window
+      @window.location = url
+    else
+      @tabs.open(name: @name, url: url)
 
   # ### browser.url => String
   #
   # Return the URL of the current document (same as `document.URL`).
   @prototype.__defineGetter__ "url", ->
-    return URL.format(@window.location)
+    if @window
+      return URL.format(@window.location)
 
   # ### browser.link(selector) : Element
   #

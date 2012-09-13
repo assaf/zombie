@@ -16,6 +16,9 @@ formatted text.
 
 `browser.url` returns the URL of the current document.
 
+New browser has no open window.  You need to call `visit`, `open` or set
+`location`.
+
 
 ## Version 1.4.1 2012-08-22
 

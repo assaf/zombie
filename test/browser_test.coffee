@@ -160,7 +160,7 @@ describe "Browser", ->
           browser = new Browser()
           browser.on "loaded", (@browser)=>
             done()
-          browser.window.location = "http://localhost:3003/browser/scripted"
+          browser.visit "http://localhost:3003/browser/scripted"
 
         it "should fire load event with browser", ->
           assert @browser.visit
@@ -170,7 +170,7 @@ describe "Browser", ->
         before (done)->
           browser = new Browser()
           browser.on "done", done
-          browser.window.location = "http://localhost:3003/browser/scripted"
+          browser.location = "http://localhost:3003/browser/scripted"
           browser.wait()
 
         it "should fire done event", ->
@@ -181,7 +181,7 @@ describe "Browser", ->
           browser = new Browser()
           browser.on "error", (@error)=>
             done()
-          browser.window.location = "http://localhost:3003/browser/errored"
+          browser.location = "http://localhost:3003/browser/errored"
 
         it "should fire onerror event with error", ->
           assert @error.message && @error.stack

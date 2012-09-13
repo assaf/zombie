@@ -13,7 +13,8 @@ describe "Tabs", ->
     brains.ready done
 
   before ->
-    @browser = new Browser(name: "first")
+    @browser = new Browser()
+    @browser.open(name: "first")
     @browser.open(name: "second")
     @browser.open(name: "third")
     @browser.open()
