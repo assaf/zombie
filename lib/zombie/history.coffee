@@ -40,11 +40,11 @@ class Entry
 # Represents window.history.
 class History
   constructor: (window)->
-    @_use window
     # History is a stack of Entry objects.
     @_stack = []
     @_index = 0
     @_location = new Location(this)
+    @_use window
 
     Object.defineProperty @, "current",
         get: =>
@@ -59,7 +59,7 @@ class History
       get: =>
         return @_location
       set: (url)=>
-        @_assign @_resolve(url)
+        @_assign(url)
     Object.defineProperty @_window.document, "URL",
       get: =>
         return @_window.location.href
@@ -107,7 +107,7 @@ class History
 
         # Proceeed to load resource ...
         method = (method || "GET").toUpperCase()
-        @_browser.resources.request method, url, data, headers, (error, response)=>
+        @_window._eventLoop.request method, url, data, headers, (error, response)=>
           if error
             document = @_createDocument(@_window, url)
             document.open()
@@ -146,7 +146,6 @@ class History
   # Create an empty document, set it up and return it.
   _createDocument: (window, url)->
     return window.document
-
 
   # ### history.forward()
   forward: ->
@@ -204,11 +203,10 @@ class History
   # Resolve URL based on current page URL.
   _resolve: (url)->
     if url
-      # URL.resolve() down cases file URLs, and we don't want that
-      if /^\w+:/i.test(url)
-        return url
+      if @_window
+        return HTML.resourceLoader.resolve(@_window.document, url)
       else
-        return URL.resolve(@_stack[@_index]?.url, url)
+        return url
     else # Yes, this could happen
       return @_stack[@_index]?.url
 
@@ -241,7 +239,8 @@ class History
   # * data -- Form valuesa
   # * enctype -- Encoding type, or use default
   _submit: (url, method, data, enctype)->
-    headers = { "content-type": enctype || "application/x-www-form-urlencoded" }
+    headers=
+      "content-type": enctype || "application/x-www-form-urlencoded"
     @_stack = @_stack[0..@_index]
     url = @_resolve(url)
     @_advance()

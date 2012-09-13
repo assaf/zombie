@@ -1,6 +1,5 @@
 Browser = require("./browser")
 Path    = require("path")
-Util    = require("util")
 
 
 # Make sure Contextify is available to JSDOM
@@ -44,22 +43,6 @@ visit = (url, options, callback)->
 # invoked once Zombie is ready to accept new connections.
 listen = (port, callback)->
   require("./zombie/protocol").listen(port, callback)
-
-
-# console.log(browser) pukes over the terminal, so we apply some sane
-# defaults.  You can override these:
-# console.depth -       How many time to recurse while formatting the
-#                       object (default to zero)
-# console.showHidden -  True to show non-enumerable properties (defaults
-#                       to false)
-console.depth = 0
-console.showHidden = false
-console.log = ->
-  formatted = ((if typeof arg == "string" then arg else Util.inspect(arg, console.showHidden, console.depth)) for arg in arguments)
-  if typeof Util.format == 'function'
-    process.stdout.write Util.format.apply(this, formatted) + "\n"
-  else
-    process.stdout.write formatted.join(" ") + "\n"
 
 
 Browser.listen  = listen

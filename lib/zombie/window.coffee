@@ -49,7 +49,7 @@ createWindow = ({ browser, name, parent, opener, url })->
     value: parent || window
 
   # Each window has its own event loop
-  Object.defineProperty window, "_eventloop",
+  Object.defineProperty window, "_eventLoop",
     value: new EventLoop(window)
 
 
@@ -152,7 +152,7 @@ createWindow = ({ browser, name, parent, opener, url })->
     origin = event.source.location
     event.origin = URL.format(protocol: origin.protocol, host: origin.host)
     process.nextTick ->
-      window._eventloop.dispatch(window, event)
+      window._eventLoop.dispatch(window, event)
 
   # Fire onload event on window.
   document.addEventListener "DOMContentLoaded", (event)=>

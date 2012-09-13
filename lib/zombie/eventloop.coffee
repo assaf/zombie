@@ -142,6 +142,22 @@ class EventLoop
       done()
     return preventDefault
 
+  # Makes a request.  Requires HTTP method and resource URL.
+  #
+  # Optional data object is used to construct query string parameters
+  # or request body (e.g submitting a form).
+  #
+  # Optional headers are passed to the server.  When making a POST/PUT
+  # request, you probably want specify the `content-type` header.
+  #
+  # The callback is called with error and response (see `HTTPResponse`).
+  request: (method, url, data, headers, callback)->
+    resources = @browser.resources
+    this.perform (done)->
+      resources._makeRequest method, url, data, headers, null, (error, response)->
+        callback error, response
+        done()
+
   # Process all events from the queue.  This method returns immediately, events
   # are processed in the background.  When all events are exhausted, it calls
   # the callback.

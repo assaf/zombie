@@ -302,6 +302,10 @@ all events to fire.  For example:
 
 Returns true if the page request followed a redirect.
     
+### browser.url : String
+
+Return the URL of the current document (same as `document.URL`).
+
 
 ## Forms
 

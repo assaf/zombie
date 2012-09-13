@@ -112,7 +112,7 @@ HTML.resourceLoader.load = (element, href, callback)->
           url = URL.parse(href)
         else
           window = element.contentWindow
-          url = HTML.resourceLoader.resolve(window.parent.location, href)
+          url = HTML.resourceLoader.resolve(window.parent.document, href)
           loaded = (response, filename)->
             callback response.body, URL.parse(response.url).pathname
           window.browser.resources.get url, @enqueue(element, loaded, url.pathname)
@@ -144,7 +144,7 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
       iframe.contentWindow.addEventListener "load", (event)->
         onload = parent.document.createEvent("HTMLEvents")
         onload.initEvent "load", false, false
-        parent._eventloop.dispatch iframe, onload
+        parent._eventLoop.dispatch iframe, onload
       HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
     else
       HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)

@@ -3,6 +3,15 @@
 
 describe "Tabs", ->
 
+  before (done)->
+    brains.get "/tabs", (req, res)->
+      res.send """
+      <html>
+        <title>Brains</title>
+      </html>
+      """
+    brains.ready done
+
   before ->
     @browser = new Browser(name: "first")
     @browser.open(name: "second")
@@ -67,6 +76,19 @@ describe "Tabs", ->
     assert.equal @browser.tabs.length, 5
     assert.equal @browser.tabs.index, 1
     assert.equal window, @browser.tabs.current
+
+  it "should reuse open tab when opening window with same name and navigate", (done)->
+    window = @browser.tabs.open(name: "third", url: "http://localhost:3003/tabs")
+    assert.equal @browser.tabs.length, 5
+    assert.equal @browser.tabs.index, 2
+    assert.equal window, @browser.tabs.current
+    @browser.wait =>
+      try
+        assert.equal @browser.url, "http://localhost:3003/tabs"
+        assert.equal @browser.document.title, "Brains"
+        done()
+      catch error
+        done(error)
 
   it "should allow closing window by name", ->
     @browser.tabs.close("second")

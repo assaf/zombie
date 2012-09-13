@@ -14,6 +14,8 @@ formatted text.
 
 `console.error` and `console.assert` output to standard error (unless silent).
 
+`browser.url` returns the URL of the current document.
+
 
 ## Version 1.4.1 2012-08-22
 

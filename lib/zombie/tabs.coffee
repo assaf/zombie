@@ -76,10 +76,9 @@ class Tabs extends Array
   open: (options = {})->
     { name, opener, url } = options
     # If name window in open tab, reuse that tab. Otherwise, open new window.
-    if existing = this[name]
-      window = createWindow(browser: @browser, name: name, opener: opener, url: url)
-      this[this.indexOf(existing)] = window
-      this[name] = window
+    if window = this[name]
+      if url
+        window.location = url
     else
       if name == "_blank" || !name
         name = ""

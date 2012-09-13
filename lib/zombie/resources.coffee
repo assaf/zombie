@@ -114,21 +114,6 @@ class Resources extends Array
   get: (url, callback)->
     @request "GET", url, null, null, callback
 
-  # Makes a request.  Requires HTTP method and resource URL.
-  #
-  # Optional data object is used to construct query string parameters
-  # or request body (e.g submitting a form).
-  #
-  # Optional headers are passed to the server.  When making a POST/PUT
-  # request, you probably want specify the `content-type` header.
-  #
-  # The callback is called with error and response (see `HTTPResponse`).
-  request: (method, url, data, headers, callback)->
-    @_browser.window._eventloop.perform (done)=>
-      @_makeRequest method, url, data, headers, null, (error, response)->
-        done()
-        callback error, response
-
   clear: ->
     @length = 0
 

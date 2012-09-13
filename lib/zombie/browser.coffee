@@ -194,7 +194,7 @@ class Browser extends EventEmitter
 
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
-    @window._eventloop.reset()
+    @window._eventLoop.reset()
     @errors = []
     @resources.clear()
     return @tabs.open(options || {})
@@ -228,7 +228,7 @@ class Browser extends EventEmitter
       deferred.promise.then(callback, callback)
     last = @errors[@errors.length - 1]
 
-    @window._eventloop.wait @window, duration, (error)=>
+    @window._eventLoop.wait @window, duration, (error)=>
       newest = @errors[@errors.length - 1]
       unless error || last == newest
         error = newest
@@ -253,7 +253,7 @@ class Browser extends EventEmitter
 
   # Dispatch asynchronously.  Returns true if preventDefault was set.
   dispatchEvent: (target, event)->
-    return @window._eventloop.dispatch(target, event)
+    return @window._eventLoop.dispatch(target, event)
 
 
   # Accessors
@@ -468,6 +468,12 @@ class Browser extends EventEmitter
   # Changes document location, loads new document if necessary (same as setting `window.location`).
   @prototype.__defineSetter__ "location", (url)->
     @window.location = url
+
+  # ### browser.url => String
+  #
+  # Return the URL of the current document (same as `document.URL`).
+  @prototype.__defineGetter__ "url", ->
+    return URL.format(@window.location)
 
   # ### browser.link(selector) : Element
   #
@@ -941,7 +947,7 @@ class Browser extends EventEmitter
     process.stdout.write "History:\n#{indent @window.history.dump()}\n"
     process.stdout.write "Cookies:\n#{indent @_cookies.dump()}\n"
     process.stdout.write "Storage:\n#{indent @_storages.dump()}\n"
-    process.stdout.write "Eventloop:\n#{indent @window._eventloop.dump()}\n"
+    process.stdout.write "Eventloop:\n#{indent @window._eventLoop.dump()}\n"
     if @document
       html = @document.outerHTML
       html = html.slice(0, 497) + "..." if html.length > 497
