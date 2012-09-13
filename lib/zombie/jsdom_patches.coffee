@@ -80,20 +80,14 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
     browser = window.browser
     # Decide which window to open this link in
     switch anchor.target || "_self"
-      when "_self" # open in same window
-        window = window
-      when "_parent" # pick parent window
-        window = window.parent
-      when "_top" # pick top window
-        window = window.top
-      else
-        # If this is a named window, open in existing window or create a new
-        # one.  This also works for _blank (always open new one)
-        window = browser.windows.get(anchor.target) ||
-                 browser.open(name: anchor.target)
-    # Make sure to select window as the current one
-    browser.windows.select(window)
-    window.location = anchor.href
+      when "_self"   # navigate same window
+        window.location = anchor.href
+      when "_parent" # navigate parent window
+        window.parent.location = anchor.href
+      when "_top"    # navigate top window
+        window.top.location = anchor.href
+      else # open named window
+        browser.tabs.open(name: anchor.target, url: anchor.ref)
 
 
 # Fix resource loading to keep track of in-progress requests. Need this to wait
