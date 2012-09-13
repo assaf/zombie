@@ -483,8 +483,8 @@ describe "Browser", ->
             it "should close all window", ->
               assert.equal @browser.tabs.length, 0
 
-  ###
-  describe "fork", ->
+
+  describe.skip "fork", ->
     before (done)->
       brains.get "/browser/living", (req, res)->
         res.send """
@@ -549,5 +549,4 @@ describe "Browser", ->
         assert.equal "http://localhost:3003/browser/dead", @forked.location.href
         @forked.window.history.back()
         assert.equal "http://localhost:3003/browser/living", @forked.location.href
-  ###
 

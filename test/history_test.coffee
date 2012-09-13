@@ -41,10 +41,11 @@ describe "History", ->
 
   describe "new window", ->
     before ->
-      @window = new Browser().window
+      browser = new Browser()
+      @window = browser.open()
 
-    it "should start out with one location", ->
-      assert.equal @window.history.length, 1
+    it "should start out with no location", ->
+      assert.equal @window.history.length, 0
       assert.equal @window.location.href, "about:blank"
 
     describe "go forward", ->
@@ -52,7 +53,7 @@ describe "History", ->
         @window.history.forward()
 
       it "should have no effect", ->
-        assert.equal @window.history.length, 1
+        assert.equal @window.history.length, 0
         assert.equal @window.location.href, "about:blank"
 
     describe "go backwards", ->
@@ -60,7 +61,7 @@ describe "History", ->
         @window.history.back()
 
       it "should have no effect", ->
-        assert.equal @window.history.length, 1
+        assert.equal @window.history.length, 0
         assert.equal @window.location.href, "about:blank"
 
 

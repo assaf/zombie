@@ -17,7 +17,7 @@ catch ex
 # fires on the Window.  We also want better stack traces.
 HTML.languageProcessors.javascript = (element, code, filename)->
   if doc = element.ownerDocument
-    window = doc.parentWindow
+    window = doc.window
     try
       window._evaluate(code, filename)
     catch error

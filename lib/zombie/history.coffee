@@ -31,6 +31,8 @@ class Entry
         hostname: ""
         pathname: url.slice(6)
         href:     url
+    else if url == "about:blank"
+      @url = url
     else
       @url = URL.parse(URL.format(url))
 
@@ -333,7 +335,8 @@ HTML.HTMLDocument.prototype.__defineGetter__ "location", ->
   @parentWindow.location
 HTML.HTMLDocument.prototype.__defineSetter__ "location", (url)->
   # Avoids infinite loop setting document location during iframe creation
-  @parentWindow.location = url if @_parentWindow
+  if @parentWindow
+    @parentWindow.location = url
 
 
 module.exports = History

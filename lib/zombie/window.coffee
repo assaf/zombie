@@ -48,9 +48,15 @@ createWindow = ({ browser, name, parent, opener, url })->
   Object.defineProperty document, "parentWindow",
     value: parent || window
 
-  # Each window has its own event loop
+  # Each top-level window has its own event loop, iframes use the eventloop of
+  # the main window, otherwise things get messy (wait, pause, etc).
+  if parent
+    eventLoop = parent._eventLoop
+    eventLoop.apply(window)
+  else
+    eventLoop = new EventLoop(window)
   Object.defineProperty window, "_eventLoop",
-    value: new EventLoop(window)
+    value: eventLoop
 
 
   # -- DOM Window features
@@ -60,14 +66,14 @@ createWindow = ({ browser, name, parent, opener, url })->
   # If this is an iframe within a parent window
   if parent
     Object.defineProperty window, "parent",
-      value: parent.getGlobal()
+      value: parent
     Object.defineProperty window, "top",
-      value: parent.top.getGlobal()
+      value: parent.top
   else
     Object.defineProperty window, "parent",
-      value: global
+      value: window
     Object.defineProperty window, "top",
-      value: global
+      value: window
   # Each window maintains its own history
   Object.defineProperty window, "history",
     value: new History(window)

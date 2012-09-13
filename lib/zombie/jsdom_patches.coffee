@@ -97,20 +97,11 @@ HTML.resourceLoader.load = (element, href, callback)->
   document = element.ownerDocument
   window = document.parentWindow
   ownerImplementation = document.implementation
-  tagName = element.tagName.toLowerCase()
+  tagName = element.tagName.toLowerCase() 
 
   if ownerImplementation.hasFeature('FetchExternalResources', tagName)
     switch tagName
-      when "iframe"
-        if /^javascript:/.test(href)
-          url = href
-        else
-          window = element.contentWindow
-          url = HTML.resourceLoader.resolve(window.parent.document, href)
-        loaded = (response, filename)->
-          callback response.body, URL.parse(response.url).pathname
-        window._eventLoop.request { url: url }, @enqueue(element, loaded, url.pathname)
-      else
+      when "script"
         url = HTML.resourceLoader.resolve(document, href)
         loaded = (response, filename)->
           callback.call this, response.body, URL.parse(response.url).pathname
@@ -135,11 +126,12 @@ HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
   iframe.setAttribute = (name, value)->
     if name == "src" && value
       # Point IFrame at new location and wait for it to load
-      iframe.contentWindow.location = URL.resolve(parent.location, value)
+      url = HTML.resourceLoader.resolve(parent.document, value)
+      iframe.contentWindow.location = url
       iframe.contentWindow.addEventListener "load", (event)->
         onload = parent.document.createEvent("HTMLEvents")
-        onload.initEvent "load", false, false
-        parent._eventLoop.dispatch iframe, onload
+        onload.initEvent("load", false, false)
+        parent._eventLoop.dispatch(iframe, onload)
       HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
     else
       HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)
