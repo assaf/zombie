@@ -116,3 +116,11 @@ describe "Tabs", ->
     assert.equal @browser.tabs.current, null
     assert.equal @browser.tabs.index, -1
 
+  describe "new browser", ->
+    before ->
+      @browser = new Browser()
+
+    it "should have no open windows", ->
+      assert !@browser.window
+      assert.equal @browser.tabs.length, 0
+

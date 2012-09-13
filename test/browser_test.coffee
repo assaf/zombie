@@ -382,45 +382,18 @@ describe "Browser", ->
 
   describe "windows", ->
 
-    describe "new browser", ->
-      before ->
-        @browser = new Browser()
-
-      it "should have about:blank window", ->
-        assert.equal @browser.location.href, "about:blank"
-
-      it "should have empty document in that window", ->
-        assert @browser.html("html")
-        assert.equal @browser.text("html"), ""
-
-
-    describe "open blank window", ->
-      before (done)->
-        browser = new Browser()
-        @window = browser.window.open(null, "popup")
-        browser.wait done
-
-      it "should create new window", ->
-        assert @window
-
-      it "should set window name", ->
-        assert.equal @window.name, "popup"
-
-      it "should be about:blank", ->
-        assert.equal @window.location.href, "about:blank"
-
-
     describe "open window to page", ->
       before (done)->
         brains.get "/browser/popup", (req, res)-> res.send """
           <h1>Popup window</h1>
           """
-        @browser = new Browser()
         brains.ready done
 
       before (done)->
-        @window = @browser.window.open("http://localhost:3003/browser/popup", "popup")
-        @browser.wait done
+        @browser = new Browser()
+        @browser.visit "about:blabk", =>
+          @window = @browser.window.open("http://localhost:3003/browser/popup", "popup")
+          @browser.wait done
 
       it "should create new window", ->
         assert @window
@@ -464,15 +437,15 @@ describe "Browser", ->
         @browser.visit "http://localhost:3003/browser/pop", done
 
       it "should open both windows", ->
-        assert.equal @browser.windows.all().length, 2
-        assert.equal @browser.windows.get(0).name, "nodejs"
-        assert.equal @browser.windows.get(1).name, "popup"
+        assert.equal @browser.tabs.length, 2
+        assert.equal @browser.tabs[0].name, "nodejs"
+        assert.equal @browser.tabs[1].name, "popup"
 
       it "should switch to last window", ->
-        assert.equal @browser.window, @browser.windows.get(1)
+        assert.equal @browser.window, @browser.tabs[1]
 
       it "should reference opener from opened window", ->
-        assert.equal @browser.window.opener, @browser.windows.get(0).top
+        assert.equal @browser.window.opener, @browser.tabs[0].top
 
 
       describe "and close it", ->
@@ -481,35 +454,36 @@ describe "Browser", ->
           @browser.window.close()
 
         it "should close that window", ->
-          assert.equal @browser.windows.all().length, 1
-          assert.equal @browser.windows.get(0).name, "nodejs"
-          assert !@browser.windows.get(1)
+          assert.equal @browser.tabs.length, 1
+          assert.equal @browser.tabs[0].name, "nodejs"
+          assert !@browser.tabs[1]
 
         it "should set the `closed` property to `true`", ->
           assert.equal @closed_window.closed, true
 
         it "should switch to last window", ->
-          assert.equal @browser.window, @browser.windows.get(0)
+          assert.equal @browser.window, @browser.tabs[0]
 
 
         describe "and close main window", ->
           before ->
+            @browser.open()
             @browser.window.close()
 
           it "should keep that window", ->
-            assert.equal @browser.windows.all().length, 1
-            assert.equal @browser.windows.get(0).name, "nodejs"
-            assert.equal @browser.window, @browser.windows.get(0)
+            assert.equal @browser.tabs.length, 1
+            assert.equal @browser.tabs[0].name, "nodejs"
+            assert.equal @browser.window, @browser.tabs[0]
 
-          describe "abd close browser", ->
+          describe "and close browser", ->
             before ->
-              assert.equal @browser.windows.all().length, 1
+              assert.equal @browser.tabs.length, 1
               @browser.close()
 
             it "should close all window", ->
-              assert.equal @browser.windows.all().length, 0
+              assert.equal @browser.tabs.length, 0
 
-
+  ###
   describe "fork", ->
     before (done)->
       brains.get "/browser/living", (req, res)->
@@ -575,4 +549,5 @@ describe "Browser", ->
         assert.equal "http://localhost:3003/browser/dead", @forked.location.href
         @forked.window.history.back()
         assert.equal "http://localhost:3003/browser/living", @forked.location.href
+  ###
 

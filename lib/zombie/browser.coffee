@@ -381,7 +381,7 @@ class Browser extends EventEmitter
   #
   # Close the currently open tab, or the tab opened to the specified window.
   close: (window)->
-    @tabs.close(window)
+    @tabs.close.apply(@tabs, arguments)
 
   # ### done
   #
@@ -433,6 +433,8 @@ class Browser extends EventEmitter
   #
   # Without a callback, returns a promise.
   load: (html, callback)->
+    unless @window
+      @tabs.open(name: @name)
     try
       @errors = []
       @document.open()
