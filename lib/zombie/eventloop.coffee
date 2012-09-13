@@ -151,10 +151,10 @@ class EventLoop
   # request, you probably want specify the `content-type` header.
   #
   # The callback is called with error and response (see `HTTPResponse`).
-  request: (method, url, data, headers, callback)->
+  request: (params, callback)->
     resources = @browser.resources
     this.perform (done)->
-      resources._makeRequest method, url, data, headers, null, (error, response)->
+      resources._makeRequest params, (error, response)->
         callback error, response
         done()
 

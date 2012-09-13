@@ -109,11 +109,6 @@ class Resources extends Array
   @prototype.__defineGetter__ "last", ->
     return this[@length - 1]
 
-  # Makes a GET request.  See `request` for more details about
-  # callback and response object.
-  get: (url, callback)->
-    @request "GET", url, null, null, callback
-
   clear: ->
     @length = 0
 
@@ -129,7 +124,7 @@ class Resources extends Array
   # resource.  Initially the resource is null, but when following a
   # redirect this function is called again with a resource and
   # modifies it instead of recording a new one.
-  _makeRequest: (method, url, data, headers, resource, callback)->
+  _makeRequest: ({ method, url, data, headers, resource }, callback)->
     browser = @_browser
 
     url = URL.parse(url)
@@ -277,7 +272,7 @@ class Resources extends Array
         # This URL is the referer, make a request to the next URL
         headers['referer'] = URL.format(url)
         browser.log -> "#{response.statusCode} => #{redirect}"
-        @_makeRequest method, redirect, null, headers, resource, callback
+        this._makeRequest method: method, url: redirect, headers: headers, resource: resource, callback
       else
         # Turn body from string into a String, so we can add property getters.
         resource.response = new HTTPResponse(url, response.statusCode, response.headers, response.body)
@@ -306,19 +301,6 @@ class Resources extends Array
       else
         QS.escape(stringifyPrimitive(k[0])) + "=" + QS.escape(stringifyPrimitive(k[1]))
     ).join("&")
-
-
-class Cache
-  constructor: (browser)->
-    @resources = browser.resources
-
-  # Makes a GET request using the cache.  See `request` for more
-  # details about callback and response object.
-  get: (url, callback)->
-    @request "GET", url, null, null, callback
-
-  request: (method, url, data, headers, callback)->
-    @resources.request method, url, data, headers, callback
 
 
 # HTTP status code to status text

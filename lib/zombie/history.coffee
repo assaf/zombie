@@ -107,7 +107,7 @@ class History
 
         # Proceeed to load resource ...
         method = (method || "GET").toUpperCase()
-        @_window._eventLoop.request method, url, data, headers, (error, response)=>
+        @_window._eventLoop.request method: method, url: url, data: data, headers: headers, (error, response)=>
           if error
             document = @_createDocument(@_window, url)
             document.open()
