@@ -85,6 +85,7 @@ class History
   # submit forms, see _loadPage and _submit.
   _resource: (url, method, data, headers)->
     # Let's handle the specifics of each protocol
+    url = URL.parse(url)
     switch url.protocol
       when "about:"
         # Blank document. We're done.

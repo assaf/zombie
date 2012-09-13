@@ -66,14 +66,14 @@ createWindow = ({ browser, name, parent, opener, url })->
   # If this is an iframe within a parent window
   if parent
     Object.defineProperty window, "parent",
-      value: parent
+      value: parent.getGlobal()
     Object.defineProperty window, "top",
       value: parent.top
   else
     Object.defineProperty window, "parent",
-      value: window
+      value: global
     Object.defineProperty window, "top",
-      value: window
+      value: global
   # Each window maintains its own history
   Object.defineProperty window, "history",
     value: new History(window)

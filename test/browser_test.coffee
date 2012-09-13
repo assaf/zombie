@@ -438,7 +438,7 @@ describe "Browser", ->
 
       it "should open both windows", ->
         assert.equal @browser.tabs.length, 2
-        assert.equal @browser.tabs[0].name, "nodejs"
+        assert.equal @browser.tabs[0].name, ""
         assert.equal @browser.tabs[1].name, "popup"
 
       it "should switch to last window", ->
@@ -455,7 +455,7 @@ describe "Browser", ->
 
         it "should close that window", ->
           assert.equal @browser.tabs.length, 1
-          assert.equal @browser.tabs[0].name, "nodejs"
+          assert.equal @browser.tabs[0].name, ""
           assert !@browser.tabs[1]
 
         it "should set the `closed` property to `true`", ->
@@ -472,7 +472,7 @@ describe "Browser", ->
 
           it "should keep that window", ->
             assert.equal @browser.tabs.length, 1
-            assert.equal @browser.tabs[0].name, "nodejs"
+            assert.equal @browser.tabs[0].name, ""
             assert.equal @browser.window, @browser.tabs[0]
 
           describe "and close browser", ->

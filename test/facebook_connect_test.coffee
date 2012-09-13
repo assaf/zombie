@@ -64,7 +64,7 @@ describe "Facebook Connect", ->
       assert button = @browser.query("#platform_dialog_content #grant_clicked input")
       assert.equal button.value, "Log In with Facebook"
 
-    describe "authorize", ->
+    describe.skip "authorize", ->
       before (done)->
         # all.js sets a callback with a different ID on each run.  Our
         # HTTP/S responses were captured with the callback ID f42febd2c.

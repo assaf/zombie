@@ -189,13 +189,13 @@ describe "Window", ->
   describe "atob", ->
     it "should decode base-64 string", ->
       browser = new Browser()
-      window = browser.window
+      window = browser.open()
       assert.equal window.atob("SGVsbG8sIHdvcmxk"), "Hello, world"
 
   describe "btoa", ->
     it "should encode base-64 string", ->
       browser = new Browser()
-      window = browser.window
+      window = browser.open()
       assert.equal window.btoa("Hello, world"), "SGVsbG8sIHdvcmxk"
 
 
@@ -236,11 +236,14 @@ describe "Window", ->
 
 
   describe "resize", ->
-    it "should change window dimensions", ->
+    before ->
       browser = new Browser()
-      assert.equal browser.window.innerWidth, 1024
-      assert.equal browser.window.innerHeight, 768
-      browser.window.resizeBy(-224, -168)
-      assert.equal browser.window.innerWidth, 800
-      assert.equal browser.window.innerHeight, 600
+      @window = browser.open()
+      assert.equal @window.innerWidth, 1024
+      assert.equal @window.innerHeight, 768
+
+    it "should change window dimensions", ->
+      @window.resizeBy(-224, -168)
+      assert.equal @window.innerWidth, 800
+      assert.equal @window.innerHeight, 600
 

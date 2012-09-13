@@ -51,9 +51,6 @@ You can use the following options:
   relative URL.
 - `waitFor` -- Tells `wait` function how long to wait (in milliseconds) while
   timers fire.  Defaults to 0.5 seconds.
-- `windowName` -- Sets the browser's window.name property; useful when an
-  evaluated script tries to detect whether/where the window is embedded as an
-  iframe. Defaults to "nodejs".
 
 The proxy URL specifies the host and port of the proxy.  It also supports HTTP
 Basic authentication, for example:

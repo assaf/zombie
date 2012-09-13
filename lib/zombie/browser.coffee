@@ -24,7 +24,7 @@ XHR               = require("./xhr")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
-BROWSER_OPTIONS = ["debug", "headers", "htmlParser", "loadCSS", "maxWait", "name",
+BROWSER_OPTIONS = ["debug", "headers", "htmlParser", "loadCSS", "maxWait",
                    "proxy", "referer", "runScripts", "silent", "site", "userAgent",
                    "waitFor", "maxRedirects"]
 
@@ -88,9 +88,6 @@ class Browser extends EventEmitter
 
     # Send this referer.
     @referer = undefined
-
-    # You can set the browser window.name property
-    @name = "nodejs"
 
     # Sets the browser options.
     for name in BROWSER_OPTIONS
@@ -217,6 +214,10 @@ class Browser extends EventEmitter
   # Without duration, Zombie makes best judgement by waiting up to 5 seconds for the page to load resources (scripts,
   # XHR requests, iframes), process DOM events, and fire timeouts events.
   wait: (duration, callback)->
+    unless @window
+      callback new Error("No window open")
+      return
+
     if arguments.length < 2 && typeof duration == "function"
       [callback, duration] = [duration, null]
  
@@ -242,6 +243,8 @@ class Browser extends EventEmitter
   # target - Target element (e.g a link)
   # callback - Wait for events to be processed, then call me (optional)
   fire: (name, target, callback)->
+    unless @window
+      throw new Error("No window open")
     type = if name in MOUSE_EVENT_NAMES then "MouseEvents" else "HTMLEvents"
     event = @document.createEvent(type)
     event.initEvent name, true, true
@@ -250,6 +253,8 @@ class Browser extends EventEmitter
 
   # Dispatch asynchronously.  Returns true if preventDefault was set.
   dispatchEvent: (target, event)->
+    unless @window
+      throw new Error("No window open")
     return @window._eventLoop.dispatch(target, event)
 
 
@@ -415,7 +420,7 @@ class Browser extends EventEmitter
     if @window
       @window.location = url
     else
-      @tabs.open(name: @name, url: url)
+      this.open(url: url)
     @wait duration, (error)=>
       reset_options()
       if error
@@ -433,8 +438,7 @@ class Browser extends EventEmitter
   #
   # Without a callback, returns a promise.
   load: (html, callback)->
-    unless @window
-      @tabs.open(name: @name)
+    @location = "about:blank"
     try
       @errors = []
       @document.open()
@@ -474,7 +478,7 @@ class Browser extends EventEmitter
     if @window
       @window.location = url
     else
-      @tabs.open(name: @name, url: url)
+      this.open(url: url)
 
   # ### browser.url => String
   #
@@ -511,6 +515,8 @@ class Browser extends EventEmitter
 
   # Return the history object.
   @prototype.__defineGetter__ "history", ->
+    unless @window
+      this.open()
     return @window.history
 
   # Navigate back in history.
@@ -860,6 +866,8 @@ class Browser extends EventEmitter
   # You can also use this to evaluate a function in the context of the window: for timers and asynchronous callbacks
   # (e.g. XHR).
   evaluate: (code, filename)->
+    unless @window
+      this.open()
     return @window._evaluate code, filename
 
 

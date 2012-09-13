@@ -699,7 +699,7 @@ describe "Forms", ->
   # Submitting form
   describe "submit form", ->
 
-    describe "by calling submit", ->
+    describe.skip "by calling submit", ->
       before (done)->
         @browser = new Browser()
         @browser.visit("http://localhost:3003/forms/form")
