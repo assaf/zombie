@@ -1,4 +1,6 @@
 # Create and return a new Window object.
+#
+# Also responsible for creating associated document and loading it.
 
 
 Console     = require("./console")
@@ -21,13 +23,18 @@ inContext = null
 # Create and return a new Window.
 #
 # Parameters
-# browser - Browser that owns this window
-# name    - Window name (optional)
-# parent  - Parent window (for frames)
-# opener  - Opening window (window.open call)
-# url     - Set document location to this URL upon opening
-createWindow = ({ browser, name, parent, opener, url })->  
+# browser   - Browser that owns this window
+# data      - Data to submit (used by forms)
+# encoding  - Encoding MIME type (used by forms)
+# method    - HTTP method (used by forms)
+# name      - Window name (optional)
+# opener    - Opening window (window.open call)
+# parent    - Parent window (for frames)
+# url       - Set document location to this URL upon opening
+createWindow = ({ browser, data, encoding, method, name, opener, parent, url })->  
   name ||= ""
+  url ||= "about:blank"
+
   window = JSDOM.createWindow(HTML)
   global = window.getGlobal()
   # window`s have a closed property defaulting to false
@@ -40,13 +47,9 @@ createWindow = ({ browser, name, parent, opener, url })->
   # -- Document --
 
   # Each window has its own document
-  document = createDocument(browser)
+  document = createDocument(browser, window)
   Object.defineProperty window, "document",
     value: document
-  Object.defineProperty document, "window",
-    value: window
-  Object.defineProperty document, "parentWindow",
-    value: parent || window
 
   # Each top-level window has its own event loop, iframes use the eventloop of
   # the main window, otherwise things get messy (wait, pause, etc).
@@ -74,9 +77,7 @@ createWindow = ({ browser, name, parent, opener, url })->
       value: global
     Object.defineProperty window, "top",
       value: global
-  # Each window maintains its own history
-  Object.defineProperty window, "history",
-    value: new History(window)
+
   # If this was opened from another window
   Object.defineProperty window, "opener",
     value: opener && opener.getGlobal()
@@ -122,13 +123,13 @@ createWindow = ({ browser, name, parent, opener, url })->
 
   # Constructor for EventSource, URL is relative to document's.
   window.EventSource = (url)->
-    url = URL.resolve(window.location, url)
+    url = HTML.resourceLoader.resolve(document, url)
     window.setInterval((->), 100) # We need this to trigger event loop
     return new EventSource(url)
 
   # Web sockets
   window.WebSocket = (url, protocol)->
-    url = URL.resolve(window.location, url)
+    url = HTML.resourceLoader.resolve(document, url)
     origin = "#{window.location.protocol}//#{window.location.host}"
     return new WebSocket(url, origin: origin, protocol: protocol)
 
@@ -145,7 +146,7 @@ createWindow = ({ browser, name, parent, opener, url })->
     window.resizeTo(window.outerWidth + width,  window.outerHeight + height)
 
   # Help iframes talking with each other
-  window.postMessage = (data, targetOrigin)=>
+  window.postMessage = (data, targetOrigin)->
     document = window.document
     return unless document # iframe not loaded
     # Create the event now, but dispatch asynchronously
@@ -159,12 +160,6 @@ createWindow = ({ browser, name, parent, opener, url })->
     event.origin = URL.format(protocol: origin.protocol, host: origin.host)
     process.nextTick ->
       window._eventLoop.dispatch(window, event)
-
-  # Fire onload event on window.
-  document.addEventListener "DOMContentLoaded", (event)=>
-    onload = document.createEvent("HTMLEvents")
-    onload.initEvent("load", false, false)
-    window.dispatchEvent(onload)
 
 
   # -- JavaScript evaluation 
@@ -182,7 +177,7 @@ createWindow = ({ browser, name, parent, opener, url })->
       inContext = null
 
   # Default onerror handler.
-  window.onerror = (event)=>
+  window.onerror = (event)->
     error = event.error || new Error("Error loading script")
     browser.emit("error", error)
 
@@ -190,8 +185,8 @@ createWindow = ({ browser, name, parent, opener, url })->
   # -- Opening and closing --
 
   # Open one window from another.
-  window.open = (url, name, features)=>
-    url = url && URL.resolve(window.location, url)
+  window.open = (url, name, features)->
+    url = url && HTML.resourceLoader.resolve(document, url)
     return browser.open(name: name, url: url, opener: window)
 
   # Indicates if window was closed
@@ -215,16 +210,63 @@ createWindow = ({ browser, name, parent, opener, url })->
       browser.log("Scripts may not close windows that were not opened by script")
     return
 
-  # If caller supplies URL, use it.
-  if url
-    loadDocument(window, url)
-
+  # Window is now open, next load the document.
   browser.emit("opened", window)
+
+
+  # -- Navigating --
+
+  history = new History(window)
+  # Each window maintains its own view of history
+  windowHistory = 
+    forward:      history.go.bind(history, 1)
+    back:         history.go.bind(history, -1)
+    go:           history.go.bind(history)
+    pushState:    history.pushState.bind(history)
+    replaceState: history.replaceState.bind(history)
+  Object.defineProperties windowHistory,
+    length:
+      get: -> return history.length
+    state:
+      get: -> return history.state
+  Object.defineProperties window, 
+    history:
+      value: windowHistory
+    location:
+      get: ->
+        return history._location
+      set: (url)->
+        url = HTML.resourceLoader.resolve(document, url)
+        history._advance()
+        history.push(url)
+        load(url: url)
+
+  load = ({ url, method, encoding , data })->
+    history.update(url)
+    loadDocument document, url: url, method: method, encoding: encoding, data: data, (error, newUrl)->
+      if error
+        browser.emit("error", error)
+        return
+      if newUrl # FIXME
+        history.update(newUrl)
+      browser.emit("loaded", document)
+      # Fire onload event on window.
+      onload = document.createEvent("HTMLEvents")
+      onload.initEvent("load", false, false)
+      window.dispatchEvent(onload)
+
+  # Form submission uses this
+  window._submit = load
+
+  # Load the document associated with this window.
+  history.push(url)
+  load url: url, method: method, encoding: encoding, data: data
+
   return window
 
 
 # Create an empty document.  Each window gets a new document.
-createDocument = (browser)->
+createDocument = (browser, window)->
   # Create new DOM Level 3 document, add features (load external resources,
   # etc) and associate it with current document. From this point on the browser
   # sees a new document, client register event handler for
@@ -237,7 +279,6 @@ createDocument = (browser)->
       FetchExternalResources:   ["iframe"]
     parser:                     browser.htmlParser
 
-  # require("html5").HTML5
   if browser.runScripts
     jsdom_opts.features.ProcessExternalResources.push("script")
     jsdom_opts.features.FetchExternalResources.push("script")
@@ -249,11 +290,92 @@ createDocument = (browser)->
   # Add support for running in-line scripts
   if browser.runScripts
     Scripts.addInlineScriptSupport(document)
+
+
+  # Tie document and window together
+  Object.defineProperty document, "window",
+    value: window
+  Object.defineProperty document, "parentWindow",
+    value: window.parent # JSDOM property?
+
+  Object.defineProperty document, "location",
+    get: ->
+      return window.location
+    set: (url)->
+      window.location = url
+  Object.defineProperty document, "URL",
+    get: ->
+      return window.location.href
+    
   return document
 
 
-loadDocument = (window, url)->
-  window.location = url
+# Load document. Also used to submit form.
+loadDocument = (document, { url, method, encoding, data }, callback)->
+  window = document.window
+  browser = window.browser
+  callback ||= ->
+
+  method = (method || "GET").toUpperCase()
+  if method == "POST"
+    headers =
+      "content-type": encoding || "application/x-www-form-urlencoded"
+
+  # Let's handle the specifics of each protocol
+  { protocol, pathname } = URL.parse(url)
+  switch protocol
+    when "about:"
+      callback(null)
+
+    when "javascript:"
+      try
+        window._evaluate(pathname, "javascript:")
+        callback(null)
+      catch error
+        callback(error)
+
+    when "http:", "https:", "file:"
+      # Proceeed to load resource ...
+      request =
+        url:      url
+        method:   (method || "GET").toUpperCase() 
+        headers:  (headers && Object.create(headers)) | {}
+        data:     data
+      # FIXME
+      if referer = window.history.location
+        request.headers["referer"] = URL.format(referer)
+         
+      window._eventLoop.request request, (error, response)->
+        if error
+          document.open()
+          document.write(error.message || error)
+          document.close()
+          callback(error)
+        else
+          browser.response = [response.statusCode, response.headers, response.body]
+          # For responses that contain a non-empty body, load it.  Otherwise, we
+          # already have an empty document in there courtesy of JSDOM.
+          if response.body
+            document.open()
+            document.write(response.body)
+            document.close()
+
+          if /#/.test(response.url)
+            hashChange = document.createEvent("HTMLEvents")
+            hashChange.initEvent("hashchange", true, false)
+            window._eventLoop.dispatch(window, hashChange)
+
+          # Error on any response that's not 2xx, or if we're not smart enough to
+          # process the content and generate an HTML DOM tree from it.
+          if response.statusCode >= 400
+            callback(new Error("Server returned status code #{response.statusCode} from #{url}"), response.url)
+          else if document.documentElement
+            callback(null, response.url)
+          else
+            callbacK(new Error("Could not parse document at #{url}"), response.url)
+      
+    else # but not any other protocol for now
+      callback(new Error("Cannot load resource #{url}, unsupported protocol"))
 
 
 # Screen object provides access to screen dimensions

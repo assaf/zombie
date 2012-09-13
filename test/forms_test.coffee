@@ -124,6 +124,7 @@ describe "Forms", ->
     brains.post "/forms/submit", (req, res)->
       res.send """
       <html>
+        <title>Results</title>
         <body>
           <div id="name">#{req.body.name}</div>
           <div id="likes">#{req.body.likes}</div>
@@ -697,9 +698,9 @@ describe "Forms", ->
 
 
   # Submitting form
-  describe "submit form", ->
+  describe.skip "submit form", ->
 
-    describe.skip "by calling submit", ->
+    describe "by calling submit", ->
       before (done)->
         @browser = new Browser()
         @browser.visit("http://localhost:3003/forms/form")
@@ -725,6 +726,7 @@ describe "Forms", ->
 
       it "should open new page", ->
         assert.equal @browser.location, "http://localhost:3003/forms/submit"
+        assert.equal @browser.document.title, "Results"
       it "should add location to history", ->
         assert.equal @browser.window.history.length, 2
       it "should send text input values to server", ->

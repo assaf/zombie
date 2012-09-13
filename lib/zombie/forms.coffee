@@ -27,7 +27,7 @@ UploadedFile = (filename) ->
 # This method takes the submitting button so we can send the button name/value.
 HTML.HTMLFormElement.prototype.submit = (button)->
   document = @ownerDocument
-  params = []
+  data = []
 
   process = (index)=>
     if field = @elements.item(index)
@@ -41,30 +41,35 @@ HTML.HTMLFormElement.prototype.submit = (button)->
               selected.push(option.value)
 
           if field.multiple
-            params.push [name, selected]
+            data.push [name, selected]
           else
             if selected.length > 0
               value = selected[0]
             else
               value = field.options[0]?.value
-            params.push [name, value]
+            data.push [name, value]
         else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
           if field.checked
-            params.push [name, field.value || "1"]
+            data.push [name, field.value || "1"]
         else if field.nodeName == "INPUT" && field.type == "file"
           if field.value
-            params.push [name, UploadedFile(field.value)]
+            data.push [name, UploadedFile(field.value)]
         else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
           if field.type != "submit" && field.type != "image"
-            params.push [name, field.value || ""]
+            data.push [name, field.value || ""]
 
       process index + 1
     else
       # No triggering event, just get history to do the submission.
       if button && button.name
-        params.push [button.name, button.value]
-      history = document.parentWindow.history
-      history._submit @getAttribute("action"), @getAttribute("method"), params, @getAttribute("enctype")
+        data.push [button.name, button.value]
+
+      document.window._submit
+        url:      HTML.resourceLoader.resolve(document, @getAttribute("action"))
+        method:   @getAttribute("method")
+        encoding: @getAttribute("enctype")
+        data:     data
+
   process 0
 
 
@@ -85,7 +90,7 @@ HTML.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "submit", true, true
   event._button = button
-  @ownerDocument.parentWindow.browser.dispatchEvent this, event
+  @ownerDocument.parentWindow._eventLoop.dispatch this, event
 
 
 # Default behavior for submit events is to call the form's submit method, but we

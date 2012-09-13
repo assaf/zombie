@@ -268,8 +268,8 @@ class Browser extends EventEmitter
   queryAll: (selector, context)->
     if selector
       context ||= @document
-      ret = context.querySelectorAll(selector)
-      return Array.prototype.slice.call(ret, 0)
+      elements = context.querySelectorAll(selector)
+      return Array.prototype.slice.call(elements, 0)
     else
       context ||= @document.documentElement
       return [context]

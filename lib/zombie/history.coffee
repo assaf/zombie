@@ -56,22 +56,23 @@ class History
   _use: (window)->
     @_window = window
     @_browser = @_window.browser
-    # Add Location/History to window.
-    Object.defineProperty @_window, "location",
-      get: =>
-        return @_location
-      set: (url)=>
-        @_assign(url)
-    Object.defineProperty @_window.document, "URL",
-      get: =>
-        return @_window.location.href
+
+
+  push: (url)->
+    @_stack = @_stack[0..@_index]
+    @_stack[@_index] = new Entry(url)
+
+  update: (url)->
+    @_stack[@_index].update(url)
+
+
 
   # Called when we switch to a new page with the URL of the old page.
   _pageChanged: (was)->
     url = @_stack[@_index]?.url
     if !was || was.host != url.host || was.pathname != url.pathname || was.query != url.query
       # We're on a different site or different page, load it
-      @_resource url
+      @_window.location = url
     else if was.hash != url.hash
       # Hash changed. Do not reload page, but do send hashchange
       evt = @_window.document.createEvent("HTMLEvents")
@@ -79,76 +80,7 @@ class History
       @_browser.dispatchEvent @_window, evt
     else
       # Load new page for now (but later on use caching).
-      @_resource url
-
-  # Make a request to external resource. We use this to fetch pages and
-  # submit forms, see _loadPage and _submit.
-  _resource: (url, method, data, headers)->
-    # Let's handle the specifics of each protocol
-    url = URL.parse(url)
-    switch url.protocol
-      when "about:"
-        # Blank document. We're done.
-        @_createDocument(@_window, ABOUT_BLANK)
-        @_stack[@_index].update url
-        @_browser.emit "loaded", @_browser
-      when "javascript:"
-        @_createDocument(@_window, ABOUT_BLANK)
-        # This means evaluate the expression ... do not update location but
-        # start with empty page.
-        unless @_stack[@_index]
-          @_stack[@_index].update ABOUT_BLANK
-        try
-          @_window._evaluate url.pathname, "javascript:"
-          @_browser.emit "loaded", @_browser
-        catch error
-          @_browser.emit "error", error
-      when "http:", "https:", "file:"
-        headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
-        referer = @_stack[@_index-1]?.url?.href || @_browser.referer
-        headers["referer"] = referer if referer
-
-        # Proceeed to load resource ...
-        method = (method || "GET").toUpperCase()
-        @_window._eventLoop.request method: method, url: url, data: data, headers: headers, (error, response)=>
-          if error
-            document = @_createDocument(@_window, url)
-            document.open()
-            document.write error.message
-            document.close()
-            @_browser.emit "error", error
-          else
-            document = @_createDocument(@_window, response.url)
-            @_browser.response = [response.statusCode, response.headers, response.body]
-            url = URL.parse(response.url)
-            @_stack[@_index].update url
-            # For responses that contain a non-empty body, load it.  Otherwise, we
-            # already have an empty document in there courtesy of JSDOM.
-            if response.body
-              document.open()
-              document.write response.body
-              document.close()
-
-            if url.hash
-              evt = @_window.document.createEvent("HTMLEvents")
-              evt.initEvent "hashchange", true, false
-              @_browser.dispatchEvent @_window, evt
-
-            # Error on any response that's not 2xx, or if we're not smart enough to
-            # process the content and generate an HTML DOM tree from it.
-            if response.statusCode >= 400
-              @_browser.emit "error", new Error("Server returned status code #{response.statusCode}")
-            else if document.documentElement
-              @_browser.emit "loaded", @_browser
-            else
-              @_browser.emit "error", new Error("Could not parse document at #{URL.format(url)}")
-        
-      else # but not any other protocol for now
-        throw new Error("Cannot load resource: #{URL.format(url)}")
-
-  # Create an empty document, set it up and return it.
-  _createDocument: (window, url)->
-    return window.document
+      @_window.location = url
 
   # ### history.forward()
   forward: ->
@@ -170,7 +102,7 @@ class History
       if entry.pop
         # Do not load different page unless we're on a different host
         if was.host != @_stack[@_index]?.url?.host
-          @_resource @_stack[@_index].url
+          @_window.location = @_stack[@_index].url
         else
           # Created with pushState/replaceState, send popstate event
           popstate = @_window.document.createEvent("HTMLEvents")
@@ -203,6 +135,9 @@ class History
     url = @_resolve(url)
     @_stack[@_index] = new Entry(url, { state: state, title: title, pop: true })
 
+  @prototype.__defineGetter__ "state", ->
+    return @_current?.state
+
   # Resolve URL based on current page URL.
   _resolve: (url)->
     if url
@@ -233,7 +168,7 @@ class History
   # Location uses this to force a reload (location.reload), history uses this
   # whenever we switch to a different page and need to load it.
   _loadPage: (force)->
-    @_resource @_stack[@_index].url if @_stack[@_index]
+    @_window.location = @_stack[@_index].url if @_stack[@_index]
   
   # Form submission. Makes request and loads response in the background.
   #
@@ -242,13 +177,11 @@ class History
   # * data -- Form valuesa
   # * enctype -- Encoding type, or use default
   _submit: (url, method, data, enctype)->
-    headers=
-      "content-type": enctype || "application/x-www-form-urlencoded"
     @_stack = @_stack[0..@_index]
     url = @_resolve(url)
     @_advance()
     @_stack[@_index] = new Entry(url)
-    @_resource @_stack[@_index].url, method, data, headers
+    @_window._submit(url: @_stack[@_index].url, method: method, data: data, encoding: enctype)
 
   # Used to dump state to console (debuggin)
   dump: ->
@@ -329,15 +262,5 @@ class Location
         @_history._assign URL.format(newUrl)
 
 
-# ## document.location => Location
-#
-# document.location is same as window.location
-HTML.HTMLDocument.prototype.__defineGetter__ "location", ->
-  @parentWindow.location
-HTML.HTMLDocument.prototype.__defineSetter__ "location", (url)->
-  # Avoids infinite loop setting document location during iframe creation
-  if @parentWindow
-    @parentWindow.location = url
-
-
 module.exports = History
+

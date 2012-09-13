@@ -158,12 +158,12 @@ describe "Browser", ->
       describe "successful", ->
         before (done)->
           browser = new Browser()
-          browser.on "loaded", (@browser)=>
+          browser.on "loaded", (@document)=>
             done()
           browser.visit "http://localhost:3003/browser/scripted"
 
-        it "should fire load event with browser", ->
-          assert @browser.visit
+        it "should fire load event with document object", ->
+          assert @document.addEventListener
 
       describe "wait over", ->
 
