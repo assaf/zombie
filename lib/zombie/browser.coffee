@@ -817,7 +817,11 @@ class Browser extends EventEmitter
   # Returns all the cookies for this domain/path. Domain defaults to hostname of currently open page. Path defaults to
   # "/".
   cookies: (domain, path)->
-    return @_cookies.access(domain || @location.hostname, path || @location.pathname)
+    if !domain && location = @location
+      domain = @location.hostname
+    if !path && location = @location
+      path = @location.pathname
+    return @_cookies.access(domain || "localhost", path || "/")
   
   # Save cookies to a text string.  You can use this to load them back later on using `browser.loadCookies`.
   saveCookies: ->
