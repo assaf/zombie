@@ -258,7 +258,7 @@ class Location
 
   @prototype.__defineGetter__ "hostname", ->
     return URL.parse(@url).hostname
-  @prototype.__defineSetter__ "hostname", (value)->
+  @prototype.__defineSetter__ "hostname", (hostname)->
     newUrl = URL.parse(@url)
     if newUrl.port
       newUrl.host = "#{hostname}:#{newUrl.port}"
@@ -268,7 +268,7 @@ class Location
 
   @prototype.__defineGetter__ "href", ->
     return URL.parse(@url).href
-  @prototype.__defineSetter__ "href", (value)->
+  @prototype.__defineSetter__ "href", (href)->
     @history.assign(URL.format(href))
 
 
