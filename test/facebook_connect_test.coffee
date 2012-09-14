@@ -1,7 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-describe "Facebook Connect", ->
+describe.skip "Facebook Connect", ->
   before (done)->
     brains.get "/facebook", (req, res)->
       res.send """

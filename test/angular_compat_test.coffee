@@ -1,6 +1,6 @@
 { assert, brains, Browser } = require("./helpers")
 
-describe "angularjs", ->
+describe.skip "angularjs", ->
   before (done)->
     brains.get "/templates/show.html", (req, res)->
       res.send """

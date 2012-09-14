@@ -877,7 +877,7 @@ describe "Forms", ->
 
 
   # File upload
-  describe "file upload", ->
+  describe.skip "file upload", ->
     before ->
       brains.get "/forms/upload", (req, res)->
         res.send """
@@ -1046,7 +1046,7 @@ describe "Forms", ->
         assert.equal @browser.text("#is_file"), "true"
 
 
-  describe "content length", ->
+  describe.skip "content length", ->
     before ->
       brains.post "/forms/urlencoded", (req, res)->
         text = req.body.text

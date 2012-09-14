@@ -12,16 +12,13 @@ URL = require("url")
 # Handles the Window event loop, timers and pending requests.
 class EventLoop
 
-  constructor: (@window)->
-    @browser = @window.browser
+  constructor: (@browser)->
     # Size of processing queue (number of ongoing tasks).
     @processing = 0
     # Requests on wait that cannot be handled yet: there's no event in the queue, but we anticipate one (in-progress XHR
     # request).
     @waiting = []
     @timers = []
-    # Add setTimeout, setInterval, et al to window object
-    @apply(@window)
 
   # Reset the event loop (clearning any timers, etc) before using a new window.
   reset: ->
@@ -133,9 +130,11 @@ class EventLoop
   dispatch: (target, event)->
     preventDefault = false
     @perform (done)->
-      if target._evaluate 
+      if target.window == target # target is the window
         window = target
-      else
+      else if target.window      # target is document
+        window = target.window
+      else                       # target is element
         window = (target.ownerDocument || target.document).window
       window._evaluate ->
         preventDefault = target.dispatchEvent(event)

@@ -99,46 +99,46 @@ HTML.resourceLoader.load = (element, href, callback)->
   ownerImplementation = document.implementation
   tagName = element.tagName.toLowerCase() 
 
-  if ownerImplementation.hasFeature('FetchExternalResources', tagName)
-    switch tagName
-      when "script"
-        url = HTML.resourceLoader.resolve(document, href)
-        loaded = (response, filename)->
-          callback.call this, response.body, URL.parse(response.url).pathname
-        window._eventLoop.request { url: url }, @enqueue(element, loaded, url.pathname)
-
+  if ownerImplementation.hasFeature("FetchExternalResources", tagName)
+    url = HTML.resourceLoader.resolve(document, href)
+    loaded = (response, filename)->
+      callback.call this, response.body, URL.parse(response.url).pathname
+    window._eventLoop.request { url: url }, @enqueue(element, loaded, url.pathname)
 
 
 # Support for iframes that load content when you set the src attribute.
-HTML.Document.prototype._elementBuilders["iframe"] = (doc, tag)->
-  parent = doc.window
-  iframe = new HTML.HTMLIFrameElement(doc, tag)
+HTML.Document.prototype._elementBuilders["iframe"] = (document, tag)->
+  parent = document.window
+  iframe = new HTML.HTMLIFrameElement(document, tag)
+
+  Object.defineProperties iframe,
+    contentWindow:
+      get: ->
+        return window || create()
+    contentDocument:
+      get: ->
+        return (window || create()).document
+
+  # URL created on the fly, or when src attribute set
   window = null
-  Object.defineProperty iframe, "contentWindow", get: ->
-    unless window
-      # Change the focus from window to active.
-      focus = (active)->
-        window = active
-      # Need to bypass JSDOM's window/document creation and use ours
-      history = createHistory(parent.browser, focus)
-      window = history(name: iframe.name, parent: parent)
-    return window
-  Object.defineProperty iframe, "contentDocument", get: ->
-    return window.document
+  create = (url)->
+    # Change the focus from window to active.
+    focus = (active)->
+      window = active
+    # Need to bypass JSDOM's window/document creation and use ours
+    history = createHistory(parent.browser, focus)
+    window = history(name: iframe.name, parent: parent, url: url)
 
   # This is also necessary to prevent JSDOM from messing with window/document
   iframe.setAttribute = (name, value)->
+    HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)
     if name == "src" && value
       # Point IFrame at new location and wait for it to load
       url = HTML.resourceLoader.resolve(parent.document, value)
-      iframe.contentWindow.location = url
-      iframe.contentWindow.addEventListener "load", (event)->
-        onload = parent.document.createEvent("HTMLEvents")
-        onload.initEvent("load", false, false)
-        parent._eventLoop.dispatch(iframe, onload)
-      HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
-    else
-      HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)
+      if window
+        window.location = url
+      else
+        create(url)
 
   return iframe
 

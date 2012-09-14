@@ -146,7 +146,7 @@ describe "Cookies", ->
       assert.equal @cookies.get("_expires4"), "3s"
 
 
-  describe "duplicates", ->
+  describe.skip "duplicates", ->
 
     before (done)->
       brains.get "/cookies2", (req, res)->

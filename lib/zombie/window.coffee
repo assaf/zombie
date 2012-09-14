@@ -58,9 +58,9 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   # the main window, otherwise things get messy (wait, pause, etc).
   if parent
     eventLoop = parent._eventLoop
-    eventLoop.apply(window)
   else
-    eventLoop = new EventLoop(window)
+    eventLoop = new EventLoop(browser)
+  eventLoop.apply(window)
   Object.defineProperty window, "_eventLoop",
     value: eventLoop
 
@@ -248,26 +248,12 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     history:
       value: windowHistory
 
-  load = ({ url, method, encoding , data })->
-    referer = history.url || browser.referer
-    loadDocument document, url: url, method: method, encoding: encoding, referer: referer, data: data, (error, newUrl)->
-      if error
-        browser.emit("error", error)
-        return
-      # If URL changed (redirects and friends) update window location
-      if newUrl
-        history.updateLocation(window, newUrl)
-      browser.emit("loaded", document)
-      # Fire onload event on window.
-      onload = document.createEvent("HTMLEvents")
-      onload.initEvent("load", false, false)
-      window.dispatchEvent(onload)
-
   # Load the document associated with this window.
-  load url: url, method: method, encoding: encoding, data: data
+  loadDocument document: document, history: history, url: url, method: method, encoding: encoding, data: data
   # Form submission uses this
   # FIXME
-  window._submit = load
+  window._submit = ({ url, method, encoding, data })->
+    loadDocument document: document, history: history, url: url, method: method, encoding: encoding, data: data
 
   return window
 
@@ -318,10 +304,19 @@ createDocument = (browser, window)->
 
 
 # Load document. Also used to submit form.
-loadDocument = (document, { url, method, encoding, data, referer }, callback)->
+loadDocument = ({ document, history, url, method, encoding, data })->
   window = document.window
   browser = window.browser
-  callback ||= ->
+  referer = history.url || browser.referer
+
+  # Called on wrap up to update browser with outcome.
+  done = (error, url)->
+    if error
+      browser.emit("error", error)
+    else
+      if url
+        history.updateLocation(window, url)
+      browser.emit("loaded", document)
 
   method = (method || "GET").toUpperCase()
   if method == "POST"
@@ -332,14 +327,14 @@ loadDocument = (document, { url, method, encoding, data, referer }, callback)->
   { protocol, pathname } = URL.parse(url)
   switch protocol
     when "about:"
-      callback(null)
+      done()
 
     when "javascript:"
       try
         window._evaluate(pathname, "javascript:")
-        callback(null)
+        done()
       catch error
-        callback(error)
+        done(error)
 
     when "http:", "https:", "file:"
       # Proceeed to load resource ...
@@ -356,32 +351,41 @@ loadDocument = (document, { url, method, encoding, data, referer }, callback)->
           document.open()
           document.write(error.message || error)
           document.close()
-          callback(error)
+          done(error)
+          return
+
+        browser.response = [response.statusCode, response.headers, response.body]
+        # For responses that contain a non-empty body, load it.  Otherwise, we
+        # already have an empty document in there courtesy of JSDOM.
+        if response.body
+          document.open()
+          document.write(response.body)
+          document.close()
+
+        # Document has loaded
+        ready = document.createEvent("HTMLEvents")
+        ready.initEvent("DOMContentLoaded", true, false)
+        window._eventLoop.dispatch(document, ready)
+        window._eventLoop.dispatch(window, ready)
+      
+        ###
+        if /#/.test(response.url)
+          hashChange = document.createEvent("HTMLEvents")
+          hashChange.initEvent("hashchange", true, false)
+          window._eventLoop.dispatch(window, hashChange)
+        ###
+
+        # Error on any response that's not 2xx, or if we're not smart enough to
+        # process the content and generate an HTML DOM tree from it.
+        if response.statusCode >= 400
+          done(new Error("Server returned status code #{response.statusCode} from #{url}"))
+        else if document.documentElement
+          done(null, response.url)
         else
-          browser.response = [response.statusCode, response.headers, response.body]
-          # For responses that contain a non-empty body, load it.  Otherwise, we
-          # already have an empty document in there courtesy of JSDOM.
-          if response.body
-            document.open()
-            document.write(response.body)
-            document.close()
-
-          if /#/.test(response.url)
-            hashChange = document.createEvent("HTMLEvents")
-            hashChange.initEvent("hashchange", true, false)
-            window._eventLoop.dispatch(window, hashChange)
-
-          # Error on any response that's not 2xx, or if we're not smart enough to
-          # process the content and generate an HTML DOM tree from it.
-          if response.statusCode >= 400
-            callback(new Error("Server returned status code #{response.statusCode} from #{url}"), response.url)
-          else if document.documentElement
-            callback(null, response.url)
-          else
-            callbacK(new Error("Could not parse document at #{url}"), response.url)
+          done(new Error("Could not parse document at #{url}"))
       
     else # but not any other protocol for now
-      callback(new Error("Cannot load resource #{url}, unsupported protocol"))
+      done(new Error("Cannot load resource #{url}, unsupported protocol"))
 
 
 # Screen object provides access to screen dimensions
