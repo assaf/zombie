@@ -103,6 +103,23 @@ class History
       @current.prev.append(entry)
     @focus(window)
 
+  # Update window location (navigating to new URL, same window, e.g pushState or hash change)
+  updateLocation: (window, url)->
+    history = this
+    Object.defineProperty window, "location", 
+      get: ->
+        return new Location(history, url)
+      set: (url)->
+        history.assign(url)
+      enumerable: true
+
+  # Returns current URL.
+  @prototype.__defineGetter__ "url", ->
+    return @current?.url
+
+
+  # -- Implementation of window.history --
+
   # This method is available from Location, used to navigate to a new page.
   assign: (url)->
     url = URL.format(url)
@@ -200,15 +217,6 @@ class History
     if @current.pushState
       return @current.pushState
 
-  # Update window location (navigating to new URL, same window, e.g pushState or hash change)
-  updateLocation: (window, url)->
-    history = this
-    Object.defineProperty window, "location", 
-      get: ->
-        return new Location(history, url)
-      set: (url)->
-        history.assign(url)
-      enumerable: true
 
 
 # Returns true if the hash portion of the URL changed between the history entry

@@ -249,7 +249,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
       value: windowHistory
 
   load = ({ url, method, encoding , data })->
-    loadDocument document, url: url, method: method, encoding: encoding, data: data, (error, newUrl)->
+    loadDocument document, url: url, method: method, encoding: encoding, referer: history.url, data: data, (error, newUrl)->
       if error
         browser.emit("error", error)
         return
@@ -317,7 +317,7 @@ createDocument = (browser, window)->
 
 
 # Load document. Also used to submit form.
-loadDocument = (document, { url, method, encoding, data }, callback)->
+loadDocument = (document, { url, method, encoding, data, referer }, callback)->
   window = document.window
   browser = window.browser
   callback ||= ->
@@ -345,11 +345,10 @@ loadDocument = (document, { url, method, encoding, data }, callback)->
       request =
         url:      url
         method:   (method || "GET").toUpperCase() 
-        headers:  (headers && Object.create(headers)) | {}
+        headers:  (headers && Object.create(headers)) || {}
         data:     data
-      # FIXME
-      if referer = window.history.location
-        request.headers["referer"] = URL.format(referer)
+      if referer
+        request.headers.referer = referer
          
       window._eventLoop.request request, (error, response)->
         if error
