@@ -250,7 +250,7 @@ class Location
   for prop in ["hash", "host", "pathname", "port", "protocol", "search"]
     do (prop)=>
       @prototype.__defineGetter__ prop, ->
-        return URL.parse(@url)[prop]
+        return URL.parse(@url)[prop] || ""
       @prototype.__defineSetter__ prop, (value)->
         newUrl = URL.parse(@url)
         newUrl[prop] = value

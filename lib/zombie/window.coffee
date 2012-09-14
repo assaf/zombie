@@ -249,7 +249,8 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
       value: windowHistory
 
   load = ({ url, method, encoding , data })->
-    loadDocument document, url: url, method: method, encoding: encoding, referer: history.url, data: data, (error, newUrl)->
+    referer = history.url || browser.referer
+    loadDocument document, url: url, method: method, encoding: encoding, referer: referer, data: data, (error, newUrl)->
       if error
         browser.emit("error", error)
         return
