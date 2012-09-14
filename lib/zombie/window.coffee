@@ -341,8 +341,6 @@ loadDocument = (document, { url, method, encoding, data }, callback)->
         callback(error)
 
     when "http:", "https:", "file:"
-      # Some URLs come in as file://host/path
-      url = url.replace(/^file:\/{1,3}/, "file:///")
       # Proceeed to load resource ...
       request =
         url:      url

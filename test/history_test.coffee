@@ -79,7 +79,6 @@ describe "History", ->
       it "should add state to history", ->
         assert.equal @window.history.length, 3
       it "should change location URL", ->
-        console.log @window.location.href
         assert.equal @window.location.href, "http://localhost:3003/end"
 
       describe "go backwards", ->

@@ -19,6 +19,9 @@ formatted text.
 New browser has no open window.  You need to call `visit`, `open` or set
 `location`.
 
+Brand new implementation of browser history, fixes the "two URLs, one window"
+issue.
+
 
 ## Version 1.4.1 2012-08-22
 

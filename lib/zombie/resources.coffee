@@ -127,6 +127,8 @@ class Resources extends Array
   _makeRequest: ({ method, url, data, headers, resource }, callback)->
     browser = @_browser
 
+    # Some URLs come in as file://host/path
+    url = url.replace(/^file:\/{1,3}/, "file:///")
     url = URL.parse(url)
     method = (method || "GET").toUpperCase()
 
