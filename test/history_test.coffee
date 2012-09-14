@@ -139,7 +139,7 @@ describe "History", ->
         it "should change location URL", ->
           assert.equal @window.location.href, "http://localhost:3003/"
         it "should not fire popstate event", ->
-          assert @window.popstate
+          assert !@window.popstate
 
 
     describe "redirect", ->

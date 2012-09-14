@@ -82,9 +82,12 @@ describe "Tabs", ->
     window = @browser.tabs.open(name: "third", url: "http://localhost:3003/tabs")
     assert.equal @browser.tabs.length, 5
     assert.equal @browser.tabs.index, 2
-    assert.equal window, @browser.tabs.current
+    console.log window.location.href
+    console.log @browser.tabs.current.location.href
     @browser.wait =>
       try
+        console.log @browser.tabs.current.location.href
+        assert.equal window, @browser.tabs.current
         assert.equal @browser.url, "http://localhost:3003/tabs"
         assert.equal @browser.document.title, "Brains"
         done()

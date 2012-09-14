@@ -77,32 +77,35 @@ class Tabs extends Array
     { name, opener, url } = options
     # If name window in open tab, reuse that tab. Otherwise, open new window.
     if window = this[name]
+      # Select this as the currenly open tab. Changing the location would then
+      # select a different window.
+      @current = window
       if url
         window.location = url
+      return @current
     else
       if name == "_blank" || !name
         name = ""
 
-      # Change focus from window to active, and change the tab to point to
-      # window instead of active.
-      window = null
-      focus = (active)->
-        if active != window
-          index = this.indexOf(window)
-          if ~index
-            browser.emit("inactive", window)
-            this[index] = window = active
-            browser.emit("active", window)
+      # When window changes we need to change tab slot. We can't keep the index
+      # around, since tab order changes, so we look up the currently known
+      # active window and switch that around.
+      tabs = this
+      focus = (window)->
+        if window && window != active
+          index = tabs.indexOf(active)
+          tabs[index] = window
+          tabs.current = window
 
       history = createHistory(@browser, focus)
       window = history(name: name, opener: opener, url: url)
       this.push(window)
       if name
         this[name] = window
-    # Select this as the currenly open tab
-    @current = window
-    @browser.emit("active", window)
-    return window
+      active = window
+      # Select this as the currenly open tab
+      @current = window
+      return window
 
   # Close an open tab.  With no arguments, closes the currently open tab.  With
   # one argument, closes the tab for that window.  You can pass a window, window
