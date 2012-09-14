@@ -1,266 +1,268 @@
-# Window history and location.
-util    = require("util")
-JSDOM   = require("jsdom")
-HTML    = JSDOM.dom.level3.html
-Scripts = require("./scripts")
-URL     = require("url")
+# Window history.
+#
+# Each window belongs to a history. Think of history as a timeline, with
+# currently active window, and multiple previous and future windows. From that
+# window you can navigate backwards and forwards between all other windows that
+# belong to the same history.
+#
+# Each window also has a container: either a browser tab or an iframe. When
+# navigating in history, a different window (from the same history), replaces
+# the current window within its container.
+#
+# Containers have access to the currently active window, not the history
+# itself, so navigation has to alert the container when there's a change in the
+# currently active window.
+#
+# The history does so by calling a "focus" function. To create the first
+# window, the container must first create a new history and supply a focus
+# function. The result is another function it can use to create the new window.
+#
+# From there on, it can navigate in history and add new windows by chaing the
+# current location (or using assign/replace).
+#
+# It can be used like this:
+#
+#   active = null
+#   focus = (window)->
+#     active = window
+#   history = createHistory(browser, focus)
+#   window = history(url: url, name: name)
 
 
-ABOUT_BLANK = URL.parse("about:blank")
+createWindow  = require("./window")
+HTML          = require("jsdom").dom.level3.html
+URL           = require("url")
 
 
-# History entry. Consists of:
-# - state -- As provided by pushState/replaceState
-# - title -- As provided by pushState/replaceState
-# - pop -- True if added using pushState/replaceState
-# - url -- URL object of current location
-# - location -- Location object
+# Creates and returns a new history.
+#
+# browser - The browser object
+# focus   - The focus method, called when a new window is in focus
+#
+# Returns a function for opening a new window, which accepts:
+# name      - Window name (optional)
+# opener    - Opening window (window.open call)
+# parent    - Parent window (for frames)
+# url       - Set document location to this URL upon opening
+createHistory = (browser, focus)->
+  history = new History(browser, focus)
+  return history.open.bind(history)
+
+
+# Entry has the following properties:
+# window      - Window for this history entry (may be shared with other entries)
+# url         - URL for this history entry
+# pushState   - Push state state
+# next        - Next entry in history
+# prev        - Previous entry in history
 class Entry
-  constructor: (url, options)->
-    if options
-      @state = options.state
-      @title = options.title
-      @pop = !!options.pop
-    @update url
+  constructor: (@window, url, @pushState)->
+    @url = URL.format(url)
+    @next = @prev = null
 
-  update: (url)->
-    # Do not allow URL to down-case file URLs
-    if /^file:/i.test(url)
-      @url =
-        protocol: "file:"
-        hostname: ""
-        pathname: url.slice(6)
-        href:     url
-    else if url == "about:blank"
-      @url = url
-    else
-      @url = URL.parse(URL.format(url))
+  dispose: ->
+    if @next
+      @next.dispose()
+    # TODO destroy this window
+
+  append: (entry)->
+    if @next
+      @next.dispose()
+    @next = entry
+    entry.prev = this
 
 
-# ## window.history
-#
-# Represents window.history.
 class History
-  constructor: (window)->
-    # History is a stack of Entry objects.
-    @_stack = []
-    @_index = 0
-    @_location = new Location(this)
-    @_use window
+  constructor: (@browser, @focus)->
+    @first = @current = null
 
-    Object.defineProperty @, "current",
-        get: =>
-          @_stack[@_index]?.url || ABOUT_BLANK
+  # Opens the first window and returns it.
+  open: ({ name, opener, parent, url })->
+    window = createWindow(browser: @browser, history: this, name: name, opener: opener, parent: parent, url: url)
+    @current = @first = new Entry(window, url || window.location)
+    return window
 
-  # Apply to window.
-  _use: (window)->
-    @_window = window
-    @_browser = @_window.browser
-
-
-  push: (url)->
-    @_stack = @_stack[0..@_index]
-    @_stack[@_index] = new Entry(url)
-
-  update: (url)->
-    @_stack[@_index].update(url)
-
-
-
-  # Called when we switch to a new page with the URL of the old page.
-  _pageChanged: (was)->
-    url = @_stack[@_index]?.url
-    if !was || was.host != url.host || was.pathname != url.pathname || was.query != url.query
-      # We're on a different site or different page, load it
-      @_window.location = url
-    else if was.hash != url.hash
-      # Hash changed. Do not reload page, but do send hashchange
-      evt = @_window.document.createEvent("HTMLEvents")
-      evt.initEvent "hashchange", true, false
-      @_browser.dispatchEvent @_window, evt
-    else
-      # Load new page for now (but later on use caching).
-      @_window.location = url
-
-  # ### history.forward()
-  forward: ->
-    @go(1)
-
-  # ### history.back()
-  back: ->
-    @go(-1)
-
-  # ### history.go(amount)
-  go: (amount)->
-    was = @_stack[@_index]?.url
-    new_index = @_index + amount
-    new_index = 0 if new_index < 0
-    if @_stack.length > 0 && new_index >= @_stack.length
-      new_index = @_stack.length - 1
-    if new_index != @_index && entry = @_stack[new_index]
-      @_index = new_index
-      if entry.pop
-        # Do not load different page unless we're on a different host
-        if was.host != @_stack[@_index]?.url?.host
-          @_window.location = @_stack[@_index].url
-        else
-          # Created with pushState/replaceState, send popstate event
-          popstate = @_window.document.createEvent("HTMLEvents")
-          popstate.initEvent "popstate", false, false
-          popstate.state = entry.state
-          @_browser.dispatchEvent @_window, popstate
-      else
-        @_pageChanged was
-    return
+  # Add a new entry.  When a window opens it call this to add itself to history.
+  addEntry: (window, url, pushState)->
+    url ||= window.location
+    entry = new Entry(window, url, pushState)
+    this.updateLocation(window, url)
+    @current.append(entry)
+    @current = entry
+    @focus(window)
  
-  # ### history.length => Number
-  #
-  # Number of states/URLs in the history.
+  # Replace current entry with a new one.
+  replaceEntry: (window, url, pushState)->
+    url ||= window.location
+    entry = new Entry(window, url, pushState)
+    this.updateLocation(window, url)
+    if @current == @first
+      @current.dispose()
+      @current = @first = entry
+    else
+      @current.prev.append(entry)
+    @focus(window)
+
+  # This method is available from Location, used to navigate to a new page.
+  assign: (url)->
+    url = URL.format(url)
+    if @current
+      url = HTML.resourceLoader.resolve(@current.window.document, url)
+      name = @current.window.name
+    if @current && @current.url == url
+      return # Not moving anywhere
+
+    if hashChange(@current, url)
+      window = @current.window
+      @addEntry(window, url) # Reuse window with new URL
+      event = window.document.createEvent("HTMLEvents")
+      event.initEvent("hashchange", true, false)
+      window._eventLoop.dispatch(window, event)
+    else
+      window = createWindow(browser: @browser, history: this, name: name, url: url)
+      @addEntry(window, url)
+
+  # This method is available from Location, used to navigate to a new page.
+  replace: (url)->
+    url = URL.format(url)
+    if @current
+      url = HTML.resourceLoader.resolve(@current.window.document, url)
+      name = @current.window.name
+    if @current && @current.url == url
+      return # Not moving anywhere
+
+    if hashChange(@current, url)
+      window = @current.window
+      @replaceEntry(window, url) # Reuse window with new URL
+      event = window.document.createEvent("HTMLEvents")
+      event.initEvent("hashchange", true, false)
+      window._eventLoop.dispatch(window, event)
+    else
+      window = createWindow(browser: @browser, history: this, name: name, url: url)
+      @replaceEntry(window, url)
+
+  # This method is available from Location.
+  go: (amount)->
+    was = @current
+    while amount > 0
+      @current = @current.next if @current.next
+      --amount
+    while amount < 0
+      @current = @current.prev if @current.prev
+      ++amount
+
+    # If moving from one page to another
+    if @current && was && @current != was
+      window = @current.window
+      this.updateLocation(window, @current.url)
+      @focus(window)
+      if @current.pushState || was.pushState
+        # Created with pushState/replaceState, send popstate event if navigating
+        # within same host.
+        oldHost = URL.parse(was.url).host
+        newHost = URL.parse(@current.url).host
+        if oldHost == newHost
+          event = window.document.createEvent("HTMLEvents")
+          event.initEvent("popstate", false, false)
+          event.state = @current.pushState
+          window._eventLoop.dispatch(window, event)
+      else if hashChange(was, @current.url)
+        event = window.document.createEvent("HTMLEvents")
+        event.initEvent("hashchange", true, false)
+        window._eventLoop.dispatch(window, event)
+    return
+
+  # This method is available from Location.
   @prototype.__defineGetter__ "length", ->
-    return @_stack.length
+    entry = @first
+    length = 0
+    while entry
+      ++length
+      entry = entry.next
+    return length
 
-  # ### history.pushState(state, title, url)
-  #
-  # Push new state to the stack, do not reload
+  # This method is available from Location.
   pushState: (state, title, url)->
-    url = @_resolve(url)
-    @_advance()
-    @_stack[@_index] = new Entry(url, { state: state, title: title, pop: true })
+    url = HTML.resourceLoader.resolve(@current.window.document, url)
+    # TODO: check same origin
+    @addEntry(@current.window, url, state || {})
+    return
 
-  # ### history.replaceState(state, title, url)
-  #
-  # Replace existing state in the stack, do not reload
+  # This method is available from Location.
   replaceState: (state, title, url)->
-    @_index = 0 if @_index < 0
-    url = @_resolve(url)
-    @_stack[@_index] = new Entry(url, { state: state, title: title, pop: true })
+    url = HTML.resourceLoader.resolve(@current.window.document, url)
+    # TODO: check same origin
+    @replaceEntry(@current.window, url, state || {})
+    return
 
+  # This method is available from Location.
   @prototype.__defineGetter__ "state", ->
-    return @_current?.state
+    if @current.pushState
+      return @current.pushState
 
-  # Resolve URL based on current page URL.
-  _resolve: (url)->
-    if url
-      if @_window
-        return HTML.resourceLoader.resolve(@_window.document, url)
-      else
-        return url
-    else # Yes, this could happen
-      return @_stack[@_index]?.url
-
-  # Location uses this to move to a new URL.
-  _assign: (url)->
-    url = @_resolve(url)
-    was = @_stack[@_index]?.url # before we destroy stack
-    @_stack = @_stack[0..@_index]
-    @_advance()
-    @_stack[@_index] = new Entry(url)
-    @_pageChanged was
-
-  # Location uses this to load new page without changing history.
-  _replace: (url)->
-    url = @_resolve(url)
-    was = @_stack[@_index]?.url # before we destroy stack
-    @_index = 0 if @_index < 0
-    @_stack[@_index] = new Entry(url)
-    @_pageChanged was
-
-  # Location uses this to force a reload (location.reload), history uses this
-  # whenever we switch to a different page and need to load it.
-  _loadPage: (force)->
-    @_window.location = @_stack[@_index].url if @_stack[@_index]
-  
-  # Form submission. Makes request and loads response in the background.
-  #
-  # * url -- Same as form action, can be relative to current document
-  # * method -- Method to use, defaults to GET
-  # * data -- Form valuesa
-  # * enctype -- Encoding type, or use default
-  _submit: (url, method, data, enctype)->
-    @_stack = @_stack[0..@_index]
-    url = @_resolve(url)
-    @_advance()
-    @_stack[@_index] = new Entry(url)
-    @_window._submit(url: @_stack[@_index].url, method: method, data: data, encoding: enctype)
-
-  # Used to dump state to console (debuggin)
-  dump: ->
-    dump = []
-    for i, entry of @_stack
-      i = Number(i)
-      line = if i == @_index then "#{i + 1}: " else "#{i + 1}. "
-      line += URL.format(entry.url)
-      line += " state: " + util.inspect(entry.state) if entry.state
-      dump.push line
-    dump
-
-  # browser.saveHistory uses this
-  save: ->
-    serialized = []
-    for i, entry of @_stack
-      line = URL.format(entry.url)
-      line += " #{JSON.stringify(entry.state)}" if entry.pop
-      serialized.push line
-    return serialized.join("\n") + "\n"
-
-  # browser.loadHistory uses this
-  load: (serialized) ->
-    for line in serialized.split(/\n+/)
-      line = line.trim()
-      continue if line[0] == "#" || line == ""
-      [url, state] = line.split(/\s/)
-      options = state && { state: JSON.parse(state), title: null, pop: true }
-      @_advance()
-      @_stack[@_index] = new Entry(url, state)
-
-  # Advance to the next position in history. Used when opening a new page, but
-  # smart enough to not count about:blank in history.
-  _advance: ->
-    current = @_stack[@_index]
-    if current && ~["http:", "https:", "file:"].indexOf(current.url.protocol)
-      ++@_index
+  # Update window location (navigating to new URL, same window, e.g pushState or hash change)
+  updateLocation: (window, url)->
+    history = this
+    Object.defineProperty window, "location", 
+      get: ->
+        return new Location(history, url)
+      set: (url)->
+        history.assign(url)
+      enumerable: true
 
 
-# ## window.location
-#
-# Represents window.location and document.location.
+# Returns true if the hash portion of the URL changed between the history entry
+# (entry) and the new URL we want to inspect (url).
+hashChange = (entry, url)->
+  return false unless entry
+  first = URL.parse(entry.url)
+  second = URL.parse(url)
+  return first.host.toLowerCase() == second.host.toLowerCase() &&
+         first.pathname == second.pathname &&
+         first.query == second.query 
+
+
+# DOM Location object
 class Location
-  constructor: (@_history)->
+  constructor: (@history, @url)->
 
-  # ### location.assign(url)
-  assign: (newUrl)->
-    @_history._assign newUrl
+  assign: (url)->
+    @history.assign(url)
 
-  # ### location.replace(url)
-  replace: (newUrl)->
-    @_history._replace newUrl
+  replace: (url)->
+    @history.replace(url)
 
-  # ### location.reload(force?)
   reload: (force)->
-    @_history._loadPage(force)
+    @history.replace(@url)
 
-  # ### location.toString() => String
   toString: ->
-    return URL.format(@_history.current)
+    return @url
 
-  # ### location.href => String
-  @prototype.__defineGetter__ "href", ->
-    return @_history.current?.href
-
-  # ### location.href = url
-  @prototype.__defineSetter__ "href", (new_url)->
-    @_history._assign new_url
-
-  # Getter/setter for location parts.
-  for prop in ["hash", "host", "hostname", "pathname", "port", "protocol", "search"]
+  # Setting any of the properties creates a new URL and navigates there
+  for prop in ["hash", "host", "pathname", "port", "protocol", "search"]
     do (prop)=>
       @prototype.__defineGetter__ prop, ->
-        @_history.current?[prop] || ""
+        return URL.parse(@url)[prop]
       @prototype.__defineSetter__ prop, (value)->
-        newUrl = URL.parse(@_history.current?.href)
+        newUrl = URL.parse(@url)
         newUrl[prop] = value
-        @_history._assign URL.format(newUrl)
+        @history.assign(URL.format(newUrl))
+
+  @prototype.__defineGetter__ "hostname", ->
+    return URL.parse(@url).hostname
+  @prototype.__defineSetter__ "hostname", (value)->
+    newUrl = URL.parse(@url)
+    if newUrl.port
+      newUrl.host = "#{hostname}:#{newUrl.port}"
+    else
+      newUrl.host = hostname
+    @history.assign(URL.format(newUrl))
+
+  @prototype.__defineGetter__ "href", ->
+    return URL.parse(@url).href
+  @prototype.__defineSetter__ "href", (value)->
+    @history.assign(URL.format(href))
 
 
-module.exports = History
+module.exports = createHistory
 

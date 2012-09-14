@@ -26,12 +26,13 @@ inContext = null
 # browser   - Browser that owns this window
 # data      - Data to submit (used by forms)
 # encoding  - Encoding MIME type (used by forms)
+# history   - This window shares history with other windows
 # method    - HTTP method (used by forms)
 # name      - Window name (optional)
 # opener    - Opening window (window.open call)
 # parent    - Parent window (for frames)
 # url       - Set document location to this URL upon opening
-createWindow = ({ browser, data, encoding, method, name, opener, parent, url })->  
+createWindow = ({ browser, data, encoding, history, method, name, opener, parent, url })->  
   name ||= ""
   url ||= "about:blank"
 
@@ -43,6 +44,7 @@ createWindow = ({ browser, data, encoding, method, name, opener, parent, url })-
   # Access to browser
   Object.defineProperty window, "browser",
     value: browser
+    enumerable: true
 
   # -- Document --
 
@@ -50,6 +52,7 @@ createWindow = ({ browser, data, encoding, method, name, opener, parent, url })-
   document = createDocument(browser, window)
   Object.defineProperty window, "document",
     value: document
+    enumerable: true
 
   # Each top-level window has its own event loop, iframes use the eventloop of
   # the main window, otherwise things get messy (wait, pause, etc).
@@ -66,21 +69,27 @@ createWindow = ({ browser, data, encoding, method, name, opener, parent, url })-
 
   Object.defineProperty window, "name",
     value: name
+    enumerable: true
   # If this is an iframe within a parent window
   if parent
     Object.defineProperty window, "parent",
       value: parent.getGlobal()
+      enumerable: true
     Object.defineProperty window, "top",
       value: parent.top
+      enumerable: true
   else
     Object.defineProperty window, "parent",
       value: global
+      enumerable: true
     Object.defineProperty window, "top",
       value: global
+      enumerable: true
 
   # If this was opened from another window
   Object.defineProperty window, "opener",
     value: opener && opener.getGlobal()
+    enumerable: true
 
   # Window title is same as document title
   Object.defineProperty window, "title",
@@ -88,9 +97,11 @@ createWindow = ({ browser, data, encoding, method, name, opener, parent, url })-
       return document.title
     set: (title)->
       document.title = title
+    enumerable: true
 
   Object.defineProperty window, "console",
     value: new Console(browser)
+    enumerable: true
 
   # javaEnabled, present in browsers, not in spec Used by Google Analytics see
   # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
@@ -192,6 +203,7 @@ createWindow = ({ browser, data, encoding, method, name, opener, parent, url })-
   # Indicates if window was closed
   Object.defineProperty window, "closed",
     get: -> closed
+    enumerable: true
 
   # We need the JSDOM method that disposes of the context, but also over-ride
   # with our method that checks permission and removes from windows list
@@ -216,7 +228,8 @@ createWindow = ({ browser, data, encoding, method, name, opener, parent, url })-
 
   # -- Navigating --
 
-  history = new History(window)
+  history.updateLocation(window, url)
+
   # Each window maintains its own view of history
   windowHistory = 
     forward:      history.go.bind(history, 1)
@@ -227,40 +240,33 @@ createWindow = ({ browser, data, encoding, method, name, opener, parent, url })-
   Object.defineProperties windowHistory,
     length:
       get: -> return history.length
+      enumerable: true
     state:
       get: -> return history.state
+      enumerable: true
   Object.defineProperties window, 
     history:
       value: windowHistory
-    location:
-      get: ->
-        return history._location
-      set: (url)->
-        url = HTML.resourceLoader.resolve(document, url)
-        history._advance()
-        history.push(url)
-        load(url: url)
 
   load = ({ url, method, encoding , data })->
-    history.update(url)
     loadDocument document, url: url, method: method, encoding: encoding, data: data, (error, newUrl)->
       if error
         browser.emit("error", error)
         return
-      if newUrl # FIXME
-        history.update(newUrl)
+      # If URL changed (redirects and friends) update window location
+      if newUrl
+        history.updateLocation(window, newUrl)
       browser.emit("loaded", document)
       # Fire onload event on window.
       onload = document.createEvent("HTMLEvents")
       onload.initEvent("load", false, false)
       window.dispatchEvent(onload)
 
-  # Form submission uses this
-  window._submit = load
-
   # Load the document associated with this window.
-  history.push(url)
   load url: url, method: method, encoding: encoding, data: data
+  # Form submission uses this
+  # FIXME
+  window._submit = load
 
   return window
 
@@ -393,7 +399,7 @@ class Screen
   @prototype.__defineGetter__ "pixelDepth", -> 24
 
 
-# File access, not implemented yet.
+# File access, not implemented yet
 class File
 
 

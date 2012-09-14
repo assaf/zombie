@@ -24,7 +24,7 @@
 #  assert(browser.tabs.current == null)
 
 
-createWindow = require("./window")
+createHistory = require("./history")
 
 
 class Tabs extends Array
@@ -82,12 +82,26 @@ class Tabs extends Array
     else
       if name == "_blank" || !name
         name = ""
-      window = createWindow(browser: @browser, name: name, opener: opener, url: url)
+
+      # Change focus from window to active, and change the tab to point to
+      # window instead of active.
+      window = null
+      focus = (active)->
+        if active != window
+          index = this.indexOf(window)
+          if ~index
+            browser.emit("inactive", window)
+            this[index] = window = active
+            browser.emit("active", window)
+
+      history = createHistory(@browser, focus)
+      window = history(name: name, opener: opener, url: url)
       this.push(window)
       if name
         this[name] = window
     # Select this as the currenly open tab
     @current = window
+    @browser.emit("active", window)
     return window
 
   # Close an open tab.  With no arguments, closes the currently open tab.  With

@@ -66,7 +66,7 @@ describe "Scripts", ->
           assert.equal @browser.location.href, "http://localhost:3003/script/living/#/dead"
 
 
-    describe.only "live events", ->
+    describe "live events", ->
       before (done)->
         @browser = new Browser()
         @browser.visit("http://localhost:3003/script/living/")

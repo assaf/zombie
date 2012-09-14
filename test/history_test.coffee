@@ -44,8 +44,8 @@ describe "History", ->
       browser = new Browser()
       @window = browser.open()
 
-    it "should start out with no location", ->
-      assert.equal @window.history.length, 0
+    it "should start out with one location", ->
+      assert.equal @window.history.length, 1
       assert.equal @window.location.href, "about:blank"
 
     describe "go forward", ->
@@ -53,7 +53,7 @@ describe "History", ->
         @window.history.forward()
 
       it "should have no effect", ->
-        assert.equal @window.history.length, 0
+        assert.equal @window.history.length, 1
         assert.equal @window.location.href, "about:blank"
 
     describe "go backwards", ->
@@ -61,7 +61,7 @@ describe "History", ->
         @window.history.back()
 
       it "should have no effect", ->
-        assert.equal @window.history.length, 0
+        assert.equal @window.history.length, 1
         assert.equal @window.location.href, "about:blank"
 
 
@@ -79,6 +79,7 @@ describe "History", ->
       it "should add state to history", ->
         assert.equal @window.history.length, 3
       it "should change location URL", ->
+        console.log @window.location.href
         assert.equal @window.location.href, "http://localhost:3003/end"
 
       describe "go backwards", ->
@@ -138,7 +139,7 @@ describe "History", ->
         it "should change location URL", ->
           assert.equal @window.location.href, "http://localhost:3003/"
         it "should not fire popstate event", ->
-          assert.equal @window.popstate, undefined
+          assert @window.popstate
 
 
     describe "redirect", ->
