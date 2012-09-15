@@ -54,7 +54,7 @@ describe "IFrame", ->
   it "should set frame src attribute", ->
     assert.equal @iframe.src, "/iframe/static"
   it "should reference parent window from iframe", ->
-    assert.equal @iframe.contentWindow.parent, @browser.window.getGlobal()
+    assert.equal @iframe.contentWindow.parent, @browser.window.parent
   it "should not alter the parent", ->
     assert.equal "http://localhost:3003/iframe", @browser.window.location
 

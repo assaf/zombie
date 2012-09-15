@@ -229,9 +229,7 @@ hashChange = (entry, url)->
   return false unless entry
   first = URL.parse(entry.url)
   second = URL.parse(url)
-  return first.host.toLowerCase() == second.host.toLowerCase() &&
-         first.pathname == second.pathname &&
-         first.query == second.query 
+  return /^https?:/i.test(first) && first.split("#")[0] == second.split("#")[0]
 
 
 # DOM Location object

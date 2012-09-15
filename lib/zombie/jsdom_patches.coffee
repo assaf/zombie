@@ -76,7 +76,7 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
     anchor = event.target
     return unless anchor.href
 
-    window = anchor.ownerDocument.parentWindow
+    window = anchor.ownerDocument.window
     browser = window.browser
     # Decide which window to open this link in
     switch anchor.target || "_self"
@@ -131,7 +131,6 @@ HTML.Document.prototype._elementBuilders["iframe"] = (document, tag)->
 
   # This is also necessary to prevent JSDOM from messing with window/document
   iframe.setAttribute = (name, value)->
-    HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)
     if name == "src" && value
       # Point IFrame at new location and wait for it to load
       url = HTML.resourceLoader.resolve(parent.document, value)
@@ -139,6 +138,13 @@ HTML.Document.prototype._elementBuilders["iframe"] = (document, tag)->
         window.location = url
       else
         create(url)
+      window.addEventListener "DOMContentLoaded", ->
+        onload = document.createEvent("HTMLEvents")
+        onload.initEvent("load", true, false)
+        window._eventLoop.dispatch(iframe, onload)
+      HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
+    else
+      HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)
 
   return iframe
 
