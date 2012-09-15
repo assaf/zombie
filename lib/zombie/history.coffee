@@ -136,7 +136,9 @@ class History
       event.initEvent("hashchange", true, false)
       window._eventLoop.dispatch(window, event)
     else
-      window = createWindow(browser: @browser, history: this, name: name, url: url)
+      if @current.window.parent != @current.window
+        parent = @current.window.parent
+      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent)
       @addEntry(window, url)
 
   # This method is available from Location, used to navigate to a new page.
@@ -155,7 +157,9 @@ class History
       event.initEvent("hashchange", true, false)
       window._eventLoop.dispatch(window, event)
     else
-      window = createWindow(browser: @browser, history: this, name: name, url: url)
+      if @current.window.parent != @current.window
+        parent = @current.window.parent
+      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent)
       @replaceEntry(window, url)
 
   # This method is available from Location.

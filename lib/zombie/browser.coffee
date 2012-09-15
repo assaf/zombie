@@ -3,6 +3,7 @@ require "./forms"
 require "./xpath"
 
 
+createTabs         = require("./tabs")
 { deprecated }    = require("./helpers")
 Cache             = require("./cache")
 Cookies           = require("./cookies")
@@ -19,7 +20,6 @@ Path              = require("path")
 Resources         = require("./resources")
 Storages          = require("./storage")
 URL               = require("url")
-Tabs              = require("./tabs")
 XHR               = require("./xhr")
 
 
@@ -51,7 +51,7 @@ class Browser extends EventEmitter
     @_xhr = XHR.use()
 
     Object.defineProperty this, "tabs",
-      value: new Tabs(this)
+      value: createTabs(this)
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.

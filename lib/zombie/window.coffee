@@ -73,7 +73,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   # If this is an iframe within a parent window
   if parent
     Object.defineProperty window, "parent",
-      value: parent.getGlobal()
+      value: parent
       enumerable: true
     Object.defineProperty window, "top",
       value: parent.top
@@ -88,7 +88,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
 
   # If this was opened from another window
   Object.defineProperty window, "opener",
-    value: opener && opener.getGlobal()
+    value: opener && opener
     enumerable: true
 
   # Window title is same as document title
@@ -368,13 +368,6 @@ loadDocument = ({ document, history, url, method, encoding, data })->
         window._eventLoop.dispatch(document, ready)
         window._eventLoop.dispatch(window, ready)
       
-        ###
-        if /#/.test(response.url)
-          hashChange = document.createEvent("HTMLEvents")
-          hashChange.initEvent("hashchange", true, false)
-          window._eventLoop.dispatch(window, hashChange)
-        ###
-
         # Error on any response that's not 2xx, or if we're not smart enough to
         # process the content and generate an HTML DOM tree from it.
         if response.statusCode >= 400

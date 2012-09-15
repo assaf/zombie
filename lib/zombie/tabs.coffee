@@ -1,45 +1,62 @@
 # Tab management.
 #
-# Each browser has a set of open tabs, each tab has one open window.  You can
-# access tabs by index number, or by window name.  The currently open tab is
-# available as browser.window or browser.tabs.current.
+# Each browser has a set of open tabs, each tab having one current window.
 #
-#  firstTab = browser.tabs[0]
-#  fooTab = browser.tabs["foo"]
+# The set of tabs is an array, and you can access each tab by its index number.
+# Note that tab order will shift when you close a window.  You can also get the
+# number of tabs (tabs.length) and iterate over then (map, filter, forEach).
 #
-#  open = browser.current
-#  foo = browser.tabs["foo"]
-#  browser.current = foo
-#  ...
-#  browser.current = open
+# If a window has a name, you can also access it by name.  Since names may
+# conflict with reserved properties/methods, you may need to use the find
+# method.
 #
-#  window = browser.tabs.open(url: "http://example.com")
+# You can get the window of the currently selected tab (tabs.current) or its
+# index number (tabs.index).
 #
-#  open = browser.tabs.length
-#  browser.tabs.close(window)
-#  assert(browser.tabs.length == open - 1)
+# To change the currently selected tab, set tabs.current to a different window,
+# a window name or the tab index number.  This changes the window returned from
+# browser.window.
 #
-#  browser.tabs.closeAll()
-#  assert(browser.tabs.length == 0)
-#  assert(browser.tabs.current == null)
+# Examples
+#
+#   firstTab = browser.tabs[0]
+#   fooTab = browser.tabs["foo"]
+#   openTab = brower.tabs.find("open")
+#
+#   old = browser.current
+#   foo = browser.tabs["foo"]
+#   browser.current = foo
+#   ...
+#   browser.current = old
+#
+#   window = browser.tabs.open(url: "http://example.com")
+#
+#   count = browser.tabs.length
+#   browser.tabs.close(window)
+#   assert(browser.tabs.length == count - 1)
+#   browser.tabs.close()
+#   assert(browser.tabs.length == count - 2)
+#
+#   browser.tabs.closeAll()
+#   assert(browser.tabs.length == 0)
+#   assert(browser.tabs.current == null)
 
 
 createHistory = require("./history")
 
 
-class Tabs extends Array
-  constructor: (browser)->
-    @browser = browser
-    tabs = this
+createTabs = (browser)->
+  tabs = []
+  current = null
+
+  Object.defineProperties tabs,
 
     # current property has a fancy setter
-    current = null
-    Object.defineProperty this, "current",
-      enumerable: false
+    current:
       get: ->
         return current
       set: (window)->
-        window = tabs[window] || window
+        window = tabs.find(window) || window
         return unless ~tabs.indexOf(window)
         if window && window != current
           if current
@@ -48,83 +65,103 @@ class Tabs extends Array
           browser.emit("active", current)
         return
 
+    # Opens and returns a tab.  If an open window by the same name already exists,
+    # opens this window in the same tab.  Omit name or use "_blank" to always open
+    # a new tab.
+    #
+    # name    - Window name (optional)
+    # opener  - Opening window (window.open call)
+    # url     - Set document location to this URL upon opening
+    open:
+      value: (options = {})->
+        { name, opener, url } = options
+        # If name window in open tab, reuse that tab. Otherwise, open new window.
+        if name && window = this.find(name.toString())
+          # Select this as the currenly open tab. Changing the location would then
+          # select a different window.
+          tabs.current = window
+          if url
+            window.location = url
+          return current
+        else
+          if name == "_blank" || !name
+            name = ""
+
+          # When window changes we need to change tab slot. We can't keep the index
+          # around, since tab order changes, so we look up the currently known
+          # active window and switch that around.
+          active = null
+          focus = (window)->
+            if window && window != active
+              index = tabs.indexOf(active)
+              tabs[index] = window
+              if tabs.current == active
+                tabs.current = window
+              active = window
+
+          history = createHistory(browser, focus)
+          window = history(name: name, opener: opener, url: url)
+          this.push(window)
+          if name && (Object.propertyIsEnumerable(name) || !this[name])
+            this[name] = window
+          active = window
+          # Select this as the currenly open tab
+          tabs.current = window
+          return window
+
+
     # Index of currently selected tab.
-    Object.defineProperty this, "index",
+    index:
       get: ->
         return this.indexOf(current)
 
-    # We're notified when window is closed (by any means), and take that tab out
-    # of circulation.
-    browser.on "closed", (window)->
-      index = tabs.indexOf(window)
-      if index >= 0
-        tabs.splice(index, 1)
-        # If we closed the currently open tab, need to select another window.
-        if window == current
-          # Don't emit inactive event for closed window.
-          current = tabs[index - 1] || tabs[0]
-          if current
-            browser.emit("active", current)
 
-  # Opens and returns a tab.  If an open window by the same name already exists,
-  # opens this window in the same tab.  Omit name or use "_blank" to always open
-  # a new tab.
-  #
-  # name    - Window name (optional)
-  # opener  - Opening window (window.open call)
-  # url     - Set document location to this URL upon opening
-  open: (options = {})->
-    { name, opener, url } = options
-    # If name window in open tab, reuse that tab. Otherwise, open new window.
-    if window = this[name]
-      # Select this as the currenly open tab. Changing the location would then
-      # select a different window.
-      @current = window
-      if url
-        window.location = url
-      return @current
-    else
-      if name == "_blank" || !name
-        name = ""
-
-      # When window changes we need to change tab slot. We can't keep the index
-      # around, since tab order changes, so we look up the currently known
-      # active window and switch that around.
-      tabs = this
-      focus = (window)->
-        if window && window != active
-          index = tabs.indexOf(active)
-          tabs[index] = window
-          tabs.current = window
-
-      history = createHistory(@browser, focus)
-      window = history(name: name, opener: opener, url: url)
-      this.push(window)
-      if name
-        this[name] = window
-      active = window
-      # Select this as the currenly open tab
-      @current = window
-      return window
-
-  # Close an open tab.  With no arguments, closes the currently open tab.  With
-  # one argument, closes the tab for that window.  You can pass a window, window
-  # name or index number.
-  close: (window)->
-    if arguments.length == 0
-      window = @current
-    else
-      window = this[window] || window
-    if ~this.indexOf(window)
-      window.close()
-    return
-
-  # Closes all open tabs/windows.
-  closeAll: ->
-    while this.length > 0
-      this.close(this.length - 1)
-    return
+    # Returns window by index or name. Use this for window names that shadow
+    # existing properties (e.g. tabs["open"] is a function, use
+    find:
+      value: (name)->
+        if tabs.propertyIsEnumerable(name)
+          return this[name]
+        for window in this
+          if window.name == name
+            return window
+        return null
 
 
-module.exports = Tabs
+    # Close an open tab.  With no arguments, closes the currently open tab.  With
+    # one argument, closes the tab for that window.  You can pass a window, window
+    # name or index number.
+    close:
+      value: (window)->
+        if arguments.length == 0
+          window = current
+        else
+          window = this.find(window) || window
+        if ~this.indexOf(window)
+          window.close()
+        return
 
+
+    # Closes all open tabs/windows.
+    closeAll:
+      value: ->
+        while @length > 0
+          this.close()
+
+  # We're notified when window is closed (by any means), and take that tab out
+  # of circulation.
+  browser.on "closed", (window)->
+    index = tabs.indexOf(window)
+    if ~index
+      tabs.splice(index, 1)
+      # If we closed the currently open tab, need to select another window.
+      if window == current
+        # Don't emit inactive event for closed window.
+        current = tabs[index - 1] || tabs[0]
+        if current
+          browser.emit("active", current)
+
+  return tabs
+
+
+module.exports = createTabs

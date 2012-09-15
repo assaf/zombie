@@ -82,11 +82,8 @@ describe "Tabs", ->
     window = @browser.tabs.open(name: "third", url: "http://localhost:3003/tabs")
     assert.equal @browser.tabs.length, 5
     assert.equal @browser.tabs.index, 2
-    console.log window.location.href
-    console.log @browser.tabs.current.location.href
     @browser.wait =>
       try
-        console.log @browser.tabs.current.location.href
         assert.equal window, @browser.tabs.current
         assert.equal @browser.url, "http://localhost:3003/tabs"
         assert.equal @browser.document.title, "Brains"
@@ -118,6 +115,31 @@ describe "Tabs", ->
     assert.equal @browser.tabs.length, 0
     assert.equal @browser.tabs.current, null
     assert.equal @browser.tabs.index, -1
+
+  it "should only have properties for named windows", ->
+    browser = new Browser()
+    browser.open(name: "foo")
+    browser.open(name: "bar")
+    names = (window.name for window in browser.tabs)
+    assert.deepEqual names, ["foo", "bar"]
+    assert.deepEqual Object.keys(browser.tabs), [0, 1, "foo", "bar"]
+
+  it "should not shadow property with same name", ->
+    browser = new Browser()
+    browser.open(name: "open")
+    assert browser.tabs.open instanceof Function
+
+  it "should be able to find any window by name", ->
+    browser = new Browser()
+    browser.open(name: "open")
+    assert browser.tabs.find("open").browser
+
+  it "should support enumeration", ->
+    browser = new Browser()
+    browser.open(name: "foo")
+    browser.open(name: "bar")
+    names = browser.tabs.map((window)-> window.name)
+    assert.deepEqual names, ["foo", "bar"]
 
   describe "new browser", ->
     before ->
