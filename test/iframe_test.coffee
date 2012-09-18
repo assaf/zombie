@@ -142,6 +142,7 @@ describe "IFrame", ->
           @browser.clickLink "self", done
 
       it "should open link", ->
+        console.log @browser.location
         assert.equal @browser.location.pathname, "/target/_self"
 
       it "should open link in same window", ->

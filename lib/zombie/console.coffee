@@ -54,12 +54,12 @@ class Console
 
 
 # info, log and warn all go to stdout unless browser.silent
-for level in ["info", "log", "warn"]
+for level in ["debug", "info", "log", "warn"]
   do (level)->
     Console.prototype[level] = ->
       message = format(arguments...)
       @browser.emit("console", level, message)
-      unless @browser.silent
+      if @browser.debug && !@browser.silent
         process.stdout.write(message + "\n")
 
 # error go to stderr unless browser.silent
@@ -69,13 +69,5 @@ Console.prototype.error = ->
   unless @browser.silent
     process.stderr.write(message + "\n")
 
-# debug go to stdout but only in debug mode
-Console.prototype.debug = ->
-  message = format(arguments...)
-  @browser.emit("console", "debug", message)
-  if @browser.debug && !@browser.silent
-    process.stdout.write(message + "\n")
-
 
 module.exports = Console
-

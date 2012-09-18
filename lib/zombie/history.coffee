@@ -60,10 +60,23 @@ class Entry
     @url = URL.format(url)
     @next = @prev = null
 
-  dispose: ->
+  # Called to dispose of this entry. Used when we dispose of the entire
+  # history, closing all windows. But also used when we replace one entry with
+  # another, and there are two cases to worry about:
+  # - The current entry uses the same window as the previous entry, we get rid
+  #   of the entry, but must keep the entry intact
+  # - The current entry uses the same window as the new entry, also need to
+  #   keep window intact
+  dispose: (keep)->
     if @next
       @next.dispose()
-    # TODO destroy this window
+    # Do not close window if replacing entry with same window
+    if keep == @window
+      return
+    # Do not close window if used by previous entry in history
+    if @prev && @prev.window == @window
+      return
+    @window._cleanup()
 
   append: (entry)->
     if @next
@@ -82,6 +95,11 @@ class History
     @current = @first = new Entry(window, url || window.location)
     return window
 
+  # Dispose of all windows in history
+  dispose: ->
+    @first.dispose()
+    @first = null
+
   # Add a new entry.  When a window opens it call this to add itself to history.
   addEntry: (window, url, pushState)->
     url ||= window.location
@@ -97,10 +115,10 @@ class History
     entry = new Entry(window, url, pushState)
     this.updateLocation(window, url)
     if @current == @first
-      @current.dispose()
+      @current.dispose(window)
       @current = @first = entry
     else
-      @current.prev.append(entry)
+      @current.prev.append(entry, window)
     @focus(window)
 
   # Update window location (navigating to new URL, same window, e.g pushState or hash change)
@@ -108,7 +126,7 @@ class History
     history = this
     Object.defineProperty window, "location", 
       get: ->
-        return new Location(history, url)
+        return createLocation(history, url)
       set: (url)->
         history.assign(url)
       enumerable: true
@@ -140,6 +158,7 @@ class History
         parent = @current.window.parent
       window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent)
       @addEntry(window, url)
+    return
 
   # This method is available from Location, used to navigate to a new page.
   replace: (url)->
@@ -161,6 +180,7 @@ class History
         parent = @current.window.parent
       window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent)
       @replaceEntry(window, url)
+    return
 
   # This method is available from Location.
   go: (amount)->
@@ -227,51 +247,62 @@ class History
 # (entry) and the new URL we want to inspect (url).
 hashChange = (entry, url)->
   return false unless entry
-  first = URL.parse(entry.url)
-  second = URL.parse(url)
-  return /^https?:/i.test(first) && first.split("#")[0] == second.split("#")[0]
+  return /^https?:/i.test(entry.url) && entry.url.split("#")[0] == url.split("#")[0]
 
 
 # DOM Location object
-class Location
-  constructor: (@history, @url)->
+createLocation = (history, url)->
+  location = new Object()
+  Object.defineProperties location,
+    assign:
+      value: (url)->
+        history.assign(url)
 
-  assign: (url)->
-    @history.assign(url)
+    replace:
+      value: (url)->
+        history.replace(url)
 
-  replace: (url)->
-    @history.replace(url)
+    reload: (force)->
+      value: 
+        history.replace(@url)
 
-  reload: (force)->
-    @history.replace(@url)
+    toString:
+      value: ->
+        return url
+      enumerable: true
 
-  toString: ->
-    return @url
+    hostname:
+      get: ->
+        return URL.parse(url).hostname
+      set: (hostname)->
+        newUrl = URL.parse(url)
+        if newUrl.port
+          newUrl.host = "#{hostname}:#{newUrl.port}"
+        else
+          newUrl.host = hostname
+        history.assign(URL.format(newUrl))
+      enumerable: true
+
+    href:
+      get: ->
+        return url
+      set: (href)->
+        history.assign(URL.format(href))
+      enumerable: true
 
   # Setting any of the properties creates a new URL and navigates there
   for prop in ["hash", "host", "pathname", "port", "protocol", "search"]
     do (prop)=>
-      @prototype.__defineGetter__ prop, ->
-        return URL.parse(@url)[prop] || ""
-      @prototype.__defineSetter__ prop, (value)->
-        newUrl = URL.parse(@url)
-        newUrl[prop] = value
-        @history.assign(URL.format(newUrl))
+      Object.defineProperty location, prop,
+        get: ->
+          return URL.parse(url)[prop] || ""
+        set: (value)->
+          newUrl = URL.parse(url)
+          newUrl[prop] = value
+          history.assign(URL.format(newUrl))
+        enumerable: true
 
-  @prototype.__defineGetter__ "hostname", ->
-    return URL.parse(@url).hostname
-  @prototype.__defineSetter__ "hostname", (hostname)->
-    newUrl = URL.parse(@url)
-    if newUrl.port
-      newUrl.host = "#{hostname}:#{newUrl.port}"
-    else
-      newUrl.host = hostname
-    @history.assign(URL.format(newUrl))
-
-  @prototype.__defineGetter__ "href", ->
-    return URL.parse(@url).href
-  @prototype.__defineSetter__ "href", (href)->
-    @history.assign(URL.format(href))
+  return location
 
 
 module.exports = createHistory

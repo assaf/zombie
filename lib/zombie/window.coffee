@@ -205,19 +205,26 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     get: -> closed
     enumerable: true
 
-  # We need the JSDOM method that disposes of the context, but also over-ride
-  # with our method that checks permission and removes from windows list
-  dispose = window.close.bind(window)
+  # Cleanup the window, child windows and Contextify global.
+  window._cleanup = ->
+    unless closed
+      for frame in window
+        frame.close()
+      closed = true
+      window.dispose()
+      window.document = null
+      return
 
   # Actualy window.close checks who's attempting to close the window.
   window.close = ->
     # Only opener window can close window; any code that's not running from
     # within a window's context can also close window.
     if inContext == opener || inContext == null
-      browser.emit("inactive", window)
-      dispose()
-      closed = true
-      browser.emit("closed", window)
+      unless closed
+        browser.emit("inactive", window)
+        window._cleanup()
+        browser.emit("closed", window)
+        history.dispose() # do this last to prevent infinite loop
     else
       browser.log("Scripts may not close windows that were not opened by script")
     return
