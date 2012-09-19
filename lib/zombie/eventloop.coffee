@@ -122,10 +122,11 @@ class EventLoop
   # Set the active window. Suspends processing events from any other window, and
   # switches to processing events from this window's queue.
   setActiveWindow: (window)->
-    if window && window != @active
-      if @active
-        @active._eventQueue.suspend()
-      @active = window
+    return if window == @active
+    if @active
+      @active._eventQueue.suspend()
+    @active = window
+    if @active
       @active._eventQueue.resume()
       @run() # new window, new events
 

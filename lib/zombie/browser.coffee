@@ -55,6 +55,8 @@ class Browser extends EventEmitter
 
     # The browser event loop.
     @_eventLoop = new EventLoop(this)
+    # The active browser window
+    active = null
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.
@@ -64,25 +66,29 @@ class Browser extends EventEmitter
 
     # Window becomes inactive
     @on "active", (window)=>
-      @_eventLoop.setActiveWindow(window)
-
+      return if active == window
+      active = window
       onfocus = window.document.createEvent("HTMLEvents")
       onfocus.initEvent("focus", false, false)
       window.dispatchEvent(onfocus)
-      if active = window.document.activeElement
+      if element = window.document.activeElement
         onfocus = window.document.createEvent("HTMLEvents")
         onfocus.initEvent("focus", false, false)
-        active.dispatchEvent(onfocus)
+        element.dispatchEvent(onfocus)
+      @_eventLoop.setActiveWindow(window)
 
     # Window becomes inactive
     @on "inactive", (window)->
-      if active = window.document.activeElement
+      return unless active == window
+      active = null
+      if element = window.document.activeElement
         onblur = window.document.createEvent("HTMLEvents")
         onblur.initEvent("blur", false, false)
-        active.dispatchEvent(onblur)
+        element.dispatchEvent(onblur)
       onblur = window.document.createEvent("HTMLEvents")
       onblur.initEvent("blur", false, false)
       window.dispatchEvent(onblur)
+      @_eventLoop.setActiveWindow(null)
 
     # Window has been closed
     @on "closed", (window)->
