@@ -90,7 +90,7 @@ HTML.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "submit", true, true
   event._button = button
-  @ownerDocument.parentWindow._eventLoop.dispatch this, event
+  @ownerDocument.parentWindow._dispatchEvent(this, event)
 
 
 # Default behavior for submit events is to call the form's submit method, but we

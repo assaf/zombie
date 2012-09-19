@@ -4,7 +4,6 @@
 
 
 Console     = require("./console")
-EventLoop   = require("./eventloop")
 EventSource = require("eventsource")
 History     = require("./history")
 JSDOM       = require("jsdom")
@@ -53,16 +52,6 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   Object.defineProperty window, "document",
     value: document
     enumerable: true
-
-  # Each top-level window has its own event loop, iframes use the eventloop of
-  # the main window, otherwise things get messy (wait, pause, etc).
-  if parent
-    eventLoop = parent._eventLoop
-  else
-    eventLoop = new EventLoop(browser)
-  eventLoop.apply(window)
-  Object.defineProperty window, "_eventLoop",
-    value: eventLoop
 
 
   # -- DOM Window features
@@ -187,10 +176,32 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
       browser.emit("evaluated", window, code)
       inContext = null
 
+  window._dispatchEvent = (target, event)->
+    preventDefault = null
+    window._evaluate ->
+      preventDefault = target.dispatchEvent(event)
+    return preventDefault
+
   # Default onerror handler.
   window.onerror = (event)->
     error = event.error || new Error("Error loading script")
     browser.emit("error", error)
+
+
+  # -- Event loop --
+
+  eventQueue = browser._eventLoop.createEventQueue(window)
+  Object.defineProperties window,
+    _eventQueue:
+      value: eventQueue
+    setTimeout:
+      value: eventQueue.setTimeout.bind(eventQueue)
+    clearTimeout:
+      value: eventQueue.clearTimeout.bind(eventQueue)
+    setInterval:
+      value: eventQueue.setInterval.bind(eventQueue)
+    clearInterval:
+      value: eventQueue.clearInterval.bind(eventQueue)
 
 
   # -- Opening and closing --
@@ -211,6 +222,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
       for frame in window
         frame.close()
       closed = true
+      eventQueue.destroy()
       window.dispose()
       window.document = null
       return
@@ -352,8 +364,8 @@ loadDocument = ({ document, history, url, method, encoding, data })->
         data:     data
       if referer
         request.headers.referer = referer
-         
-      window._eventLoop.request request, (error, response)->
+      
+      window._eventQueue.http request, (error, response)->
         if error
           document.open()
           document.write(error.message || error)
@@ -372,8 +384,8 @@ loadDocument = ({ document, history, url, method, encoding, data })->
         # Document has loaded
         ready = document.createEvent("HTMLEvents")
         ready.initEvent("DOMContentLoaded", true, false)
-        window._eventLoop.dispatch(document, ready)
-        window._eventLoop.dispatch(window, ready)
+        window._dispatchEvent(document, ready)
+        window._dispatchEvent(window, ready)
       
         # Error on any response that's not 2xx, or if we're not smart enough to
         # process the content and generate an HTML DOM tree from it.

@@ -152,7 +152,7 @@ class History
       @addEntry(window, url) # Reuse window with new URL
       event = window.document.createEvent("HTMLEvents")
       event.initEvent("hashchange", true, false)
-      window._eventLoop.dispatch(window, event)
+      window._dispatchEvent(window, event)
     else
       if @current.window.parent != @current.window
         parent = @current.window.parent
@@ -174,7 +174,7 @@ class History
       @replaceEntry(window, url) # Reuse window with new URL
       event = window.document.createEvent("HTMLEvents")
       event.initEvent("hashchange", true, false)
-      window._eventLoop.dispatch(window, event)
+      window._dispatchEvent(window, event)
     else
       if @current.window.parent != @current.window
         parent = @current.window.parent
@@ -206,11 +206,11 @@ class History
           event = window.document.createEvent("HTMLEvents")
           event.initEvent("popstate", false, false)
           event.state = @current.pushState
-          window._eventLoop.dispatch(window, event)
+          window._dispatchEvent(window, event)
       else if hashChange(was, @current.url)
         event = window.document.createEvent("HTMLEvents")
         event.initEvent("hashchange", true, false)
-        window._eventLoop.dispatch(window, event)
+        window._dispatchEvent(window, event)
     return
 
   # This method is available from Location.

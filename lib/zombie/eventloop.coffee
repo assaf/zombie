@@ -1,256 +1,393 @@
-# The event loop.
+# The event looeue
 #
-# Each window has its own event loop, which tracks timeouts and intervals,
-# and incomplete asynchronous events (XHR, script loading, etc).
+# Each browser has an event loop, which processes asynchronous events (loading
+# resources and XHR, timeouts and intervals, DOM events, etc). These are
+# processed in order.
+#
+# The primary usage of the event loop is waiting for stuff to happen. Waiting
+# implies knowing when to stop (no more events, no scheduled timers, etc). The
+# most important method is `wait`, and everything else is derived from it.
+#
+# Only one window is active at a time, and only events from that window are
+# executed. The rest are simply queued.
+#
+#
+# The event loop has one interesting method: the `wait` method that allows the
+# brower to block until all events are processed (or timeout, or completion
+# function, see there fore details).
 
 
-ms  = require("ms")
-URL = require("url")
-{ raise } = require("./scripts")
+{ EventEmitter }  = require("events")
+ms                = require("ms")
+Util              = require("util")
 
 
-# Handles the Window event loop, timers and pending requests.
-class EventLoop
+# The browser event loop.
+#
+# All asynchronous events are processed by this one. The event loop monitors one
+# event queue, of the currently active window, and executes its events. Other
+# windows are suspended.
+#
+# Reason to wait for the event loop:
+# - one or more events waiting in the queue to be processed
+# - one or more timers waiting to fire
+# - one or more future events, expected to arrive in the queue
+#
+# Reasons to stop waiting:
+# - no more events in the queue, or expected to arrive
+# - no more timers, or all timers are further than our timeout
+# - completion function evaluated to true
+#
+# The event loop supports listeners and emits the following events:
+# tick  - Emitted after executing an event; single argument is expected time
+#         until next tick event (in ms, zero for "soon")
+# done  - Emitted when the event queue is empty (may fire more than once)
+# error - Emitted when an error occurs
+class EventLoop extends EventEmitter
 
+  # Instance variables are:
+  # active   - The active window
+  # browser  - Reference to the browser
+  # expected - Number of events expected to appear (see `expecting` method)
+  # running  - True when inside a run loop
   constructor: (@browser)->
-    # Size of processing queue (number of ongoing tasks).
-    @processing = 0
-    # Requests on wait that cannot be handled yet: there's no event in the queue, but we anticipate one (in-progress XHR
-    # request).
-    @waiting = []
-    @timers = []
-
-  # Reset the event loop (clearning any timers, etc) before using a new window.
-  reset: ->
-    # Prevent any existing timers from firing.
-    if @timers
-      for timer in @timers
-        global.clearTimeout timer.handle
-    @timers = []
-  
-  # Add event-loop features to window (mainly timers).
-  apply: (window)->
-    # Remove timer.
-    remove = (timer)=>
-      index = @timers.indexOf(timer)
-      @timers.splice(index, 1) if ~index
-
-    # Add new timeout.  If the timeout is short enough, we ask `wait` to automatically wait for it to fire, by storing
-    # the time in `timer.next`.  We need to clear `next` after the timer fires or when cancelled.
-    window.setTimeout = (fn, delay)=>
-      return unless fn
-      timer =
-        handle: null
-        timeout: true
-        # Resume timer: when created, and when entering browser.wait again.
-        resume: =>
-          return if timer.handle
-          timer.next = Date.now() + Math.max(delay || 0, 0)
-          if delay <= 0
-            # Something weird happens if we use setTimeout(fn, 0), seems that the timer never fires
-            remove(timer)
-            @perform (done)=>
-              process.nextTick =>
-                @browser.log "Firing timeout after #{delay}ms delay"
-                window._evaluate fn
-                done()
-          else
-            timer.handle = global.setTimeout(=>
-              @perform (done)=>
-                remove(timer)
-                @browser.log "Firing timeout after #{delay}ms delay"
-                window._evaluate fn
-                done()
-            , delay)
-
-        pause: ->
-          # Pause timer when leaving browser.wait.  Reset remaining delay so we
-          # start fresh on next browser.wait.
-          global.clearTimeout(timer.handle)
-          timer.handle = null
-          delay = timer.next - Date.now()
-        stop: ->
-          global.clearTimeout(timer.handle)
-          remove(timer)
-      # Add timer and start the clock.
-      @timers.push timer
-      timer.resume()
-      return timer
-
-    window.setInterval = (fn, interval = 0)=>
-      return unless fn
-      timer =
-        handle: null
-        interval: true
-        resume: => # Resume timer when entering browser.wait.
-          return if timer.handle
-          timer.next = Date.now() + interval
-          timer.handle = global.setInterval(=>
-            @perform (done)=>
-              timer.next = Date.now() + interval
-              @browser.log "Firing interval every #{interval}ms"
-              window._evaluate fn
-              done()
-          , interval)
-        pause: -> # Pause timer when leaving browser.wait.
-          # Pause timer when leaving browser.wait.  Reset remaining delay so we
-          global.clearInterval(timer.handle)
-          timer.handle = null
-        stop: ->
-          global.clearInterval(timer.handle)
-          remove(timer)
-      # Add timer and start the clock.
-      @timers.push timer
-      timer.resume()
-      return timer
-
-    window.clearTimeout = (timer)->
-      if timer && timer.timeout && timer.stop
-        timer.stop()
-    window.clearInterval = (timer)->
-      if timer && timer.interval && timer.stop
-        timer.stop()
+    @active    = null
+    @expected  = 0
+    @running   = false
+    # Someone's paying attention, start processing events
+    @on "newListener", =>
+      if @active
+        @active._eventQueue.resume()
+        @run()
 
 
-  # ### perform(fn)
+  # -- The wait function --
+
+  # Wait until one of these happen:
+  # 1. We run out of events to process; callback is called with null and false
+  # 2. The completion function evaluates to true; callback is called with null
+  #    and false
+  # 3. The time duration elapsed; callback is called with null and true
+  # 2. An error occurs; callback is called with an error
   #
-  # Run the function as part of the event queue (calls to `wait` will wait for this function to complete).  Function can
-  # be anything and is called synchronous with a `done` function; when it's done processing, it lets the event loop know
-  # by calling the done function.
-  perform: (fn)->
-    ++@processing
-    fn =>
-      --@processing
-      if @processing == 0
-        @next()
+  # Duration is specifies in milliseconds or string form (e.g. "15s").
+  #
+  # Completion function is called with the currently active window (may change
+  # during page navigation or form submission) and returns true to stop waiting,
+  # any other value to continue processing events.
+  wait: (duration, completion, callback)->
+    # Determines how long we're going to wait
+    duration = ms(duration)
+    waitFor = ms(@browser.waitFor)
+
+    # Event processed, are we ready to complete?
+    tick = (next)->
+      if completion
+        try
+          completed = completion(@active)
+        catch error
+          done(error)
+      # Should we keep waiting for next timer?
+      if completed || next > Date.now() + waitFor
+        done(null, true)
+
+    # Cleanup listeners and times before calling callback
+    done = (error, timedOut)=>
+      @removeListener("tick", tick)
+      @removeListener("done", done)
+      @removeListener("error", done)
+      clearTimeout(timer)
+      callback(error, !!timedOut)
+
+    # Which would happen first, done, completion or timeout?
+    @addListener("tick", tick)
+    @addListener("done", done)
+    @addListener("error", done)
+    timer = setTimeout(->
+        done(null, true)
+      , duration)
     return
 
-  # Dispatch event asynchronously, wait for it to complete.  Returns true if
+
+  # -- Event queue management --
+
+  # Creates and returns a new event queue (see EventQueue).
+  createEventQueue: (window)->
+    return new EventQueue(window)
+
+  # Set the active window. Suspends processing events from any other window, and
+  # switches to processing events from this window's queue.
+  setActiveWindow: (window)->
+    if window && window != @active
+      if @active
+        @active._eventQueue.suspend()
+      @active = window
+      @active._eventQueue.resume()
+      @run() # new window, new events
+
+  # Call this method when you know an event is coming, but don't have the event
+  # yet. For example, when starting an HTTP request, and the event is for
+  # processing the response.
+  #
+  # This method returns a continuation function that you must call eventually,
+  # of the event loop will wait forever.
+  expecting: ->
+    ++@expected
+    done = =>
+      --@expected
+      @run() # may be dead waiting for next event
+      return
+    return done
+
+
+  # -- Event processing --
+
+  # Grabs next event from the queue, processes it and notifies all listeners.
+  # Keeps processing until the queue is empty or all listeners are gone. You
+  # only need to bootstrap this when you suspect it's not recursing.
+  run: ->
+    # Are we in the midst of another run loop?
+    return if @running
+    # Is there anybody out there?
+    if @listeners("tick").length == 0 && @listeners("done").length == 0
+      return
+    # Are there any open wndows?
+    unless @active
+      @emit("done")
+      return
+
+    # Give other (Node) events a chance to process
+    @running = true
+    process.nextTick =>
+      @running = false
+      unless @active
+        @emit("done")
+        return
+
+      if fn = @active._eventQueue.dequeue()
+        # Process queued function, tick, and on to next event
+        try
+          fn()
+          @emit("tick", 0)
+          @run()
+        catch error
+          @emit("error", error)
+        return
+      else
+        # If there any point in waiting, and how long?
+        # If there are no timers, are we expecting any new events?
+        if time = @active._eventQueue.next()
+          @emit("tick", time)
+          @run()
+        else if @expected == 0
+          @emit("done")
+        return
+    return
+
+
+# Each window has an event queue that holds all pending events and manages
+# timers.
+#
+# Each event is a function that gets called when it's the event time to fire.
+# Various components push new functions to the queue, the event loop is
+# reponsible for fetching the events and executing them.
+#
+# Timers are resumed when the window becomes active, suspened when the window
+# becomes inactive, and execute by queuing events.
+#
+# HTTP request should use the `http` method, which uses `expecting` to indicate
+# an event is expected while the request is in progress (so don't stop event
+# loop), and queue the event when the response arrives.
+class EventQueue
+
+  # Instance variables:
+  # browser   - Reference to the browser
+  # window    - Reference to the window
+  # eventLoop - Reference to the browser's event loop
+  # queue     - FIFO queue of functions to call
+  # timers    - Sparse array of timers (index is the timer handle)
+  constructor: (@window)->
+    @browser = @window.browser
+    @eventLoop = @browser._eventLoop
+    @timers = []
+    @queue = []
+
+  # Cleanup when we dispose of the window
+  destroy: ->
+    for timer in @timers
+      if timer
+        timer.stop()
+    @timers = @queue = null
+
+
+  # -- Events --
+ 
+  # Add a function to the event queue, to be executed in order.
+  enqueue: (fn)->
+    if fn
+      @queue.push(fn)
+      @eventLoop.run()
+    return
+
+  # Event loop uses this to grab event from top of the queue.
+  dequeue: ->
+    return @queue.shift()
+
+  # Makes an HTTP request.
+  #
+  # Parameters are:
+  # url     - URL (string)
+  # method  - Method (defaults to GET)
+  # headers - Headers to pass in request
+  # data    - Document body
+  #
+  # Calls callback with response error or null and response object.
+  http: (params, callback)->
+    done = @eventLoop.expecting()
+    @browser.resources._makeRequest params, (error, response)=>
+      done()
+      @enqueue ->
+        callback error, response
+
+  # Dispatch event synchronously, wait for it to complete. Returns true if
   # preventDefault was set.
   dispatch: (target, event)->
     preventDefault = false
-    @perform (done)->
-      if target.window == target # target is the window
-        window = target
-      else if target.window      # target is document
-        window = target.window
-      else                       # target is element
-        window = (target.ownerDocument || target.document).window
-      window._evaluate ->
-        preventDefault = target.dispatchEvent(event)
-      done()
+    @window._evaluate ->
+      preventDefault = target.dispatchEvent(event)
     return preventDefault
 
-  # Makes a request.  Requires HTTP method and resource URL.
-  #
-  # Optional data object is used to construct query string parameters
-  # or request body (e.g submitting a form).
-  #
-  # Optional headers are passed to the server.  When making a POST/PUT
-  # request, you probably want specify the `content-type` header.
-  #
-  # The callback is called with error and response (see `HTTPResponse`).
-  request: (params, callback)->
-    resources = @browser.resources
-    this.perform (done)->
-      resources._makeRequest params, (error, response)->
-        callback error, response
-        done()
 
-  # Process all events from the queue.  This method returns immediately, events
-  # are processed in the background.  When all events are exhausted, it calls
-  # the callback.
-  #
-  # This method will wait for any resources to load (XHR, script elements,
-  # iframes, etc).  DOM events are handled synchronously, so will also wait for
-  # them.
-  #
-  # Duration is either how long to wait, or a function evaluated against the
-  # window that returns true when done.  The default duration is
-  # `browser.waitFor`.
-  wait: (window, duration, callback)->
-    if typeof duration == "function"
-      is_done = duration
-      done_at = Infinity
-    else
-      unless duration && duration != 0
-        duration = @browser.waitFor
-      done_at = Date.now() + ms(duration || 0)
+  # -- Timers --
 
-    # Called once at the end of the loop. Also, set to null when done, since
-    # waiting may be called multiple times.
-    done = (error)=>
-      # Mark as done so we don't run it again.
-      done = null
-      # Remove from waiting list, pause timers if last waiting.
-      @waiting = (fn for fn in @waiting when fn != waiting)
-      @pause() if @waiting.length == 0
-      if terminate
-        clearTimeout(terminate)
+  # Window.setTimeout
+  setTimeout: (fn, delay)->
+    return unless fn
+    index = @timers.length
+    remove = =>
+      delete @timers[index]
+    timer = new Timeout(this, fn, delay, remove)
+    @timers[index] = timer
+    return index
 
-      # Callback and event emitter, pick your poison.
-      if callback
-        process.nextTick ->
-          callback error, window
-      if error
-        @browser.emit "error", error
-      else
-        @browser.emit "done"
-
-    # don't block forever
-    terminate = setTimeout(done, ms(@browser.maxWait))
-
-    # Duration is a function, proceed until function returns false.
-    waiting = =>
-      # May be called multiple times from nextTick
-      return unless done
-      # Processing XHR/JS events, keep waiting.
-      return if @processing > 0
-      try
-        if is_done && is_done(window)
-          done() # Yay
-          return
-      catch error # Propagate
-        done(error)
-        return
-
-      # not done and no events, so wait for the next timer.
-      timers = (timer.next for timer in @timers)
-      next = Math.min(timers...)
-      # if there are no timers, next is infinity, larger then done_at, no waiting
-      if next > done_at
-        done()
-
-    # No one is waiting, resume firing timers.
-    @resume() if @waiting.length == 0
-    @waiting.push waiting
-    @next()
+  # Window.clearTimeout
+  clearTimeout: (index)->
+    timer = @timers[index]
+    if timer
+      timer.stop()
     return
 
-  # Kick off all the waiting callbacks.
-  next: ->
-    for waiting in @waiting
-      process.nextTick waiting
+  # Window.setInterval
+  setInterval: (fn, interval)->
+    return unless fn
+    index = @timers.length
+    remove = =>
+      delete @timers[index]
+    timer = new Interval(this, fn, interval, remove)
+    @timers[index] = timer
+    return index
+
+  # Window.clearInterval
+  clearInterval: (index)->
+    timer = @timers[index]
+    if timer
+      timer.stop()
     return
 
-  # Pause any timers from firing while we're not listening.
-  pause: ->
+  # Used when window goes out of focus, prevents timers from firing
+  suspend: ->
     for timer in @timers
-      timer.pause()
-    return
+      if timer
+        timer.suspend()
 
-  # Resumes any timers.
+  # Used when window goes back in focus, resumes timers
   resume: ->
-    # Note: timer.resume modifies _timers
-    for timer in @timers.slice()
-      timer.resume()
-    return
+    for timer in @timers
+      if timer
+        timer.resume()
 
-  dump: ->
-    return [ "The time:   #{new Date}",
-             "Timers:     #{@timers.length}",
-             "Processing: #{@processing}",
-             "Waiting:    #{@waiting.length}" ]
+  # Returns the timestamp of the next timer event
+  next: ->
+    next = null
+    for timer in @timers
+      if timer && (!next || timer.next < next)
+        next = timer.next
+    return next
+
+
+
+# Wrapper for a timeout (setTimeout)
+class Timeout
+
+  # queue   - Reference to the event queue
+  # fn      - When timer fires, evaluate this function
+  # delay   - How long to wait
+  # remove  - Call this to discard timer
+  #
+  # Instance variables add:
+  # next    - When is this timer firing next
+  # handle  - Node.js timeout handle
+  constructor: (@queue, @fn, @delay, @remove)->
+    @delay = Math.max(@delay || 0, 0)
+    @resume()
+
+  # Resume (also start) this timer
+  resume: ->
+    return if @handle # already resumed
+    fire = =>
+      @queue.enqueue =>
+        @queue.browser.emit("timeout", @fn, @delay)
+        @queue.window._evaluate(@fn)
+      @remove()
+    @handle = setTimeout(fire, Math.max(@next - Date.now(), 0))
+    @next = Date.now() + @delay
+
+  # Make sure timer doesn't fire until we're ready for it again
+  suspend: ->
+    global.clearTimeout(@handle)
+    @handle = null
+
+  # clearTimeout
+  stop: ->
+    global.clearTimeout(@handle)
+    @remove()
+
+
+# Wapper for an interval (setInterval)
+class Interval
+
+  # queue     - Reference to the event queue
+  # fn        - When timer fires, evaluate this function
+  # interval  - Interval between firing
+  # remove    - Call this to discard timer
+  #
+  # Instance variables add:
+  # next    - When is this timer firing next
+  # handle  - Node.js interval handle
+  constructor: (@queue, @fn, @interval, @remove)->
+    @interval =  Math.max(@interval || 0)
+    @resume()
+
+  # Resume (also start) this timer
+  resume: ->
+    return if @handle # already resumed
+    fire = =>
+      @queue.enqueue =>
+        @queue.browser.emit("interval", @fn, @interval)
+        @queue.window._evaluate(@fn)
+      @next = Date.now() + @interval
+    @handle = setInterval(fire, @interval)
+    @next = Date.now() + @interval
+
+  # Make sure timer doesn't fire until we're ready for it again
+  suspend: ->
+    global.clearInterval(@handle)
+    @handle = null
+
+  # clearTimeout
+  stop: ->
+    global.clearInterval(@handle)
+    @remove()
 
 
 module.exports = EventLoop

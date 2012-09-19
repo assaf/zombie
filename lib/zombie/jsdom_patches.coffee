@@ -103,7 +103,7 @@ HTML.resourceLoader.load = (element, href, callback)->
     url = HTML.resourceLoader.resolve(document, href)
     loaded = (response, filename)->
       callback.call this, response.body, URL.parse(response.url).pathname
-    window._eventLoop.request { url: url }, @enqueue(element, loaded, url.pathname)
+    window._eventQueue.http { url: url }, @enqueue(element, loaded, url.pathname)
 
 
 # Support for iframes that load content when you set the src attribute.
@@ -141,7 +141,7 @@ HTML.Document.prototype._elementBuilders["iframe"] = (document, tag)->
       window.addEventListener "DOMContentLoaded", ->
         onload = document.createEvent("HTMLEvents")
         onload.initEvent("load", true, false)
-        window._eventLoop.dispatch(iframe, onload)
+        window._dispatchEvent(iframe, onload)
       HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
     else
       HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)

@@ -16,14 +16,11 @@ XMLHttpRequest = (window)->
     @__defineGetter__ "readyState", -> state
     if @onreadystatechange
       # Since we want to wait on these events, put them in the event loop.
-      window._eventLoop.perform (done)=>
-        process.nextTick =>
-          try
-            @onreadystatechange.call(@)
-          catch error
-            raise element: window.document, from: __filename, scope: "XHR", error: error
-          finally
-            done()
+      window.enqueue =>
+        try
+          @onreadystatechange.call(@)
+        catch error
+          raise element: window.document, from: __filename, scope: "XHR", error: error
   # Bring XHR to initial state (open/abort).
   reset = =>
     # Switch back to unsent state
@@ -66,7 +63,7 @@ XMLHttpRequest = (window)->
           reset()
 
         # Make the actual request: called again when dealing with a redirect.
-        window._eventLoop.request method: method, url: url, data: data, headers: headers, (error, response)=>
+        window._eventQueue.http method: method, url: url, data: data, headers: headers, (error, response)=>
           if error
             @_error = new html.DOMException(html.NETWORK_ERR, error.message)
             stateChanged 4

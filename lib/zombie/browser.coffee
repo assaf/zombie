@@ -53,15 +53,19 @@ class Browser extends EventEmitter
     Object.defineProperty this, "tabs",
       value: createTabs(this)
 
+    # The browser event loop.
+    @_eventLoop = new EventLoop(this)
+
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.
     @on "error", (error)=>
       @errors.push error
       @log error.message, error.stack
 
-
     # Window becomes inactive
     @on "active", (window)=>
+      @_eventLoop.setActiveWindow(window)
+
       onfocus = window.document.createEvent("HTMLEvents")
       onfocus.initEvent("focus", false, false)
       window.dispatchEvent(onfocus)
@@ -82,6 +86,12 @@ class Browser extends EventEmitter
 
     # Window has been closed
     @on "closed", (window)->
+
+    @on "timeout", (fn, delay)->
+      @log "Fired timeout after #{delay}ms delay"
+
+    @on "interval", (fn, interval)->
+      @log "Fired interval every #{interval}ms"
 
 
     # Default (not global) options
@@ -188,8 +198,6 @@ class Browser extends EventEmitter
 
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
-    if @window
-      @window._eventLoop.reset()
     @errors = []
     return @tabs.open(options || {})
 
@@ -220,13 +228,16 @@ class Browser extends EventEmitter
 
     if arguments.length < 2 && typeof duration == "function"
       [callback, duration] = [duration, null]
+    if typeof duration == "function"
+      [completion, duration] = [duration, null]
+    duration ||= @maxWait
  
     deferred = Q.defer()
     if callback
       deferred.promise.then(callback, callback)
     last = @errors[@errors.length - 1]
 
-    @window._eventLoop.wait @window, duration, (error)=>
+    @_eventLoop.wait duration, completion, (error, timedOut)=>
       newest = @errors[@errors.length - 1]
       unless error || last == newest
         error = newest
@@ -255,7 +266,7 @@ class Browser extends EventEmitter
   dispatchEvent: (target, event)->
     unless @window
       throw new Error("No window open")
-    return @window._eventLoop.dispatch(target, event)
+    return @window._dispatchEvent(target, event)
 
 
   # Accessors

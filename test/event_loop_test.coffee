@@ -230,7 +230,7 @@ describe "EventLoop", ->
         assert.equal @browser.document.title, ".."
 
 
-  describe "browser.wait function", ->
+  describe "browser.wait completion", ->
     before (done)->
       @browser = new Browser()
       @browser.visit("http://localhost:3003/eventloop/function")
