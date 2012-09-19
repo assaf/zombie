@@ -87,7 +87,7 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
       when "_top"    # navigate top window
         window.top.location = anchor.href
       else # open named window
-        browser.tabs.open(name: anchor.target, url: anchor.ref)
+        browser.tabs.open(name: anchor.target, url: anchor.href)
 
 
 # Fix resource loading to keep track of in-progress requests. Need this to wait

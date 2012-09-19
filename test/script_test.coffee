@@ -66,7 +66,7 @@ describe "Scripts", ->
           assert.equal @browser.location.href, "http://localhost:3003/script/living/#/dead"
 
 
-    describe "live events", ->
+    describe.skip "live events", ->
       before (done)->
         @browser = new Browser()
         @browser.visit("http://localhost:3003/script/living/")
@@ -85,7 +85,7 @@ describe "Scripts", ->
     describe "evaluate", ->
       before (done)->
         Browser.visit "http://localhost:3003/script/living/", (error, browser)=>
-          @title = browser.evaluate "document.title"
+          @title = browser.evaluate("document.title")
           done(error)
 
       it "should evaluate in context and return value", ->

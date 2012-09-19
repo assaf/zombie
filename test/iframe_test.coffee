@@ -65,7 +65,7 @@ describe "IFrame", ->
     assert true
 
 
-  describe "postMessage", ->
+  describe.skip "postMessage", ->
     before (done)->
       brains.get "/iframe/ping", (req, res)->
         res.send """
@@ -113,7 +113,7 @@ describe "IFrame", ->
           <a target="_blank" href="/target/_blank">blank</a>
           <iframe name="child" src="/iframe/child"></iframe>
           <a target="new-window" href="/target/new-window">new window</a>
-          <a target="nodejs" href="/target/existing-window">existing window</a>
+          <a target="new-window" href="/target/existing-window">existing window</a>
         """
       brains.get "/iframe/child", (req, res)->
         res.send """
@@ -146,10 +146,10 @@ describe "IFrame", ->
         assert.equal @browser.location.pathname, "/target/_self"
 
       it "should open link in same window", ->
-        assert.equal @browser.window, @source
+        assert.equal @browser.tabs.index, 0
 
 
-    describe.skip "_blank", ->
+    describe "_blank", ->
 
       before (done)->
         @browser = new Browser()
@@ -158,14 +158,15 @@ describe "IFrame", ->
           @browser.clickLink "blank", done
 
       it "should open link", ->
+        console.log @browser.location.href
         assert.equal @browser.location.pathname, "/target/_blank"
 
       it "should open link in new window", ->
         assert.equal @browser.tabs.length, 2
-        assert.equal @browser.window, @browser.tabs[1]
+        assert.equal @browser.tabs.index, 1
 
 
-    describe.skip "_top", ->
+    describe "_top", ->
       before (done)->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/iframe/top", =>
@@ -183,7 +184,7 @@ describe "IFrame", ->
         assert.equal @browser.tabs.length, 1
 
 
-    describe.skip "_parent", ->
+    describe "_parent", ->
       before (done)->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/iframe/top", =>
@@ -202,7 +203,7 @@ describe "IFrame", ->
         assert.equal @browser.tabs.length, 1
 
 
-    describe.skip "window", ->
+    describe "window", ->
 
       describe "new", ->
         before (done)->
@@ -217,9 +218,7 @@ describe "IFrame", ->
 
         it "should open link in new window", ->
           assert.equal @browser.tabs.length, 2
-
-        it "should select new window", ->
-          assert.equal @browser.tabs[1], @browser.window
+          assert.equal @browser.tabs.index, 1
 
 
       describe "existing", ->
@@ -241,5 +240,5 @@ describe "IFrame", ->
           assert.equal @browser.tabs.length, 2
 
         it "should select existing window", ->
-          assert.equal @browser.tabs[0], @browser.window
+          assert.equal @browser.tabs.index, 1
 

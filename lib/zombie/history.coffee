@@ -103,7 +103,7 @@ class History
 
   # Add a new entry.  When a window opens it call this to add itself to history.
   addEntry: (window, url, pushState)->
-    url ||= window.location
+    url ||= window.location.href
     entry = new Entry(window, url, pushState)
     @updateLocation(window, url)
     @focus(window)
@@ -115,7 +115,7 @@ class History
  
   # Replace current entry with a new one.
   replaceEntry: (window, url, pushState)->
-    url ||= window.location
+    url ||= window.location.href
     entry = new Entry(window, url, pushState)
     @updateLocation(window, url)
     @focus(window)
@@ -161,7 +161,6 @@ class History
 
   # This method is available from Location, used to navigate to a new page.
   assign: (url)->
-    url = URL.format(url)
     if @current
       url = HTML.resourceLoader.resolve(@current.window.document, url)
       name = @current.window.name

@@ -84,7 +84,7 @@ describe "Promises", ->
           done()
 
     it "should reject with an error", ->
-      assert.equal @error.message, "Server returned status code 404"
+      assert ~@error.message.search("Server returned status code 404")
 
 
   # In practice you would do something like:

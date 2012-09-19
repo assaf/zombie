@@ -16,7 +16,7 @@ XMLHttpRequest = (window)->
     @__defineGetter__ "readyState", -> state
     if @onreadystatechange
       # Since we want to wait on these events, put them in the event loop.
-      window.enqueue =>
+      window._eventQueue.enqueue =>
         try
           @onreadystatechange.call(@)
         catch error
@@ -63,7 +63,7 @@ XMLHttpRequest = (window)->
           reset()
 
         # Make the actual request: called again when dealing with a redirect.
-        window._eventQueue.http method: method, url: url, data: data, headers: headers, (error, response)=>
+        window._eventQueue.http method: method, url: URL.format(url), data: data, headers: headers, (error, response)=>
           if error
             @_error = new html.DOMException(html.NETWORK_ERR, error.message)
             stateChanged 4

@@ -263,6 +263,7 @@ class EventQueue
       done()
       @enqueue ->
         callback error, response
+    return
 
   # Fire an error event.
   onerror: (error)->
