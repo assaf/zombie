@@ -84,11 +84,7 @@ raise = ({ element, location, from, scope, error })->
   partial.push "    in #{location}"
   error.stack = partial.join("\n")
 
-  event = document.createEvent("Event")
-  event.initEvent "error", false, false
-  event.message = error.message
-  event.error = error
-  window.dispatchEvent event
+  window._eventQueue.onerror(error)
   return
 
 

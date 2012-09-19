@@ -1,25 +1,22 @@
-# The event looeue
+# The event loop.
 #
-# Each browser has an event loop, which processes asynchronous events (loading
-# resources and XHR, timeouts and intervals, DOM events, etc). These are
-# processed in order.
+# Each browser has an event loop, which processes asynchronous events like
+# loading pages and resources, XHR, timeouts and intervals, etc. These are
+# procesed in order.
 #
-# The primary usage of the event loop is waiting for stuff to happen. Waiting
-# implies knowing when to stop (no more events, no scheduled timers, etc). The
-# most important method is `wait`, and everything else is derived from it.
+# The purpose of the event loop is two fold:
+# - To get events processed in the right order for the active window (and only
+#   the active window)
+# - And to allow the code to wait until all events have been processed
+#   (browser.wait, .visit, .pressButton, etc)
 #
-# Only one window is active at a time, and only events from that window are
-# executed. The rest are simply queued.
+# The event loop has one interesting method: `wait`.
 #
-#
-# The event loop has one interesting method: the `wait` method that allows the
-# brower to block until all events are processed (or timeout, or completion
-# function, see there fore details).
+# Each window maintains its own event queue. Its interesting methods are
+# `enqueue`, `http`, `dispatch` and the timeout/interval methods.
 
 
-{ EventEmitter }  = require("events")
-ms                = require("ms")
-Util              = require("util")
+ms  = require("ms")
 
 
 # The browser event loop.
@@ -29,36 +26,33 @@ Util              = require("util")
 # windows are suspended.
 #
 # Reason to wait for the event loop:
-# - one or more events waiting in the queue to be processed
-# - one or more timers waiting to fire
-# - one or more future events, expected to arrive in the queue
+# - One or more events waiting in the queue to be processed
+# - One or more timers waiting to fire
+# - One or more future events, expected to arrive in the queue
 #
 # Reasons to stop waiting:
-# - no more events in the queue, or expected to arrive
-# - no more timers, or all timers are further than our timeout
-# - completion function evaluated to true
+# - No more events in the queue, or expected to arrive
+# - No more timers, or all timers are further than our timeout
+# - Completion function evaluated to true
 #
-# The event loop supports listeners and emits the following events:
+# The event loop emits the following events (on the browser):
 # tick  - Emitted after executing an event; single argument is expected time
 #         until next tick event (in ms, zero for "soon")
 # done  - Emitted when the event queue is empty (may fire more than once)
 # error - Emitted when an error occurs
-class EventLoop extends EventEmitter
+class EventLoop
 
   # Instance variables are:
-  # active   - The active window
-  # browser  - Reference to the browser
-  # expected - Number of events expected to appear (see `expecting` method)
-  # running  - True when inside a run loop
+  # active    - The active window
+  # browser   - Reference to the browser
+  # expected  - Number of events expected to appear (see `expecting` method)
+  # running   - True when inside a run loop
+  # listeners - Array of listeners, used by wait method
   constructor: (@browser)->
-    @active    = null
-    @expected  = 0
-    @running   = false
-    # Someone's paying attention, start processing events
-    @on "newListener", =>
-      if @active
-        @active._eventQueue.resume()
-        @run()
+    @active   = null
+    @expected = 0
+    @running  = false
+    @listeners  = []
 
 
   # -- The wait function --
@@ -80,32 +74,42 @@ class EventLoop extends EventEmitter
     duration = ms(duration)
     waitFor = ms(@browser.waitFor)
 
-    # Event processed, are we ready to complete?
-    tick = (next)->
-      if completion
-        try
-          completed = completion(@active)
-        catch error
-          done(error)
-      # Should we keep waiting for next timer?
-      if completed || next > Date.now() + waitFor
-        done(null, true)
+    if @listeners.length == 0
+      # Someone's paying attention, start processing events
+      process.nextTick =>
+        if @active
+          @active._eventQueue.resume()
+          @run()
 
-    # Cleanup listeners and times before calling callback
-    done = (error, timedOut)=>
-      @removeListener("tick", tick)
-      @removeListener("done", done)
-      @removeListener("error", done)
-      clearTimeout(timer)
-      callback(error, !!timedOut)
+    # Receive tick, done and error events
+    listener = (event, value)=>
+      switch event
+        when "tick"
+          # Event processed, are we ready to complete?
+          if completion
+            try
+              completed = completion(@active)
+            catch error
+              done(error)
+          # Should we keep waiting for next timer?
+          if completed || value > Date.now() + waitFor
+            done(null, true)
+        when "done"
+          done()
+        when "error"
+          done(value)
+    @listeners.push(listener)
 
-    # Which would happen first, done, completion or timeout?
-    @addListener("tick", tick)
-    @addListener("done", done)
-    @addListener("error", done)
     timer = setTimeout(->
         done(null, true)
       , duration)
+
+    # Cleanup listeners and times before calling callback
+    done = (error, timedOut)=>
+      clearTimeout(timer)
+      @listeners.splice(@listeners.indexOf(listener), 1)
+      callback(error, !!timedOut)
+
     return
 
 
@@ -149,8 +153,7 @@ class EventLoop extends EventEmitter
     # Are we in the midst of another run loop?
     return if @running
     # Is there anybody out there?
-    if @listeners("tick").length == 0 && @listeners("done").length == 0
-      return
+    return if @listeners.length == 0
     # Are there any open wndows?
     unless @active
       @emit("done")
@@ -183,6 +186,12 @@ class EventLoop extends EventEmitter
           @emit("done")
         return
     return
+
+  # Send to browser and listeners
+  emit: (event, value)->
+    @browser.emit(event, value)
+    for listener in @listeners
+      listener(event, value)
 
 
 # Each window has an event queue that holds all pending events and manages
@@ -256,6 +265,16 @@ class EventQueue
     @window._evaluate ->
       preventDefault = target.dispatchEvent(event)
     return preventDefault
+
+  # Fire an error event.
+  onerror: (error)->
+    @window.console.error(error)
+    @browser.emit("error", error)
+    event = @window.document.createEvent("Event")
+    event.initEvent("error", false, false)
+    event.message = error.message
+    event.error = error
+    @window.dispatchEvent(event)
 
 
   # -- Timers --

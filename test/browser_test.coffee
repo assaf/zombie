@@ -182,6 +182,7 @@ describe "Browser", ->
           browser.on "error", (@error)=>
             done()
           browser.location = "http://localhost:3003/browser/errored"
+          browser.wait()
 
         it "should fire onerror event with error", ->
           assert @error.message && @error.stack
