@@ -65,7 +65,7 @@ HTML.HTMLFormElement.prototype.submit = (button)->
         data.push [button.name, button.value]
 
       document.window._submit
-        url:      HTML.resourceLoader.resolve(document, @getAttribute("action"))
+        url:      @getAttribute("action")
         method:   @getAttribute("method")
         encoding: @getAttribute("enctype")
         data:     data

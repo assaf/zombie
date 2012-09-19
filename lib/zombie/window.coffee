@@ -272,10 +272,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   # Load the document associated with this window.
   loadDocument document: document, history: history, url: url, method: method, encoding: encoding, data: data
   # Form submission uses this
-  # FIXME
-  window._submit = ({ url, method, encoding, data })->
-    loadDocument document: document, history: history, url: url, method: method, encoding: encoding, data: data
-
+  window._submit = history.submit.bind(history)
   return window
 
 
@@ -362,7 +359,7 @@ loadDocument = ({ document, history, url, method, encoding, data })->
       request =
         url:      url
         method:   (method || "GET").toUpperCase() 
-        headers:  (headers && Object.create(headers)) || {}
+        headers:  (headers || {})
         data:     data
       if referer
         request.headers.referer = referer

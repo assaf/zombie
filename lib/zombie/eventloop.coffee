@@ -107,7 +107,7 @@ class EventLoop
     # Cleanup listeners and times before calling callback
     done = (error, timedOut)=>
       clearTimeout(timer)
-      @listeners.splice(@listeners.indexOf(listener), 1)
+      @listeners = @listeners.filter((l)-> l != listener)
       callback(error, !!timedOut)
 
     return

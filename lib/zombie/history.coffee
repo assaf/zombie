@@ -104,7 +104,7 @@ class History
   addEntry: (window, url, pushState)->
     url ||= window.location
     entry = new Entry(window, url, pushState)
-    this.updateLocation(window, url)
+    @updateLocation(window, url)
     @current.append(entry)
     @current = entry
     @focus(window)
@@ -113,7 +113,7 @@ class History
   replaceEntry: (window, url, pushState)->
     url ||= window.location
     entry = new Entry(window, url, pushState)
-    this.updateLocation(window, url)
+    @updateLocation(window, url)
     if @current == @first
       @current.dispose(window)
       @current = @first = entry
@@ -134,6 +134,22 @@ class History
   # Returns current URL.
   @prototype.__defineGetter__ "url", ->
     return @current?.url
+
+  # Form submission
+  submit: ({ url, method, encoding, data })->
+    window = @current.window
+    url = HTML.resourceLoader.resolve(window.document, url || "/")
+    params =
+      browser:  @browser
+      history:  this
+      name:     window.name
+      parent:   window.parent
+      url:      url
+      method:   method
+      encoding: encoding
+      data:     data
+    newWindow = createWindow(params)
+    @addEntry(newWindow, url)
 
 
   # -- Implementation of window.history --
