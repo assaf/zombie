@@ -158,8 +158,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     event.source = inContext
     origin = event.source.location
     event.origin = URL.format(protocol: origin.protocol, host: origin.host)
-    process.nextTick ->
-      window._eventLoop.dispatch(window, event)
+    window._dispatchEvent(window, event)
 
 
   # -- JavaScript evaluation 
@@ -169,11 +168,14 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     try
       inContext = window # the current window, postMessage needs this
       if typeof(code) == "string" || code instanceof String
-        global.run(code, filename)
+        result = global.run(code, filename)
       else if code
-        code.call(global)
+        result = code.call(global)
+      browser.emit("evaluated", code, result)
+      return result
+    catch error
+      browser.emit("error", error)
     finally
-      browser.emit("evaluated", window, code)
       inContext = null
 
   window._dispatchEvent = (target, event)->

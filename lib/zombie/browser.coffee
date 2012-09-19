@@ -421,7 +421,7 @@ class Browser extends EventEmitter
   # Loads document from the specified URL, processes events and calls the callback.  If the second argument are options,
   # uses these options for the duration of the request and resets the options afterwards.
   #
-  # The callback is called with null, the browser, status code and array of resource/JavaScript errors.
+  # The callback is called with error, the browser, status code and array of resource/JavaScript errors.
   visit: (url, options, callback)->
     if typeof options == "function" && !callback
       [callback, options] = [options, null]

@@ -89,8 +89,9 @@ describe "Browser", ->
           Browser.visit "http://localhost:3003/browser/errored", (@error, @browser, @status, @errors)=>
             done()
 
-        it "should call callback without error", ->
-          assert @error instanceof Error
+        it "should call callback with error", ->
+          assert @error
+          assert @error.constructor.name == "TypeError"
         it "should indicate success", ->
           assert @browser.success
         it "should pass errors to callback", ->
@@ -446,7 +447,7 @@ describe "Browser", ->
         assert.equal @browser.window, @browser.tabs[1]
 
       it "should reference opener from opened window", ->
-        assert.equal @browser.window.opener, @browser.tabs[0].top
+        assert.equal @browser.window.opener, @browser.tabs[0]
 
 
       describe "and close it", ->

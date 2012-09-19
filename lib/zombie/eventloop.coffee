@@ -264,14 +264,6 @@ class EventQueue
       @enqueue ->
         callback error, response
 
-  # Dispatch event synchronously, wait for it to complete. Returns true if
-  # preventDefault was set.
-  dispatch: (target, event)->
-    preventDefault = false
-    @window._evaluate ->
-      preventDefault = target.dispatchEvent(event)
-    return preventDefault
-
   # Fire an error event.
   onerror: (error)->
     @window.console.error(error)

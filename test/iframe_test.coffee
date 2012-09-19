@@ -74,7 +74,8 @@ describe "IFrame", ->
             <iframe name="ping" src="/iframe/pong"></iframe>
             <script>
               // Give the frame a chance to load before sending message
-              document.getElementsByTagName("iframe")[0].addEventListener("load", function() {
+              var iframe = document.getElementsByTagName("iframe")[0];
+              iframe.addEventListener("load", function() {
                 window.frames["ping"].postMessage("ping");
               })
               // Ready to receive response
@@ -142,7 +143,6 @@ describe "IFrame", ->
           @browser.clickLink "self", done
 
       it "should open link", ->
-        console.log @browser.location
         assert.equal @browser.location.pathname, "/target/_self"
 
       it "should open link in same window", ->
