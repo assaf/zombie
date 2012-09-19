@@ -405,7 +405,7 @@ class Browser extends EventEmitter
   # ### done
   #
   # Close all windows, clean state. You're going to need to call this to free up memory.
-  done: ->
+  destroy: ->
     @tabs.closeAll()
 
 

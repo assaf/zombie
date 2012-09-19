@@ -221,11 +221,11 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   # Destroy the window, child windows and Contextify global.
   window._destroy = ->
     unless closed
-      for frame in window
+      for frame in window.frames
         frame.close()
       closed = true
       eventQueue.destroy()
-      window.dispose()
+      #window.dispose()
       window.document = null
       return
 

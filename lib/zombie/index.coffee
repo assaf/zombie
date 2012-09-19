@@ -2,16 +2,6 @@ Browser = require("./browser")
 Path    = require("path")
 
 
-# Make sure Contextify is available to JSDOM
-###
-try
-  contextify = Path.resolve(require.resolve("jsdom"), "../../node_modules/contextify")
-  require contextify
-catch ex
-  throw new Error("To use Zombie, Contextify must be installed as a dependency of JSDOM (not Zombie itself)")
-###
-
-
 # ### zombie.visit(url, callback)
 # ### zombie.visit(url, options, callback)
 #
