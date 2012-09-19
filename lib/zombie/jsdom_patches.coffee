@@ -126,8 +126,8 @@ HTML.Document.prototype._elementBuilders["iframe"] = (document, tag)->
     focus = (active)->
       window = active
     # Need to bypass JSDOM's window/document creation and use ours
-    history = createHistory(parent.browser, focus)
-    window = history(name: iframe.name, parent: parent, url: url)
+    open = createHistory(parent.browser, focus)
+    window = open(name: iframe.name, parent: parent, url: url)
 
   # This is also necessary to prevent JSDOM from messing with window/document
   iframe.setAttribute = (name, value)->

@@ -218,8 +218,8 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     get: -> closed
     enumerable: true
 
-  # Cleanup the window, child windows and Contextify global.
-  window._cleanup = ->
+  # Destroy the window, child windows and Contextify global.
+  window._destroy = ->
     unless closed
       for frame in window
         frame.close()
@@ -236,9 +236,8 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     if inContext == opener || inContext == null
       unless closed
         browser.emit("inactive", window)
-        window._cleanup()
         browser.emit("closed", window)
-        history.dispose() # do this last to prevent infinite loop
+        history.destroy() # do this last to prevent infinite loop
     else
       browser.log("Scripts may not close windows that were not opened by script")
     return

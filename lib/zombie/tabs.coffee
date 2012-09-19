@@ -101,8 +101,8 @@ createTabs = (browser)->
               active = window
             browser._eventLoop.setActiveWindow(window)
 
-          history = createHistory(browser, focus)
-          window = history(name: name, opener: opener, url: url)
+          open = createHistory(browser, focus)
+          window = open(name: name, opener: opener, url: url)
           this.push(window)
           if name && (Object.propertyIsEnumerable(name) || !this[name])
             this[name] = window

@@ -202,8 +202,7 @@ class Browser extends EventEmitter
 
   # Open new browser window.  Options are undocumented, use at your own peril.
   open: (options)->
-    @errors = []
-    return @tabs.open(options || {})
+    return @tabs.open(options)
 
   # ### browser.error => Error
   #

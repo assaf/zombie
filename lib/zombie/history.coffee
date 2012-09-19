@@ -60,27 +60,27 @@ class Entry
     @url = URL.format(url)
     @next = @prev = null
 
-  # Called to dispose of this entry. Used when we dispose of the entire
-  # history, closing all windows. But also used when we replace one entry with
-  # another, and there are two cases to worry about:
+  # Called to destroy this entry. Used when we destroy the entire history,
+  # closing all windows. But also used when we replace one entry with another,
+  # and there are two cases to worry about:
   # - The current entry uses the same window as the previous entry, we get rid
   #   of the entry, but must keep the entry intact
   # - The current entry uses the same window as the new entry, also need to
   #   keep window intact
-  dispose: (options)->
+  destroy: (options)->
     if @next
-      @next.dispose(options)
+      @next.destroy(options)
     # Do not close window if replacing entry with same window
     if options && options.keepAlive == @window
       return
     # Do not close window if used by previous entry in history
     if @prev && @prev.window == @window
       return
-    @window._cleanup()
+    @window._destroy()
 
   append: (entry, options)->
     if @next
-      @next.dispose(options)
+      @next.destroy(options)
     entry.prev = this
     @next = entry
 
@@ -96,9 +96,10 @@ class History
     return window
 
   # Dispose of all windows in history
-  dispose: ->
-    @first.dispose()
-    @first = null
+  destroy: ->
+    @focus(null)
+    @first.destroy()
+    @first = @current = null
 
   # Add a new entry.  When a window opens it call this to add itself to history.
   addEntry: (window, url, pushState)->
@@ -120,7 +121,7 @@ class History
     @focus(window)
     if @current == @first
       if @current
-        @current.dispose(keepAlive: window)
+        @current.destroy(keepAlive: window)
       @current = @first = entry
     else
       @current.prev.append(entry, keepAlive: window)
