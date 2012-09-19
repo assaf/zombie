@@ -67,22 +67,22 @@ class Entry
   #   of the entry, but must keep the entry intact
   # - The current entry uses the same window as the new entry, also need to
   #   keep window intact
-  dispose: (keep)->
+  dispose: (options)->
     if @next
-      @next.dispose()
+      @next.dispose(options)
     # Do not close window if replacing entry with same window
-    if keep == @window
+    if options && options.keepAlive == @window
       return
     # Do not close window if used by previous entry in history
     if @prev && @prev.window == @window
       return
     @window._cleanup()
 
-  append: (entry)->
+  append: (entry, options)->
     if @next
-      @next.dispose()
-    @next = entry
+      @next.dispose(options)
     entry.prev = this
+    @next = entry
 
 
 class History
@@ -92,7 +92,7 @@ class History
   # Opens the first window and returns it.
   open: ({ name, opener, parent, url })->
     window = createWindow(browser: @browser, history: this, name: name, opener: opener, parent: parent, url: url)
-    @current = @first = new Entry(window, url || window.location)
+    @addEntry(window, url)
     return window
 
   # Dispose of all windows in history
@@ -105,21 +105,25 @@ class History
     url ||= window.location
     entry = new Entry(window, url, pushState)
     @updateLocation(window, url)
-    @current.append(entry)
-    @current = entry
     @focus(window)
+    if @current
+      @current.append(entry)
+      @current = entry
+    else
+      @current = @first = entry
  
   # Replace current entry with a new one.
   replaceEntry: (window, url, pushState)->
     url ||= window.location
     entry = new Entry(window, url, pushState)
     @updateLocation(window, url)
+    @focus(window)
     if @current == @first
-      @current.dispose(window)
+      if @current
+        @current.dispose(keepAlive: window)
       @current = @first = entry
     else
-      @current.prev.append(entry, window)
-    @focus(window)
+      @current.prev.append(entry, keepAlive: window)
 
   # Update window location (navigating to new URL, same window, e.g pushState or hash change)
   updateLocation: (window, url)->
@@ -131,14 +135,10 @@ class History
         history.assign(url)
       enumerable: true
 
-  # Returns current URL.
-  @prototype.__defineGetter__ "url", ->
-    return @current?.url
-
   # Form submission
   submit: ({ url, method, encoding, data })->
     window = @current.window
-    url = HTML.resourceLoader.resolve(window.document, url || "/")
+    url = HTML.resourceLoader.resolve(window.document, url)
     params =
       browser:  @browser
       history:  this
@@ -150,6 +150,10 @@ class History
       data:     data
     newWindow = createWindow(params)
     @addEntry(newWindow, url)
+    
+  # Returns current URL.
+  @prototype.__defineGetter__ "url", ->
+    return @current?.url
 
 
   # -- Implementation of window.history --
@@ -197,6 +201,12 @@ class History
       window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent)
       @replaceEntry(window, url)
     return
+
+  reload: ->
+    if window = @current.window
+      url = window.location.href
+      newWindow = createWindow(browser: @browser, history: this, name: window.name, url: url, parent: window.parent)
+      @replaceEntry(newWindow, url)
 
   # This method is available from Location.
   go: (amount)->
@@ -278,9 +288,9 @@ createLocation = (history, url)->
       value: (url)->
         history.replace(url)
 
-    reload: (force)->
-      value: 
-        history.replace(@url)
+    reload:
+      value: (force)->
+        history.reload()
 
     toString:
       value: ->

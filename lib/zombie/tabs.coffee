@@ -94,10 +94,12 @@ createTabs = (browser)->
           focus = (window)->
             if window && window != active
               index = tabs.indexOf(active)
-              tabs[index] = window
+              if ~index
+                tabs[index] = window
               if tabs.current == active
                 tabs.current = window
               active = window
+            browser._eventLoop.setActiveWindow(window)
 
           history = createHistory(browser, focus)
           window = history(name: name, opener: opener, url: url)

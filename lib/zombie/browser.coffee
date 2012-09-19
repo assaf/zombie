@@ -75,7 +75,6 @@ class Browser extends EventEmitter
         onfocus = window.document.createEvent("HTMLEvents")
         onfocus.initEvent("focus", false, false)
         element.dispatchEvent(onfocus)
-      @_eventLoop.setActiveWindow(window)
 
     # Window becomes inactive
     @on "inactive", (window)->
@@ -88,7 +87,6 @@ class Browser extends EventEmitter
       onblur = window.document.createEvent("HTMLEvents")
       onblur.initEvent("blur", false, false)
       window.dispatchEvent(onblur)
-      @_eventLoop.setActiveWindow(null)
 
     # Window has been closed
     @on "closed", (window)->

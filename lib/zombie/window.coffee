@@ -269,10 +269,10 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     history:
       value: windowHistory
 
-  # Load the document associated with this window.
-  loadDocument document: document, history: history, url: url, method: method, encoding: encoding, data: data
   # Form submission uses this
   window._submit = history.submit.bind(history)
+  # Load the document associated with this window.
+  loadDocument document: document, history: history, url: url, method: method, encoding: encoding, data: data
   return window
 
 

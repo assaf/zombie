@@ -1,7 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-describe "EventSource", ->
+describe.skip "EventSource", ->
 
   before (done)->
     brains.get "/streaming", (req, res)->

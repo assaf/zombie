@@ -218,6 +218,7 @@ describe "History", ->
           @browser.window.location.pathname = "/history/boo"
           @browser.on "loaded", ->
             done()
+          @browser.wait()
 
       it "should add page to history", ->
         assert.equal @browser.history.length, 2
@@ -233,6 +234,7 @@ describe "History", ->
           @browser.window.location.href = "/history/boo"
           @browser.on "loaded", ->
             done()
+          @browser.wait()
 
       it "should add page to history", ->
         assert.equal @browser.history.length, 2
@@ -249,6 +251,7 @@ describe "History", ->
           @browser.window.addEventListener "hashchange", ->
             done()
           @browser.window.location.hash = "boo"
+          @browser.wait()
 
       it "should add page to history", ->
         assert.equal @browser.history.length, 2
@@ -264,6 +267,7 @@ describe "History", ->
           @browser.window.location.assign "http://localhost:3003/history/boo"
           @browser.on "loaded", ->
             done()
+          @browser.wait()
 
       it "should add page to history", ->
         assert.equal @browser.history.length, 2
@@ -279,6 +283,7 @@ describe "History", ->
           @browser.window.location.replace "http://localhost:3003/history/boo"
           @browser.on "loaded", ->
             done()
+          @browser.wait()
 
       it "should not add page to history", ->
         assert.equal @browser.history.length, 1
@@ -287,7 +292,7 @@ describe "History", ->
       it "should load document", ->
         assert /Eeek!/.test(@browser.html()) 
 
-    describe.skip "reload", ->
+    describe "reload", ->
       before (done)->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/", =>
@@ -295,6 +300,7 @@ describe "History", ->
           @browser.reload()
           @browser.on "loaded", ->
             done()
+          @browser.wait()
 
       it "should not add page to history", ->
         assert.equal @browser.history.length, 1
@@ -321,7 +327,7 @@ describe "History", ->
       it "should include pathname", ->
         assert.equal @location.pathname, "/"
       it "should include search", ->
-        console.dir @location.search
+        assert.equal @location.search, ""
       it "should include hash", ->
         assert.equal @location.hash, ""
 
@@ -332,6 +338,7 @@ describe "History", ->
           @browser.window.location = "http://localhost:3003/history/boo"
           @browser.on "loaded", ->
             done()
+          @browser.wait()
 
       it "should add page to history", ->
         assert.equal @browser.history.length, 2
@@ -347,6 +354,7 @@ describe "History", ->
           @browser.window.document.location = "http://localhost:3003/history/boo"
           @browser.on "loaded", ->
             done()
+          @browser.wait()
 
       it "should add page to history", ->
         assert.equal @browser.history.length, 2
