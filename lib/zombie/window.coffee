@@ -364,7 +364,7 @@ loadDocument = ({ document, history, url, method, encoding, data })->
         data:     data
       if referer
         request.headers.referer = referer
-      
+
       window._eventQueue.http request, (error, response)->
         if error
           document.open()
@@ -386,6 +386,11 @@ loadDocument = ({ document, history, url, method, encoding, data })->
         ready.initEvent("DOMContentLoaded", true, false)
         window._dispatchEvent(document, ready)
         window._dispatchEvent(window, ready)
+
+        onload = document.createEvent("HTMLEvents")
+        onload.initEvent("load", true, false)
+        window._dispatchEvent(document, onload)
+        window._dispatchEvent(window, onload)
       
         # Error on any response that's not 2xx, or if we're not smart enough to
         # process the content and generate an HTML DOM tree from it.

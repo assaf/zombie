@@ -241,7 +241,12 @@ class EventQueue
 
   # Event loop uses this to grab event from top of the queue.
   dequeue: ->
-    return @queue.shift()
+    if fn = @queue.shift()
+      return fn
+    for frame in @window.frames
+      if fn = frame._eventQueue.dequeue()
+        return fn
+    return
 
   # Makes an HTTP request.
   #
@@ -332,6 +337,10 @@ class EventQueue
     for timer in @timers
       if timer && (!next || timer.next < next)
         next = timer.next
+    for frame in @window.frames
+      frameNext = frame._eventQueue.next()
+      if frameNext && frameNext < next
+        next = frameNext
     return next
 
 

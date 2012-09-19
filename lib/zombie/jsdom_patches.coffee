@@ -94,6 +94,7 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
 # for all resources (mainly JavaScript) to complete loading before terminating
 # browser.wait.
 HTML.resourceLoader.load = (element, href, callback)->
+  console.log href
   document = element.ownerDocument
   window = document.parentWindow
   ownerImplementation = document.implementation
@@ -138,7 +139,7 @@ HTML.Document.prototype._elementBuilders["iframe"] = (document, tag)->
         window.location = url
       else
         create(url)
-      window.addEventListener "DOMContentLoaded", ->
+      window.addEventListener "load", ->
         onload = document.createEvent("HTMLEvents")
         onload.initEvent("load", true, false)
         window._dispatchEvent(iframe, onload)
