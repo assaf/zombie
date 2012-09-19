@@ -279,7 +279,7 @@ class EventQueue
   # -- Timers --
 
   # Window.setTimeout
-  setTimeout: (fn, delay)->
+  setTimeout: (fn, delay = 0)->
     return unless fn
     index = @timers.length
     remove = =>
@@ -296,7 +296,7 @@ class EventQueue
     return
 
   # Window.setInterval
-  setInterval: (fn, interval)->
+  setInterval: (fn, interval = 0)->
     return unless fn
     index = @timers.length
     remove = =>
@@ -361,7 +361,7 @@ class Timeout
         @queue.browser.emit("timeout", @fn, @delay)
         @queue.window._evaluate(@fn)
       @remove()
-    @handle = setTimeout(fire, Math.max(@next - Date.now(), 0))
+    @handle = setTimeout(fire, @delay)
     @next = Date.now() + @delay
 
   # Make sure timer doesn't fire until we're ready for it again

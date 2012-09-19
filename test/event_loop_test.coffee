@@ -81,7 +81,7 @@ describe "EventLoop", ->
             @document.title += " Three"
           , 200
           setTimeout =>
-            @browser.window.clearTimeout second
+            @browser.window.clearTimeout(second)
           , 100
           @browser.wait 300, done
 
@@ -104,16 +104,12 @@ describe "EventLoop", ->
             @browser.window.setTimeout (-> @document.title += "3"), 300
             return
           .then =>
-            @browser.wait 120 # wait long enough to fire no. 1
+            @browser.wait(120) # wait long enough to fire no. 1
           .then =>
-            deferred = Q.defer()
-            # Pause for 300 seconds, nothing fires
-            setTimeout =>
-              # wait long enough to fire no. 2, not long enough to fire no. 3
-              @browser.wait(120).then(deferred.resolve)
-            , 300
-            return deferred.promise
-          .finally(done)
+            @browser.wait(120) # wait long enough to fire no. 2
+          .then ->
+            # wait long enough to fire no. 3, but no events processed
+            setTimeout(done, 200)
 
       it "should not fire", ->
         assert.equal @browser.document.title, "12"
@@ -216,15 +212,12 @@ describe "EventLoop", ->
               @document.title += "."
             , 100
           .then =>
-            @browser.wait(120)
+            @browser.wait(120) # wait long enough to fire no. 1
           .then =>
-            deferred = Q.defer()
-            setTimeout =>
-              @browser.wait(120)
-                .then(deferred.resolve)
-            , 300
-            return deferred.promise
-          .then(done, done)
+            @browser.wait(120) # wait long enough to fire no. 2
+          .then ->
+            # wait long enough to fire no. 3, but no events processed
+            setTimeout(done, 200)
 
       it "should not fire", ->
         assert.equal @browser.document.title, ".."

@@ -46,7 +46,7 @@ describe "Scripts", ->
         $(function() { Sammy("#main").run("#/") });
         """
 
-    describe "run app", ->
+    describe.skip "run app", ->
       before (done)->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/script/living/", done
@@ -82,7 +82,7 @@ describe "Scripts", ->
         assert.equal @browser.document.title, "Signed up"
 
 
-    describe "evaluate", ->
+    describe.skip "evaluate", ->
       before (done)->
         Browser.visit "http://localhost:3003/script/living/", (error, browser)=>
           @title = browser.evaluate("document.title")
