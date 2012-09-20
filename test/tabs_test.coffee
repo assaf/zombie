@@ -59,18 +59,23 @@ describe "Tabs", ->
     assert.equal @browser.tabs.index, 2
 
   it "should fire onfocus event when selecting new tab", (done)->
-    @browser.tabs.current = 0
-    @browser.tabs[1].addEventListener "focus", ->
+    browser = new Browser()
+    browser.open(name: "first")
+    browser.open(name: "second")
+    browser.tabs[1].addEventListener "focus", ->
       done()
-      done = null # will be called multiple times from other tests
-    @browser.tabs.current = 1
+    browser.tabs.current = 1
+    browser.wait()
 
   it "should fire onblur event when selecting new tab", (done)->
-    @browser.tabs.current = 0
-    @browser.tabs[0].addEventListener "blur", ->
+    browser = new Browser()
+    browser.open(name: "first")
+    browser.open(name: "second")
+    browser.tabs.current = 1
+    browser.tabs[1].addEventListener "blur", ->
       done()
-      done = null # will be called multiple times from other tests
-    @browser.tabs.current = 2
+    browser.tabs.current = 0
+    browser.wait()
 
   it "should reuse open tab when opening window with same name", ->
     window = @browser.tabs.open(name: "second")
@@ -104,17 +109,26 @@ describe "Tabs", ->
     assert.deepEqual names, ["first", "third", ""]
 
   it "should select previous tab when closing open tab", ->
-    @browser.tabs.current = 1
-    assert.equal @browser.window.name, "third"
-    @browser.tabs.close()
-    assert.equal @browser.window.name, "first"
+    browser = new Browser()
+    browser.open(name: "first")
+    browser.open(name: "second")
+    browser.open(name: "third")
+    browser.tabs.current = 1
+    assert.equal browser.window.name, "second"
+    browser.tabs.close()
+    assert.equal browser.window.name, "first"
+    browser.destroy()
 
   it "allow closing all windows", ->
-    assert.equal @browser.tabs.length, 2
-    @browser.tabs.closeAll()
-    assert.equal @browser.tabs.length, 0
-    assert.equal @browser.tabs.current, null
-    assert.equal @browser.tabs.index, -1
+    browser = new Browser()
+    browser.open(name: "first")
+    browser.open(name: "second")
+    browser.open(name: "third")
+    browser.tabs.closeAll()
+    assert.equal browser.tabs.length, 0
+    assert.equal browser.tabs.current, null
+    assert.equal browser.tabs.index, -1
+    browser.destroy()
 
   it "should only have properties for named windows", ->
     browser = new Browser()

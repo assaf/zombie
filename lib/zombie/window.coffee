@@ -158,7 +158,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     event.source = inContext
     origin = event.source.location
     event.origin = URL.format(protocol: origin.protocol, host: origin.host)
-    window._dispatchEvent(window, event)
+    window._dispatchEvent(window, event, true)
 
 
   # -- JavaScript evaluation 
@@ -178,11 +178,19 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     finally
       inContext = null
 
-  window._dispatchEvent = (target, event)->
-    preventDefault = null
-    window._evaluate ->
-      preventDefault = target.dispatchEvent(event)
-    return preventDefault
+  # Dispatch event. If used synchronoulsy, returns false if preventDefault was
+  # set on the event. Does not throw an error.
+  #
+  # target - Event target (element or window)
+  # event  - HTML event object
+  # async  - True to dispatch asynchronously
+  window._dispatchEvent = (target, event, async = false)->
+    if async
+      window._eventQueue.enqueue ->
+        window._evaluate(-> target.dispatchEvent(event))
+      return
+    else
+      return window._evaluate(-> target.dispatchEvent(event))
 
   # Default onerror handler.
   window.onerror = (event)->
@@ -218,33 +226,33 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     get: -> closed
     enumerable: true
 
-  # Destroy the window, child windows and Contextify global.
+  # Destroy all the history (and all its windows), frames, and Contextify
+  # global.
   window._destroy = ->
-    unless closed
-      for frame in window.frames
-        frame.close()
-      closed = true
-      eventQueue.destroy()
-      #window.dispose()
-      window.document = null
-      return
+    # We call history.distroy which calls destroy on all windows, so need to
+    # avoid infinite loop.
+    return if closed
+    closed = true
+    for frame in window.frames
+      frame.close()
+    eventQueue.destroy()
+    window.document = null
+    window.dispose()
+    return
 
-  # Actualy window.close checks who's attempting to close the window.
+  # window.close actually closes the tab, and disposes of all windows in the history.
+  # Also used to close iframe.
   window.close = ->
+    return if parent || closed
     # Only opener window can close window; any code that's not running from
     # within a window's context can also close window.
     if inContext == opener || inContext == null
-      unless closed
-        browser.emit("inactive", window)
-        browser.emit("closed", window)
-        history.destroy() # do this last to prevent infinite loop
+      browser.emit("closed", window)
+      history.destroy()
+      window._destroy() # do this last to prevent infinite loop
     else
       browser.log("Scripts may not close windows that were not opened by script")
     return
-
-  # Window is now open, next load the document.
-  browser.emit("opened", window)
-
 
   # -- Navigating --
 
@@ -267,6 +275,9 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   Object.defineProperties window, 
     history:
       value: windowHistory
+
+  # Window is now open, next load the document.
+  browser.emit("opened", window)
 
   # Form submission uses this
   window._submit = history.submit.bind(history)
@@ -382,14 +393,14 @@ loadDocument = ({ document, history, url, method, encoding, data })->
         # Document has loaded
         ready = document.createEvent("HTMLEvents")
         ready.initEvent("DOMContentLoaded", true, false)
-        window._dispatchEvent(document, ready)
-        window._dispatchEvent(window, ready)
+        window._dispatchEvent(document, ready, true)
+        window._dispatchEvent(window, ready, true)
 
         onload = document.createEvent("HTMLEvents")
         onload.initEvent("load", true, false)
-        window._dispatchEvent(document, onload)
-        window._dispatchEvent(window, onload)
-      
+        window._dispatchEvent(document, onload, true)
+        window._dispatchEvent(window, onload, true)
+
         # Error on any response that's not 2xx, or if we're not smart enough to
         # process the content and generate an HTML DOM tree from it.
         if response.statusCode >= 400

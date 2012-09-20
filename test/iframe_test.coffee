@@ -158,7 +158,6 @@ describe "IFrame", ->
           @browser.clickLink "blank", done
 
       it "should open link", ->
-        console.log @browser.location.href
         assert.equal @browser.location.pathname, "/target/_blank"
 
       it "should open link in new window", ->

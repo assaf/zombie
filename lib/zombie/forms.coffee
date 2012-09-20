@@ -90,7 +90,7 @@ HTML.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "submit", true, true
   event._button = button
-  @ownerDocument.parentWindow._dispatchEvent(this, event)
+  @ownerDocument.parentWindow._dispatchEvent(this, event, true)
 
 
 # Default behavior for submit events is to call the form's submit method, but we
@@ -109,14 +109,14 @@ HTML.HTMLInputElement.prototype._eventDefaults =
     change = ->
       event = input.ownerDocument.createEvent("HTMLEvents")
       event.initEvent "change", true, true
-      input.ownerDocument.parentWindow.browser.dispatchEvent input, event
+      input.ownerDocument.parentWindow._dispatchEvent(input, event, true)
     switch input.type
       when "reset"
         if form = input.form
           form.reset()
       when "submit", "image"
         if form = input.form
-          form._dispatchSubmitEvent input
+          form._dispatchSubmitEvent(input)
       when "checkbox"
         change()
       when "radio"
@@ -135,14 +135,14 @@ HTML.HTMLInputElement.prototype.click = ->
   click = =>
     event = @ownerDocument.createEvent("HTMLEvents")
     event.initEvent "click", true, true
-    cancelled = @ownerDocument.parentWindow.browser.dispatchEvent(this, event)
+    cancelled = @ownerDocument.parentWindow._dispatchEvent(this, event)
     return !cancelled
 
   # If that works out, we follow with a change event
   change = =>
     event = @ownerDocument.createEvent("HTMLEvents")
     event.initEvent "change", true, true
-    @ownerDocument.parentWindow.browser.dispatchEvent this, event
+    @ownerDocument.parentWindow._dispatchEvent(this, event)
 
   switch @type
     when "checkbox"
@@ -185,7 +185,7 @@ HTML.HTMLButtonElement.prototype._eventDefaults =
     else
       form = button.form
       if form
-        form._dispatchSubmitEvent button
+        form._dispatchSubmitEvent(button)
 
 
 # Default type for button is submit. jQuery live submit handler looks
@@ -206,11 +206,11 @@ focus = (document, element)->
     if document._focused
       onblur = document.createEvent("HTMLEvents")
       onblur.initEvent "blur", false, false
-      document._focused.dispatchEvent onblur
+      document.window._dispatchEvent(document._focused, onblur)
     if element
       onfocus = document.createEvent("HTMLEvents")
-      onfocus.initEvent "focus", false, false
-      element.dispatchEvent onfocus
+      onfocus.initEvent("focus", false, false)
+      document.window._dispatchEvent(element, onfocus)
     document._focused = element
 
 for element in [HTML.HTMLInputElement, HTML.HTMLSelectElement, HTML.HTMLTextAreaElement, HTML.HTMLButtonElement, HTML.HTMLAnchorElement]

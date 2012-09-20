@@ -76,7 +76,7 @@ createTabs = (browser)->
       value: (options = {})->
         { name, opener, url } = options
         # If name window in open tab, reuse that tab. Otherwise, open new window.
-        if name && window = this.find(name.toString())
+        if name && window = @find(name.toString())
           # Select this as the currenly open tab. Changing the location would then
           # select a different window.
           tabs.current = window
@@ -103,7 +103,7 @@ createTabs = (browser)->
 
           open = createHistory(browser, focus)
           window = open(name: name, opener: opener, url: url)
-          this.push(window)
+          @push(window)
           if name && (Object.propertyIsEnumerable(name) || !this[name])
             this[name] = window
           active = window
@@ -115,7 +115,7 @@ createTabs = (browser)->
     # Index of currently selected tab.
     index:
       get: ->
-        return this.indexOf(current)
+        return @indexOf(current)
 
 
     # Returns window by index or name. Use this for window names that shadow
@@ -138,8 +138,8 @@ createTabs = (browser)->
         if arguments.length == 0
           window = current
         else
-          window = this.find(window) || window
-        if ~this.indexOf(window)
+          window = @find(window) || window
+        if ~@indexOf(window)
           window.close()
         return
 
@@ -147,21 +147,24 @@ createTabs = (browser)->
     # Closes all open tabs/windows.
     closeAll:
       value: ->
-        while @length > 0
-          this.close()
+        windows = this.slice(0)
+        for window in windows
+          if window.close
+            window.close()
 
   # We're notified when window is closed (by any means), and take that tab out
   # of circulation.
   browser.on "closed", (window)->
     index = tabs.indexOf(window)
-    if ~index
-      tabs.splice(index, 1)
-      # If we closed the currently open tab, need to select another window.
-      if window == current
-        # Don't emit inactive event for closed window.
-        current = tabs[index - 1] || tabs[0]
-        if current
-          browser.emit("active", current)
+    return unless ~index
+    browser.emit("inactive", window)
+    tabs.splice(index, 1)
+    # If we closed the currently open tab, need to select another window.
+    if window == current
+      # Don't emit inactive event for closed window.
+      current = tabs[index - 1] || tabs[0]
+      if current
+        browser.emit("active", current)
 
   return tabs
 

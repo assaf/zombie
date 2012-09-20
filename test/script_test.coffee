@@ -46,7 +46,7 @@ describe "Scripts", ->
         $(function() { Sammy("#main").run("#/") });
         """
 
-    describe.skip "run app", ->
+    describe "run app", ->
       before (done)->
         @browser = new Browser()
         @browser.visit "http://localhost:3003/script/living/", done
@@ -65,8 +65,11 @@ describe "Scripts", ->
         it "should change location", ->
           assert.equal @browser.location.href, "http://localhost:3003/script/living/#/dead"
 
+      after ->
+        @browser.destroy()
 
-    describe.skip "live events", ->
+
+    describe "live events", ->
       before (done)->
         @browser = new Browser()
         @browser.visit("http://localhost:3003/script/living/")
@@ -81,8 +84,10 @@ describe "Scripts", ->
       it "should process event", ->
         assert.equal @browser.document.title, "Signed up"
 
+      after ->
+        @browser.destroy()
 
-    describe.skip "evaluate", ->
+    describe "evaluate", ->
       before (done)->
         Browser.visit "http://localhost:3003/script/living/", (error, browser)=>
           @title = browser.evaluate("document.title")

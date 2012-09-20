@@ -72,12 +72,12 @@ describe "History", ->
 
     describe "pushState", ->
       before (done)->
-        browser = new Browser()
-        browser.visit "http://localhost:3003/", =>
-          browser.history.pushState { is: "start" }, null, "/start"
-          browser.history.pushState { is: "end" },   null, "/end"
-          @window = browser.window
-          done()
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/", =>
+          @browser.history.pushState({ is: "start" }, null, "/start")
+          @browser.history.pushState({ is: "end" },   null, "/end")
+          @window = @browser.window
+          @browser.wait(done)
 
       it "should add state to history", ->
         assert.equal @window.history.length, 3
@@ -90,6 +90,7 @@ describe "History", ->
           @window.addEventListener "popstate", (@event)=>
             done()
           @window.history.back()
+          @browser.wait()
 
         it "should fire popstate event", ->
           assert @event instanceof JSDOM.dom.level3.events.Event
@@ -119,12 +120,12 @@ describe "History", ->
 
     describe "replaceState", ->
       before (done)->
-        browser = new Browser()
-        browser.visit "http://localhost:3003/", =>
-          browser.history.pushState { is: "start" },  null, "/start"
-          browser.history.replaceState { is: "end" }, null, "/end"
-          @window = browser.window
-          done()
+        @browser = new Browser()
+        @browser.visit "http://localhost:3003/", =>
+          @browser.history.pushState { is: "start" },  null, "/start"
+          @browser.history.replaceState { is: "end" }, null, "/end"
+          @window = @browser.window
+          @browser.wait(done)
 
       it "should not add state to history", ->
         assert.equal @window.history.length, 2
@@ -136,7 +137,7 @@ describe "History", ->
           @window.addEventListener "popstate", (evt)=>
             @window.popstate = true
           @window.history.back()
-          done()
+          @browser.wait(done)
 
         it "should change location URL", ->
           assert.equal @window.location.href, "http://localhost:3003/"

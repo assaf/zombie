@@ -44,6 +44,7 @@ MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 # The browser maintains state for cookies and local storage.
 class Browser extends EventEmitter
   constructor: (options = {}) ->
+    browser = this
     @cache = new Cache()
     @_cookies = new Cookies()
     @_storages = new Storages()
@@ -60,9 +61,9 @@ class Browser extends EventEmitter
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.
-    @on "error", (error)=>
-      @errors.push error
-      @log error.message, error.stack
+    @on "error", (error)->
+      browser.errors.push error
+      browser.log error.message, error.stack
 
     # Window becomes inactive
     @on "active", (window)=>
@@ -70,11 +71,11 @@ class Browser extends EventEmitter
       active = window
       onfocus = window.document.createEvent("HTMLEvents")
       onfocus.initEvent("focus", false, false)
-      window.dispatchEvent(onfocus)
+      window._dispatchEvent(window, onfocus, true)
       if element = window.document.activeElement
         onfocus = window.document.createEvent("HTMLEvents")
         onfocus.initEvent("focus", false, false)
-        element.dispatchEvent(onfocus)
+        window._dispatchEvent(element, onfocus, true)
 
     # Window becomes inactive
     @on "inactive", (window)->
@@ -83,19 +84,32 @@ class Browser extends EventEmitter
       if element = window.document.activeElement
         onblur = window.document.createEvent("HTMLEvents")
         onblur.initEvent("blur", false, false)
-        element.dispatchEvent(onblur)
+        window._dispatchEvent(element, onblur, true)
       onblur = window.document.createEvent("HTMLEvents")
       onblur.initEvent("blur", false, false)
-      window.dispatchEvent(onblur)
+      window._dispatchEvent(window, onblur, true)
 
     # Window has been closed
     @on "closed", (window)->
+      browser.log "Closed window", window.location.href, window.name || "un-named"
+
+    @on "opened", (window)->
+      browser.log "Opened window", window.location.href, window.name || "un-named"
+
+    @on "opened", (document)->
+      browser.log "Loaded document", document.location.href
+
+    @on "done", (timedOut)->
+      if timedOut
+        browser.log "Event loop timed out"
+      else
+        browser.log "Event loop is empty"
 
     @on "timeout", (fn, delay)->
-      @log "Fired timeout after #{delay}ms delay"
+      browser.log "Fired timeout after #{delay}ms delay"
 
     @on "interval", (fn, interval)->
-      @log "Fired interval every #{interval}ms"
+      browser.log "Fired interval every #{interval}ms"
 
 
     # Default (not global) options
@@ -261,8 +275,8 @@ class Browser extends EventEmitter
       throw new Error("No window open")
     type = if name in MOUSE_EVENT_NAMES then "MouseEvents" else "HTMLEvents"
     event = @document.createEvent(type)
-    event.initEvent name, true, true
-    @dispatchEvent target, event
+    event.initEvent(name, true, true)
+    @window._dispatchEvent(target, event, true)
     return @wait(callback)
 
   # Dispatch asynchronously.  Returns true if preventDefault was set.
@@ -396,8 +410,6 @@ class Browser extends EventEmitter
   @prototype.__defineGetter__ "source", ->
     return @response?[2]
 
-  # ### close
-  #
   # Close the currently open tab, or the tab opened to the specified window.
   close: (window)->
     @tabs.close.apply(@tabs, arguments)
@@ -406,7 +418,9 @@ class Browser extends EventEmitter
   #
   # Close all windows, clean state. You're going to need to call this to free up memory.
   destroy: ->
-    @tabs.closeAll()
+    if @tabs
+      @tabs.closeAll()
+      @tabs = null
 
 
   # Navigation

@@ -73,6 +73,7 @@ class EventLoop
     # Determines how long we're going to wait
     duration = ms(duration)
     waitFor = ms(@browser.waitFor)
+    timeout = Date.now() + waitFor
 
     if @listeners.length == 0
       # Someone's paying attention, start processing events
@@ -89,11 +90,16 @@ class EventLoop
           if completion
             try
               completed = completion(@active)
+              if completed
+                done(null, false)
+                return
             catch error
               done(error)
+
           # Should we keep waiting for next timer?
-          if completed || value > Date.now() + waitFor
-            done(null, true)
+          if next = value
+            if next >= timeout
+              done(null, true)
         when "done"
           done()
         when "error"
@@ -172,7 +178,7 @@ class EventLoop
         # Process queued function, tick, and on to next event
         try
           fn()
-          @emit("tick", 0)
+          @emit("tick")
           @run()
         catch error
           @emit("error", error)
@@ -260,9 +266,9 @@ class EventQueue
   http: (params, callback)->
     done = @eventLoop.expecting()
     @browser.resources._makeRequest params, (error, response)=>
-      done()
       @enqueue ->
         callback error, response
+      done()
     return
 
   # Fire an error event.
@@ -273,7 +279,7 @@ class EventQueue
     event.initEvent("error", false, false)
     event.message = error.message
     event.error = error
-    @window.dispatchEvent(event)
+    @window._dispatchEvent(@window, event, true)
 
 
   # -- Timers --

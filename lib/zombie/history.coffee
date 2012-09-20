@@ -70,6 +70,7 @@ class Entry
   destroy: (options)->
     if @next
       @next.destroy(options)
+      @next = null
     # Do not close window if replacing entry with same window
     if options && options.keepAlive == @window
       return
@@ -98,8 +99,9 @@ class History
   # Dispose of all windows in history
   destroy: ->
     @focus(null)
-    @first.destroy()
-    @first = @current = null
+    if @first
+      @first.destroy()
+      @first = @current = null
 
   # Add a new entry.  When a window opens it call this to add itself to history.
   addEntry: (window, url, pushState)->
@@ -172,7 +174,7 @@ class History
       @addEntry(window, url) # Reuse window with new URL
       event = window.document.createEvent("HTMLEvents")
       event.initEvent("hashchange", true, false)
-      window._dispatchEvent(window, event)
+      window._dispatchEvent(window, event, true)
     else
       if @current.window.parent != @current.window
         parent = @current.window.parent
@@ -194,7 +196,7 @@ class History
       @replaceEntry(window, url) # Reuse window with new URL
       event = window.document.createEvent("HTMLEvents")
       event.initEvent("hashchange", true, false)
-      window._dispatchEvent(window, event)
+      window._dispatchEvent(window, event, true)
     else
       if @current.window.parent != @current.window
         parent = @current.window.parent
@@ -232,11 +234,11 @@ class History
           event = window.document.createEvent("HTMLEvents")
           event.initEvent("popstate", false, false)
           event.state = @current.pushState
-          window._dispatchEvent(window, event)
+          window._dispatchEvent(window, event, true)
       else if hashChange(was, @current.url)
         event = window.document.createEvent("HTMLEvents")
         event.initEvent("hashchange", true, false)
-        window._dispatchEvent(window, event)
+        window._dispatchEvent(window, event, true)
     return
 
   # This method is available from Location.
