@@ -65,7 +65,7 @@ describe "IFrame", ->
     assert true
 
 
-  describe.skip "postMessage", ->
+  describe "postMessage", ->
     before (done)->
       brains.get "/iframe/ping", (req, res)->
         res.send """

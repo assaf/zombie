@@ -11,32 +11,6 @@ HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
 HTML.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
 
 
-original = HTML.Element.prototype.setAttribute
-HTML.Element.prototype.setAttribute = (name, value)->
-  # JSDOM intercepts inline event handlers in a similar manner, but doesn't
-  # manage window.event property or allow return false.
-  if /^on.+/.test(name)
-    wrapped = "if ((function() { " + value + " }).call(this,event) === false) event.preventDefault();"
-    this[name] = (event)->
-      # We're the window. This can happen because inline handlers on the body are
-      # proxied to the window.
-      window = if @run then this else @_ownerDocument.parentWindow
-      # In-line event handlers rely on window.event
-      try
-        window.event = event
-        # The handler code probably refers to functions declared in the
-        # window context, so we need to call run().
-        window.run(wrapped)
-      finally
-        window.event = null
-    if @_ownerDocument
-      attr = @._ownerDocument.createAttribute(name)
-      attr.value = value
-      @._attributes.setNamedItem(attr)
-  else
-    original.apply(this, arguments)
-
-
 # Essentially all web browsers (Firefox, Internet Explorer, recent versions of
 # Opera, Safari, Konqueror, and iCab, as a non-exhaustive list) return null when
 # the specified attribute does not exist on the specified element. The DOM
@@ -90,21 +64,6 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
         browser.tabs.open(name: anchor.target, url: anchor.href)
 
 
-# Fix resource loading to keep track of in-progress requests. Need this to wait
-# for all resources (mainly JavaScript) to complete loading before terminating
-# browser.wait.
-HTML.resourceLoader.load = (element, href, callback)->
-  document = element.ownerDocument
-  window = document.parentWindow
-  ownerImplementation = document.implementation
-  tagName = element.tagName.toLowerCase() 
-
-  if ownerImplementation.hasFeature("FetchExternalResources", tagName)
-    url = HTML.resourceLoader.resolve(document, href)
-    loaded = (response, filename)->
-      callback.call this, response.body, URL.parse(response.url).pathname
-    window._eventQueue.http { url: url }, @enqueue(element, loaded, url.pathname)
-
 
 # Support for iframes that load content when you set the src attribute.
 HTML.Document.prototype._elementBuilders["iframe"] = (document, tag)->
@@ -141,7 +100,7 @@ HTML.Document.prototype._elementBuilders["iframe"] = (document, tag)->
       window.addEventListener "load", ->
         onload = document.createEvent("HTMLEvents")
         onload.initEvent("load", true, false)
-        window._dispatchEvent(iframe, onload, true)
+        parent._dispatchEvent(iframe, onload, true)
       HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
     else
       HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)
@@ -264,3 +223,4 @@ HTML.Element.prototype.querySelector = (selector)->
   return descendants(this, selector)[0]
 HTML.Element.prototype.querySelectorAll = (selector)->
   return new HTML.NodeList(descendants(this, selector))
+

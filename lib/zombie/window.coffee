@@ -148,7 +148,6 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   # Help iframes talking with each other
   window.postMessage = (data, targetOrigin)->
     document = window.document
-    return unless document # iframe not loaded
     # Create the event now, but dispatch asynchronously
     event = document.createEvent("MessageEvent")
     event.initEvent("message", false, false)
@@ -166,7 +165,9 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   # Evaulate in context of window. This can be called with a script (String) or a function.
   window._evaluate = (code, filename)->
     try
-      inContext = window # the current window, postMessage needs this
+      # The current window, postMessage and window.close need this
+      [original, inContext] = [inContext, window]
+      inContext = window
       if typeof(code) == "string" || code instanceof String
         result = global.run(code, filename)
       else if code
@@ -176,7 +177,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     catch error
       browser.emit("error", error)
     finally
-      inContext = null
+      inContext = original
 
   # Dispatch event. If used synchronoulsy, returns false if preventDefault was
   # set on the event. Does not throw an error.

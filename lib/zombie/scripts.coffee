@@ -1,5 +1,6 @@
 # For handling JavaScript, mostly improvements to JSDOM
 HTML  = require("jsdom").dom.level3.html
+URL   = require("url")
 
 
 # -- Patches to JSDOM --
@@ -16,16 +17,16 @@ catch ex
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
 # fires on the Window.  We also want better stack traces.
 HTML.languageProcessors.javascript = (element, code, filename)->
-  if doc = element.ownerDocument
-    window = doc.window
-    try
-      window._evaluate(code, filename)
-    catch error
-      unless error instanceof Error
-        cast = new Error(error.message)
-        cast.stack = error.stack
-        error = cast
-      raise element: element, location: filename, from: __filename, error: error
+  document = element.ownerDocument
+  window = document.window
+  try
+    window._evaluate(code, filename)
+  catch error
+    unless error instanceof Error
+      cast = new Error(error.message)
+      cast.stack = error.stack
+      error = cast
+    raise element: element, location: filename, from: __filename, error: error
 
 
 # HTML5 parser doesn't play well with JSDOM and inline scripts.  This methods
@@ -44,20 +45,67 @@ addInlineScriptSupport = (document)->
   # listens on the script element itself, and someone the event it captures
   # doesn't have any of the script contents.
   document.addEventListener "DOMNodeInserted", (event)->
-    node = event.target # Node being inserted
-    return unless node.tagName == "SCRIPT"
+    element = event.target # Node being inserted
+    return unless element.tagName == "SCRIPT"
     # Let JSDOM deal with script tags with src attribute
-    return if node.src
+    return if element.src
+    window = document.window
     # Process scripts in order.
-    HTML.resourceLoader.enqueue(node, ->
-      code = node.text
+    loaded = (error, filename)->
       # Only process supported languages
-      language = HTML.languageProcessors[node.language]
+      language = HTML.languageProcessors[element.language]
+      code = element.text
       if code && language
-        # Queue so inline scripts execute in order with external scripts
-        language(this, code, document.location.href)
-    )()
+        language(element, code, filename)
+    HTML.resourceLoader.enqueue(element, loaded, document.location.href)()
     return
+
+
+# Fix resource loading to keep track of in-progress requests. Need this to wait
+# for all resources (mainly JavaScript) to complete loading before terminating
+# browser.wait.
+HTML.resourceLoader.load = (element, href, callback)->
+  document = element.ownerDocument
+  window = document.parentWindow
+  ownerImplementation = document.implementation
+  tagName = element.tagName.toLowerCase() 
+
+  if ownerImplementation.hasFeature("FetchExternalResources", tagName)
+    # This guarantees that all scripts are executed in order
+    loaded = (response)->
+      callback.call(element, response.body, URL.parse(response.url).pathname)
+    url = HTML.resourceLoader.resolve(document, href)
+    window._eventQueue.http { url: url }, @enqueue(element, loaded, url)
+
+
+# Support onload, onclick etc inline event handlers
+setAttribute = HTML.Element.prototype.setAttribute
+HTML.Element.prototype.setAttribute = (name, value)->
+  # JSDOM intercepts inline event handlers in a similar manner, but doesn't
+  # manage window.event property or allow return false.
+  if /^on.+/.test(name)
+    wrapped = "if ((function() { " + value + " }).call(this,event) === false) event.preventDefault();"
+    this[name] = (event)->
+      # We're the window. This can happen because inline handlers on the body are
+      # proxied to the window.
+      if @run
+        window = this
+      else
+        window = @_ownerDocument.parentWindow
+      # In-line event handlers rely on window.event
+      try
+        window.event = event
+        # The handler code probably refers to functions declared in the
+        # window context, so we need to call run().
+        window.run(wrapped)
+      finally
+        window.event = null
+    if @_ownerDocument
+      attr = @_ownerDocument.createAttribute(name)
+      attr.value = value
+      @_attributes.setNamedItem(attr)
+  else
+    setAttribute.apply(this, arguments)
 
 
 # -- Utility methods --
