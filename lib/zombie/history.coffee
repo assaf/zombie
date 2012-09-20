@@ -252,6 +252,7 @@ class History
 
   # This method is available from Location.
   pushState: (state, title, url)->
+    url ||= @current.window.location.href
     url = HTML.resourceLoader.resolve(@current.window.document, url)
     # TODO: check same origin
     @addEntry(@current.window, url, state || {})
@@ -259,6 +260,7 @@ class History
 
   # This method is available from Location.
   replaceState: (state, title, url)->
+    url ||= @current.window.location.href
     url = HTML.resourceLoader.resolve(@current.window.document, url)
     # TODO: check same origin
     @replaceEntry(@current.window, url, state || {})
