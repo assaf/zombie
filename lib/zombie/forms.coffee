@@ -65,8 +65,8 @@ HTML.HTMLFormElement.prototype.submit = (button)->
         data.push [button.name, button.value]
 
       document.window._submit
-        url:      @getAttribute("action")
-        method:   @getAttribute("method")
+        url:      @getAttribute("action") || document.location.href
+        method:   @getAttribute("method") || "GET"
         encoding: @getAttribute("enctype")
         data:     data
 
