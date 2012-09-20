@@ -170,7 +170,7 @@ describe "Browser", ->
 
         before (done)->
           browser = new Browser()
-          browser.on "done", done
+          browser.on("done", done)
           browser.location = "http://localhost:3003/browser/scripted"
           browser.wait()
 

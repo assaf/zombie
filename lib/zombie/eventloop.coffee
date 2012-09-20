@@ -97,16 +97,15 @@ class EventLoop
               done(error)
 
           # Should we keep waiting for next timer?
-          if next = value
-            if next >= timeout
-              done(null, true)
+          if value >= waitFor + Date.now()
+            done(null, true)
         when "done"
           done()
         when "error"
           done(value)
     @listeners.push(listener)
 
-    timer = setTimeout(->
+    timer = global.setTimeout(->
         done(null, true)
       , duration)
 
@@ -114,6 +113,8 @@ class EventLoop
     done = (error, timedOut)=>
       clearTimeout(timer)
       @listeners = @listeners.filter((l)-> l != listener)
+      if @listeners.length == 0
+        @emit("done")
       callback(error, !!timedOut)
 
     return
@@ -178,20 +179,20 @@ class EventLoop
         # Process queued function, tick, and on to next event
         try
           fn()
-          @emit("tick")
+          @emit("tick", 0)
           @run()
         catch error
           @emit("error", error)
         return
+      else if @expected > 0
+        # We're waiting for some events to come along, don't know when,
+        # but they'll call run for us
+        @emit("tick", 0)
       else
-        # If there any point in waiting, and how long?
-        # If there are no timers, are we expecting any new events?
-        if time = @active._eventQueue.next()
-          @emit("tick", time)
-          @run()
-        else if @expected == 0
-          @emit("done")
-        return
+        # All that's left are timers
+        time = @active._eventQueue.next()
+        @emit("tick", time)
+        @run()
     return
 
   # Send to browser and listeners
@@ -332,16 +333,15 @@ class EventQueue
 
   # Returns the timestamp of the next timer event
   next: ->
-    next = null
+    next = Infinity
     for timer in @timers
-      if timer && (!next || timer.next < next)
+      if timer && timer.next < next
         next = timer.next
     for frame in @window.frames
       frameNext = frame._eventQueue.next()
-      if frameNext && frameNext < next
+      if frameNext < next
         next = frameNext
     return next
-
 
 
 # Wrapper for a timeout (setTimeout)
