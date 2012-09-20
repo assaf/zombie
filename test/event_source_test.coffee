@@ -1,7 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-describe.skip "EventSource", ->
+describe "EventSource", ->
 
   before (done)->
     brains.get "/streaming", (req, res)->
@@ -28,21 +28,18 @@ describe.skip "EventSource", ->
       setTimeout ->
         res.write "event: test\nid: 2\ndata: second\n\n"
         res.end()
-      , 10
+      , 100
 
     brains.ready done
 
   before (done)->
     browser = new Browser()
     browser.visit("http://localhost:3003/streaming")
-      .then =>
-        browser.wait (window)->
-          return window.events && window.events.length == 2
-        , null
-      .then =>
-        @events = browser.evaluate("window.events")
-        return
-      .then(done, done)
+    browser.wait (window)->
+      return window.events && window.events.length == 2
+    , =>
+      @events = browser.evaluate("window.events")
+      done()
 
   it "should stream to browser", ->
     assert.deepEqual @events, ["first", "second"]

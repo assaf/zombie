@@ -46,7 +46,6 @@ describe.skip "angularjs", ->
     brains.ready done
 
 
-
   describe "routing system", ->
 
     before (done)->
@@ -56,9 +55,4 @@ describe.skip "angularjs", ->
 
     it "should follow the link to the detail", ->
       assert.equal @browser.text("h1"), "my title"
-
-
-
-
-
 
