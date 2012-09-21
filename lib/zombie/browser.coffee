@@ -276,7 +276,7 @@ class Browser extends EventEmitter
     type = if name in MOUSE_EVENT_NAMES then "MouseEvents" else "HTMLEvents"
     event = @document.createEvent(type)
     event.initEvent(name, true, true)
-    @window._dispatchEvent(target, event, true)
+    @window._dispatchEvent(target, event, false)
     return @wait(callback)
 
   # Dispatch asynchronously.  Returns true if preventDefault was set.
