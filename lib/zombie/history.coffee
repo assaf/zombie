@@ -49,6 +49,13 @@ createHistory = (browser, focus)->
   return history.open.bind(history)
 
 
+# If window is not the top level window, return parent for creating new child
+# window, otherwise returns false.
+parentFrom = (window)->
+  unless window.parent == window.getGlobal()
+    return window.parent
+
+
 # Entry has the following properties:
 # window      - Window for this history entry (may be shared with other entries)
 # url         - URL for this history entry
@@ -142,13 +149,11 @@ class History
   submit: ({ url, method, encoding, data })->
     window = @current.window
     url = HTML.resourceLoader.resolve(window.document, url)
-    unless window.parent == window.getGlobal()
-      parent = window.parent
     params =
       browser:  @browser
       history:  this
       name:     window.name
-      parent:   parent
+      parent:   parentFrom(window)
       url:      url
       method:   method
       encoding: encoding
@@ -178,9 +183,7 @@ class History
       event.initEvent("hashchange", true, false)
       window._dispatchEvent(window, event, true)
     else
-      if @current.window.parent != @current.window.getGlobal()
-        parent = @current.window.parent
-      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent)
+      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parentFrom(@current.window))
       @addEntry(window, url)
     return
 
@@ -200,16 +203,14 @@ class History
       event.initEvent("hashchange", true, false)
       window._dispatchEvent(window, event, true)
     else
-      if @current.window.parent != @current.window
-        parent = @current.window.parent
-      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent)
+      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parentFrom(@current.window))
       @replaceEntry(window, url)
     return
 
   reload: ->
     if window = @current.window
       url = window.location.href
-      newWindow = createWindow(browser: @browser, history: this, name: window.name, url: url, parent: window.parent)
+      newWindow = createWindow(browser: @browser, history: this, name: window.name, url: url, parent: parentFrom(window))
       @replaceEntry(newWindow, url)
 
   # This method is available from Location.
