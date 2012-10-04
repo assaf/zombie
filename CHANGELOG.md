@@ -22,6 +22,10 @@ New browser has no open window.  You need to call `visit`, `open` or set
 Brand new implementation of browser history, fixes the "two URLs, one window"
 issue.
 
+`browser.request` and `browser.response` return the request/response used for
+the last top-most page load.  All other resources available from
+`browser.resources`.  These replace `lastRequest` and `lastResponse`.
+
     559 tests
     10.4 sec to complete
 

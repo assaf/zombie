@@ -75,7 +75,7 @@ HTML.resourceLoader.load = (element, href, callback)->
     loaded = (response)->
       callback.call(element, response.body, URL.parse(response.url).pathname)
     url = HTML.resourceLoader.resolve(document, href)
-    window._eventQueue.http { url: url }, @enqueue(element, loaded, url)
+    window._eventQueue.http { url: url, target: element }, @enqueue(element, loaded, url)
 
 
 # Support onload, onclick etc inline event handlers

@@ -1,4 +1,3 @@
-{ assert, brains, Browser } = require("./helpers")
 File    = require("fs")
 Crypto  = require("crypto")
 
@@ -1077,9 +1076,9 @@ describe "Forms", ->
             .pressButton "submit", done
 
       it "should send content-length header", ->
-        assert @browser.lastRequest.headers["content-length"]
+        assert @browser.request.headers["content-length"]
       it "should match expected content-length", ->
-        assert.equal @browser.lastRequest.headers["content-length"], "text=bite".length
+        assert.equal @browser.request.headers["content-length"], "text=bite".length
       it "should have body with content of input field", ->
         assert.equal @browser.text("body"), "bite"
           
@@ -1104,9 +1103,9 @@ describe "Forms", ->
           .finally(done) # 404 since there's no get for this form
 
       it "should send content-length header", ->
-        assert @browser.lastRequest.headers.hasOwnProperty("content-length")
+        assert @browser.request.headers.hasOwnProperty("content-length")
       it "should have size of 0", ->
-        assert.equal @browser.lastRequest.headers["content-length"], 0
+        assert.equal @browser.request.headers["content-length"], 0
 
 
   # DOM specifies that getAttribute returns empty string if no value, but in

@@ -111,6 +111,23 @@ class Browser extends EventEmitter
     @on "interval", (fn, interval)->
       browser.log "Fired interval every #{interval}ms"
 
+    @on "redirect", (response, target)=>
+      browser.log ->
+        return "#{response.statusCode} => #{response.url}"
+      if target && target.window && target.window.top == target.window.getGlobal()
+        @response = response
+
+    @on "request", (request, target)=>
+      if target && target.window && target.window.top == target.window.getGlobal()
+        @request = request
+
+    @on "response", (response, target)=>
+      browser.log ->
+        request = response.resource.request
+        return "#{request.method} #{URL.format(request.url)} => #{response.statusCode}"
+      if target && target.window && target.window.top == target.window.getGlobal()
+        @response = response
+
 
     # Default (not global) options
 
@@ -390,7 +407,7 @@ class Browser extends EventEmitter
   #
   # Returns the status code of the request for loading the window.
   @prototype.__defineGetter__ "statusCode", ->
-    return @lastResponse?.statusCode
+    return @response?.statusCode
 
   # ### browser.success => Boolean
   #
@@ -402,13 +419,13 @@ class Browser extends EventEmitter
   #
   # Returns true if the request for loading the window followed a redirect.
   @prototype.__defineGetter__ "redirected", ->
-    return !!@lastResponse?.redirected
+    return !!@response?.redirected
 
   # ### source => String
   #
   # Returns the unmodified source of the document loaded by the browser
   @prototype.__defineGetter__ "source", ->
-    return @lastResponse?.body
+    return @response?.body
 
   # Close the currently open tab, or the tab opened to the specified window.
   close: (window)->
@@ -948,25 +965,6 @@ class Browser extends EventEmitter
   # errors on Windows.
   viewInBrowser: (browser)->
     require("./bcat").bcat @html()
-
-  # ### browser.lastRequest => HTTPRequest
-  #
-  # Returns the last request sent by this browser. The object will have the properties url, method, headers, and body.
-  @prototype.__defineGetter__ "lastRequest", ->
-    return @resources.last?.request
-  
-  # ### browser.lastResponse => HTTPResponse
-  #
-  # Returns the last response received by this browser. The object will have the properties url, status, headers and
-  # body. Long bodies may be truncated.
-  @prototype.__defineGetter__ "lastResponse", ->
-    return @resources.last?.response
-  
-  # ### browser.lastError => Object
-  #
-  # Returns the last error received by this browser in lieu of response.
-  @prototype.__defineGetter__ "lastError", ->
-    return @resources.last?.error
 
   # Zombie can spit out messages to help you figure out what's going on as your code executes.
   #

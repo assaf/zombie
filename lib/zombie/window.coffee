@@ -372,6 +372,7 @@ loadDocument = ({ document, history, url, method, encoding, data })->
         method:   (method || "GET").toUpperCase() 
         headers:  (headers || {})
         data:     data
+        target:   document
       if referer
         request.headers.referer = referer
 

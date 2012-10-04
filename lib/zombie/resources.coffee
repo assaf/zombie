@@ -124,7 +124,7 @@ class Resources extends Array
   # resource.  Initially the resource is null, but when following a
   # redirect this function is called again with a resource and
   # modifies it instead of recording a new one.
-  _makeRequest: ({ method, url, data, headers, resource }, callback)->
+  _makeRequest: ({ method, url, data, headers, resource, target }, callback)->
     browser = @_browser
 
     # Some URLs come in as file://host/path
@@ -187,7 +187,8 @@ class Resources extends Array
     # Resources.  After redirect, we have a resource we're using.
     unless resource
       resource = new Resource(new HTTPRequest(method, url, headers, null))
-      this.push resource
+      @push(resource)
+      @_browser.emit("request", resource.request, target)
 
     if method == "PUT" || method == "POST"
       # Construct body from request parameters.
@@ -245,7 +246,6 @@ class Resources extends Array
 
     Request params, (error, response)=>
       if error
-        browser.log -> "#{method} #{URL.format(url).split("#")[0]} => #{error.message}"
         callback error
         return
 
@@ -258,10 +258,10 @@ class Resources extends Array
         when 301, 307
           # Do not follow POST redirects automatically, only GET/HEAD
           if method == "GET" || method == "HEAD"
-            redirect = URL.resolve(url, response.headers['location'])
+            redirect = URL.resolve(url, response.headers.location)
         when 302, 303
           # Follow redirect using GET (e.g. after form submission)
-          redirect = URL.resolve(url, response.headers['location'])
+          redirect = URL.resolve(url, response.headers.location)
           method = "GET" unless method == "GET" || method == "HEAD"
 
       if redirect
@@ -271,14 +271,15 @@ class Resources extends Array
           callback new Error("More than " + browser.maxRedirects + " redirects, giving up")
           return
 
+        resource.response = new HTTPResponse(redirect, response.statusCode, response.headers, response.body)
+        @_browser.emit("redirect", resource.response, target)
         # This URL is the referer, make a request to the next URL
-        headers['referer'] = URL.format(url)
-        browser.log -> "#{response.statusCode} => #{redirect}"
-        this._makeRequest method: method, url: redirect, headers: headers, resource: resource, callback
+        headers.referer = URL.format(url)
+        this._makeRequest method: method, url: redirect, headers: headers, resource: resource, target: target, callback
       else
         # Turn body from string into a String, so we can add property getters.
         resource.response = new HTTPResponse(url, response.statusCode, response.headers, response.body)
-        browser.log -> "#{method} #{URL.format(url)} => #{response.statusCode}"
+        @_browser.emit("response", resource.response, target)
         callback null, resource.response
 
 
