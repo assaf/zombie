@@ -86,11 +86,11 @@ class Entry
       return
     @window._destroy()
 
-  append: (entry, options)->
+  append: (newEntry, options)->
     if @next
       @next.destroy(options)
-    entry.prev = this
-    @next = entry
+    newEntry.prev = this
+    @next = newEntry
 
 
 class History

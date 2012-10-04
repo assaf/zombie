@@ -221,6 +221,7 @@ class EventQueue
   # browser   - Reference to the browser
   # window    - Reference to the window
   # eventLoop - Reference to the browser's event loop
+  # expecting - These are holding back the event loop
   # queue     - FIFO queue of functions to call
   # timers    - Sparse array of timers (index is the timer handle)
   constructor: (@window)->
@@ -228,13 +229,16 @@ class EventQueue
     @eventLoop = @browser._eventLoop
     @timers = []
     @queue = []
+    @expecting = []
 
   # Cleanup when we dispose of the window
   destroy: ->
+    return unless @queue
     for timer in @timers
-      if timer
-        timer.stop()
-    @timers = @queue = null
+      timer.stop() if timer
+    for expecting in @expecting
+      expecting()
+    @timers = @queue = @expecting = null
 
 
   # -- Events --
@@ -248,6 +252,7 @@ class EventQueue
 
   # Event loop uses this to grab event from top of the queue.
   dequeue: ->
+    return unless @queue
     if fn = @queue.shift()
       return fn
     for frame in @window.frames
@@ -266,11 +271,17 @@ class EventQueue
   #
   # Calls callback with response error or null and response object.
   http: (params, callback)->
+    return unless @queue
     done = @eventLoop.expecting()
+    @expecting.push(done)
     @browser.resources._makeRequest params, (error, response)=>
-      @enqueue ->
-        callback error, response
-      done()
+      # We can't cancel pending requests, but we can ignore the response if
+      # window already closed
+      if @queue
+        @enqueue ->
+          callback error, response
+        @expecting.splice(@expecting.indexOf(done), 1)
+        done()
     return
 
   # Fire an error event.
@@ -299,8 +310,7 @@ class EventQueue
   # Window.clearTimeout
   clearTimeout: (index)->
     timer = @timers[index]
-    if timer
-      timer.stop()
+    timer.stop() if timer
     return
 
   # Window.setInterval
@@ -316,21 +326,18 @@ class EventQueue
   # Window.clearInterval
   clearInterval: (index)->
     timer = @timers[index]
-    if timer
-      timer.stop()
+    timer.stop() if timer
     return
 
   # Used when window goes out of focus, prevents timers from firing
   suspend: ->
     for timer in @timers
-      if timer
-        timer.suspend()
+      timer.suspend() if timer
 
   # Used when window goes back in focus, resumes timers
   resume: ->
     for timer in @timers
-      if timer
-        timer.resume()
+      timer.resume() if timer
 
   # Returns the timestamp of the next timer event
   next: ->
@@ -378,6 +385,7 @@ class Timeout
 
   # clearTimeout
   stop: ->
+    @stopped = true
     global.clearTimeout(@handle)
     @remove()
 
