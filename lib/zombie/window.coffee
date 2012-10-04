@@ -387,23 +387,22 @@ loadDocument = ({ document, history, url, method, encoding, data })->
           return
 
         # JSDOM fires load event on document but not on window
-        windowLoaded = ->
+        windowLoaded = (event)->
           document.removeEventListener("load", windowLoaded)
-          onload = document.createEvent("HTMLEvents")
-          onload.initEvent("load", true, false)
-          window._dispatchEvent(window, onload, true)
+          window._dispatchEvent(window, event, true)
         document.addEventListener("load", windowLoaded)
+
+        # JSDOM fires load event on document but not on window
+        contentLoaded = (event)->
+          document.removeEventListener("DOMContentLoaded", contentLoaded)
+          window._dispatchEvent(window, event, true)
+        document.addEventListener("DOMContentLoaded", contentLoaded)
 
         # For responses that contain a non-empty body, load it.  Otherwise, we
         # already have an empty document in there courtesy of JSDOM.
         document.open()
         document.write(response.body || "<html><body></body></html>")
         document.close()
-
-        # JSDOM fires load event on document but not on window
-        ready = document.createEvent("HTMLEvents")
-        ready.initEvent("DOMContentLoaded", true, false)
-        window._dispatchEvent(window, ready, true)
 
         # Error on any response that's not 2xx, or if we're not smart enough to
         # process the content and generate an HTML DOM tree from it.
