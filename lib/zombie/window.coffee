@@ -383,24 +383,24 @@ loadDocument = ({ document, history, url, method, encoding, data })->
           done(error)
           return
 
-        browser.response = [response.statusCode, response.headers, response.body]
+        # JSDOM fires load event on document but not on window
+        windowLoaded = ->
+          document.removeEventListener("load", windowLoaded)
+          onload = document.createEvent("HTMLEvents")
+          onload.initEvent("load", true, false)
+          window._dispatchEvent(window, onload, true)
+        document.addEventListener("load", windowLoaded)
+
         # For responses that contain a non-empty body, load it.  Otherwise, we
         # already have an empty document in there courtesy of JSDOM.
-        if response.body
-          document.open()
-          document.write(response.body)
-          document.close()
+        document.open()
+        document.write(response.body || "<html><body></body></html>")
+        document.close()
 
-        # Document has loaded
+        # JSDOM fires load event on document but not on window
         ready = document.createEvent("HTMLEvents")
         ready.initEvent("DOMContentLoaded", true, false)
-        window._dispatchEvent(document, ready, true)
         window._dispatchEvent(window, ready, true)
-
-        onload = document.createEvent("HTMLEvents")
-        onload.initEvent("load", true, false)
-        window._dispatchEvent(document, onload, true)
-        window._dispatchEvent(window, onload, true)
 
         # Error on any response that's not 2xx, or if we're not smart enough to
         # process the content and generate an HTML DOM tree from it.
@@ -410,7 +410,8 @@ loadDocument = ({ document, history, url, method, encoding, data })->
           done(null, response.url)
         else
           done(new Error("Could not parse document at #{url}"))
-      
+
+
     else # but not any other protocol for now
       done(new Error("Cannot load resource #{url}, unsupported protocol"))
 

@@ -241,3 +241,62 @@ describe "EventLoop", ->
     it "should not wait longer than specified", ->
       assert.equal @browser.document.title, "...."
 
+
+  describe "page load", ->
+    before (done)->
+      brains.get "/eventloop/dcl", (req, res)-> res.send """
+        <html>
+          <head><title></title></head>
+          <script>
+          window.documentDCL = 0;
+          document.addEventListener("DOMContentLoaded", function() {
+            ++window.documentDCL;
+          });
+          window.windowDCL = 0;
+          window.addEventListener("DOMContentLoaded", function() {
+            ++window.windowDCL;
+          });
+          </script>
+          <div id="foo"></div>
+        </html>
+        """
+      brains.ready =>
+        @browser = new Browser()
+        @browser.visit("/eventloop/dcl", done)
+
+    it "should file DOMContentLoaded event on document", ->
+      assert.equal @browser.window.documentDCL, 1
+    it "should file DOMContentLoaded event on window", ->
+      assert.equal @browser.window.windowDCL, 1
+
+  describe "all resources loaded", ->
+    before (done)->
+      brains.get "/eventloop/onload", (req, res)-> res.send """
+        <html>
+          <head><title></title></head>
+          <script src="/eventloop/onload.js"></script>
+          <div id="foo"></div>
+        </html>
+        """
+      brains.get "/eventloop/onload.js", (req, res)->
+        setTimeout ->
+          res.send """
+            window.documentLoad = 0;
+            document.addEventListener("load", function() {
+              ++window.documentLoad;
+            });
+            window.windowLoad = 0;
+            window.addEventListener("load", function() {
+              ++window.windowLoad;
+            });
+          """
+        , 100
+      brains.ready =>
+        @browser = new Browser()
+        @browser.visit("/eventloop/onload", done)
+
+    it "should file load event on document", ->
+      assert.equal @browser.window.documentLoad, 1
+    it "should file load event on window", ->
+      assert.equal @browser.window.windowLoad, 1
+
