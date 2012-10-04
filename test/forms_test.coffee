@@ -1,3 +1,4 @@
+{ assert, brains, Browser } = require("./helpers")
 File    = require("fs")
 Crypto  = require("crypto")
 

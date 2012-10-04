@@ -69,6 +69,7 @@ HTML.HTMLFormElement.prototype.submit = (button)->
         method:   @getAttribute("method") || "GET"
         encoding: @getAttribute("enctype")
         data:     data
+        form:     this
 
   process 0
 

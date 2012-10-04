@@ -128,6 +128,8 @@ class Browser extends EventEmitter
       if target && target.window && target.window.top == target.window.getGlobal()
         @response = response
 
+    @on "submit", (form, url)->
+      browser.log -> "submit form to #{url}"
 
     # Default (not global) options
 

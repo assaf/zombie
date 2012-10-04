@@ -132,24 +132,6 @@ class Resources extends Array
     url = URL.parse(url)
     method = (method || "GET").toUpperCase()
 
-    # If the request is for a file:// descriptor, just open directly from the
-    # file system rather than getting node's http (which handles file://
-    # poorly) involved.
-    if url.protocol == "file:"
-      browser.log -> "#{method} #{url.pathname}"
-      if method == "GET"
-        FS.readFile Path.normalize(url.pathname), (err, data)->
-          # Fallback with error -> callback
-          if err
-            browser.log -> "Error loading #{URL.format(url)}: #{err.message}"
-            callback err
-          # Turn body from string into a String, so we can add property getters.
-          response = new HTTPResponse(url, 200, {}, String(data))
-          callback null, response
-      else
-        callback new Error("Cannot #{method} a file: URL")
-      return
-
     # Clone headers before we go and modify them.
     headers = if headers then JSON.parse(JSON.stringify(headers)) else {}
     headers["User-Agent"] = browser.userAgent
@@ -243,6 +225,24 @@ class Resources extends Array
       proxy:          browser.proxy
       jar:            jar
       followRedirect: false
+
+    # If the request is for a file:// descriptor, just open directly from the
+    # file system rather than getting node's http (which handles file://
+    # poorly) involved.
+    if url.protocol == "file:"
+      if method == "GET"
+        FS.readFile Path.normalize(url.pathname), (error, data)=>
+          # Fallback with error -> callback
+          if error
+            callback err
+          else
+            # Turn body from string into a String, so we can add property getters.
+            resource.response = new HTTPResponse(url, 200, {}, String(data))
+            @_browser.emit("response", resource.response, target)
+            callback null, resource.response
+      else
+        callback new Error("Cannot #{method} a file: URL")
+      return
 
     Request params, (error, response)=>
       if error

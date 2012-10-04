@@ -281,7 +281,9 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   browser.emit("opened", window)
 
   # Form submission uses this
-  window._submit = history.submit.bind(history)
+  window._submit = (params)->
+    browser.emit("submit", params.form, params.url)
+    history.submit(params)
   # Load the document associated with this window.
   loadDocument document: document, history: history, url: url, method: method, encoding: encoding, data: data
   return window

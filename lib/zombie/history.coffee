@@ -142,11 +142,13 @@ class History
   submit: ({ url, method, encoding, data })->
     window = @current.window
     url = HTML.resourceLoader.resolve(window.document, url)
+    unless window.parent == window.getGlobal()
+      parent = window.parent
     params =
       browser:  @browser
       history:  this
       name:     window.name
-      parent:   window.parent
+      parent:   parent
       url:      url
       method:   method
       encoding: encoding
@@ -176,7 +178,7 @@ class History
       event.initEvent("hashchange", true, false)
       window._dispatchEvent(window, event, true)
     else
-      if @current.window.parent != @current.window
+      if @current.window.parent != @current.window.getGlobal()
         parent = @current.window.parent
       window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent)
       @addEntry(window, url)
