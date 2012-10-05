@@ -1,0 +1,89 @@
+{ assert, brains, Browser } = require("./helpers")
+
+describe "Document", ->
+
+  describe "activeElement", ->
+    before (done)->
+      brains.get "/document/activeElement", (req, res)->
+        res.send """
+        <html>
+        </html>
+        """
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit("/document/activeElement", done)
+
+    it "should be document body", ->
+      assert.equal @browser.activeElement, @browser.document.body
+
+    describe "autofocus on div", ->
+      before (done)->
+        div = @browser.document.createElement("div")
+        div.setAttribute("autofocus")
+        @browser.document.body.appendChild(div)
+        @browser.wait(done)
+
+      it "should not change active element", ->
+        assert.equal @browser.activeElement, @browser.document.body
+
+    describe "autofocus on input", ->
+      before (done)->
+        @input = @browser.document.createElement("input")
+        @input.setAttribute("autofocus")
+        @browser.document.body.appendChild(@input)
+        @browser.wait(done)
+
+      it "should change active element", ->
+        assert.equal @browser.activeElement, @input
+
+    describe "autofocus on textarea", ->
+      before (done)->
+        @textarea = @browser.document.createElement("textarea")
+        @textarea.setAttribute("autofocus")
+        @browser.document.body.appendChild(@input)
+        @browser.wait(done)
+
+      it "should change active element", ->
+        assert.equal @browser.activeElement, @textarea
+
+    describe "focus on div", ->
+      before (done)->
+        @browser.reload(done)
+      before (done)->
+        div = @browser.document.createElement("div")
+        @browser.document.body.appendChild(div)
+        div.focus()
+        @browser.wait(done)
+
+      it "should change active element", ->
+        assert.equal @browser.activeElement, @browser.document.body
+
+    describe "focus on input", ->
+      before (done)->
+        @browser.reload(done)
+      before (done)->
+        @input = @browser.document.createElement("input")
+        @browser.document.body.appendChild(@input)
+        @input.focus()
+        @browser.wait(done)
+
+      it "should change active element", ->
+        assert.equal @browser.activeElement, @input
+
+    describe "focus on textarea", ->
+      before (done)->
+        @browser.reload(done)
+      before (done)->
+        @textarea = @browser.document.createElement("input")
+        @browser.document.body.appendChild(@textarea)
+        @textarea.focus()
+        @browser.wait(done)
+
+      it "should change active element", ->
+        assert.equal @browser.activeElement, @textarea
+
+  after ->
+    @browser.destroy()
+

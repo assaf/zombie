@@ -3,13 +3,14 @@
 # Also responsible for creating associated document and loading it.
 
 
-Console     = require("./console")
-EventSource = require("eventsource")
-History     = require("./history")
-JSDOM       = require("jsdom")
-WebSocket   = require("ws")
-Scripts     = require("./scripts")
-URL         = require("url")
+Console         = require("./console")
+EventSource     = require("eventsource")
+History         = require("./history")
+JSDOM           = require("jsdom")
+WebSocket       = require("ws")
+URL             = require("url")
+createDocument  = require("./document")
+
 
 Events      = JSDOM.dom.level3.events
 HTML        = JSDOM.dom.level3.html
@@ -287,51 +288,6 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   # Load the document associated with this window.
   loadDocument document: document, history: history, url: url, method: method, encoding: encoding, data: data
   return window
-
-
-# Create an empty document.  Each window gets a new document.
-createDocument = (browser, window)->
-  # Create new DOM Level 3 document, add features (load external resources,
-  # etc) and associate it with current document. From this point on the browser
-  # sees a new document, client register event handler for
-  # DOMContentLoaded/error.
-  jsdom_opts =
-    deferClose:                 true
-    features:
-      MutationEvents:           "2.0"
-      ProcessExternalResources: []
-      FetchExternalResources:   ["iframe"]
-    parser:                     browser.htmlParser
-
-  if browser.runScripts
-    jsdom_opts.features.ProcessExternalResources.push("script")
-    jsdom_opts.features.FetchExternalResources.push("script")
-  if browser.loadCSS
-    jsdom_opts.features.FetchExternalResources.push("css")
-
-  document = JSDOM.jsdom(null, HTML, jsdom_opts)
-
-  # Add support for running in-line scripts
-  if browser.runScripts
-    Scripts.addInlineScriptSupport(document)
-
-
-  # Tie document and window together
-  Object.defineProperty document, "window",
-    value: window
-  Object.defineProperty document, "parentWindow",
-    value: window.parent # JSDOM property?
-
-  Object.defineProperty document, "location",
-    get: ->
-      return window.location
-    set: (url)->
-      window.location = url
-  Object.defineProperty document, "URL",
-    get: ->
-      return window.location.href
-    
-  return document
 
 
 # Load document. Also used to submit form.

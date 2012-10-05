@@ -26,8 +26,11 @@ issue.
 the last top-most page load.  All other resources available from
 `browser.resources`.  These replace `lastRequest` and `lastResponse`.
 
-    559 tests
-    10.4 sec to complete
+Added `browser.activeElement` (removed `browser.focus`) and support for
+`autofocus` attribute.
+
+    566 tests
+    11.0 sec to complete
 
 
 ## Version 1.4.1 2012-08-22

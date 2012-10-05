@@ -405,6 +405,10 @@ class Browser extends EventEmitter
   @prototype.__defineGetter__ "body", ->
     return @document.querySelector("body")
 
+  # Element that has the current focus.
+  @prototype.__defineGetter__ "activeElement", ->
+    return @document.activeElement
+
   # ### browser.statusCode => Number
   #
   # Returns the status code of the request for loading the window.
@@ -856,12 +860,6 @@ class Browser extends EventEmitter
       throw new Error("This button is disabled")
     button.focus()
     return @fire("click", button, callback)
-
-  # ### browser.focused => element
-  #
-  # Returns the element in focus.
-  focused: ->
-    return @document._focused
 
 
   # Cookies and storage

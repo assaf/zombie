@@ -130,7 +130,7 @@ HTML.HTMLInputElement.prototype._eventDefaults =
 # ignore all other clicks. We need those other clicks to occur, so we're going
 # to dispatch them all.
 HTML.HTMLInputElement.prototype.click = ->
-  focus(@ownerDocument, this)
+  @focus()
 
   # First event we fire is click event
   click = =>
@@ -195,28 +195,4 @@ HTML.Document.prototype._elementBuilders["button"] = (doc, s)->
   button = new HTML.HTMLButtonElement(doc, s)
   button.type ||= "submit"
   return button
-
-
-# The element in focus.
-HTML.HTMLDocument.prototype.__defineGetter__ "activeElement", ->
-  @parentWindow.document._focused
-
-# Change the current element in focus
-focus = (document, element)->
-  unless element == document._focused
-    if document._focused
-      onblur = document.createEvent("HTMLEvents")
-      onblur.initEvent "blur", false, false
-      document.window._dispatchEvent(document._focused, onblur)
-    if element
-      onfocus = document.createEvent("HTMLEvents")
-      onfocus.initEvent("focus", false, false)
-      document.window._dispatchEvent(element, onfocus)
-    document._focused = element
-
-for element in [HTML.HTMLInputElement, HTML.HTMLSelectElement, HTML.HTMLTextAreaElement, HTML.HTMLButtonElement, HTML.HTMLAnchorElement]
-  element.prototype.focus = ->
-    focus @ownerDocument, this
-  element.prototype.blur = ->
-    focus @ownerDocument, null
 
