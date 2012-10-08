@@ -234,7 +234,7 @@ class Resources extends Array
         FS.readFile Path.normalize(url.pathname), (error, data)=>
           # Fallback with error -> callback
           if error
-            callback err
+            callback error
           else
             # Turn body from string into a String, so we can add property getters.
             resource.response = new HTTPResponse(url, 200, {}, String(data))
