@@ -7,7 +7,7 @@ zombie.js-api(7) -- The Zombie API
 ### new zombie.Browser(options?) : Browser
 
 Creates and returns a new browser.  A browser maintains state across requests:
-history, cookies, HTML 5 local and session stroage.  A browser has a main
+history, cookies, HTML 5 local and session storage.  A browser has a main
 window, and typically a document loaded into that window.
 
 You can pass options when initializing a new browser, for example:
