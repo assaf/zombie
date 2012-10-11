@@ -62,11 +62,20 @@ class Browser extends EventEmitter
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.
     @on "error", (error)->
-      browser.errors.push error
-      browser.log error.message, error.stack
+      browser.errors.push(error)
+      browser.log(error.message, error.stack)
+      Browser.events.emit("error", error)
+
+    @on "console", (level, message)->
+      Browser.events.emit("console", level, message)
+
+    @on "log", (message)->
+      if browser.debug
+        process.stdout.write("Zombie: #{message}\n")
+      Browser.events.emit("log", message)
 
     # Window becomes inactive
-    @on "active", (window)=>
+    @on "active", (window)->
       return if active == window
       active = window
       onfocus = window.document.createEvent("HTMLEvents")
@@ -111,22 +120,22 @@ class Browser extends EventEmitter
     @on "interval", (fn, interval)->
       browser.log "Fired interval every #{interval}ms"
 
-    @on "redirect", (response, target)=>
+    @on "redirect", (response, target)->
       browser.log ->
         return "#{response.statusCode} => #{response.url}"
       if target && target.window && target.window.top == target.window.getGlobal()
-        @response = response
+        browser.response = response
 
-    @on "request", (request, target)=>
+    @on "request", (request, target)->
       if target && target.window && target.window.top == target.window.getGlobal()
-        @request = request
+        browser.request = request
 
-    @on "response", (response, target)=>
+    @on "response", (response, target)->
       browser.log ->
         request = response.resource.request
         return "#{request.method} #{URL.format(request.url)} => #{response.statusCode}"
       if target && target.window && target.window.top == target.window.getGlobal()
-        @response = response
+        browser.response = response
 
     @on "submit", (form, url)->
       browser.log -> "submit form to #{url}"
@@ -149,6 +158,18 @@ class Browser extends EventEmitter
     @errors = []
 
     @resources = new Resources(this)
+    Browser.events.emit("created", this)
+
+
+  # Constructor (class) methods and properties
+  # ------------------------------------------
+
+  @VERSION: VERSION
+
+  # All browsers send events to this emitter.
+  @events: new EventEmitter()
+  # Make sure sending error events doesn't kill everything
+  @events.on "error", ->
 
 
   # Global options
@@ -444,6 +465,7 @@ class Browser extends EventEmitter
     if @tabs
       @tabs.closeAll()
       @tabs = null
+      Browser.events.emit("destroyed", this)
 
 
   # Navigation
@@ -975,14 +997,11 @@ class Browser extends EventEmitter
   #     browser.log("Opening page:", url);
   #     browser.log(function() { return "Opening page: " + url });
   log: ->
-    unless @debug
-      return
     if typeof(arguments[0]) == "function"
       args = [arguments[0]()]
     else
       args = arguments
-    process.stdout.write(format("Zombie:", args...))
-    process.stdout.write("\n")
+    @emit "log", format(args...)
 
   # Dump information to the consolt: Zombie version, current URL, history, cookies, event loop, etc.  Useful for
   # debugging and submitting error reports.
@@ -1035,5 +1054,4 @@ class Credentials
     delete @password
 
 
-Browser.VERSION = VERSION
 module.exports = Browser

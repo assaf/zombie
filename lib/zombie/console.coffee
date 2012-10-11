@@ -54,15 +54,22 @@ class Console
 
 
 # info, log and warn all go to stdout unless browser.silent
-for level in ["debug", "info", "log", "warn"]
+for level in ["info", "log", "warn"]
   do (level)->
     Console.prototype[level] = ->
       message = format(arguments...)
       @browser.emit("console", level, message)
-      if @browser.debug && !@browser.silent
+      unless @browser.silent
         process.stdout.write(message + "\n")
 
-# error go to stderr unless browser.silent
+# debug goes to stdout but only if browser.debug
+Console.prototype.debug = ->
+  message = format(arguments...)
+  @browser.emit("console", "debug", message)
+  if @browser.debug && ! @browser.silent
+    process.stdout.write(message + "\n")
+
+# error goes to stderr unless browser.silent
 Console.prototype.error = ->
   message = format(arguments...)
   @browser.emit("console", "error", message)

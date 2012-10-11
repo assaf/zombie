@@ -29,6 +29,8 @@ the last top-most page load.  All other resources available from
 Added `browser.activeElement` (removed `browser.focus`) and support for
 `autofocus` attribute.
 
+Browser is now an `EventEmitter` so you can hook into it and instrument it.
+
     566 tests
     11.0 sec to complete
 
