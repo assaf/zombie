@@ -111,6 +111,9 @@ class History
             document.write error.message
             document.close()
             @_browser.emit "error", error
+          else if response.statusCode < 400 and response.headers['content-type'] and response.headers['content-type'].indexOf('text/html') is -1
+            # we're not smart enough to process the content and generate an HTML DOM tree from it.
+            @_browser.emit "error", new Error("Could not parse document at #{URL.format(url)}")
           else
             document = @_createDocument(@_window, response.url)
             @_browser.response = [response.statusCode, response.headers, response.body]
@@ -128,8 +131,7 @@ class History
               evt.initEvent "hashchange", true, false
               @_browser.dispatchEvent @_window, evt
 
-            # Error on any response that's not 2xx, or if we're not smart enough to
-            # process the content and generate an HTML DOM tree from it.
+            # Error on any response that's not 2xx
             if response.statusCode >= 400
               @_browser.emit "error", new Error("Server returned status code #{response.statusCode}")
             else if document.documentElement
