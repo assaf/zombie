@@ -216,6 +216,9 @@ class Resources extends Array
       for name, value of browser.headers
         headers[name] = value
 
+    # we need to append any search parameters to the actual URL too
+    url.path += url.search if url.search
+
     params = 
       method:         method
       url:            url
