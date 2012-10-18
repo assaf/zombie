@@ -649,7 +649,8 @@ describe "Forms", ->
       it "should reset textarea to original value", ->
         assert.equal @browser.querySelector("#field-likes").value, "Warm brains"
       it "should reset checkbox to original value", ->
-        assert !@browser.querySelector("#field-hungry").value
+        console.log @browser.querySelector("#field-hungry").checked
+        assert !@browser.querySelector("#field-hungry").checked
       it "should reset radio to original value", ->
         assert !@browser.querySelector("#field-scary").checked
         assert @browser.querySelector("#field-notscary").checked

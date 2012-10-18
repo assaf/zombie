@@ -71,8 +71,8 @@ class EventLoop
   # any other value to continue processing events.
   wait: (duration, completion, callback)->
     # Determines how long we're going to wait
-    duration = ms(duration)
-    waitFor = ms(@browser.waitFor)
+    duration = ms(duration.toString())
+    waitFor = ms(@browser.waitFor.toString())
     timeout = Date.now() + waitFor
 
     if @listeners.length == 0
@@ -375,7 +375,7 @@ class Timeout
         @queue.browser.emit("timeout", @fn, @delay)
         @queue.window._evaluate(@fn)
       @remove()
-    @handle = setTimeout(fire, @delay)
+    @handle = global.setTimeout(fire, @delay)
     @next = Date.now() + @delay
 
   # Make sure timer doesn't fire until we're ready for it again
@@ -413,7 +413,7 @@ class Interval
         @queue.browser.emit("interval", @fn, @interval)
         @queue.window._evaluate(@fn)
       @next = Date.now() + @interval
-    @handle = setInterval(fire, @interval)
+    @handle = global.setInterval(fire, @interval)
     @next = Date.now() + @interval
 
   # Make sure timer doesn't fire until we're ready for it again

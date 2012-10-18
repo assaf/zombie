@@ -80,8 +80,8 @@ HTML.HTMLFormElement.prototype.reset = ->
     if field.nodeName == "SELECT"
       for option in field.options
         option.selected = option._defaultSelected
-    else if field.nodeName == "INPUT" && field.type == "check" || field.type == "radio"
-      field.checked = field._defaultChecked
+    else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
+      field.checked = !!field._defaultChecked
     else if field.nodeName == "INPUT" || field.nodeName == "TEXTAREA"
       field.value = field._defaultValue
 

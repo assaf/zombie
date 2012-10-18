@@ -176,6 +176,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
       browser.emit("evaluated", code, result)
       return result
     catch error
+      error.filename ||= filename
       browser.emit("error", error)
     finally
       inContext = original

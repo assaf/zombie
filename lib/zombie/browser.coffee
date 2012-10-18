@@ -660,18 +660,25 @@ class Browser extends EventEmitter
     # If the field has already been queried, return itself
     if selector instanceof HTML.Element
       return selector
-    # Try more specific selector first.
-    if field = @querySelector(selector)
-      return field if field.tagName == "INPUT" || field.tagName == "TEXTAREA" || field.tagName == "SELECT"
+    try
+      # Try more specific selector first.
+      field = @querySelector(selector)
+      if field && (field.tagName == "INPUT" || field.tagName == "TEXTAREA" || field.tagName == "SELECT")
+        return field
+    catch error
+      # Invalid selector, but may be valid field name
+      
     # Use field name (case sensitive).
-    if field = @querySelector(":input[name='#{selector}']")
-      return field
+    for field in @querySelectorAll(":input[name]")
+      if field.getAttribute("name") == selector
+        return field
+
     # Try finding field from label.
     for label in @querySelectorAll("label")
       if label.textContent.trim() == selector
         # Label can either reference field or enclose it
-        if for_attr = label.getAttribute("for")
-          return @document.getElementById(for_attr)
+        if forAttr = label.getAttribute("for")
+          return @document.getElementById(forAttr)
         else
           return label.querySelector(":input")
     return
