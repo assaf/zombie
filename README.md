@@ -200,8 +200,7 @@ Here are a few examples for checking the contents of a document:
 CSS selectors are implemented by Sizzle.js.  In addition to CSS 3 selectors you
 get additional and quite useful extensions, such as `:not(selector)`,
 `[NAME!=VALUE]`, `:contains(TEXT)`, `:first/:last` and so forth.  Check out the
-[Sizzle.js documentation](https://github.com/jeresig/sizzle/wiki) for more
-details.
+[Sizzle.js documentation](http://sizzlejs.com/) for more details.
 
 Read more [on the Browser API](API) and [CSS selectors](selectors)
 

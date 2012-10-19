@@ -2,9 +2,8 @@ zombie.js-selectors(7) -- CSS Selectors
 =======================================
 
 
-Zombie.js uses [Sizzle.js](https://github.com/jeresig/sizzle/wiki) which
-provides support for most [CSS 3
-selectors](http://www.w3.org/TR/css3-selectors/) with a few useful
+Zombie.js uses [Sizzle.js](http://sizzlejs.com/) which provides support for most
+[CSS 3 selectors](http://www.w3.org/TR/css3-selectors/) with a few useful
 extension.
 
 Sizzle.js is the selector engine used in jQuery, so if you're familiar

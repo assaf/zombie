@@ -127,10 +127,9 @@ To find out all the even rows in a table:
 
     var rows = table.querySelectorAll("tr:even");
 
-CSS selectors support is provied by
-[Sizzle.js](https://github.com/jeresig/sizzle/wiki), the same engine used by
-jQuery.  You're probably familiar with it, if not, check the [list of supported
-selectors](selectors).
+CSS selectors support is provied by [Sizzle.js](http://sizzlejs.com/), the same
+engine used by jQuery.  You're probably familiar with it, if not, check the
+[list of supported selectors](selectors).
 
 ### browser.body : Element
 
