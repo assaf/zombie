@@ -1109,6 +1109,33 @@ describe "Forms", ->
       it "should have size of 0", ->
         assert.equal @browser.request.headers["content-length"], 0
 
+  describe "GET form submission", ->
+    before (done)->
+      brains.get "/forms/get", (req, res)->
+        res.send """
+        <html>
+          <body>
+            <form method="get" action="/forms/get/echo">
+              <input type="text" name="my_param" value="my_value">
+              <input type="submit" value="submit">
+            </form>
+          </body>
+        </html>
+        """
+      brains.get "/forms/get/echo", (req, res) ->
+        res.send """
+        <html>
+          <body>#{req.query.my_param}</body>
+        </html>
+        """
+
+      @browser = new Browser()
+      @browser.visit("/forms/get")
+        .then =>
+          return @browser.pressButton("submit", done)
+
+    it "should echo the correct query string", ->
+      assert.equal @browser.text("body"), "my_value"
 
   # DOM specifies that getAttribute returns empty string if no value, but in
   # practice it always returns `null`. However, the `name` and `value`
