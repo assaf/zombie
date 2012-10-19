@@ -67,55 +67,54 @@ class EventLoop
   # Duration is specifies in milliseconds or string form (e.g. "15s").
   #
   # Completion function is called with the currently active window (may change
-  # during page navigation or form submission) and returns true to stop waiting,
-  # any other value to continue processing events.
-  wait: (duration, completion, callback)->
-    # Determines how long we're going to wait
-    duration = ms(duration.toString())
-    waitFor = ms(@browser.waitFor.toString())
-    timeout = Date.now() + waitFor
+  # during page navigation or form submission) and how long until the next
+  # event, and returns true to stop waiting, any other value to continue
+  # processing events.
+  wait: (waitDuration, waitFunction, callback)->
+    # Don't wait longer than duration
+    waitDuration = ms(waitDuration.toString()) || @browser.waitDuration
+    timeoutTimer = global.setTimeout(->
+      done(null, true)
+    , waitDuration)
+    timeout = Date.now() + waitDuration
 
-    if @listeners.length == 0
-      # Someone's paying attention, start processing events
-      process.nextTick =>
-        if @active
-          @active._eventQueue.resume()
-          @run()
-
-    # Receive tick, done and error events
-    listener = (event, value)=>
-      switch event
-        when "tick"
-          # Event processed, are we ready to complete?
-          if completion
-            try
-              completed = completion(@active)
-              if completed
-                done(null, false)
-                return
-            catch error
-              done(error)
-
-          # Should we keep waiting for next timer?
-          if value >= waitFor + Date.now()
-            done(null, true)
-        when "done"
-          done()
-        when "error"
-          done(value)
-    @listeners.push(listener)
-
-    timer = global.setTimeout(->
-        done(null, true)
-      , duration)
-
-    # Cleanup listeners and times before calling callback
+    # Remove this listener and pass control to callback
     done = (error, timedOut)=>
-      clearTimeout(timer)
+      clearTimeout(timeoutTimer)
       @listeners = @listeners.filter((l)-> l != listener)
       if @listeners.length == 0
         @emit("done")
       callback(error, !!timedOut)
+
+    # Receive tick, done and error events
+    listener = (event)=>
+      switch event
+        when "tick"
+          try
+            next = arguments[1]
+            if next >= timeout
+              # No events in the queue, no point waiting
+              done(null, true)
+            else if waitFunction
+              waitFor = Math.max(next - Date.now(), 0)
+              # Event processed, are we ready to complete?
+              completed = waitFunction(@active, waitFor)
+              if completed
+                done(null, false)
+          catch error
+            done(error)
+        when "done"
+          done()
+        when "error"
+          done(error = arguments[1])
+    @listeners.push(listener)
+
+    # Someone (us) just started paying attention, start processing events
+    if @listeners.length == 1
+      process.nextTick =>
+        if @active
+          @active._eventQueue.resume()
+          @run()
 
     return
 

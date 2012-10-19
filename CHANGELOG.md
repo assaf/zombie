@@ -31,8 +31,21 @@ Added `browser.activeElement` (removed `browser.focus`) and support for
 
 Browser is now an `EventEmitter` so you can hook into it and instrument it.
 
+The `wait` method now takes two optional parameters: options that determine how
+long to wait and a callback. Options include `duration`, `function` and
+`element`, the later completing when the element is found in the document.
+
+The `wait` method's wait function now receives two parameters: the active window
+and how long the wait is for the next event (0 to Infinity).
+
+The `visit` method now passes applicable options to `wait` (`duration`,
+`function`, etc).
+
+The `maxWait` option is now called `waitDuration` and `waitFor` is no longer
+supported.
+
     566 tests
-    11.0 sec to complete
+    9.2 sec to complete
 
 
 ## Version 1.4.1 2012-08-22

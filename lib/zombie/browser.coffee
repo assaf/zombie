@@ -15,6 +15,7 @@ FS                = require("fs")
 Interact          = require("./interact")
 JSDOM             = require("jsdom")
 Mime              = require("mime")
+ms                = require("ms")
 Q                 = require("q")
 Path              = require("path")
 Resources         = require("./resources")
@@ -24,13 +25,13 @@ XHR               = require("./xhr")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
-BROWSER_OPTIONS = ["debug", "headers", "htmlParser", "loadCSS", "maxWait",
+BROWSER_OPTIONS = ["debug", "headers", "htmlParser", "loadCSS", "waitDuration",
                    "proxy", "referer", "runScripts", "silent", "site", "userAgent",
-                   "waitFor", "maxRedirects"]
+                   "maxRedirects"]
 
 # Global options you can set on Browser and will be inherited by each new browser.
-GLOBAL_OPTIONS  = ["debug", "headers", "htmlParser", "loadCSS", "maxWait", "proxy",
-                   "runScripts", "silent", "site", "userAgent", "waitFor", "maxRedirects"]
+GLOBAL_OPTIONS  = ["debug", "headers", "htmlParser", "loadCSS", "waitDuration", "proxy",
+                   "runScripts", "silent", "site", "userAgent", "maxRedirects"]
 
 
 PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
@@ -186,8 +187,8 @@ class Browser extends EventEmitter
   # True to load external stylesheets.
   @loadCSS: true
 
-  # Maximum time to wait (visit, wait, etc).
-  @maxWait: "5s"
+  # Default time to wait (visit, wait, etc).
+  @waitDuration: "5s"
   
   # Proxy URL.
   #
@@ -209,9 +210,6 @@ class Browser extends EventEmitter
   # You can use visit with a path, and it will make a request relative to this host/URL.
   @site: undefined
 
-  # Tells `wait` and any function that uses `wait` how long to wait for, executing timers.  Defaults to 0.5 seconds.
-  @waitFor: "0.5s"
-  
   # Tells the browser how many redirects to follow before aborting a request. Defaults to 5
   @maxRedirects: 5
 
@@ -270,39 +268,72 @@ class Browser extends EventEmitter
 
   # Waits for the browser to complete loading resources and processing JavaScript events.
   #
-  # You can pass a callback as the last argument.  Without a callback, this method returns a promise.
+  # Accepts two parameters, both optional:
+  # options   - Options that determine how long to wait (see below)
+  # callback  - Called with error or null and browser
   #
-  # With `duration` as the first argument, this method waits for the specified time (in milliseconds) and any
-  # resource/JavaScript to complete processing.  Duration can also be a function, called after each event to determine
-  # whether or not to proceed.
+  # To determine how long to wait:
+  # duration  - Do not wait more than this duration (milliseconds or string of
+  #             the form "5s"). Defaults to "5s" (see Browser.waitDuration).
+  # element   - Stop when this element(s) appear in the DOM.
+  # function  - Stop when function returns true; this function is called with
+  #             the active window and expected time to the next event (0 to
+  #             Infinity).
   #
-  # Without duration, Zombie makes best judgement by waiting up to 5 seconds for the page to load resources (scripts,
-  # XHR requests, iframes), process DOM events, and fire timeouts events.
-  wait: (duration, callback)->
+  # As a convenience you can also pass the duration directly.
+  #
+  # Without a callback, this method returns a promise.
+  wait: (options, callback)->
     unless @window
-      callback new Error("No window open")
+      process.nextTick ->
+        callback new Error("No window open")
       return
 
-    if arguments.length < 2 && typeof duration == "function"
-      [callback, duration] = [duration, null]
-    if typeof duration == "function"
-      [completion, duration] = [duration, null]
-    duration ||= @maxWait
- 
-    deferred = Q.defer()
-    if callback
-      deferred.promise.then(callback, callback)
-    last = @errors[@errors.length - 1]
+    if arguments.length == 1 && typeof(options) == "function"
+      [callback, options] = [options, null]
 
-    @_eventLoop.wait duration, completion, (error, timedOut)=>
-      newest = @errors[@errors.length - 1]
-      unless error || last == newest
-        error = newest
-      if error
+    if callback && typeof(callback) != "function"
+      throw new Error("Second argument expected to be a callback function or null")
+    # Support all sort of shortcuts for options. Unofficial.
+    if typeof(options) == "number"
+      waitDuration = options
+    else if typeof(options) == "string"
+      waitDuration = options
+    else if typeof(options) == "function"
+      waitDuration = @waitDuration
+      waitFunction = options
+    else if options
+      waitDuration = options.duration || @waitDuration
+      if options.element
+        waitFunction = (window)->
+          return !!window.document.querySelector(options.element)
+      else
+        waitFunction = options.function
+    else
+      waitDuration = @waitDuration
+
+    unless callback
+      deferred = Q.defer()
+
+    # Catch errors sent to browser but not propagated to event-loop wait
+    lastError = null
+    catchError = (error)->
+      lastError ||= error
+    @addListener "error", catchError
+
+    @_eventLoop.wait waitDuration, waitFunction, (error, timedOut)=>
+      error ||= lastError
+      @removeListener "error", catchError
+      if callback
+        callback(error, this)
+      else if error
         deferred.reject(error)
       else
         deferred.resolve()
-    return deferred.promise unless callback
+
+    if deferred
+      return deferred.promise
+    
 
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
   # can be cancelled.  Like `wait` this method either takes a callback or returns a promise.
@@ -481,8 +512,6 @@ class Browser extends EventEmitter
   visit: (url, options, callback)->
     if typeof options == "function" && !callback
       [callback, options] = [options, null]
-    if typeof options != "object"
-      [duration, options] = [options, null]
 
     deferred = Q.defer()
     reset_options = @withOptions(options)
@@ -494,7 +523,7 @@ class Browser extends EventEmitter
       @window.location = url
     else
       this.open(url: url)
-    @wait duration, (error)=>
+    @wait options, (error)=>
       reset_options()
       if error
         deferred.reject(error)
@@ -749,7 +778,8 @@ class Browser extends EventEmitter
     unless field && field.tagName == "INPUT" && field.type == "radio"
       throw new Error("No radio INPUT matching '#{selector}'")
     field.click()
-    @wait callback if callback
+    if callback
+      @wait(callback)
     return this
 
   _findOption: (selector, value)->

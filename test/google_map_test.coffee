@@ -29,7 +29,7 @@ describe "Google map", ->
 
   before (done)->
     @browser = new Browser()
-    @browser.visit "http://localhost:3003/browser/map", done
+    @browser.visit("http://localhost:3003/browser/map", element: ".gmnoprint", done)
 
   it "should load map", ->
     assert @browser.window.map
