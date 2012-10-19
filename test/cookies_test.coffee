@@ -145,6 +145,32 @@ describe "Cookies", ->
     it "should have access to persistent cookie", ->
       assert.equal @cookies.get("_expires4"), "3s"
 
+  describe "default path", ->
+
+    before (done)->
+      brains.get "/nopath1", (req, res)->
+        res.cookie "_nopath1", "one"
+        res.send ""
+      brains.get "/sub/nopath2", (req, res)->
+        res.cookie "_nopath2", "two"
+        res.send ""
+      brains.get "/nopath3", (req, res)->
+        res.cookie "_nopath3", "three"
+        res.send ""
+
+      @browser = new Browser()
+      @browser.visit("http://localhost:3003/nopath1")
+        .then =>
+          @browser.visit "http://localhost:3003/sub/nopath2"
+        .then =>
+          @browser.visit "http://localhost:3003/nopath3"
+        .then(done, done)
+
+    it "should have access to cookies set on the same path", ->
+      assert.equal @browser.cookies().get("_nopath1"), "one"
+      assert.equal @browser.cookies().get("_nopath3"), "three"
+    it "should not have access to cookies set on a descendant path", ->
+      assert @cookies.get("_nopath2") == undefined
 
   describe "duplicates", ->
 
