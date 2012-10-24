@@ -312,27 +312,24 @@ class Browser extends EventEmitter
     else
       waitDuration = @waitDuration
 
-    unless callback
-      deferred = Q.defer()
-
     # Catch errors sent to browser but not propagated to event-loop wait
     lastError = null
+
+    promise = @_eventLoop.wait(waitDuration, waitFunction)
+      .then(->
+        if lastError
+          throw lastError
+        )
+
     catchError = (error)->
       lastError ||= error
-    @addListener "error", catchError
+    @addListener("error", catchError)
+    promise.finally =>
+      @removeListener("error", catchError)
 
-    @_eventLoop.wait waitDuration, waitFunction, (error, timedOut)=>
-      error ||= lastError
-      @removeListener "error", catchError
-      if callback
-        callback(error, this)
-      else if error
-        deferred.reject(error)
-      else
-        deferred.resolve()
-
-    if deferred
-      return deferred.promise
+    if callback
+      promise.then(callback, callback)
+    return promise
     
 
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and

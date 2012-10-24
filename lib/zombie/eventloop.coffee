@@ -17,6 +17,7 @@
 
 
 ms  = require("ms")
+Q   = require("q")
 
 
 # The browser event loop.
@@ -70,44 +71,51 @@ class EventLoop
   # during page navigation or form submission) and how long until the next
   # event, and returns true to stop waiting, any other value to continue
   # processing events.
-  wait: (waitDuration, waitFunction, callback)->
+  wait: (waitDuration, waitFunction)->
+    deferred = Q.defer()
+    promise = deferred.promise
+
     # Don't wait longer than duration
     waitDuration = ms(waitDuration.toString()) || @browser.waitDuration
-    timeoutTimer = global.setTimeout(->
-      done(null, true)
-    , waitDuration)
     timeout = Date.now() + waitDuration
 
-    # Remove this listener and pass control to callback
-    done = (error, timedOut)=>
+    timeoutTimer = global.setTimeout(->
+      deferred.resolve()
+    , waitDuration)
+
+    # Map event type to event handler
+    eventHandlers =
+      tick: (next)=>
+        if next >= timeout
+          # Next event too long in the future, or no events in queue
+          # (Infinity), no point in waiting
+          deferred.resolve()
+        else if waitFunction
+          try
+            waitFor = Math.max(next - Date.now(), 0)
+            # Event processed, are we ready to complete?
+            completed = waitFunction(@active, waitFor)
+            if completed
+              deferred.resolve()
+          catch error
+            deferred.reject(error)
+        return
+      done:  deferred.resolve
+      error: deferred.reject
+
+    # Receive tick, done and error events
+    listener = (event, argument)->
+      eventHandlers[event](argument)
+    @listeners.push(listener)
+
+    # Whether resolved or rejected, clear timeouts/listeners
+    removeListener = =>
       clearTimeout(timeoutTimer)
       @listeners = @listeners.filter((l)-> l != listener)
       if @listeners.length == 0
         @emit("done")
-      callback(error, !!timedOut)
-
-    # Receive tick, done and error events
-    listener = (event)=>
-      switch event
-        when "tick"
-          try
-            next = arguments[1]
-            if next >= timeout
-              # No events in the queue, no point waiting
-              done(null, true)
-            else if waitFunction
-              waitFor = Math.max(next - Date.now(), 0)
-              # Event processed, are we ready to complete?
-              completed = waitFunction(@active, waitFor)
-              if completed
-                done(null, false)
-          catch error
-            done(error)
-        when "done"
-          done()
-        when "error"
-          done(error = arguments[1])
-    @listeners.push(listener)
+      return
+    promise.finally(removeListener)
 
     # Someone (us) just started paying attention, start processing events
     if @listeners.length == 1
@@ -116,7 +124,7 @@ class EventLoop
           @active._eventQueue.resume()
           @run()
 
-    return
+    return promise
 
 
   # -- Event queue management --
@@ -149,6 +157,19 @@ class EventLoop
       @run() # may be dead waiting for next event
       return
     return done
+
+
+  # Cross-breed between expecting() and process.nextTick.  Executes the function
+  # in the next tick, but makes sure waiters block for the function.
+  next: (fn)->
+    ++@expected
+    process.nextTick =>
+      --@expected
+      try
+        fn()
+        @run()
+      catch error
+        @emit("error", error)
 
 
   # -- Event processing --
