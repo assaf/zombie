@@ -34,7 +34,7 @@ describe "EventLoop", ->
           done()
 
       it "should not fire any timeout events", ->
-        assert.equal @browser.document.title, "One"
+        @browser.assert.text "title", "One"
 
     describe "from timeout", ->
 
@@ -52,7 +52,7 @@ describe "EventLoop", ->
           @browser.wait done
 
       it "should not fire any timeout events", ->
-        assert.equal @browser.document.title, "One Two Three"
+        @browser.assert.text "title", "One Two Three"
 
     describe "wait for all", ->
 
@@ -68,7 +68,7 @@ describe "EventLoop", ->
           @browser.wait 250, done
 
       it "should fire all timeout events", ->
-        assert.equal @browser.document.title, "One Two Three"
+        @browser.assert.text "title", "One Two Three"
 
     describe "cancel timeout", ->
       before (done)->
@@ -86,7 +86,7 @@ describe "EventLoop", ->
           @browser.wait 300, done
 
       it "should fire only uncancelled timeout events", ->
-        assert.equal @browser.document.title, "One Two"
+        @browser.assert.text "title", "One Two"
       it "should not choke on invalid timers", ->
         assert.doesNotThrow =>
           # clearTimeout should not choke when clearing an invalid timer
@@ -112,7 +112,7 @@ describe "EventLoop", ->
             setTimeout(done, 200)
 
       it "should not fire", ->
-        assert.equal @browser.document.title, "12"
+        @browser.assert.text "title", "12"
 
     describe "zero wait", ->
       before (done)->
@@ -121,12 +121,10 @@ describe "EventLoop", ->
           @browser.window.setTimeout ->
             @document.title += " Two"
           , 0
-          @browser.wait =>
-            @title = @browser.document.title
-            done()
+          @browser.wait done
 
       it "should wait for event to fire", ->
-        assert.equal @title, "One Two"
+        @browser.assert.text "title", "One Two"
 
 
   describe "setInterval", ->
@@ -148,7 +146,7 @@ describe "EventLoop", ->
           done()
 
       it "should not fire any timeout events", ->
-        assert.equal @browser.document.title, ""
+        @browser.assert.text "title", ""
 
     describe "wait once", ->
       before (done)->
@@ -160,7 +158,7 @@ describe "EventLoop", ->
           @browser.wait 150, done
 
       it "should fire interval event once", ->
-        assert.equal @browser.document.title, "."
+        @browser.assert.text "title", "."
 
     describe "wait long enough", ->
       before (done)->
@@ -178,7 +176,7 @@ describe "EventLoop", ->
           .then(done, done)
 
       it "should fire five interval event", ->
-        assert.equal @browser.document.title, "..."
+        @browser.assert.text "title", "..."
 
     describe "cancel interval", ->
       before (done)->
@@ -197,7 +195,7 @@ describe "EventLoop", ->
           .then(done, done)
 
       it "should fire only uncancelled interval events", ->
-        assert.equal @browser.document.title, ".."
+        @browser.assert.text "title", ".."
       it "should not throw an exception with invalid interval", ->
         assert.doesNotThrow =>
           # clearInterval should not choke on invalid interval
@@ -220,7 +218,7 @@ describe "EventLoop", ->
             setTimeout(done, 200)
 
       it "should not fire", ->
-        assert.equal @browser.document.title, ".."
+        @browser.assert.text "title", ".."
 
 
   describe "browser.wait completion", ->
@@ -239,7 +237,7 @@ describe "EventLoop", ->
         .then(done, done)
 
     it "should not wait longer than specified", ->
-      assert.equal @browser.document.title, "...."
+        @browser.assert.text "title", "...."
 
 
   describe "page load", ->
@@ -265,9 +263,9 @@ describe "EventLoop", ->
         @browser.visit("/eventloop/dcl", done)
 
     it "should file DOMContentLoaded event on document", ->
-      assert.equal @browser.window.documentDCL, 1
+      @browser.assert.global "documentDCL", 1
     it "should file DOMContentLoaded event on window", ->
-      assert.equal @browser.window.windowDCL, 1
+      @browser.assert.global "windowDCL", 1
 
   describe "all resources loaded", ->
     before (done)->
@@ -296,7 +294,6 @@ describe "EventLoop", ->
         @browser.visit("/eventloop/onload", done)
 
     it "should file load event on document", ->
-      assert.equal @browser.window.documentLoad, 1
+      @browser.assert.global "documentLoad", 1
     it "should file load event on window", ->
-      assert.equal @browser.window.windowLoad, 1
-
+      @browser.assert.global "windowLoad", 1

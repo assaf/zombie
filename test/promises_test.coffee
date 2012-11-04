@@ -27,7 +27,7 @@ describe "Promises", ->
         .then(done, done)
 
     it "should resolve when page is done loading", ->
-      assert.equal @browser.document.title, "Loaded"
+      @browser.assert.text "title", "Loaded"
 
 
     # You can chain multiple promises together, each one is used to
@@ -63,7 +63,7 @@ describe "Promises", ->
           .then(done, done)
 
       it "should resolve when page is done loading", ->
-        assert.equal @browser.document.title, "Later"
+        @browser.assert.text "title", "Later"
 
 
   # In practice you would do something like:
@@ -98,7 +98,7 @@ describe "Promises", ->
       browser = new Browser()
       browser.visit("/promises")
         .then ->
-          assert.equal browser.document.title, "Ooops", "Assertion haz a fail"
+          browser.assert.text "title", "Ooops", "Assertion haz a fail"
         .fail (@error)=>
           done()
 
@@ -117,16 +117,14 @@ describe "Promises", ->
         browser = new Browser()
         browser.visit("/promises")
           .then ->
-            assert.equal browser.document.title, "Ooops", "Assertion haz a fail"
+            browser.assert.text "title", "Ooops", "Assertion haz a fail"
           .then ->
-            assert.equal browser.document.title, "Ooops", "I'm here against all odds"
+            browser.assert.text "title", "Ooops", "I'm here against all odds"
           .then ->
-            assert.equal browser.document.title, "Ooops", "I'm here against all odds"
+            browser.assert.text "title", "Ooops", "I'm here against all odds"
           .fail (@error)=>
             done()
           .finally(done)
 
       it "should reject with an error", ->
         assert.equal @error.message, "Assertion haz a fail"
-
-

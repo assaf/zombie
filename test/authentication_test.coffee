@@ -1,4 +1,4 @@
-{ assert, brains, Browser } = require("./helpers")
+{ brains, Browser } = require("./helpers")
 
 
 describe "Authentication", ->
@@ -23,7 +23,7 @@ describe "Authentication", ->
           finally(done)
 
       it "should return status code 401", ->
-        assert.equal @browser.statusCode, 401
+        @browser.assert.status 401
 
 
     describe "with invalid credentials", ->
@@ -34,7 +34,7 @@ describe "Authentication", ->
           .finally(done)
 
       it "should return status code 401", ->
-        assert.equal @browser.statusCode, 401
+        @browser.assert.status 401
 
     describe "with valid credentials", ->
       before (done)->
@@ -43,7 +43,7 @@ describe "Authentication", ->
         @browser.visit "http://localhost:3003/auth/basic", done
 
       it "should have the authentication header", ->
-        assert.equal @browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
+        @browser.assert.text "body", "Basic dXNlcm5hbWU6cGFzczEyMw=="
 
     describe "legacy credentials", ->
       before (done)->
@@ -52,7 +52,7 @@ describe "Authentication", ->
         @browser.visit "http://localhost:3003/auth/basic", credentials: credentials, done
 
       it "should have the authentication header", ->
-        assert.equal @browser.text("body"), "Basic dXNlcm5hbWU6cGFzczEyMw=="
+        @browser.assert.text "body", "Basic dXNlcm5hbWU6cGFzczEyMw=="
 
 
   describe "OAuth bearer", ->
@@ -74,7 +74,7 @@ describe "Authentication", ->
           .finally(done)
 
       it "should return status code 401", ->
-        assert.equal @browser.statusCode, 401
+        @browser.assert.status 401
 
     describe "with invalid credentials", ->
       before (done)->
@@ -84,7 +84,7 @@ describe "Authentication", ->
           .finally(done)
 
       it "should return status code 401", ->
-        assert.equal @browser.statusCode, 401
+        @browser.assert.status 401
 
     describe "with valid credentials", ->
       before (done)->
@@ -93,7 +93,7 @@ describe "Authentication", ->
         @browser.visit "http://localhost:3003/auth/oauth2", done
 
       it "should have the authentication header", ->
-        assert.equal @browser.text("body"), "Bearer 12345"
+        @browser.assert.text "body", "Bearer 12345"
 
 
   describe "Scripts on secure pages", ->
@@ -123,4 +123,4 @@ describe "Authentication", ->
       @browser.visit "http://localhost:3003/auth/script", done
 
     it "should download the script", ->
-      assert.equal @browser.text("title"), "ZeroOne"
+      @browser.assert.text "title", "ZeroOne"

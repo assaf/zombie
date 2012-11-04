@@ -31,9 +31,9 @@ describe "XMLHttpRequest", ->
       @browser.visit "http://localhost:3003/xhr/async", done
 
     it "should load resource asynchronously", ->
-      assert.equal @browser.window.title, "OneTwoThree"
+      @browser.assert.text "title", "OneTwoThree"
     it "should run callback in global context", ->
-      assert.equal @browser.window.foo, "barbar"
+      @browser.assert.global "foo", "barbar"
 
 
   describe "response headers", ->
@@ -153,5 +153,5 @@ describe "XMLHttpRequest", ->
       @browser.visit "http://localhost:3003/xhr/post/empty", done
 
     it "should post with no data", ->
-      assert.equal @browser.document.title, "201posted"
+      @browser.assert.text "title", "201posted"
 

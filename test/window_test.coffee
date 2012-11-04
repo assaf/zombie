@@ -28,7 +28,7 @@ describe "Window", ->
       @browser.visit "/window/alert", done
 
     it "should record last alert show to user", ->
-      assert @browser.prompted("Me again")
+      @browser.assert.prompted "Me again"
     it "should call onalert function with message", ->
       assert @browser.window.first
 
@@ -61,8 +61,8 @@ describe "Window", ->
     it "should return false if no response/function", ->
       assert.equal @browser.window.third, false
     it "should report prompted question", ->
-      assert @browser.prompted("continue?")
-      assert @browser.prompted("silent?")
+      @browser.assert.prompted "continue?"
+      @browser.assert.prompted "silent?"
       assert !@browser.prompted("missing?")
 
 
@@ -99,9 +99,9 @@ describe "Window", ->
     it "should return empty string if no response/function", ->
       assert.equal @browser.window.fourth, ""
     it "should report prompts", ->
-      assert @browser.prompted("age")
-      assert @browser.prompted("gender")
-      assert @browser.prompted("location")
+      @browser.assert.prompted "age"
+      @browser.assert.prompted "gender"
+      @browser.assert.prompted "location"
       assert !@browser.prompted("not asked")
 
 
@@ -125,42 +125,26 @@ describe "Window", ->
       @browser.visit "/window/title", done
 
     it "should return the document's title", ->
-      assert.equal @browser.window.title, "Whatever"
+      @browser.assert.text "title", "Whatever"
     it "should set the document's title", ->
       @browser.window.title = "Overwritten"
       assert.equal @browser.window.title, @browser.document.title
 
 
   describe ".screen", ->
-    before (done)->
-      brains.get "/window/screen", (req, res)->
-        res.send """
-        <html>
-          <script>
-            var props = [];
-            for (key in window.screen)
-              props.push(key + "=" + window.screen[key]);
-            document.title = props.join(", ");
-          </script>
-        </html>
-        """
-      brains.ready done
-
-    before (done)->
-      @browser = new Browser()
-      @browser.visit "/window/screen", done
-
     it "should have a screen object available", ->
-      assert /width=1280/.test(@browser.document.title)
-      assert /height=800/.test(@browser.document.title)
-      assert /left=0/.test(@browser.document.title)
-      assert /top=0/.test(@browser.document.title)
-      assert /availLeft=0/.test(@browser.document.title)
-      assert /availTop=0/.test(@browser.document.title)
-      assert /availWidth=1280/.test(@browser.document.title)
-      assert /availHeight=800/.test(@browser.document.title)
-      assert /colorDepth=24/.test(@browser.document.title)
-      assert /pixelDepth=24/.test(@browser.document.title)
+      browser = new Browser()
+      browser.assert.evaluate "screen.width", 1280
+      browser.assert.evaluate "screen.height", 800
+      browser.assert.evaluate "screen.left", 0
+      browser.assert.evaluate "screen.top", 0
+      browser.assert.evaluate "screen.availLeft", 0
+      browser.assert.evaluate "screen.availTop", 0
+      browser.assert.evaluate "screen.availWidth", 1280
+      browser.assert.evaluate "screen.availHeight", 800
+      browser.assert.evaluate "screen.colorDepth", 24
+      browser.assert.evaluate "screen.pixelDepth", 24
+      browser.destroy()
 
 
   describe ".navigator", ->
@@ -181,22 +165,22 @@ describe "Window", ->
       @browser.visit "/window/navigator", done
 
     it "should exist", ->
-      assert @browser.window.navigator
+      @browser.assert.evaluate "navigator"
     it ".javaEnabled should be false", ->
-      assert.equal @browser.window.navigator.javaEnabled(), false
+      @browser.assert.evaluate "navigator.javaEnabled()", false
 
 
   describe "atob", ->
     it "should decode base-64 string", ->
       browser = new Browser()
       window = browser.open()
-      assert.equal window.atob("SGVsbG8sIHdvcmxk"), "Hello, world"
+      @browser.assert.evaluate "atob('SGVsbG8sIHdvcmxk')", "Hello, world"
 
   describe "btoa", ->
     it "should encode base-64 string", ->
       browser = new Browser()
       window = browser.open()
-      assert.equal window.btoa("Hello, world"), "SGVsbG8sIHdvcmxk"
+      @browser.assert.evaluate "btoa('Hello, world')", "SGVsbG8sIHdvcmxk"
 
 
   describe "onload", ->
@@ -232,7 +216,7 @@ describe "Window", ->
         @browser.clickLink "#das_link", done
 
     it "should fire when document is done loading", ->
-      assert.equal @browser.text("body"), "1 clicks here"
+      @browser.assert.text "body", "1 clicks here"
 
 
   describe "resize", ->

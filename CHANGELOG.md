@@ -44,8 +44,15 @@ The `visit` method now passes applicable options to `wait` (`duration`,
 The `maxWait` option is now called `waitDuration` and `waitFor` is no longer
 supported.
 
-    566 tests
-    9.2 sec to complete
+Introducing assertsions to make your life all the more easier, for example:
+
+  browser.element("h1")
+  browser.text("h1", "Header")
+  browser.elements("li", { atLeast: 5 })
+  browser.assert.url("http://example.com")
+
+    560 tests
+    10.9 sec to complete
 
 
 ## Version 1.4.1 2012-08-22

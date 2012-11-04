@@ -1,4 +1,4 @@
-{ assert, brains, Browser } = require("./helpers")
+{ brains, Browser } = require("./helpers")
 
 describe "Document", ->
 
@@ -16,7 +16,7 @@ describe "Document", ->
       @browser.visit("/document/activeElement", done)
 
     it "should be document body", ->
-      assert.equal @browser.activeElement, @browser.document.body
+      @browser.assert.hasFocus undefined
 
     describe "autofocus on div", ->
       before (done)->
@@ -26,7 +26,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should not change active element", ->
-        assert.equal @browser.activeElement, @browser.document.body
+        @browser.assert.hasFocus undefined
 
     describe "autofocus on input", ->
       before (done)->
@@ -36,7 +36,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should change active element", ->
-        assert.equal @browser.activeElement, @input
+        @browser.assert.hasFocus @input
 
     describe "autofocus on textarea", ->
       before (done)->
@@ -46,7 +46,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should change active element", ->
-        assert.equal @browser.activeElement, @textarea
+        @browser.assert.hasFocus @textarea
 
     describe "focus on div", ->
       before (done)->
@@ -58,7 +58,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should change active element", ->
-        assert.equal @browser.activeElement, @browser.document.body
+        @browser.assert.hasFocus undefined
 
     describe "focus on input", ->
       before (done)->
@@ -70,7 +70,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should change active element", ->
-        assert.equal @browser.activeElement, @input
+        @browser.assert.hasFocus @input
 
     describe "focus on textarea", ->
       before (done)->
@@ -82,8 +82,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should change active element", ->
-        assert.equal @browser.activeElement, @textarea
+        @browser.assert.hasFocus @textarea
 
   after ->
     @browser.destroy()
-

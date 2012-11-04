@@ -46,14 +46,14 @@ describe "Browser", ->
       it "should create HTML document", ->
         assert @browser.document instanceof JSDOM.dom.level3.html.HTMLDocument
       it "should load document from server", ->
-        assert.equal @browser.text("body h1"), "Hello World"
+        @browser.assert.text "body h1", "Hello World"
       it "should load external scripts", ->
         assert jQuery = @browser.window.jQuery, "window.jQuery not available"
         assert.equal typeof jQuery.ajax, "function"
       it "should run jQuery.onready", ->
-        assert.equal @browser.document.title, "Awesome"
+        @browser.assert.text "title", "Awesome"
       it "should return status code of last request", ->
-        assert.equal @browser.statusCode, 200
+        @browser.assert.success()
       it "should indicate success", ->
         assert @browser.success
       it "should have a parent", ->
@@ -74,7 +74,7 @@ describe "Browser", ->
         it "should pass browser to callback", ->
           assert @browser instanceof Browser
         it "should pass status code to callback", ->
-          assert.equal @status, 200
+          @browser.assert.success()
         it "should indicate success", ->
           assert @browser.success
         it "should pass zero errors to callback", ->
@@ -93,7 +93,7 @@ describe "Browser", ->
           assert @error
           assert @error.constructor.name == "TypeError"
         it "should indicate success", ->
-          assert @browser.success
+          @browser.assert.success()
         it "should pass errors to callback", ->
           assert.equal @errors.length, 1
           assert.equal @errors[0].message, "Cannot read property 'wrong' of undefined"
@@ -109,13 +109,13 @@ describe "Browser", ->
         it "should call with error", ->
           assert @error instanceof Error
         it "should return status code", ->
-          assert.equal @status, 404
+          @browser.assert.status 404
         it "should not indicate success", ->
           assert !@browser.success
         it "should capture response document", ->
           assert.equal @browser.source, "Cannot GET /browser/missing" # Express output
         it "should return response document with the error", ->
-          assert.equal @browser.text("body"), "Cannot GET /browser/missing" # Express output
+          @browser.assert.text "body", "Cannot GET /browser/missing" # Express output
 
       describe "500", ->
         before (done)->
@@ -130,13 +130,13 @@ describe "Browser", ->
         it "should call callback with error", ->
           assert @error instanceof Error
         it "should return status code 500", ->
-          assert.equal @status, 500
+          @browser.assert.status 500
         it "should not indicate success", ->
           assert !@browser.success
         it "should capture response document", ->
           assert.equal @browser.source, "Ooops, something went wrong"
         it "should return response document with the error", ->
-          assert.equal @browser.text("body"), "Ooops, something went wrong"
+          @browser.assert.text "body", "Ooops, something went wrong"
 
       describe "empty page", ->
         before (done)->
@@ -151,7 +151,7 @@ describe "Browser", ->
         it "should load document", ->
           assert @browser.body
         it "should indicate success", ->
-          assert @browser.success
+          @browser.assert.success()
 
 
     describe "event emitter", ->
@@ -198,7 +198,7 @@ describe "Browser", ->
         @browser.visit "http://localhost:3003/browser/scripted", { runScripts: false }, done
 
       it "should set options for the duration of the request", ->
-        assert.equal @browser.document.title, "Whatever"
+        @browser.assert.text "title", "Whatever"
       it "should reset options following the request", ->
         assert.equal @browser.runScripts, true
 
@@ -209,7 +209,7 @@ describe "Browser", ->
         @browser.visit "/browser/scripted", done
 
       it "should set browser options from global options", ->
-        assert.equal @browser.document.title, "Whatever"
+        @browser.assert.text "title", "Whatever"
 
       after ->
         Browser.runScripts = true
@@ -226,7 +226,7 @@ describe "Browser", ->
         @browser.visit "http://localhost:3003/browser/useragent", done
 
       it "should send own version to server", ->
-        assert /Zombie.js\/\d\.\d/.test(@browser.text("body")) 
+        @browser.assert.text "body", /Zombie.js\/\d\.\d/
       it "should be accessible from navigator", ->
         assert /Zombie.js\/\d\.\d/.test(@browser.window.navigator.userAgent)
 
@@ -237,7 +237,7 @@ describe "Browser", ->
           @browser.visit "http://localhost:3003/browser/useragent", { userAgent: "imposter" }, done
 
         it "should send user agent to server", ->
-          assert.equal @browser.text("body"), "imposter"
+          @browser.assert.text "body", "imposter"
         it "should be accessible from navigator", ->
           assert.equal @browser.window.navigator.userAgent, "imposter"
 
@@ -257,7 +257,7 @@ describe "Browser", ->
           @browser.visit "http://localhost:3003/browser/custom_headers", done
 
         it "should send the custom header to server", ->
-          assert.equal @browser.text("body"), "dummy"
+          @browser.assert.text "body", "dummy"
 
   describe "click link", ->
 
@@ -291,11 +291,11 @@ describe "Browser", ->
         @browser.clickLink "Smash", done
 
     it "should change location", ->
-      assert.equal @browser.location, "http://localhost:3003/browser/headless"
+      @browser.assert.url "http://localhost:3003/browser/headless"
     it "should run all events", ->
-      assert.equal @browser.document.title, "The Dead"
+      @browser.assert.text "title", "The Dead"
     it "should return status code", ->
-      assert.equal @browser.statusCode, 200
+      @browser.assert.success()
 
 
   describe "follow redirect", ->
@@ -321,11 +321,11 @@ describe "Browser", ->
         @browser.pressButton "Submit", done
 
     it "should be at initial location", ->
-      assert.equal @browser.location, "http://localhost:3003/browser/killed"
+      @browser.assert.url "http://localhost:3003/browser/killed"
     it "should have followed a redirection", ->
-      assert.equal @browser.redirected, true
+      @browser.assert.redirected()
     it "should return status code", ->
-      assert.equal @browser.statusCode, 200
+      @browser.assert.success()
 
 
   # NOTE: htmlparser doesn't handle tag soup.
@@ -342,11 +342,10 @@ describe "Browser", ->
         done()
 
     it "should parse to complete HTML", ->
-      assert @browser.querySelector("html head")
-      assert.equal @browser.text("html body h1"), "Tag soup"
+      @browser.assert.element "html head"
+      @browser.assert.text "html body h1", "Tag soup"
     it "should close tags", ->
-      paras = @browser.querySelectorAll("body p").map((e)-> e.textContent.trim())
-      assert.deepEqual paras, ["One paragraph", "And another"]
+      @browser.assert.text "body p", "One paragraph And another"
 
   describe "comments", ->
 
@@ -359,7 +358,7 @@ describe "Browser", ->
         done()
 
     it "should not show up as text node", ->
-      assert.equal @browser.text("body"), "This is plain text"
+      @browser.assert.text "body", "This is plain text"
 
 
   describe "load HTML string", ->
@@ -373,13 +372,13 @@ describe "Browser", ->
           .then(done, done)
 
     it "should use about:blank URL", ->
-      assert.equal @browser.location.href, "about:blank"
+      @browser.assert.url "about:blank"
 
     it "should load document", ->
-      assert @browser.query("#main")
+      @browser.assert.element "#main"
 
     it "should execute JavaScript", ->
-      assert.equal @browser.document.title, "Load html"
+      @browser.assert.text "title", "Load html"
 
 
   describe "windows", ->
@@ -407,7 +406,7 @@ describe "Browser", ->
         assert.equal @window.closed, false
 
       it "should load page", ->
-        assert.equal @window.document.querySelector("h1").textContent, "Popup window"
+        @browser.assert.text "h1", "Popup window"
 
 
       describe "call open on named window", ->

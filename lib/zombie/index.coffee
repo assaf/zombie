@@ -1,3 +1,4 @@
+Assert  = require("./assert")
 Browser = require("./browser")
 Path    = require("path")
 
@@ -39,10 +40,11 @@ listen = (port, callback)->
 
 Browser.listen  = listen
 Browser.visit   = visit
+Browser.Assert  = Assert
+
 
 # Default to debug mode if environment variable `DEBUG` is set.
 Browser.debug = !!process.env.DEBUG
-Browser.Browser = Browser
 
 # Export the globals from browser.coffee
 module.exports = Browser

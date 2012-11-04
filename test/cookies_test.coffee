@@ -56,41 +56,35 @@ describe "Cookies", ->
       @browser.visit "http://localhost:3003/cookies", done
 
     describe "cookies", ->
-      before ->
-        @cookies = @browser.cookies("localhost", "/cookies")
-
       it "should have access to session cookie", ->
-        assert.equal @cookies.get("_name"), "value"
+        @browser.assert.cookie "_name", "value"
       it "should have access to persistent cookie", ->
-        assert.equal @cookies.get("_expires1"), "3s"
-        assert.equal @cookies.get("_expires2"), "5s"
+        @browser.assert.cookie "_expires1", "3s"
+        @browser.assert.cookie "_expires2", "5s"
       it "should not have access to expired cookies", ->
-        assert @cookies.get("_expires3") == undefined
+        @browser.assert.cookie "_expires3", undefined
       it "should have access to cookies for the path /cookies", ->
-        assert.equal @cookies.get("_path1"), "yummy"
+        @browser.assert.cookie "_path1", "yummy"
       it "should have access to cookies for paths which are ancestors of /cookies", ->
-        assert.equal @cookies.get("_path4"), "yummy"
+        @browser.assert.cookie "_path4", "yummy"
       it "should not have access to other paths", ->
-        assert @cookies.get("_path2") == undefined
-        assert @cookies.get("_path3") == undefined
+        @browser.assert.cookie "_path2", undefined
+        @browser.assert.cookie "_path3", undefined
       it "should have access to .domain", ->
-        assert.equal @cookies.get("_domain1"), "here"
+        @browser.assert.cookie "_domain1", "here"
       it "should not have access to other domains", ->
-        assert @cookies.get("_domain2") == undefined
-        assert @cookies.get("_domain3") == undefined
+        @browser.assert.cookie "_domain2", undefined
+        @browser.assert.cookie "_domain3", undefined
       it "should access most specific cookie", ->
-        assert.equal @cookies.get("_multiple"), "specific"
+        @browser.assert.cookie "_multiple", "specific"
 
 
     describe "host in domain", ->
-      before ->
-        @cookies = @browser.cookies("host.localhost")
-
       it "should have access to host cookies", ->
-        assert.equal @cookies.get("_domain1"), "here"
+        @browser.assert.cookie "_domain1", "here"
       it "should not have access to other hosts' cookies", ->
-        assert @cookies.get("_domain2") == undefined
-        assert @cookies.get("_domain3") == undefined
+        @browser.assert.cookie "_domain2", undefined
+        @browser.assert.cookie "_domain3", undefined
 
     describe "document.cookie", ->
       before ->
@@ -192,25 +186,25 @@ describe "Cookies", ->
         .then(done, done)
 
     it "should send session cookie", ->
-      assert.equal @cookies._name, "value"
+      @browser.assert.cookie "_name", "value"
     it "should pass persistent cookie to server", ->
-      assert.equal @cookies._expires1, "3s"
+      @browser.assert.cookie "_expires1", "3s"
     it "should not pass expired cookie to server", ->
-      assert @cookies._expires2 == undefined
+      @browser.assert.cookie "_expires2", undefined
     it "should pass path cookies to server", ->
-      assert.equal @cookies._path1, "here"
-      assert.equal @cookies._path2, "here"
+      @browser.assert.cookie "_path1", "here"
+      @browser.assert.cookie "_path2", "here"
     it "should pass cookies that specified a different path when they were assigned", ->
-      assert.equal @cookies._path5, "here"
+      @browser.assert.cookie "_path5", "here"
     it "should not pass unrelated path cookies to server", ->
-      assert @cookies._path3 == undefined
-      assert @cookies._path4 == undefined
-      assert @cookies._path6 == undefined
+      @browser.assert.cookie "_path3", undefined
+      @browser.assert.cookie "_path4", undefined
+      @browser.assert.cookie "_path6", undefined
     it "should pass sub-domain cookies to server", ->
-      assert.equal @cookies._domain1, "here"
+      @browser.assert.cookie "_domain1", "here"
     it "should not pass other domain cookies to server", ->
-      assert @cookies._domain2 == undefined
-      assert @cookies._domain3 == undefined
+      @browser.assert.cookie "_domain2", undefined
+      @browser.assert.cookie "_domain3", undefined
 
 
   describe "setting cookies from subdomains", ->
@@ -291,7 +285,7 @@ describe "Cookies", ->
           .then(done, done)
 
       it "should be available from document", ->
-        assert.equal @browser.cookies().get("foo"), "bar\"baz"
+        @browser.assert.cookie "foo", "bar\"baz"
 
 
     describe "setting cookie with semicolon", ->
@@ -303,6 +297,4 @@ describe "Cookies", ->
           .then(done, done)
 
       it "should be available from document", ->
-        assert.equal @browser.cookies().get("foo"), "bar"
-
-
+        @browser.assert.cookie "foo", "bar"

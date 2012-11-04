@@ -1,4 +1,4 @@
-{ assert, brains, Browser } = require("./helpers")
+{ brains, Browser } = require("./helpers")
 
 
 describe "require.js", ->
@@ -35,5 +35,5 @@ describe "require.js", ->
     @browser.visit "http://localhost:3003/requirejs", done
 
   it "should load dependencies", ->
-    assert.equal @browser.document.title, "Dependency loaded"
+    @browser.assert.text "title", "Dependency loaded"
 

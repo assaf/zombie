@@ -72,7 +72,7 @@ test = (version)->
         done()
 
       it "should fire the change event", ->
-        assert.equal @browser.text("#option"), "1"
+        @browser.assert.text "#option", "1"
 
 
     describe "jQuery.post", ->
@@ -80,7 +80,7 @@ test = (version)->
         @browser.clickLink "Post", done
 
       it "should perform an AJAX POST request", ->
-        assert /foo=bar/.test(@browser.text("#response"))
+        @browser.assert.text "#response", /foo=bar/
 
 
     describe "jQuery.globalEval", ->
@@ -88,18 +88,18 @@ test = (version)->
         @browser.evaluate("(function () {
           $.globalEval('var globalEvalWorks = true;');
         })();")
-        assert.ok @browser.window.globalEvalWorks
+        @browser.assert.global "globalEvalWorks", true
 
 
     describe "setting val to empty", ->
       it "should set to empty", ->
-        assert @browser.query("input#edit-subject").value
+        @browser.assert.input "input#edit-subject", "subject"
         @browser.window.$("input#edit-subject").val("")
-        assert !@browser.query("input#edit-subject").value
+        @browser.assert.input "input#edit-subject", ""
 
-        assert @browser.query("textarea#edit-note").textContent
+        @browser.assert.input "input#edit-note", "Note"
         @browser.window.$("textarea#edit-note").val("")
-        assert !@browser.query("textarea#edit-note").textContent
+        @browser.assert.input "input#edit-note", ""
 
 
     # See issue 235 https://github.com/assaf/zombie/issues/235

@@ -1,4 +1,4 @@
-{ assert, brains, Browser } = require("./helpers")
+{ brains, Browser } = require("./helpers")
 Express = require("express")
 WebSocket = require("ws")
 
@@ -37,7 +37,7 @@ describe "WebSockets", ->
       @browser.visit "/websockets/creating", done
 
     it "should be possible", ->
-      assert.equal @browser.text("#ws-url"), "ws://localhost:3003"
+      @browser.assert.text "#ws-url", "ws://localhost:3003"
 
 
   describe "connecting", ->
@@ -64,7 +64,7 @@ describe "WebSockets", ->
         done()
 
     it "should raise an event", ->
-      assert @browser.prompted("open")
+     @browser.assert.prompted "open"
 
 
   describe "message", ->
@@ -91,7 +91,7 @@ describe "WebSockets", ->
         done()
 
     it "should raise an event with correct data", ->
-      assert @browser.prompted("Hello")
+      @browser.assert.prompted "Hello"
 
 
   describe "closing", ->
@@ -119,5 +119,5 @@ describe "WebSockets", ->
         done()
 
     it "should raise an event", ->
-      assert @browser.prompted("close")
+      @browser.assert.prompted "close"
 

@@ -1,4 +1,4 @@
-{ assert, brains, Browser } = require("./helpers")
+{ brains, Browser } = require("./helpers")
 
 
 describe "CSS", ->
@@ -16,25 +16,21 @@ describe "CSS", ->
       brains.ready done
 
     before (done)->
-      browser = new Browser()
-      browser.visit("http://localhost:3003/styled")
-        .then =>
-          @style = browser.query("#styled").style
-          return
-        .then(done, done)
+      @browser = new Browser()
+      @browser.visit("http://localhost:3003/styled", done)
 
     it "should be formatted string", ->
-      @style.opacity = .55
-      assert.equal typeof @style.opacity, "string"
-      assert.equal @style.opacity, "0.55"
+      @browser.query("#styled").style.opacity = .55
+      @browser.assert.css "#styled", "opacity", "0.55"
     it "should not accept non-numbers", ->
-      @style.opacity = ".46"
-      @style.opacity = "four-six"
-      assert.equal @style.opacity, "0.46"
+      @browser.query("#styled").style.opacity = ".46"
+      @browser.query("#styled").style.opacity = "four-six"
+      @browser.assert.css "#styled", "opacity", "0.46"
     it "should default to empty string", ->
-      @style.opacity = 1.0
-      @style.opacity = undefined
-      assert.equal @style.opacity, ""
-      @style.opacity = null
-      assert.equal @style.opacity, ""
+      style = @browser.query("#styled").style
+      style.opacity = 1.0
+      style.opacity = undefined
+      @browser.assert.css "#styled", "opacity", ""
+      style.opacity = null
+      @browser.assert.css "#styled", "opacity", ""
 

@@ -90,8 +90,8 @@ describe "Tabs", ->
     @browser.wait =>
       try
         assert.equal window, @browser.tabs.current
-        assert.equal @browser.url, "http://localhost:3003/tabs"
-        assert.equal @browser.document.title, "Brains"
+        @browser.assert.url "http://localhost:3003/tabs"
+        @browser.assert.text "title", "Brains"
         done()
       catch error
         done(error)

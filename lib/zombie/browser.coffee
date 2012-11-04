@@ -3,7 +3,8 @@ require "./forms"
 require "./xpath"
 
 
-createTabs         = require("./tabs")
+Assert            = require("./assert")
+createTabs        = require("./tabs")
 { deprecated }    = require("./helpers")
 Cache             = require("./cache")
 Cookies           = require("./cookies")
@@ -51,6 +52,9 @@ class Browser extends EventEmitter
     @_storages = new Storages()
     @_interact = Interact.use(this)
     @_xhr = XHR.use()
+
+    # Used for assertions
+    @assert = new Assert(this)
 
     Object.defineProperty this, "tabs",
       value: createTabs(this)
@@ -374,6 +378,8 @@ class Browser extends EventEmitter
   #
   # Evaluates the CSS selector against the document (or context node) and return an element.
   query: (selector, context)->
+    if selector instanceof HTML.Element
+      return selector
     context ||= @document
     if selector
       context.querySelector(selector)

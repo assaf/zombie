@@ -52,18 +52,18 @@ describe "Scripts", ->
         @browser.visit "http://localhost:3003/script/living/", done
 
       it "should execute route", ->
-        assert.equal @browser.document.title, "The Living"
+        @browser.assert.text "title", "The Living"
       it "should change location", ->
-        assert.equal @browser.location.href, "http://localhost:3003/script/living/#/"
+        @browser.assert.url "http://localhost:3003/script/living/#/"
 
       describe "move around", ->
         before (done)->
           @browser.visit @browser.location.href + "dead", done
 
         it "should execute route", ->
-          assert.equal @browser.text("#main"), "The Living Dead"
+          @browser.assert.text "#main", "The Living Dead"
         it "should change location", ->
-          assert.equal @browser.location.href, "http://localhost:3003/script/living/#/dead"
+          @browser.assert.url "http://localhost:3003/script/living/#/dead"
 
       after ->
         @browser.destroy()
@@ -80,9 +80,9 @@ describe "Scripts", ->
           .then(done, done)
 
       it "should change location", ->
-        assert.equal @browser.location.href, "http://localhost:3003/script/living/#/"
+        @browser.assert.url "http://localhost:3003/script/living/#/"
       it "should process event", ->
-        assert.equal @browser.document.title, "Signed up"
+        @browser.assert.text "title", "Signed up"
 
       after ->
         @browser.destroy()
@@ -117,7 +117,7 @@ describe "Scripts", ->
         @browser.visit "http://localhost:3003/script/context", done
 
       it "should be shared by all scripts", ->
-        assert.equal @browser.text("title"), "4"
+        @browser.assert.text "title", "4"
 
 
     describe "window", ->
@@ -137,7 +137,7 @@ describe "Scripts", ->
         @browser.visit "http://localhost:3003/script/window", done
 
       it "should be the same as this, top and parent", ->
-        assert.equal @browser.text("title"), "true,true,true,true,true,true"
+        @browser.assert.text "title", "true,true,true,true,true,true"
 
 
     describe "global and function", ->
@@ -161,7 +161,7 @@ describe "Scripts", ->
       it "should not fail with an error", ->
         assert.equal @browser.errors.length, 0
       it "should set global variable", ->
-        assert.equal @browser.text("title"), "foo"
+        @browser.assert.text "title", "foo"
 
 
   describe "order", ->
@@ -187,7 +187,7 @@ describe "Scripts", ->
       @browser.visit "http://localhost:3003/script/order", done
 
     it "should run scripts in order regardless of source", ->
-      assert.equal @browser.text("title"), "ZeroOneTwo"
+      @browser.assert.text "title", "ZeroOneTwo"
 
 
   describe "eval", ->
@@ -219,7 +219,7 @@ describe "Scripts", ->
       @browser.visit "http://localhost:3003/script/eval", done
 
     it "should evaluate in global scope", ->
-      assert.equal @browser.document.title, "OneTwoThreeOne"
+      @browser.assert.text "title", "OneTwoThreeOne"
 
 
   describe "failing", ->
@@ -274,7 +274,7 @@ describe "Scripts", ->
         @browser.visit "http://localhost:3003/script/split", done
 
       it "should run full script", ->
-        assert.equal @browser.text("title"), "1"
+        @browser.assert.text "title", "1"
 
     # TODO: handle CDATA scripts
     ###
@@ -308,7 +308,7 @@ describe "Scripts", ->
         @browser.visit "http://localhost:3003/script/write", done
 
       it "should run script", ->
-        assert.equal @browser.document.title, "document.write"
+        @browser.assert.text "title", "document.write"
 
 
     describe "using appendChild", ->
@@ -336,7 +336,7 @@ describe "Scripts", ->
         @browser.visit "http://localhost:3003/script/append", done
 
       it "should run script", ->
-        assert.equal @browser.document.title, "element.appendChild"
+        @browser.assert.text "title", "element.appendChild"
 
 
   describe "scripts disabled", ->
@@ -361,7 +361,7 @@ describe "Scripts", ->
       @browser.visit "http://localhost:3003/script/order", done
 
     it "should not run scripts", ->
-      assert.equal @browser.document.title, "Zero"
+      @browser.assert.text "title", "Zero"
 
 
   describe "file:// uri scheme", ->
@@ -370,7 +370,7 @@ describe "Scripts", ->
       @browser.visit "file://#{__dirname}/data/file_scheme.html", done
 
     it "should run scripts with file url src", ->
-      assert.equal @browser.document.title, "file://"
+      @browser.assert.text "title", "file://"
 
 
   describe "javascript: URL", ->
@@ -379,7 +379,7 @@ describe "Scripts", ->
       @browser.visit "javascript:document.write('hi')", done
 
     it "should evaluate script in context of window", ->
-      assert.equal @browser.text(), "hi"
+      @browser.assert.text "html", "hi"
 
 
   describe "new Image", ->
@@ -387,15 +387,15 @@ describe "Scripts", ->
       @browser = new Browser()
 
     it "should construct an img tag", ->
-      assert.equal @browser.evaluate("new Image").tagName, "IMG"
+      @browser.assert.evaluate "new Image().tagName", "IMG"
     it "should construct an img tag with width and height", ->
-      assert.equal @browser.evaluate("new Image(1, 1)").height, 1
+      @browser.assert.evaluate "new Image(1, 1).height", 1
 
 
   describe "Event", ->
     it "should be available in global context", ->
       browser = new Browser()
-      assert browser.evaluate("Event")
+      browser.assert.evaluate "Event"
 
 
   describe "on- event handler", ->
@@ -416,17 +416,17 @@ describe "Scripts", ->
         .then(done, done)
 
     it "should prevent default handling by returning false", ->
-      assert.equal @browser.location.href, "http://localhost:3003/script/event"
+      @browser.assert.url "http://localhost:3003/script/event"
 
     it "should have access to window.event", ->
-      assert.equal @browser.document.title, "HTMLEvents"
+      @browser.assert.text "title", "HTMLEvents"
 
 
   describe "JSON parsing", ->
     it "should respect prototypes", ->
       browser = new Browser()
-      assert browser.evaluate("""
+      browser.assert.evaluate """
         Array.prototype.method = function() {};
         JSON.parse("[0, 1]").method;
-      """)
+      """
 

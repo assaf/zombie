@@ -52,7 +52,7 @@ describe "Facebook Connect", ->
       .then(done, done)
 
   it "should show FB Connect login form", ->
-    assert @browser.query(".login_form_container #loginform")
+    @browser.assert.element ".login_form_container #loginform"
 
   describe "login", ->
     before (done)->
@@ -61,8 +61,7 @@ describe "Facebook Connect", ->
         .then(done, done)
 
     it "should show permission dialog", ->
-      assert button = @browser.query("#platform_dialog_content #grant_clicked input")
-      assert.equal button.value, "Log In with Facebook"
+      @browser.assert.attribute "#platform_dialog_content #grant_clicked input", "value", "Log In with Facebook"
 
     describe.skip "authorize", ->
       before (done)->
