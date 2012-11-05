@@ -231,3 +231,30 @@ describe "Window", ->
       assert.equal @window.innerWidth, 800
       assert.equal @window.innerHeight, 600
 
+  describe "cleaning", ->
+    before (done)->
+      brains.get "/window/cat", (req, res)->
+        res.send """
+        <html>
+          <script>
+            var cat = "nyan";
+          </script>
+        </html>
+        """
+      brains.get "/window/dog", (req, res)->
+        res.send """
+        <html>
+          <script>
+            var dog = "pluto";
+          </script>
+        </html>
+        """
+      brains.ready done
+
+    it "should be done between 2 visits", (done)->
+      browser = new Browser()
+      browser.visit "/window/cat", ->
+        browser.visit "/window/dog", ->
+          assert.equal browser.window.dog, "pluto"
+          assert.notEqual browser.window.cat, "nyan"
+          done()
