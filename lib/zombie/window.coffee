@@ -155,7 +155,12 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     event.data = data
     # Window A (source) calls B.postMessage, to determine A we need the
     # caller's window.
-    event.source = inContext
+
+    # DDOPSON-2012-11-09 - inContext.getGlobal() is used here so that for website code executing 
+    # inside the sandbox context, event.source == window.  Even though the inContext object is mapped
+    # to the sandboxed version of the object returned by getGlobal, they are not the same object
+    # ie, inContext.foo == inContext.getGlobal().foo, but inContext != inContext.getGlobal()
+    event.source = inContext.getGlobal()
     origin = event.source.location
     event.origin = URL.format(protocol: origin.protocol, host: origin.host)
     window._dispatchEvent(window, event, true)
