@@ -133,7 +133,7 @@ class History
         @current.destroy(keepAlive: window)
       @current = @first = entry
     else
-      @current.prev.append(entry, keepAlive: window)
+      @current = @current.prev.append(entry, keepAlive: window)
 
   # Update window location (navigating to new URL, same window, e.g pushState or hash change)
   updateLocation: (window, url)->
