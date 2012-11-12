@@ -135,14 +135,24 @@ class Browser extends EventEmitter
       target = resource.target
       if target && target.window && target.window.top == target.window.getGlobal()
         browser.request = resource.request
+        browser.redirected = undefined
+        browser.statusCode = undefined
+        browser.success = false
+        browser.source = undefined
 
     @on "response", (resource)->
       browser.log ->
         request = resource.request
         return "#{request.method} #{request.url} => #{resource.response.statusCode}"
       target = resource.target
+      response = resource.response
       if target && target.window && target.window.top == target.window.getGlobal()
-        browser.response = resource.response
+        browser.response = response
+        browser.redirected = resource.redirects > 0
+        browser.statusCode = response.statusCode
+        browser.success = response.statusCode >= 200 && response.statusCode < 300
+        browser.source = response.body
+
 
     @on "submit", (form, url)->
       browser.log -> "submit form to #{url}"
@@ -467,29 +477,6 @@ class Browser extends EventEmitter
   @prototype.__defineGetter__ "activeElement", ->
     return @document.activeElement
 
-  # ### browser.statusCode => Number
-  #
-  # Returns the status code of the request for loading the window.
-  @prototype.__defineGetter__ "statusCode", ->
-    return @response?.statusCode
-
-  # ### browser.success => Boolean
-  #
-  # True if the status code is 2xx.
-  @prototype.__defineGetter__ "success", ->
-    return @statusCode >= 200 && @statusCode < 300
-
-  # ### browser.redirected => Boolean
-  #
-  # Returns true if the request for loading the window followed a redirect.
-  @prototype.__defineGetter__ "redirected", ->
-    return @response && @response.redirects > 0
-
-  # ### source => String
-  #
-  # Returns the unmodified source of the document loaded by the browser
-  @prototype.__defineGetter__ "source", ->
-    return @response?.body
 
   # Close the currently open tab, or the tab opened to the specified window.
   close: (window)->
