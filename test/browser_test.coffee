@@ -381,7 +381,7 @@ describe "Browser", ->
       @browser.assert.text "title", "Load html"
 
 
-  describe.only "reuse", ->
+  describe "reuse", ->
     before (done)->
       @browser = new Browser()
       @browser.visit "http://localhost:3003/browser/scripted", done

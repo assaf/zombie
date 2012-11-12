@@ -125,12 +125,6 @@ class Browser extends EventEmitter
     @on "interval", (fn, interval)->
       browser.log "Fired interval every #{interval}ms"
 
-    @on "redirect", (response, target)->
-      browser.log ->
-        return "#{response.statusCode} => #{response.url}"
-      if target && target.window && target.window.top == target.window.getGlobal()
-        browser.response = response
-
     @on "request", (resource)->
       target = resource.target
       if target && target.window && target.window.top == target.window.getGlobal()
@@ -148,7 +142,7 @@ class Browser extends EventEmitter
       response = resource.response
       if target && target.window && target.window.top == target.window.getGlobal()
         browser.response = response
-        browser.redirected = resource.redirects > 0
+        browser.redirected = response.redirects > 0
         browser.statusCode = response.statusCode
         browser.success = response.statusCode >= 200 && response.statusCode < 300
         browser.source = response.body
