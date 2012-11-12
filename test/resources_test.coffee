@@ -33,9 +33,9 @@ describe "Resources", ->
   it "should have a length", ->
     assert.equal @browser.resources.length, 2
   it "should include jquery", ->
-    assert.equal @browser.resources[1].url, "http://localhost:3003/jquery-1.7.1.js"
+    assert.equal @browser.resources[1].response.url, "http://localhost:3003/jquery-1.7.1.js"
   it "should include the 'self' url", ->
-    assert.equal @browser.resources[0].url, "http://localhost:3003/browser/resource"
+    assert.equal @browser.resources[0].response.url, "http://localhost:3003/browser/resource"
   it "should have a 'dump' method", ->
     try
       @browser.resources.toString()

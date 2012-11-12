@@ -131,16 +131,18 @@ class Browser extends EventEmitter
       if target && target.window && target.window.top == target.window.getGlobal()
         browser.response = response
 
-    @on "request", (request, target)->
+    @on "request", (resource)->
+      target = resource.target
       if target && target.window && target.window.top == target.window.getGlobal()
-        browser.request = request
+        browser.request = resource.request
 
-    @on "response", (response, target)->
+    @on "response", (resource)->
       browser.log ->
-        request = response.resource.request
-        return "#{request.method} #{URL.format(request.url)} => #{response.statusCode}"
+        request = resource.request
+        return "#{request.method} #{request.url} => #{resource.response.statusCode}"
+      target = resource.target
       if target && target.window && target.window.top == target.window.getGlobal()
-        browser.response = response
+        browser.response = resource.response
 
     @on "submit", (form, url)->
       browser.log -> "submit form to #{url}"
@@ -452,7 +454,8 @@ class Browser extends EventEmitter
   #
   # Returns the main window's document. Only valid after opening a document (see `browser.open`).
   @prototype.__defineGetter__ "document", ->
-    return @window.document
+    if @window
+      return @window.document
 
   # ### browser.body => Element
   #
@@ -480,7 +483,7 @@ class Browser extends EventEmitter
   #
   # Returns true if the request for loading the window followed a redirect.
   @prototype.__defineGetter__ "redirected", ->
-    return !!@response?.redirected
+    return @response && @response.redirects > 0
 
   # ### source => String
   #

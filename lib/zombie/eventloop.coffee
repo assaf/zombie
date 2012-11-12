@@ -290,11 +290,11 @@ class EventQueue
   # target  - Document or element being loaded
   #
   # Calls callback with response error or null and response object.
-  http: (params, callback)->
+  http: (method, url, options, callback)->
     return unless @queue
     done = @eventLoop.expecting()
     @expecting.push(done)
-    @browser.resources._makeRequest params, (error, response)=>
+    @browser.resources.request method, url, options, (error, response)=>
       # We can't cancel pending requests, but we can ignore the response if
       # window already closed
       if @queue

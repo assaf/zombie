@@ -16,7 +16,7 @@ describe "Document", ->
       @browser.visit("/document/activeElement", done)
 
     it "should be document body", ->
-      @browser.assert.hasFocus undefined
+      @browser.assert.inFocus undefined
 
     describe "autofocus on div", ->
       before (done)->
@@ -26,7 +26,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should not change active element", ->
-        @browser.assert.hasFocus undefined
+        @browser.assert.inFocus undefined
 
     describe "autofocus on input", ->
       before (done)->
@@ -36,7 +36,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should change active element", ->
-        @browser.assert.hasFocus @input
+        @browser.assert.inFocus @input
 
     describe "autofocus on textarea", ->
       before (done)->
@@ -46,7 +46,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should change active element", ->
-        @browser.assert.hasFocus @textarea
+        @browser.assert.inFocus @textarea
 
     describe "focus on div", ->
       before (done)->
@@ -58,7 +58,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should change active element", ->
-        @browser.assert.hasFocus undefined
+        @browser.assert.inFocus undefined
 
     describe "focus on input", ->
       before (done)->
@@ -70,7 +70,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should change active element", ->
-        @browser.assert.hasFocus @input
+        @browser.assert.inFocus @input
 
     describe "focus on textarea", ->
       before (done)->
@@ -82,7 +82,7 @@ describe "Document", ->
         @browser.wait(done)
 
       it "should change active element", ->
-        @browser.assert.hasFocus @textarea
+        @browser.assert.inFocus @textarea
 
   after ->
     @browser.destroy()

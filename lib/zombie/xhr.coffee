@@ -63,7 +63,7 @@ XMLHttpRequest = (window)->
           reset()
 
         # Make the actual request: called again when dealing with a redirect.
-        window._eventQueue.http method: method, url: URL.format(url), data: data, headers: headers, (error, response)=>
+        window._eventQueue.http method, URL.format(url), params: data, headers: headers, (error, response)=>
           if error
             @_error = new html.DOMException(html.NETWORK_ERR, error.message)
             stateChanged 4

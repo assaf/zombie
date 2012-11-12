@@ -287,12 +287,12 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     browser.emit("submit", params.form, params.url)
     history.submit(params)
   # Load the document associated with this window.
-  loadDocument document: document, history: history, url: url, method: method, encoding: encoding, data: data
+  loadDocument document: document, history: history, url: url, method: method, encoding: encoding, params: data
   return window
 
 
 # Load document. Also used to submit form.
-loadDocument = ({ document, history, url, method, encoding, data })->
+loadDocument = ({ document, history, url, method, encoding, params })->
   window = document.window
   browser = window.browser
   referer = history.url || browser.referer
@@ -326,16 +326,11 @@ loadDocument = ({ document, history, url, method, encoding, data })->
 
     when "http:", "https:", "file:"
       # Proceeed to load resource ...
-      request =
-        url:      url
-        method:   (method || "GET").toUpperCase() 
-        headers:  (headers || {})
-        data:     data
-        target:   document
+      headers = headers || {}
       if referer
-        request.headers.referer = referer
+        headers.referer = referer
 
-      window._eventQueue.http request, (error, response)->
+      window._eventQueue.http method, url, headers: headers, params: params, target: document, (error, response)->
         if error
           document.open()
           document.write(error.message || error)
@@ -357,8 +352,9 @@ loadDocument = ({ document, history, url, method, encoding, data })->
 
         # For responses that contain a non-empty body, load it.  Otherwise, we
         # already have an empty document in there courtesy of JSDOM.
+        body = response.body || "<html><body></body></html>"
         document.open()
-        document.write(response.body || "<html><body></body></html>")
+        document.write(body.toString())
         document.close()
 
         # Error on any response that's not 2xx, or if we're not smart enough to

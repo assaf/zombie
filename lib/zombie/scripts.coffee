@@ -73,9 +73,9 @@ HTML.resourceLoader.load = (element, href, callback)->
   if ownerImplementation.hasFeature("FetchExternalResources", tagName)
     # This guarantees that all scripts are executed in order
     loaded = (response)->
-      callback.call(element, response.body, URL.parse(response.url).pathname)
+      callback.call(element, response.body.toString(), url.pathname)
     url = HTML.resourceLoader.resolve(document, href)
-    window._eventQueue.http { url: url, target: element }, @enqueue(element, loaded, url)
+    window._eventQueue.http "GET", url, { target: element }, @enqueue(element, loaded, url)
 
 
 # Support onload, onclick etc inline event handlers
