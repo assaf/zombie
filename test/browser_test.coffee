@@ -381,6 +381,24 @@ describe "Browser", ->
       @browser.assert.text "title", "Load html"
 
 
+  describe.only "reuse", ->
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/browser/scripted", done
+    before (done)->
+      @browser.assert.text "body h1", "Hello World"
+      @browser.visit "http://localhost:3003/", (done)
+    before (done)->
+      @browser.assert.text "title", "Tap, Tap"
+      @browser.visit "http://localhost:3003/browser/scripted", done
+
+    it "should load document from server", ->
+      @browser.assert.text "body h1", "Hello World"
+
+    after ->
+      @browser.destroy()
+
+
   describe "windows", ->
 
     describe "open window to page", ->
