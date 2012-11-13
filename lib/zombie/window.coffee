@@ -303,7 +303,10 @@ loadDocument = ({ document, history, url, method, encoding, params })->
       browser.emit("error", error)
     else
       if url
-        history.updateLocation(window, url)
+        # DDOPSON-2012-11-12 - we do history.replaceEntry here so if we get redirected, the browser's url reflects the last url in the redirection chain
+        # This is important because if we load A which redirects to B, which is a form, and the user submits to C, the 'referer' for the request to C must be B, not A
+        # Lack of fidelity in this behavior would block Facebook OAuth login scenarios
+        history.replaceEntry(window, url)
       browser.emit("loaded", document)
 
   method = (method || "GET").toUpperCase()
