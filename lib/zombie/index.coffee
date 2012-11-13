@@ -1,6 +1,7 @@
-Assert  = require("./assert")
-Browser = require("./browser")
-Path    = require("path")
+Assert    = require("./assert")
+Resources = require("./resources")
+Browser   = require("./browser")
+Path      = require("path")
 
 
 # ### zombie.visit(url, callback)
@@ -38,9 +39,10 @@ listen = (port, callback)->
   require("./zombie/protocol").listen(port, callback)
 
 
-Browser.listen  = listen
-Browser.visit   = visit
-Browser.Assert  = Assert
+Browser.listen    = listen
+Browser.visit     = visit
+Browser.Assert    = Assert
+Browser.Resources = Resources
 
 
 # Default to debug mode if environment variable `DEBUG` is set.
