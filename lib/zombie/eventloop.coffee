@@ -262,7 +262,7 @@ class EventQueue
 
 
   # -- Events --
- 
+
   # Add a function to the event queue, to be executed in order.
   enqueue: (fn)->
     if fn

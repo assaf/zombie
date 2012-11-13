@@ -4,7 +4,7 @@
 describe "Window", ->
 
   # -- Alert, confirm and popup; form when we let browsers handle our UI --
-  
+
   describe ".alert", ->
     browser = new Browser()
 

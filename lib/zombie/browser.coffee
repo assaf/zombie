@@ -199,7 +199,7 @@ class Browser extends EventEmitter
 
   # Default time to wait (visit, wait, etc).
   @waitDuration: "5s"
-  
+
   # Proxy URL.
   #
   # Example
@@ -271,7 +271,7 @@ class Browser extends EventEmitter
   # Returns the last error reported while loading this window.
   @prototype.__defineGetter__ "error", ->
     return @errors[@errors.length - 1]
-  
+
 
   # Events
   # ------
@@ -340,7 +340,7 @@ class Browser extends EventEmitter
     if callback
       promise.then(callback, callback)
     return promise
-    
+
 
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
   # can be cancelled.  Like `wait` this method either takes a callback or returns a promise.
@@ -683,7 +683,7 @@ class Browser extends EventEmitter
         return field
     catch error
       # Invalid selector, but may be valid field name
-      
+
     # Use field name (case sensitive).
     for field in @querySelectorAll(":input[name]")
       if field.getAttribute("name") == selector
@@ -919,7 +919,7 @@ class Browser extends EventEmitter
     if !path && location = @location
       path = @location.pathname
     return @_cookies.access(domain || "localhost", path || "/")
-  
+
   # Save cookies to a text string.  You can use this to load them back later on using `browser.loadCookies`.
   saveCookies: ->
     @_cookies.save()
@@ -942,7 +942,7 @@ class Browser extends EventEmitter
   # `browser.loadStorage`.
   saveStorage: ->
     @_storages.save()
-  
+
   # Load local/session stroage from a text string (e.g. previously created using `browser.saveStorage`.
   loadStorage: (serialized)->
     @_storages.load serialized

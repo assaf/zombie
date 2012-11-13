@@ -16,7 +16,7 @@ class Assert
   constructor: (@browser)->
 
   # -- Location/response --
- 
+
   # Asserts that a cookie with the given name has the expected value.
   cookie: (name, expected, message)->
     actual = @browser.cookies().get(name)
@@ -104,7 +104,7 @@ class Assert
 
 
   # -- Window --
-  
+
   # Asserts that selected element has the focus.
   inFocus: (selector, message)->
     if selector
@@ -115,7 +115,7 @@ class Assert
 
 
   # -- JavaScript --
-  
+
   # Evaluates Javascript expression and asserts value.  With one argument,
   # asserts that the expression evaluates to (JS) true.
   evaluate: (expression, expected, message)->

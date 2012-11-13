@@ -68,7 +68,7 @@ HTML.resourceLoader.load = (element, href, callback)->
   document = element.ownerDocument
   window = document.parentWindow
   ownerImplementation = document.implementation
-  tagName = element.tagName.toLowerCase() 
+  tagName = element.tagName.toLowerCase()
 
   if ownerImplementation.hasFeature("FetchExternalResources", tagName)
     # This guarantees that all scripts are executed in order

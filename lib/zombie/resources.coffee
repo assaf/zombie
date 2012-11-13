@@ -299,7 +299,7 @@ class Resources extends Array
     beforeFilters.push(Resources.httpRequest.bind(this))
     afterFilters = @filters.filter((fn)-> fn.length == 3)
     response = null
-   
+
     # Called to execute the next 'before' filter.
     beforeFilterCallback = (error, responseFromFilter)->
       if error
@@ -417,7 +417,7 @@ Resources.mergeHeaders = (request, next)->
 
 
 # Depending on the content type, this filter will create a request body from
-# request.params, set request.multipart for uploads, 
+# request.params, set request.multipart for uploads,
 Resources.createBody = (request, next)->
   method = request.method
   if method == "POST" || method == "PUT"

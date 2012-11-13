@@ -32,7 +32,7 @@ inContext = null
 # opener    - Opening window (window.open call)
 # parent    - Parent window (for frames)
 # url       - Set document location to this URL upon opening
-createWindow = ({ browser, data, encoding, history, method, name, opener, parent, url })->  
+createWindow = ({ browser, data, encoding, history, method, name, opener, parent, url })->
   name ||= ""
   url ||= "about:blank"
 
@@ -101,7 +101,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     plugins:       { value: [] }
     userAgent:     { value: browser.userAgent }
     vendor:        { value: "Zombie Industries" }
- 
+
   # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
   browser._cookies.extend(window)
   browser._storages.extend(window)
@@ -161,7 +161,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     window._dispatchEvent(window, event, true)
 
 
-  # -- JavaScript evaluation 
+  # -- JavaScript evaluation
 
   # Evaulate in context of window. This can be called with a script (String) or a function.
   window._evaluate = (code, filename)->
@@ -262,7 +262,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
   history.updateLocation(window, url)
 
   # Each window maintains its own view of history
-  windowHistory = 
+  windowHistory =
     forward:      history.go.bind(history, 1)
     back:         history.go.bind(history, -1)
     go:           history.go.bind(history)
@@ -275,7 +275,7 @@ createWindow = ({ browser, data, encoding, history, method, name, opener, parent
     state:
       get: -> return history.state
       enumerable: true
-  Object.defineProperties window, 
+  Object.defineProperties window,
     history:
       value: windowHistory
 

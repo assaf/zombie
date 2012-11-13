@@ -30,7 +30,7 @@ describe "Forms", ->
             <label for="field-brains">Brains?</label>
             <input type="checkbox" name="brains" value="yes" id="field-brains">
             <input type="checkbox" name="green" id="field-green" value="Super green!" checked="checked">
-            
+
             <input type="checkbox" name="check" id="field-check" value="Huh?" checked="checked">
             <input type="checkbox" name="uncheck" id="field-uncheck" value="Yeah!">
             <input type="checkbox" name="empty_checkbox" id="empty-checkbox" checked="checked">
@@ -81,7 +81,7 @@ describe "Forms", ->
               <option id="hobbies-messy">Make Messy</option>
               <option>Sleep</option>
             </select>
-            
+
             <select name="months" id="field-months">
               <option value=""></option>
               <option value="jan_2011"> Jan 2011 </option>
@@ -846,7 +846,7 @@ describe "Forms", ->
               <script src="/jquery.js"></script>
               <script>
                 $(function() {
-                  $("form").submit(function() { 
+                  $("form").submit(function() {
                     return false;
                   })
                 })
@@ -1027,7 +1027,7 @@ describe "Forms", ->
           filename = "#{__dirname}/data/random.txt"
           return @browser.attach("my_file", filename)
         .then(done, done)
-          
+
       it "should call callback", ->
         @browser.assert.text "title", "Upload done"
       it "should have filename", ->
@@ -1076,7 +1076,7 @@ describe "Forms", ->
         assert.equal @browser.request.headers["content-length"], "text=bite".length
       it "should have body with content of input field", ->
         @browser.assert.text "body", "bite"
-          
+
     describe "post form urlencoded being empty", ->
       before (done)->
         brains.get "/forms/urlencoded/empty", (req, res)->
@@ -1125,14 +1125,14 @@ describe "Forms", ->
       @browser.visit "/forms/inputs", done
 
     it "should return empty string if name attribute not set", ->
-      for tagName in ["form", "input", "textarea", "select", "button"] 
+      for tagName in ["form", "input", "textarea", "select", "button"]
         @browser.assert.attribute tagName, "name", null
     it "should return empty string if value attribute not set", ->
-      for tagName in ["input", "textarea", "select", "button"] 
+      for tagName in ["input", "textarea", "select", "button"]
         assert.equal @browser.query(tagName).getAttribute("value"), null
         assert.equal @browser.query(tagName).value, ""
     it "should return empty string if id attribute not set", ->
-      for tagName in ["form", "input", "textarea", "select", "button"] 
+      for tagName in ["form", "input", "textarea", "select", "button"]
         assert.equal @browser.query(tagName).getAttribute("id"), null
         assert.equal @browser.query(tagName).id, ""
 
