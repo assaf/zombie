@@ -37,6 +37,15 @@ describe "History", ->
     brains.post "/history/submit", (req, res)->
       res.send "<html><title>#{req.headers["referer"]}</title></html>"
 
+    brains.get "/history/login", (req, res)->
+      res.redirect "http://localhost:3003/history/site"
+    
+    brains.get "/history/site", (req, res)->
+      res.send """<html><body><script src="/assets/foo.js"></script></body></html>"""
+
+    brains.get "/assets/foo.js", (req, res)->
+      res.send """window.host = "#{req.headers["host"]}"; """
+
     brains.ready done
 
   describe "URL without path", ->
@@ -439,6 +448,14 @@ describe "History", ->
       it "should point to first page", ->
         @browser.assert.text "title", "http://localhost:3003/history/form?qsval=1"
         assert.equal @browser.location.href, "http://localhost:3003/history/submit?qsval=2"
+  
+  describe "Linked Asset after redirect", ->
+    before (done)->
+      @browser = new Browser()
+      # We use host.localhost vs localhost as different "hosts"
+      @browser.visit "http://host.localhost:3003/history/login", done
+    it 'should load the asset relative to the destination url', ->
+      assert.equal @browser.evaluate('window.host'), "localhost:3003"
 
   describe "replaceState", ->
     before (done)->
