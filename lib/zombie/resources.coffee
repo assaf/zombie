@@ -71,6 +71,9 @@
 #     console.log("Response body: " + response.body);
 #     next();
 #   });
+#
+# These filters are added to every new browser.resources and immidiately bound
+# to the browser object.
 
 
 File        = require("fs")
@@ -88,7 +91,7 @@ URL         = require("url")
 class Resources extends Array
   constructor: (browser)->
     @browser = browser
-    @filters = Resources.filters.slice()
+    @filters = Resources.filters.map((fn)-> fn.bind(browser))
 
 
   # Make an HTTP request (also supports file: protocol).
@@ -116,7 +119,6 @@ class Resources extends Array
       [options, callback] = [{}, options]
 
     request =
-      browser: @browser
       method:  method.toUpperCase()
       url:     url
       headers: options.headers || {}
@@ -129,7 +131,7 @@ class Resources extends Array
     @push(resource)
     @browser.emit("request", resource)
 
-    Resources.runFilters request, @filters, (error, response)=>
+    this.runFilters request, (error, response)=>
       if error
         resource.error = error
         callback(error)
@@ -190,6 +192,50 @@ class Resources extends Array
     assert filter.length == 2 || filter.length == 3, "Filter function takes 2 (before filter) or 3 (after filter) arguments"
     @filters.push(filter)
 
+  # Processes the request using a chain of filters.
+  runFilters: (request, callback)->
+    beforeFilters = @filters.filter((fn)-> fn.length == 2)
+    beforeFilters.push(Resources.httpRequest.bind(@browser))
+    afterFilters = @filters.filter((fn)-> fn.length == 3)
+    response = null
+   
+    # Called to execute the next 'before' filter.
+    beforeFilterCallback = (error, responseFromFilter)->
+      if error
+        callback(error)
+      else if responseFromFilter
+        # Received response, switch to processing request
+        response = responseFromFilter
+        afterFilterCallback()
+      else
+        # Use the next before filter.
+        filter = beforeFilters.shift()
+        try
+          filter(request, beforeFilterCallback)
+        catch error
+          callback(error)
+
+    # Called to execute the next 'after' filter.
+    afterFilterCallback = (error)->
+      if error
+        callback(error)
+      else
+        filter = afterFilters.shift()
+        if filter
+          # Use the next after filter.
+          try
+            filter(request, response, afterFilterCallback)
+          catch error
+            console.log error.stack
+            callback(error)
+        else
+          # No more filters, callback with response.
+          callback(null, response)
+
+    # Start with first before filter
+    beforeFilterCallback()
+    return
+
 
 # -- Filters
 
@@ -197,6 +243,8 @@ class Resources extends Array
 #
 # Filters used before the request take two arguments.  Filters used with the
 # response take three arguments.
+#
+# These filters are bound to the browser object.
 Resources.addFilter = (filter)->
   assert filter.call, "Filter must be a function"
   assert filter.length == 2 || filter.length == 3, "Filter function takes 2 (before filter) or 3 (after filter) arguments"
@@ -211,7 +259,6 @@ Resources.addFilter = (filter)->
 # Also handles file: URLs and creates query string from request.params for
 # GET/HEAD/DELETE requests.
 Resources.normalizeURL = (request, next)->
-  browser = request.browser
   if /^file:/.test(request.url)
     # File URLs are special, need to handle missing slashes and not attempt
     # to parse (downcases path)
@@ -219,10 +266,10 @@ Resources.normalizeURL = (request, next)->
   else
     # Resolve URL relative to document URL/base, or for new browser, using
     # Browser.site
-    if browser.document
-      request.url = HTML.resourceLoader.resolve(browser.document, request.url)
+    if @document
+      request.url = HTML.resourceLoader.resolve(@document, request.url)
     else
-      request.url = URL.resolve(browser.site || "http://localhost", request.url)
+      request.url = URL.resolve(@site || "http://localhost", request.url)
 
   if request.params
     method = request.method
@@ -243,14 +290,13 @@ Resources.normalizeURL = (request, next)->
 #
 # It also normalizes all headers by down-casing the header names.
 Resources.mergeHeaders = (request, next)->
-  browser = request.browser
   # Header names are down-cased and over-ride default
   headers =
-    "user-agent":       browser.userAgent
+    "user-agent":       @userAgent
     "accept-encoding":  "identity" # No gzip/deflate support yet
 
   # Merge custom headers from browser first, followed by request.
-  for name, value of browser.headers
+  for name, value of @headers
     headers[name.toLowerCase()] = value
   if request.headers
     for name, value of request.headers
@@ -262,7 +308,7 @@ Resources.mergeHeaders = (request, next)->
   headers.host = host
 
   # Apply authentication credentials
-  if credentials = browser.authenticate(host, false)
+  if credentials = @authenticate(host, false)
     credentials.apply(headers)
 
   request.headers = headers
@@ -376,10 +422,8 @@ Resources.httpRequest = (request, callback)->
 
   else
 
-    browser = request.browser
-
     # We're going to use cookies later when recieving response.
-    cookies = browser.cookies(hostname, pathname)
+    cookies = @cookies(hostname, pathname)
     cookies.addHeader(request.headers)
 
     httpRequest =
@@ -388,11 +432,11 @@ Resources.httpRequest = (request, callback)->
       headers:        request.headers
       body:           request.body
       multipart:      request.multipart
-      proxy:          browser.proxy
+      proxy:          @proxy
       jar:            false
       followRedirect: false
 
-    Request httpRequest, (error, response)->
+    Request httpRequest, (error, response)=>
       if error
         callback(error)
         return
@@ -422,8 +466,8 @@ Resources.httpRequest = (request, callback)->
       if redirectURL
         # Handle redirection, make sure we're not caught in an infinite loop
         ++redirects
-        if redirects > browser.maxRedirects
-          callback(new Error("More than #{browser.maxRedirects} redirects, giving up"))
+        if redirects > @maxRedirects
+          callback(new Error("More than #{@maxRedirects} redirects, giving up"))
           return
 
         redirectHeaders = {}
@@ -437,12 +481,11 @@ Resources.httpRequest = (request, callback)->
         delete redirectHeaders["content-transfer-encoding"]
 
         redirectRequest =
-          browser:    browser
           method:     "GET"
           url:        redirectURL
           headers:    redirectHeaders
           redirects:  redirects
-        Resources.httpRequest(redirectRequest, callback)
+        Resources.httpRequest.call(this, redirectRequest, callback)
 
       else
 
@@ -453,50 +496,6 @@ Resources.httpRequest = (request, callback)->
           body:         response.body
           redirects:    redirects
         callback(null, response)
-  return
-
-
-# Processes the request using a chain of filters.
-Resources.runFilters = (request, filters, callback)->
-  beforeFilters = filters.filter((fn)-> fn.length == 2)
-  beforeFilters.push(Resources.httpRequest)
-  afterFilters = filters.filter((fn)-> fn.length == 3)
-  response = null
- 
-  # Called to execute the next 'before' filter.
-  beforeFilterCallback = (error, responseFromFilter)->
-    if error
-      callback(error)
-    else if responseFromFilter
-      # Received response, switch to processing request
-      response = responseFromFilter
-      afterFilterCallback()
-    else
-      # Use the next before filter.
-      filter = beforeFilters.shift()
-      try
-        filter(request, beforeFilterCallback)
-      catch error
-        callback(error)
-
-  # Called to execute the next 'after' filter.
-  afterFilterCallback = (error)->
-    if error
-      callback(error)
-    else
-      filter = afterFilters.shift()
-      if filter
-        # Use the next after filter.
-        try
-          filter(request, response, afterFilterCallback)
-        catch error
-          callback(error)
-      else
-        # No more filters, callback with response.
-        callback(null, response)
-
-  # Start with first before filter
-  beforeFilterCallback()
   return
 
 
