@@ -1,14 +1,16 @@
 # Retrieve resources (HTML pages, scripts, XHR, etc).
 #
-# Each browser has a resources objects that serves three purposes:
-# - It defines the means for retrieving resources.
-# - It allows you to retrieve resources (see request, get and post).
-# - It maintains a history of all retrieved resources.
+# Each browser has a resources objects that allows you to:
+# - Retrieve resources (see request, get and post).
+# - Access the history of all resources loaded (pages, JS, etc).
+# - Simulate server failure, delayed responses and mock responses.
+# - Defines the means for retrieving resources (see below).
 #
 #
 # This object is an Array that collects all resources retrieved by the browser.
-# You can use this to inspect HTTP requests made by the browser.  Each entry
-# represents a single resource, an object with the properties:
+# You can use this to inspect HTTP requests made by the browser.
+#
+# Each entry represents a single resource, an object with the properties:
 # request   - The request (see below)
 # response  - The response (see below)
 # target    - Target document/element (used when loading page, scripts)
@@ -37,6 +39,20 @@
 #   });
 #
 #
+# To better simulate real servers and networks you can do the following:
+# - Cause a particular request to always fail by calling `resources.fail(url,
+#   message)`.  The error message is optional.
+# - Cause a particular response to get delayed by calling `resources.delay(url,
+#   ms)`.  Use this to simulate slow networks, or change the order in which
+#   resources are loaded.
+# - Cause a particular request to return whichever result by calling
+#   `resources.mock(url, result)`.  You can use this to return any result
+#   (`statusCode`, `headers` or `body`) you want.
+#
+# If you need to simulate a temporary glitch, you can remove any of these
+# special handlers by calling `resource.restore(url)`.
+#
+#
 # Resources are retrieved and processed using a chain of filters.  Filters that
 # take two arguments are applied first.  The first argument is the request
 # object, and the second argument is a callback.
@@ -62,6 +78,8 @@
 #       Resources.httpRequest(request, next);
 #     }, Math.random() * 100);
 #   });
+#
+# You can also use `resources.fail` for the same effect.
 #
 #
 # If you write a generic filter and you want it to apply to all browsers, add
@@ -91,7 +109,10 @@ URL         = require("url")
 class Resources extends Array
   constructor: (browser)->
     @browser = browser
-    @filters = Resources.filters.map((fn)-> fn.bind(browser))
+    @filters = []
+    for i, filter of Resources.filters
+      @filters[i] = filter.bind(this)
+    @urlMatchers = []
 
 
   # Make an HTTP request (also supports file: protocol).
@@ -166,6 +187,43 @@ class Resources extends Array
     return
 
 
+  # You can use this to make a request to a given URL fail.
+  #
+  # url     - URL to fail
+  # message - Optional error message
+  fail: (url, message)->
+    failTheRequest = (request, next)->
+      next(new Error(message || "This request was intended to fail"))
+    @urlMatchers.push([url, failTheRequest])
+    return
+
+  # You can use this to delay a response from a given URL.
+  #
+  # url   - URL to delay
+  # delay - Delay in milliseconds
+  delay: (url, delay)->
+    delayTheResponse = (request, next)->
+      setTimeout(next, delay)
+    @urlMatchers.push([url, delayTheResponse])
+    return
+
+  # You can use this to return a particular result for a given URL.
+  #
+  # url     - The URL to mock
+  # result  - The result to return (statusCode, headers, body)
+  mock: (url, result)->
+    mockTheResponse = (request, next)->
+      next(null, result)
+    @urlMatchers.push([url, mockTheResponse])
+    return
+
+  # You can use this to restore default behavior to after using fail, delay or
+  # mock.
+  restore: (url)->
+    @urlMatchers = @urlMatchers.filter(([match, _])-> match != url)
+    return
+
+
   # Add a before/after filter.  This filter will only be used by this browser.
   #
   #
@@ -195,7 +253,7 @@ class Resources extends Array
   # Processes the request using a chain of filters.
   runFilters: (request, callback)->
     beforeFilters = @filters.filter((fn)-> fn.length == 2)
-    beforeFilters.push(Resources.httpRequest.bind(@browser))
+    beforeFilters.push(Resources.httpRequest.bind(this))
     afterFilters = @filters.filter((fn)-> fn.length == 3)
     response = null
    
@@ -226,7 +284,6 @@ class Resources extends Array
           try
             filter(request, response, afterFilterCallback)
           catch error
-            console.log error.stack
             callback(error)
         else
           # No more filters, callback with response.
@@ -244,7 +301,7 @@ class Resources extends Array
 # Filters used before the request take two arguments.  Filters used with the
 # response take three arguments.
 #
-# These filters are bound to the browser object.
+# These filters are bound to the resources object.
 Resources.addFilter = (filter)->
   assert filter.call, "Filter must be a function"
   assert filter.length == 2 || filter.length == 3, "Filter function takes 2 (before filter) or 3 (after filter) arguments"
@@ -266,10 +323,10 @@ Resources.normalizeURL = (request, next)->
   else
     # Resolve URL relative to document URL/base, or for new browser, using
     # Browser.site
-    if @document
-      request.url = HTML.resourceLoader.resolve(@document, request.url)
+    if @browser.document
+      request.url = HTML.resourceLoader.resolve(@browser.document, request.url)
     else
-      request.url = URL.resolve(@site || "http://localhost", request.url)
+      request.url = URL.resolve(@browser.site || "http://localhost", request.url)
 
   if request.params
     method = request.method
@@ -292,11 +349,11 @@ Resources.normalizeURL = (request, next)->
 Resources.mergeHeaders = (request, next)->
   # Header names are down-cased and over-ride default
   headers =
-    "user-agent":       @userAgent
+    "user-agent":       @browser.userAgent
     "accept-encoding":  "identity" # No gzip/deflate support yet
 
   # Merge custom headers from browser first, followed by request.
-  for name, value of @headers
+  for name, value of @browser.headers
     headers[name.toLowerCase()] = value
   if request.headers
     for name, value of request.headers
@@ -308,7 +365,7 @@ Resources.mergeHeaders = (request, next)->
   headers.host = host
 
   # Apply authentication credentials
-  if credentials = @authenticate(host, false)
+  if credentials = @browser.authenticate(host, false)
     credentials.apply(headers)
 
   request.headers = headers
@@ -367,6 +424,16 @@ Resources.createBody = (request, next)->
   return
 
 
+# Special URL handlers can be used to fail or delay a request, or mock a
+# response.
+Resources.specialURLHandlers = (request, next)->
+  for [url, handler] in @urlMatchers
+    if url == request.url
+      handler(request, next)
+      return
+  next()
+
+
 # This filter decodes the response body based on the response content type.
 Resources.decodeBody = (request, response, next)->
   # Use content type to determine how to decode response
@@ -389,6 +456,7 @@ Resources.filters = [
   Resources.normalizeURL
   Resources.mergeHeaders
   Resources.createBody
+  Resources.specialURLHandlers
   Resources.decodeBody
 ]
 
@@ -423,7 +491,7 @@ Resources.httpRequest = (request, callback)->
   else
 
     # We're going to use cookies later when recieving response.
-    cookies = @cookies(hostname, pathname)
+    cookies = @browser.cookies(hostname, pathname)
     cookies.addHeader(request.headers)
 
     httpRequest =
@@ -432,7 +500,7 @@ Resources.httpRequest = (request, callback)->
       headers:        request.headers
       body:           request.body
       multipart:      request.multipart
-      proxy:          @proxy
+      proxy:          @browser.proxy
       jar:            false
       followRedirect: false
 
@@ -466,8 +534,8 @@ Resources.httpRequest = (request, callback)->
       if redirectURL
         # Handle redirection, make sure we're not caught in an infinite loop
         ++redirects
-        if redirects > @maxRedirects
-          callback(new Error("More than #{@maxRedirects} redirects, giving up"))
+        if redirects > @browser.maxRedirects
+          callback(new Error("More than #{@browser.maxRedirects} redirects, giving up"))
           return
 
         redirectHeaders = {}
