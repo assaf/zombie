@@ -174,7 +174,9 @@ class History
       url = HTML.resourceLoader.resolve(@current.window.document, url)
       name = @current.window.name
     if @current && @current.url == url
-      return # Not moving anywhere
+      # Don't change history, but do reload the page.
+      this.reload()
+      return
 
     if hashChange(@current, url)
       window = @current.window
