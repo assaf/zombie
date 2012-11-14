@@ -1,4 +1,4 @@
-# 
+#
 createDocument  = require("./document")
 EventSource     = require("eventsource")
 History         = require("./history")
@@ -310,8 +310,6 @@ loadDocument = ({ document, history, url, method, encoding, params })->
     if error
       browser.emit("error", error)
     else
-      if url
-        history.updateLocation(window, url)
       browser.emit("loaded", document)
 
   method = (method || "GET").toUpperCase()
@@ -351,6 +349,15 @@ loadDocument = ({ document, history, url, method, encoding, params })->
           return
 
         window._response = response
+
+        # DDOPSON-2012-11-12 - we do history.replaceEntry here so if we get redirected, the browser's url reflects the last url in the redirection chain
+        # This is important because if we load A which redirects to B, which is a form, and the user submits to C, the 'referer' for the request to C must be B, not A
+        # Lack of fidelity in this behavior would block Facebook OAuth login scenarios
+        # DDOPSON-2012-11-13 - Note that we must also call history.replaceEntry BEFORE processing the document
+        # or else relative path linked assets will be loaded incorrectly for redirected responses
+        # eg www.facebook.com/login.php -> mysite.com, and mysite.com loads /assets/mysite.js.  This would incorrectly resolve to www.facebook.com/assets/mysite.js
+        history.replaceEntry(window, response.url)
+
         # JSDOM fires load event on document but not on window
         windowLoaded = (event)->
           document.removeEventListener("load", windowLoaded)
