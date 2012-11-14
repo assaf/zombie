@@ -145,6 +145,7 @@ class Resources extends Array
       url:     url
       headers: options.headers || {}
       params:  options.params
+      time:    Date.now()
 
     resource =
       request:    request
@@ -163,7 +164,9 @@ class Resources extends Array
         response.statusText = STATUS[response.statusCode] || "Unknown"
         response.headers    ||= {}
         response.redirects  ||= 0
+        response.time       = Date.now()
         resource.response = response
+
         @browser.emit("response", resource)
         callback(null, resource.response)
     return
@@ -223,6 +226,45 @@ class Resources extends Array
   restore: (url)->
     @urlMatchers = @urlMatchers.filter(([match, _])-> match != url)
     return
+
+
+  # Human readable resource listing.  With no arguments, write it to stdout.
+  dump: (output = process.stdout)->
+    for resource in this
+      { request, response, error, target } = resource
+      # Write summary request/response header
+      if response
+        output.write "#{request.method} #{response.url} - #{response.statusCode} #{response.statusText} - #{response.time - request.time}ms\n"
+      else
+        output.write "#{resource.request.method} #{resource.request.url}\n"
+
+      # Tell us which element/document is loading this.
+      if target instanceof HTML.Document
+        output.write "  Loaded as HTML document\n"
+      else if target
+        if target.id
+          output.write "  Loading by element ##{target.id}\n"
+        else
+          output.write "  Loading as #{target.tagName} element\n"
+
+      # If response, write out response headers and sample of document entity
+      # If error, write out the error message
+      # Otherwise, indicate this is a pending request
+      if response
+        if response.redirects
+          output.write "  Followed #{response.redirects} redirects\n"
+        for name, value of response.headers
+          output.write "  #{name}: #{value}\n"
+        output.write "\n"
+        sample = response.body.slice(0, 250).toString("utf8")
+          .split("\n").map((line)-> "  #{line}").join("\n")
+        output.write sample
+      else if error
+        output.write "  Error: #{error.message}\n"
+      else
+        output.write "  Pending since #{new Date(request.time)}\n"
+      # Keep them separated
+      output.write "\n\n"
 
 
   # Add a before/after filter.  This filter will only be used by this browser.
