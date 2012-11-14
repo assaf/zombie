@@ -27,6 +27,15 @@ describe "History", ->
     brains.get "/history/referer2", (req, res)->
       res.send "<html><title>#{req.headers["referer"]}</title></html>"
 
+    brains.get "/history/login", (req, res)->
+      res.redirect "http://localhost:3003/history/site"
+
+    brains.get "/history/site", (req, res)->
+      res.send """<html><body><script src="/assets/foo.js"></script></body></html>"""
+
+    brains.get "/assets/foo.js", (req, res)->
+      res.send """window.host = "#{req.headers["host"]}"; """
+
     browser = new Browser()
     brains.ready done
 
@@ -373,6 +382,14 @@ describe "History", ->
       browser.assert.text "title", "Tap, Tap"
     it "should set location to hash", ->
       assert.equal browser.location.hash, "#with-hash"
+
+
+  describe "Linked Asset after redirect", ->
+    before (done)->
+      # We use host.localhost vs localhost as different "hosts"
+      browser.visit "http://host.localhost:3003/history/login", done
+    it 'should load the asset relative to the destination url', ->
+      assert.equal browser.evaluate('window.host'), "localhost:3003"
 
 
   after ->
