@@ -21,6 +21,10 @@ describe "Resources", ->
         </script>
       </html>
       """
+
+    brains.get "/browser/three-oh-one", (req, res)->
+      res.redirect("/browser/resource", 301)
+
     brains.ready done
 
 
@@ -28,7 +32,6 @@ describe "Resources", ->
     before (done)->
       @browser = new Browser()
       @browser.visit "http://localhost:3003/browser/resource", done
-
     it "should have a length", ->
       assert.equal @browser.resources.length, 2
     it "should include loaded page", ->
@@ -39,6 +42,16 @@ describe "Resources", ->
     after ->
       @browser.destroy()
 
+  describe "301 redirect URL", ->
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/browser/three-oh-one", done
+    it "should have a length", ->
+      assert.equal @browser.resources.length, 2
+    it "should include loaded page", ->
+      assert.equal @browser.resources[0].response.url, "http://localhost:3003/browser/resource"
+    it "should include loaded JavaScript", ->
+      assert.equal @browser.resources[1].response.url, "http://localhost:3003/jquery-1.7.1.js"
 
   describe "fail URL", ->
     before (done)->
@@ -52,7 +65,6 @@ describe "Resources", ->
 
     after ->
       @browser.destroy()
-
 
   describe "delay URL with timeout", ->
     before (done)->
@@ -73,7 +85,6 @@ describe "Resources", ->
 
     after ->
       @browser.destroy()
-
 
   describe "mock URL", ->
     before (done)->
