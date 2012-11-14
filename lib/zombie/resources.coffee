@@ -94,12 +94,13 @@
 # to the browser object.
 
 
-File        = require("fs")
-HTML        = require("jsdom").dom.level3.html
-Path        = require("path")
-QS          = require("querystring")
-Request     = require("request")
-URL         = require("url")
+File    = require("fs")
+HTML    = require("jsdom").dom.level3.html
+Path    = require("path")
+QS      = require("querystring")
+Request = require("request")
+URL     = require("url")
+Zlib    = require("zlib")
 
 
 # Each browser has a resources object that provides the means for retrieving
@@ -434,6 +435,27 @@ Resources.specialURLHandlers = (request, next)->
   next()
 
 
+
+Resources.decompressBody = (request, response, next)->
+  if response.body && response.headers
+    transferEncoding = response.headers["transfer-encoding"]
+  switch transferEncoding
+    when "deflate"
+      Zlib.inflate response.body, (error, buffer)->
+        unless error
+          response.body = buffer
+        next(error)
+    when "gzip"
+      Zlib.gunzip response.body, (error, buffer)->
+        unless error
+          response.body = buffer
+        next(error)
+    else
+      next()
+  return
+
+
+
 # This filter decodes the response body based on the response content type.
 Resources.decodeBody = (request, response, next)->
   # Use content type to determine how to decode response
@@ -457,6 +479,7 @@ Resources.filters = [
   Resources.mergeHeaders
   Resources.createBody
   Resources.specialURLHandlers
+  Resources.decompressBody
   Resources.decodeBody
 ]
 
@@ -503,6 +526,7 @@ Resources.httpRequest = (request, callback)->
       proxy:          @browser.proxy
       jar:            false
       followRedirect: false
+      encoding:       null
 
     Request httpRequest, (error, response)=>
       if error

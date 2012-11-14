@@ -51,8 +51,16 @@ Introducing assertsions to make your life all the more easier, for example:
   browser.elements("li", { atLeast: 5 })
   browser.assert.url("http://example.com")
 
-    560 tests
-    10.9 sec to complete
+Added support for deflat and gzip responses.
+
+New API for accessing resources, use `browser.resources`.  Lots of goodies like
+allowing you to retrieve resources directory (`resources.get`,
+`resources.post`), define how resources are handled, emulate server failures
+(`resources.fail`), delay responses (`resources.delay`), even mock responses
+(`resources.mock`).
+
+    566 tests
+    11.1 sec to complete
 
 
 ## Version 1.4.1 2012-08-22
