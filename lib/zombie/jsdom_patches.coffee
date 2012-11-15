@@ -156,7 +156,7 @@ HTML.Node.prototype.__defineGetter__ "textContent", ->
       .join("")
   else
     return null
-      
+
 
 # Form elements collection should allow retrieving individual element by its
 # name, e.g. form.elements["username"] => <input name="username">
@@ -183,7 +183,7 @@ HTML.NodeList.prototype.update = ->
 # See https://developer.mozilla.org/en-US/docs/DOM/Node.contains
 HTML.Node.prototype.contains = (otherNode) ->
   # DDOPSON-2012-08-16 -- This implementation is stolen from Sizzle's implementation of 'contains' (around line 1402).
-  # We actually can't call Sizzle.contains directly: 
+  # We actually can't call Sizzle.contains directly:
   # * Because we define Node.contains, Sizzle will configure it's own "contains" method to call us. (it thinks we are a native browser implementation of "contains")
   # * Thus, if we called Sizzle.contains, it would form an infinite loop.  Instead we use Sizzle's fallback implementation of "contains" based on "compareDocumentPosition".
   return !!(this.compareDocumentPosition(otherNode) & 16)

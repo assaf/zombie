@@ -6,5 +6,5 @@ deprecated = (message)->
     process.stderr.write message
 
 
-module.exports = 
+module.exports =
   deprecated: deprecated.bind(deprecated)

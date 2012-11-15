@@ -211,7 +211,7 @@ describe "Cookies", ->
     before ->
       @browser = new Browser()
       @browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
-      
+
     it "should be accessible", ->
       assert.equal "bar", @browser.cookies("localhost").get("foo")
       assert.equal "bar", @browser.cookies("www.localhost").get("foo")
@@ -223,7 +223,7 @@ describe "Cookies", ->
       browser = new Browser()
       browser.cookies().update("foo=bar;")
       browser.cookies().addHeader @header
-      
+
     it "should send V0 header", ->
       assert.equal @header.cookie, "foo=bar"
 

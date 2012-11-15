@@ -121,7 +121,7 @@ class History
       @current = entry
     else
       @current = @first = entry
- 
+
   # Replace current entry with a new one.
   replaceEntry: (window, url, pushState)->
     url ||= window.location.href
@@ -138,7 +138,7 @@ class History
   # Update window location (navigating to new URL, same window, e.g pushState or hash change)
   updateLocation: (window, url)->
     history = this
-    Object.defineProperty window, "location", 
+    Object.defineProperty window, "location",
       get: ->
         return createLocation(history, url)
       set: (url)->
@@ -160,7 +160,7 @@ class History
       data:     data
     newWindow = createWindow(params)
     @addEntry(newWindow, url)
-    
+
   # Returns current URL.
   @prototype.__defineGetter__ "url", ->
     return @current?.url
