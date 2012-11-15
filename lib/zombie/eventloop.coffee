@@ -265,7 +265,7 @@ class EventQueue
  
   # Add a function to the event queue, to be executed in order.
   enqueue: (fn)->
-    if fn
+    if fn && @queue
       @queue.push(fn)
       @eventLoop.run()
     return
