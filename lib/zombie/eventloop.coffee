@@ -71,7 +71,7 @@ class EventLoop
   # during page navigation or form submission) and how long until the next
   # event, and returns true to stop waiting, any other value to continue
   # processing events.
-  wait: (waitDuration, waitFunction)->
+  wait: (waitDuration, completionFunction)->
     deferred = Q.defer()
     promise = deferred.promise
 
@@ -90,11 +90,11 @@ class EventLoop
           # Next event too long in the future, or no events in queue
           # (Infinity), no point in waiting
           deferred.resolve()
-        else if waitFunction
+        else if completionFunction
           try
             waitFor = Math.max(next - Date.now(), 0)
             # Event processed, are we ready to complete?
-            completed = waitFunction(@active, waitFor)
+            completed = completionFunction(@active, waitFor)
             if completed
               deferred.resolve()
           catch error
@@ -108,9 +108,13 @@ class EventLoop
       eventHandlers[event](argument)
     @listeners.push(listener)
 
+    # Don't wait if browser encounters an error.
+    @browser.addListener("error", deferred.reject)
+
     # Whether resolved or rejected, clear timeouts/listeners
     removeListener = =>
       clearTimeout(timeoutTimer)
+      @browser.removeListener("error", deferred.reject)
       @listeners = @listeners.filter((l)-> l != listener)
       if @listeners.length == 0
         @emit("done")
@@ -182,7 +186,7 @@ class EventLoop
     return if @running
     # Is there anybody out there?
     return if @listeners.length == 0
-    # Are there any open wndows?
+    # Are there any open windows?
     unless @active
       @emit("done")
       return
@@ -195,24 +199,23 @@ class EventLoop
         @emit("done")
         return
 
-      if fn = @active._eventQueue.dequeue()
-        # Process queued function, tick, and on to next event
-        try
+      try
+        if fn = @active._eventQueue.dequeue()
+          # Process queued function, tick, and on to next event
           fn()
           @emit("tick", 0)
           @run()
-        catch error
-          @emit("error", error)
-        return
-      else if @expected > 0
-        # We're waiting for some events to come along, don't know when,
-        # but they'll call run for us
-        @emit("tick", 0)
-      else
-        # All that's left are timers
-        time = @active._eventQueue.next()
-        @emit("tick", time)
-        @run()
+        else if @expected > 0
+          # We're waiting for some events to come along, don't know when,
+          # but they'll call run for us
+          @emit("tick", 0)
+        else
+          # All that's left are timers
+          time = @active._eventQueue.next()
+          @emit("tick", time)
+          @run()
+      catch error
+        @emit("error", error)
     return
 
   # Send to browser and listeners

@@ -311,31 +311,18 @@ class Browser extends EventEmitter
       waitDuration = options
     else if typeof(options) == "function"
       waitDuration = @waitDuration
-      waitFunction = options
+      completionFunction = options
     else if options
       waitDuration = options.duration || @waitDuration
       if options.element
-        waitFunction = (window)->
+        completionFunction = (window)->
           return !!window.document.querySelector(options.element)
       else
-        waitFunction = options.function
+        completionFunction = options.function
     else
       waitDuration = @waitDuration
 
-    # Catch errors sent to browser but not propagated to event-loop wait
-    lastError = null
-
-    promise = @_eventLoop.wait(waitDuration, waitFunction)
-      .then(->
-        if lastError
-          throw lastError
-        )
-
-    catchError = (error)->
-      lastError ||= error
-    @addListener("error", catchError)
-    promise.finally =>
-      @removeListener("error", catchError)
+    promise = @_eventLoop.wait(waitDuration, completionFunction)
 
     if callback
       promise.then(callback, callback)
