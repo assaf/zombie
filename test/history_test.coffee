@@ -28,8 +28,25 @@ describe "History", ->
     brains.get "/history/referer2", (req, res)->
       res.send "<html><title>#{req.headers["referer"]}</title></html>"
 
-    brains.ready done
+    brains.get "/history/form_redirect", (req, res)->
+      res.redirect "/history/form?qsval=1"
 
+    brains.get "/history/form", (req, res)->
+      res.send """<html><body><form method="post" action="/history/submit?qsval=2"><input type="submit", id="submitbtn"></input></form></body></html>"""
+
+    brains.post "/history/submit", (req, res)->
+      res.send "<html><title>#{req.headers["referer"]}</title></html>"
+
+    brains.get "/history/login", (req, res)->
+      res.redirect "http://localhost:3003/history/site"
+    
+    brains.get "/history/site", (req, res)->
+      res.send """<html><body><script src="/assets/foo.js"></script></body></html>"""
+
+    brains.get "/assets/foo.js", (req, res)->
+      res.send """window.host = "#{req.headers["host"]}"; """
+
+    brains.ready done
 
   describe "URL without path", ->
     before (done)->
@@ -396,7 +413,6 @@ describe "History", ->
         it "should point to first page", ->
           @browser.assert.text "title", "http://localhost:3003/history/referer"
 
-
   describe "URL with hash", ->
     before (done)->
       @browser = new Browser()
@@ -406,4 +422,54 @@ describe "History", ->
       @browser.assert.text "title", "Tap, Tap"
     it "should set location to hash", ->
       assert.equal @browser.location.hash, "#with-hash"
+
+  describe "HTML form", ->
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/history/form?qsval=1", done
+
+    describe "submit", ->
+      before (done)->
+        @browser.pressButton '#submitbtn', done
+
+      it "should point to first page", ->
+        @browser.assert.text "title", "http://localhost:3003/history/form?qsval=1"
+        assert.equal ('' + @browser.location), "http://localhost:3003/history/submit?qsval=2"
+
+  describe "HTML form after redirect", ->
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/history/form_redirect", done
+
+    describe "submit", ->
+      before (done)->
+        @browser.pressButton '#submitbtn', done
+
+      it "should point to first page", ->
+        @browser.assert.text "title", "http://localhost:3003/history/form?qsval=1"
+        assert.equal @browser.location.href, "http://localhost:3003/history/submit?qsval=2"
+  
+  describe "Linked Asset after redirect", ->
+    before (done)->
+      @browser = new Browser()
+      # We use host.localhost vs localhost as different "hosts"
+      @browser.visit "http://host.localhost:3003/history/login", done
+    it 'should load the asset relative to the destination url', ->
+      assert.equal @browser.evaluate('window.host'), "localhost:3003"
+
+  describe "replaceState", ->
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/", =>
+        @browser.history.pushState { is: "start" },  null, "/start"
+        @browser.history.replaceState { is: "end" }, null, "/end"
+        @window = @browser.window
+        @browser.wait(done)
+
+    describe "second page", ->
+      before (done)->
+        @browser.visit '/history/referer', done
+
+      it "should point to the pushed state", ->
+        @browser.assert.text "title", "http://localhost:3003/end"
 
