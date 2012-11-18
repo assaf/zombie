@@ -146,6 +146,20 @@ describe "Forms", ->
       </html>
       """
 
+    brains.get "/forms/form_using_get", (req, res)->
+      res.send """
+      <html>
+        <title>Form using GET</title>
+        <body>
+          <div id="query">#{req.query.q || "---"}</div>
+          <form action="/forms/form_using_get">
+            <input type="text" name="q" />
+            <input type="submit" name="button" value="Submit">
+          </form>
+        </body>
+      </html>
+      """
+
     brains.ready done
 
 
@@ -867,6 +881,22 @@ describe "Forms", ->
 
       it "should not change page", ->
         @browser.assert.url "http://localhost:3003/forms/cancel"
+
+
+  # Submitting form using GET
+  describe "submit form using GET", ->
+    before (done)->
+      @browser = new Browser()
+      @browser.visit("http://localhost:3003/forms/form_using_get")
+        .then =>
+          @browser
+            .fill("q", "Zombie")
+          @browser.querySelector("form").submit()
+          @browser.wait()
+        .then(done, done)
+
+    it "should evaluate the query string parameters", ->
+      assert.equal @browser.text("#query"), "Zombie"
 
 
   # File upload

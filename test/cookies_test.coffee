@@ -46,6 +46,10 @@ describe "Cookies", ->
     brains.get "/cookies/empty", (req,res)->
       res.send "<html></html>"
 
+    brains.get "/cookies.php", (req, res)->
+      res.cookie "_name",     "value"
+      res.send "<html></html>"
+
     brains.ready done
 
 
@@ -106,6 +110,19 @@ describe "Cookies", ->
         it "should not include httpOnly cookies", ->
           for key, value of @pairs
             assert key != "_http_only"
+
+
+  describe "get cookies from PHP scripts", ->
+    before (done)->
+      browser = new Browser()
+      browser.visit("http://localhost:3003/cookies.php")
+        .then =>
+          @cookies = browser.cookies("localhost", "/")
+          return
+        .then(done, done)
+
+    it "should have access to all cookies in the current path", ->
+      assert.equal @cookies.get("_name"), "value"
 
 
   describe "host", ->
