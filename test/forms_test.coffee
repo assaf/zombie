@@ -889,21 +889,19 @@ describe "Forms", ->
       brains.post "/forms/upload", (req, res)->
         if req.files
           [text, image] = [req.files.text, req.files.image]
-          data = File.readFileSync((text || image).path)
-          if image
-            digest = Crypto.createHash("md5").update(data).digest("hex")
-          res.send """
-          <html>
-            <head><title>#{(text || image).filename}</title></head>
-            <body>#{digest || data}</body>
-          </html>
-          """
-        else
-          res.send """
-          <html>
-            <body>nothing</body>
-          </html>
-          """
+          if text || image
+            data = File.readFileSync((text || image).path)
+            if image
+              digest = Crypto.createHash("md5").update(data).digest("hex")
+            res.send """
+            <html>
+              <head><title>#{(text || image).filename}</title></head>
+              <body>#{digest || data}</body>
+            </html>
+            """
+            return
+
+        res.send "<html><body>nothing</body></html>"
 
 
     describe "text", ->

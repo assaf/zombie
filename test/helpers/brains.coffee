@@ -1,12 +1,12 @@
-Express = require("express")
+express = require("express")
 File    = require("fs")
 Path    = require("path")
 
 
-# An express server we use to test the browser.
-brains = Express.createServer()
-brains.use Express.bodyParser()
-brains.use Express.cookieParser()
+# An Express server we use to test the browser.
+brains = express()
+brains.use(express.bodyParser())
+brains.use(express.cookieParser())
 
 
 brains.get "/", (req, res)->
@@ -33,6 +33,7 @@ brains.get "/scripts/require.js", (req, res)->
 brains.get "/scripts/*", (req, res)->
   File.readFile "#{__dirname}/../scripts/#{req.params}", (err, data)->
     res.send data
+
 
 
 active = false

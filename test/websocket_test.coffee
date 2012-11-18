@@ -1,12 +1,11 @@
 { brains, Browser } = require("./helpers")
-Express = require("express")
 WebSocket = require("ws")
 
 
 describe "WebSockets", ->
 
-  before ->
-    ws_server = new WebSocket.Server(server: brains)
+  before (done)->
+    ws_server = new WebSocket.Server(port: 3004, done)
     ws_server.on "connection", (client)->
       client.send "Hello"
 
@@ -24,7 +23,7 @@ describe "WebSockets", ->
           </body>
           <script>
             $(function() {
-              ws = new WebSocket('ws://localhost:3003');
+              ws = new WebSocket("ws://localhost:3004");
               $('#ws-url').text(ws.url);
             });
           </script>
@@ -37,7 +36,7 @@ describe "WebSockets", ->
       @browser.visit "/websockets/creating", done
 
     it "should be possible", ->
-      @browser.assert.text "#ws-url", "ws://localhost:3003"
+      @browser.assert.text "#ws-url", "ws://localhost:3004"
 
 
   describe "connecting", ->
@@ -48,7 +47,7 @@ describe "WebSockets", ->
           <head></head>
           <body></body>
           <script>
-            ws = new WebSocket('ws://localhost:3003');
+            ws = new WebSocket("ws://localhost:3004");
             ws.onopen = function() {
               alert('open');
             };
@@ -75,7 +74,7 @@ describe "WebSockets", ->
           <head></head>
           <body></body>
           <script>
-            ws = new WebSocket('ws://localhost:3003');
+            ws = new WebSocket("ws://localhost:3004/");
             ws.onmessage = function(message) {
               alert(message.data);
             };
@@ -102,7 +101,7 @@ describe "WebSockets", ->
           <head></head>
           <body></body>
           <script>
-            ws = new WebSocket('ws://localhost:3003');
+            ws = new WebSocket("ws://localhost:3004");
             ws.onclose = function() {
               alert('close');
             };

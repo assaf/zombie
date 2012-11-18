@@ -17,7 +17,7 @@ Replay.networkAccess = true
 Replay.localhost "host.localhost"
 
 
-exports.assert  = require("assert")
-exports.brains  = require("./brains")
-exports.Browser = Browser
-
+module.exports =
+  assert:   require("assert")
+  brains:   require("./brains")
+  Browser:  Browser
