@@ -140,3 +140,22 @@ describe "Resources", ->
     after ->
       @browser.destroy()
 
+
+  describe "301 redirect URL", ->
+    before ->
+      brains.get "/resources/three-oh-one", (req, res)->
+        res.redirect("/resources/resource", 301)
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "/resources/three-oh-one", done
+
+    it "should have a length", ->
+      assert.equal @browser.resources.length, 2
+    it "should include loaded page", ->
+      assert.equal @browser.resources[0].response.url, "http://localhost:3003/resources/resource"
+    it "should include loaded JavaScript", ->
+      assert.equal @browser.resources[1].response.url, "http://localhost:3003/jquery-1.7.1.js"
+
+    after ->
+      @browser.destroy()

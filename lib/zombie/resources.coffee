@@ -591,7 +591,7 @@ Resources.httpRequest = (request, callback)->
       switch response.statusCode
         when 301, 307
           # Do not follow POST redirects automatically, only GET/HEAD
-          if method == "GET" || method == "HEAD"
+          if request.method == "GET" || request.method == "HEAD"
             redirectURL = URL.resolve(request.url, response.headers.location)
         when 302, 303
           # Follow redirect using GET (e.g. after form submission)
