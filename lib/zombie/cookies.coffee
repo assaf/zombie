@@ -69,7 +69,7 @@ class Access
     for cookie in serialized.split(/,(?=[^;,]*=)|,$/)
       cookie = Cookie.parse(cookie)
       cookie.domain ||= @domain
-      cookie.path   ||= @path
+      cookie.path   ||= Tough.defaultPath(@path)
       # Delete cookie before setting it, so we only store one cookie (per
       # domain/path/name)
       @_cookies.filter((c)-> !(cookie.key == c.key && cookie.domain == c.domain && cookie.path == c.path) )
