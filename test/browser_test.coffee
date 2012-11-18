@@ -41,7 +41,7 @@ describe "Browser", ->
     describe "open page", ->
       before (done)->
         @browser = new Browser()
-        @browser.visit "http://localhost:3003/browser/scripted", done 
+        @browser.visit "http://localhost:3003/browser/scripted", done
 
       it "should create HTML document", ->
         assert @browser.document instanceof JSDOM.dom.level3.html.HTMLDocument
@@ -145,7 +145,7 @@ describe "Browser", ->
           brains.ready done
 
         before (done)->
-          Browser.visit "http://localhost:3003/browser/empty", (@error, @browser, @status, @errors)=> 
+          Browser.visit "http://localhost:3003/browser/empty", (@error, @browser, @status, @errors)=>
             done()
 
         it "should load document", ->
