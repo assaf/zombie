@@ -375,8 +375,9 @@ Resources.normalizeURL = (request, next)->
     method = request.method
     if method == "GET" || method == "HEAD" || method == "DELETE"
       # These methods use query string parameters instead
-      uri = URL.parse(request.url)
-      uri.search = "?" + stringifyParams(request.params)
+      uri = URL.parse(request.url, true)
+      for param in request.params
+        uri.query[param[0]] = param[1]
       request.url = URL.format(uri)
 
   next()

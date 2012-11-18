@@ -30,7 +30,6 @@ describe "Forms", ->
             <label for="field-brains">Brains?</label>
             <input type="checkbox" name="brains" value="yes" id="field-brains">
             <input type="checkbox" name="green" id="field-green" value="Super green!" checked="checked">
-            
             <input type="checkbox" name="check" id="field-check" value="Huh?" checked="checked">
             <input type="checkbox" name="uncheck" id="field-uncheck" value="Yeah!">
             <input type="checkbox" name="empty_checkbox" id="empty-checkbox" checked="checked">
@@ -81,7 +80,7 @@ describe "Forms", ->
               <option id="hobbies-messy">Make Messy</option>
               <option>Sleep</option>
             </select>
-            
+
             <select name="months" id="field-months">
               <option value=""></option>
               <option value="jan_2011"> Jan 2011 </option>
@@ -1074,7 +1073,7 @@ describe "Forms", ->
         assert.equal @browser.request.headers["content-length"], "text=bite".length
       it "should have body with content of input field", ->
         @browser.assert.text "body", "bite"
-          
+
     describe "post form urlencoded being empty", ->
       before (done)->
         brains.get "/forms/urlencoded/empty", (req, res)->
@@ -1099,6 +1098,34 @@ describe "Forms", ->
         assert @browser.request.headers.hasOwnProperty("content-length")
       it "should have size of 0", ->
         assert.equal @browser.request.headers["content-length"], 0
+
+
+  describe "GET form submission", ->
+    before (done)->
+      brains.get "/forms/get", (req, res)->
+        res.send """
+        <html>
+          <body>
+            <form method="get" action="/forms/get/echo">
+              <input type="text" name="my_param" value="my_value">
+              <input type="submit" value="submit">
+            </form>
+          </body>
+        </html>
+        """
+      brains.get "/forms/get/echo", (req, res) ->
+        res.send """
+        <html>
+          <body>#{req.query.my_param}</body>
+        </html>
+        """
+
+      @browser = new Browser()
+      @browser.visit "/forms/get", =>
+        @browser.pressButton("submit", done)
+
+    it "should echo the correct query string", ->
+      assert.equal @browser.text("body"), "my_value"
 
 
   # DOM specifies that getAttribute returns empty string if no value, but in
