@@ -743,8 +743,6 @@ describe "Forms", ->
         @browser.assert.text "#looks", ""
       it "should send multiple selected options to server", ->
         @browser.assert.text "#hobbies", '["Eat Brains","Sleep"]'
-      it "should send nested attributes in the order they are declared", ->
-        @browser.assert.text "#addresses", '["CDG","Paris","PGS","Mikolaiv"]'
       it "should send empty text fields", ->
         @browser.assert.text "#empty-text", ""
       it "should send checked field with no value", ->

@@ -121,7 +121,7 @@ class History
       @current = entry
     else
       @current = @first = entry
- 
+
   # Replace current entry with a new one.
   replaceEntry: (window, url, pushState)->
     url ||= window.location.href
@@ -138,7 +138,7 @@ class History
   # Update window location (navigating to new URL, same window, e.g pushState or hash change)
   updateLocation: (window, url)->
     history = this
-    Object.defineProperty window, "location", 
+    Object.defineProperty window, "location",
       get: ->
         return createLocation(history, url)
       set: (url)->
@@ -146,10 +146,10 @@ class History
       enumerable: true
 
   # Form submission
-  submit: ({ url, method, encoding, data })->
+  submit: ({ url, method, encoding, params })->
     window = @current.window
     url = HTML.resourceLoader.resolve(window.document, url)
-    params =
+    newWindow = createWindow(
       browser:  @browser
       history:  this
       name:     window.name
@@ -157,10 +157,10 @@ class History
       url:      url
       method:   method
       encoding: encoding
-      data:     data
-    newWindow = createWindow(params)
+      params:   params
+    )
     @addEntry(newWindow, url)
-    
+
   # Returns current URL.
   @prototype.__defineGetter__ "url", ->
     return @current?.url

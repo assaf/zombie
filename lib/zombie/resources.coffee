@@ -1,97 +1,17 @@
 # Retrieve resources (HTML pages, scripts, XHR, etc).
 #
 # Each browser has a resources objects that allows you to:
-# - Retrieve resources (see request, get and post).
-# - Access the history of all resources loaded (pages, JS, etc).
-# - Simulate server failure, delayed responses and mock responses.
-# - Defines the means for retrieving resources (see below).
-#
-#
-# This object is an Array that collects all resources retrieved by the browser.
-# You can use this to inspect HTTP requests made by the browser.
-#
-# Each entry represents a single resource, an object with the properties:
-# request   - The request (see below)
-# response  - The response (see below)
-# target    - Target document/element (used when loading page, scripts)
-#
-# Requests have the following properties:
-# method      - The request method (GET, POST, etc)
-# url         - The request URL
-# headers     - All headers used in making the request
-# body        - Request body (POST and PUT only)
-#
-# Responses have the following properties:
-# url         - The actual URL retrieved (redirects change this)
-# statusCode  - Status code (200, 404, etc)
-# statusText  - Status text (OK, Not Found, etc)
-# headers     - Headers provided in response
-# redirects   - Number of redirects followed
-# body        - The response body (Buffer or String)
-#
-#
-# You can also use this object directly to retrieve resources, using the same
-# HTTP processing available to the browser (cookies, credentials, etc).  For
-# example:
-#
-#   browser.resources.get("/somepath", function(error, response) {
-#     . . .
-#   });
-#
-#
-# To better simulate real servers and networks you can do the following:
-# - Cause a particular request to always fail by calling `resources.fail(url,
-#   message)`.  The error message is optional.
-# - Cause a particular response to get delayed by calling `resources.delay(url,
-#   ms)`.  Use this to simulate slow networks, or change the order in which
-#   resources are loaded.
-# - Cause a particular request to return whichever result by calling
-#   `resources.mock(url, result)`.  You can use this to return any result
-#   (`statusCode`, `headers` or `body`) you want.
-#
-# If you need to simulate a temporary glitch, you can remove any of these
-# special handlers by calling `resource.restore(url)`.
-#
-#
-# Resources are retrieved and processed using a chain of filters.  Filters that
-# take two arguments are applied first.  The first argument is the request
-# object, and the second argument is a callback.
-#
-# This filter chain is terminated when the callback is called with either
-# error, or null and response object.  Call the callback with no arguments to
-# pass control to the next filter.
-#
-# The last filter in this chain will always retrieve the resource (HTTP or file
-# system), but you can add your own filters and provide your own mechanism for
-# retrieving resources.
-#
-# Filters that take three arguments are applied next.  They recieve the
-# request, response and a callback.  That chain terminates after the last
-# filter, or if the callback is called with an error.  Again, each filter must
-# call the callback to pass control to the next filter.
-#
-# For example, if you wanted to simulate a real network and delay all request
-# by an random amount of time, you could do this:
-#
-#   browser.resources.addFilter(function(request, next) {
-#     setTimeout(function() {
-#       Resources.httpRequest(request, next);
-#     }, Math.random() * 100);
-#   });
-#
-# You can also use `resources.fail` for the same effect.
-#
-#
-# If you write a generic filter and you want it to apply to all browsers, add
-# it to Browser.Resources instead, for example:
-#
-#   Browser.Resources.addFilter(function(request, response, next) {
-#     console.log("Response body: " + response.body);
-#     next();
-#   });
-#
-# These filters are added to every new browser.resources and immidiately bound
-# to the browser object.
+# - Inspect the history of retrieved resources, useful for troubleshooting
+#   issues related to resource loading
+# - Simulate a failed server
+# - Change the order in which resources are retrieved, or otherwise introduce
+#   delays to simulate a real world network
+# - Mock responses from servers you don't have access to, or don't want to
+#   access from test environment
+# - Request resources directly, but have Zombie handle cookies,
+#   authentication, etc
+# - Implement new mechanism for retrieving resources, for example, add new
+#   protocols or support new headers
 
 
 File    = require("fs")
@@ -126,8 +46,7 @@ class Resources extends Array
   # Options:
   #   headers   - Name/value pairs of headers to send in request
   #   params    - Parameters to pass in query string or document body
-  #   resource  - Used internally to handle redirects
-  #   target    - Associates request with document/element
+  #   body      - Request document body
   #
   # Response contains:
   #   url         - Actual resource URL (changed by redirects)
@@ -145,6 +64,7 @@ class Resources extends Array
       url:     url
       headers: options.headers || {}
       params:  options.params
+      body:    options.body
       time:    Date.now()
 
     resource =
@@ -299,7 +219,7 @@ class Resources extends Array
     beforeFilters.push(Resources.httpRequest.bind(this))
     afterFilters = @filters.filter((fn)-> fn.length == 3)
     response = null
-   
+
     # Called to execute the next 'before' filter.
     beforeFilterCallback = (error, responseFromFilter)->
       if error
@@ -376,8 +296,8 @@ Resources.normalizeURL = (request, next)->
     if method == "GET" || method == "HEAD" || method == "DELETE"
       # These methods use query string parameters instead
       uri = URL.parse(request.url, true)
-      for param in request.params
-        uri.query[param[0]] = param[1]
+      for name, value of request.params
+        uri.query[name] = value
       request.url = URL.format(uri)
 
   next()
@@ -426,43 +346,44 @@ Resources.createBody = (request, next)->
     # These methods support document body.  Create body or multipart.
     headers["content-type"] ||= "application/x-www-form-urlencoded"
     mimeType = headers["content-type"].split(";")[0]
-    switch mimeType
-      when "application/x-www-form-urlencoded"
-        request.body = stringifyParams(request.params || {})
-        headers["content-length"] = request.body.length
-      when "multipart/form-data"
-        params = request.params || []
-        if params.length == 0
-          # Empty parameters, can't use multipart
-          headers["content-type"] = "text/plain"
-          request.body = ""
+    unless request.body
+      switch mimeType
+        when "application/x-www-form-urlencoded"
+          request.body = QS.stringify(request.params || {})
+          headers["content-length"] = request.body.length
+        when "multipart/form-data"
+          params = request.params || {}
+          if Object.keys(params).length == 0
+            # Empty parameters, can't use multipart
+            headers["content-type"] = "text/plain"
+            request.body = ""
+          else
+            boundary = "#{new Date().getTime()}.#{Math.random()}"
+            headers["content-type"] += "; boundary=#{boundary}"
+            multipart = []
+            for name, values of params
+              for value in values
+                disp = "form-data; name=\"#{name}\""
+                if value.read
+                  binary = value.read()
+                  multipart.push
+                    "Content-Disposition":  "#{disp}; filename=\"#{value}\""
+                    "Content-Type":         value.mime || "application/octet-stream"
+                    "Content-Length":       binary.length
+                    body:                   binary
+                else
+                  multipart.push
+                    "Content-Disposition":        disp
+                    "Content-Type":               "text/plain"
+                    "Content-Transfer-Encoding":  "utf8"
+                    "Content-Length":             value.length
+                    body:                         value
+            request.multipart = multipart
+        when "text/plain"
+          # XHR requests use this by default
         else
-          boundary = "#{new Date().getTime()}.#{Math.random()}"
-          headers["content-type"] += "; boundary=#{boundary}"
-          multipart = []
-          for field in params
-            [name, content] = field
-            disp = "form-data; name=\"#{name}\""
-            if content.read
-              binary = content.read()
-              multipart.push
-                "Content-Disposition":  "#{disp}; filename=\"#{content}\""
-                "Content-Type":         content.mime || "application/octet-stream"
-                "Content-Length":       binary.length
-                body:                   binary
-            else
-              multipart.push
-                "Content-Disposition":        disp
-                "Content-Type":               "text/plain"
-                "Content-Transfer-Encoding":  "utf8"
-                "Content-Length":             content.length
-                body:                         content
-          request.multipart = multipart
-      when "text/plain"
-        # XHR falls-back on this
-      else
-        next(new Error("Unsupported content type #{mimeType}"))
-        return
+          next(new Error("Unsupported content type #{mimeType}"))
+          return
 
   next()
   return
@@ -478,7 +399,7 @@ Resources.specialURLHandlers = (request, next)->
   next()
 
 
-
+# Handle deflate and gzip transfer encoding.
 Resources.decompressBody = (request, response, next)->
   if response.body && response.headers
     transferEncoding = response.headers["transfer-encoding"]
@@ -496,7 +417,6 @@ Resources.decompressBody = (request, response, next)->
     else
       next()
   return
-
 
 
 # This filter decodes the response body based on the response content type.
@@ -633,29 +553,6 @@ Resources.httpRequest = (request, callback)->
         callback(null, response)
   return
 
-
-# -- Helper functions
-
-stringifyParams = (object)->
-  unless object.map
-    return object.toString()
-  object.map((k) ->
-    if Array.isArray(k[1])
-      k[1].map((v) ->
-        QS.escape(stringifyPrimitive(k[0])) + "=" + QS.escape(stringifyPrimitive(v))
-      ).join("&")
-    else
-      QS.escape(stringifyPrimitive(k[0])) + "=" + QS.escape(stringifyPrimitive(k[1]))
-  ).join("&")
-
-# We use this to convert data array/hash into application/x-www-form-urlencoded
-stringifyPrimitive = (value)->
-  if typeof(value) == "string" || value instanceof String
-    return value
-  else if value == null || value == undefined
-    return ""
-  else
-    return value.toString()
 
 
 # HTTP status code to status text

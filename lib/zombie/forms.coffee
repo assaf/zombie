@@ -27,7 +27,7 @@ UploadedFile = (filename) ->
 # This method takes the submitting button so we can send the button name/value.
 HTML.HTMLFormElement.prototype.submit = (button)->
   document = @ownerDocument
-  data = []
+  params = {}
 
   process = (index)=>
     if field = @elements.item(index)
@@ -41,34 +41,39 @@ HTML.HTMLFormElement.prototype.submit = (button)->
               selected.push(option.value)
 
           if field.multiple
-            data.push [name, selected]
+            params[name] = (params[name] || []).concat(selected)
           else
             if selected.length > 0
               value = selected[0]
             else
               value = field.options[0]?.value
-            data.push [name, value]
+            params[name] ||= []
+            params[name].push(value)
         else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
           if field.checked
-            data.push [name, field.value || "1"]
+            params[name] ||= []
+            params[name].push(field.value || "1")
         else if field.nodeName == "INPUT" && field.type == "file"
           if field.value
-            data.push [name, UploadedFile(field.value)]
+            params[name] ||= []
+            params[name].push(UploadedFile(field.value))
         else if field.nodeName == "TEXTAREA" || field.nodeName == "INPUT"
           if field.type != "submit" && field.type != "image"
-            data.push [name, field.value || ""]
+            params[name] ||= []
+            params[name].push(field.value || "")
 
       process index + 1
     else
       # No triggering event, just get history to do the submission.
       if button && button.name
-        data.push [button.name, button.value]
+        params[button.name] ||= []
+        params[button.name].push(button.value)
 
       document.window._submit
         url:      @getAttribute("action") || document.location.href
         method:   @getAttribute("method") || "GET"
         encoding: @getAttribute("enctype")
-        data:     data
+        params:   params
         form:     this
 
   process 0

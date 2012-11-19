@@ -289,7 +289,7 @@ class EventQueue
   # url     - URL (string)
   # method  - Method (defaults to GET)
   # headers - Headers to pass in request
-  # data    - Document body
+  # body    - Document body
   # target  - Document or element being loaded
   #
   # Calls callback with response error or null and response object.
