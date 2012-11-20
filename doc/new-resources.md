@@ -35,6 +35,7 @@ The request object consists of:
 - `body` - The request body can be Buffer or String, only applies to POST and
   PUT methods multiparty - Used instead of a body to support file upload
 - `time` - Timestamp when request was made
+- `timeout` - Request timeout (0 for no timeout)
 
 The response object consists of:
 - `url` - The actual URL of the resource. This may be different from the request
