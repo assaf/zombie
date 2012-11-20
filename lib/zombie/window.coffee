@@ -4,12 +4,13 @@
 
 
 Console         = require("./console")
+createDocument  = require("./document")
 EventSource     = require("eventsource")
 History         = require("./history")
 JSDOM           = require("jsdom")
 WebSocket       = require("ws")
 URL             = require("url")
-createDocument  = require("./document")
+XMLHttpRequest  = require("./xhr")
 
 
 Events      = JSDOM.dom.level3.events
@@ -106,7 +107,6 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
   browser._cookies.extend(window)
   browser._storages.extend(window)
   browser._interact.extend(window)
-  browser._xhr.extend(window)
 
   Object.defineProperties window,
     File:           { value: File }
@@ -121,6 +121,10 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
     new Buffer(string, "base64").toString("utf8")
   window.btoa = (string)->
     new Buffer(string, "utf8").toString("base64")
+
+  # Constructor for XHLHttpRequest
+  window.XMLHttpRequest = ->
+    return new XMLHttpRequest(window)
 
   # Constructor for EventSource, URL is relative to document's.
   window.EventSource = (url)->

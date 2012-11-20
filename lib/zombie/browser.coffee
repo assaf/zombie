@@ -22,7 +22,6 @@ Path              = require("path")
 Resources         = require("./resources")
 Storages          = require("./storage")
 URL               = require("url")
-XHR               = require("./xhr")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
@@ -51,7 +50,6 @@ class Browser extends EventEmitter
     @_cookies = new Cookies()
     @_storages = new Storages()
     @_interact = Interact.use(this)
-    @_xhr = XHR.use()
 
     # Used for assertions
     @assert = new Assert(this)

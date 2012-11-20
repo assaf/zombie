@@ -1,103 +1,172 @@
 # window.XMLHttpRequest
-html = require("jsdom").dom.level3.html
-http = require("http")
-URL = require("url")
+HTML      = require("jsdom").dom.level3.html
+URL       = require("url")
 { raise } = require("./scripts")
 
 
 # Additional error codes defines for XHR and not in JSDOM.
-html.SECURITY_ERR = 18
-html.NETWORK_ERR = 19
-html.ABORT_ERR = 20
+HTML.SECURITY_ERR = 18
+HTML.NETWORK_ERR = 19
+HTML.ABORT_ERR = 20
 
-XMLHttpRequest = (window)->
+
+class XMLHttpRequest
+  constructor: (window)->
+    @_window = window
+    # Pending requests
+    @_pending = []
+    # Response headers
+    @_responseHeaders = null
+    @onreadystatechange = null
+    @timeout      = 0
+    @status       = null
+    @statusText   = null
+    @responseText = null
+    @responseXML  = null
+
+  # Aborts the request if it has already been sent.
+  abort: ->
+    # Tell any pending request it has been aborted.
+    for request in @_pending
+      request.error ||= new HTML.DOMException(HTML.ABORT_ERR, "Request aborted")
+    # Change ready state, but do not call listener, this will happen when
+    # pending request completes.
+    @readyState = XMLHttpRequest.UNSENT
+
+  # Returns all the response headers as a string, or null if no response has
+  # been received. Note: For multipart requests, this returns the headers from
+  # the current part of the request, not from the original channel.
+  getAllResponseHeaders: (header)->
+    if @_responseHeaders
+      # XHR's getAllResponseHeaders, against all reason, returns a multi-line
+      # string.  See http://www.w3.org/TR/XMLHttpRequest/#the-getallresponseheaders-method
+      headerStrings = []
+      for header, value of @_responseHeaders
+        headerStrings.push("#{header}: #{value}")
+      return headerStrings.join("\n")
+    else
+      return null
+
+  # Returns the string containing the text of the specified header, or null if
+  # either the response has not yet been received or the header doesn't exist in
+  # the response.
+  getResponseHeader: (header)->
+    if @_responseHeaders
+      return @_responseHeaders[header.toLowerCase()]
+    else
+      return null
+
+  # Initializes a request.
+  #
+  # Calling this method an already active request (one for which open()or
+  # openRequest()has already been called) is the equivalent of calling abort().
+  open: (method, url, async, user, password)->
+    if async == false
+      throw new HTML.DOMException(HTML.NOT_SUPPORTED_ERR, "Zombie does not support synchronous XHR requests")
+
+    # Abort any pending request.
+    @abort()
+
+    # Check supported HTTP method
+    method = method.toUpperCase()
+    if /^(connect|trace|track)$/.test(method)
+      throw new HTML.DOMException(HTML.SECURITY_ERR, "Unsupported HTTP method")
+    unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
+      throw new HTML.DOMException(HTML.SYNTAX_ERR, "Unsupported HTTP method")
+
+    # Normalize the URL and check security
+    url = URL.parse(URL.resolve(@_window.location.href, url))
+    unless /^https?:$/i.test(url.protocol)
+      throw new HTML.DOMException(HTML.NOT_SUPPORTED_ERR, "Only HTTP/S protocol supported")
+    url.hostname ||= @_window.location.hostname
+    url.host =
+    if url.port
+      url.host = "#{url.hostname}:#{url.port}"
+    else
+      url.host = url.hostname
+    unless url.host == @_window.location.host
+      throw new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
+    url.hash = null
+    if user
+      url.auth = "#{user}:#{password}"
+
+    # Reset all the response fields.
+    @status       = null
+    @statusText   = null
+    @responseText = null
+    @responseXML  = null
+
+    request =
+      method:   method
+      url:      URL.format(url)
+      headers:  {}
+    @_pending.push(request)
+    @readyState = XMLHttpRequest.OPENED
+    return
+
+  # Sends the request. If the request is asynchronous (which is the default),
+  # this method returns as soon as the request is sent. If the request is
+  # synchronous, this method doesn't return until the response has arrived.
+  send: (data)->
+    # Request must be opened.
+    unless @readyState == XMLHttpRequest.OPENED
+      throw new HTML.DOMException(HTML.INVALID_STATE_ERR,  "Invalid state")
+
+    request = @_pending[@_pending.length - 1]
+    request.headers["content-type"] ||= "text/plain"
+    # Make the actual request
+    request.body = data
+    request.timeout = @timeout
+    @_window._eventQueue.http request.method, request.url, request, (error, response)=>
+      listener = @onreadystatechange
+      # abort sets request.error
+      error ||= request.error
+      if error
+        error = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
+        @_stateChanged(XMLHttpRequest.DONE, listener)
+        return
+
+      # Since the request was not aborted, we set all the fields here.
+      @status           = response.statusCode
+      @statusText       = response.statusText
+      @_responseHeaders = response.headers
+      @_stateChanged(XMLHttpRequest.HEADERS_RECEIVED, listener)
+
+      @responseText     = response.body
+      if response.headers["content-type"]
+        mimeType = response.headers["content-type"].split(";")[0]
+      if /^text\/(html|xml)$/.test(mimeType)
+        document = new HTML.Document()
+        document.outerHTML = response.body
+        @responseXML = document
+      else
+        @responseXML = null
+      @_stateChanged(XMLHttpRequest.DONE, listener)
+
+    return
+
+  # Sets the value of an HTTP request header.You must call setRequestHeader()
+  # after open(), but before send().
+  setRequestHeader: (header, value)->
+    unless @readyState == XMLHttpRequest.OPENED
+      throw new HTML.DOMException(HTML.INVALID_STATE_ERR,  "Invalid state")
+    request = @_pending[@_pending.length - 1]
+    request.headers[header.toString().toLowerCase()] = value.toString()
+    return
+
   # Fire onreadystatechange event
-  stateChanged = (state)=>
-    @__defineGetter__ "readyState", -> state
-    if @onreadystatechange
+  _stateChanged: (newState, listener)->
+    @readyState = newState
+    if listener
       # Since we want to wait on these events, put them in the event loop.
-      window._eventQueue.enqueue =>
+      @_window._eventQueue.enqueue =>
         try
-          @onreadystatechange.call(@)
+          listener.call(this)
         catch error
-          raise element: window.document, from: __filename, scope: "XHR", error: error
-  # Bring XHR to initial state (open/abort).
-  reset = =>
-    # Switch back to unsent state
-    @__defineGetter__ "readyState", -> 0
-    @__defineGetter__ "status", -> 0
-    @__defineGetter__ "statusText", ->
-    # These methods not applicable yet.
-    @abort = -> # do nothing
-    @setRequestHeader = @send = -> throw new html.DOMException(html.INVALID_STATE_ERR,  "Invalid state")
-    @getResponseHeader = @getAllResponseHeaders = ->
-    # Open method.
-    @open = (method, url, async, user, password)->
-      method = method.toUpperCase()
-      throw new html.DOMException(html.SECURITY_ERR, "Unsupported HTTP method") if /^(CONNECT|TRACE|TRACK)$/.test(method)
-      throw new html.DOMException(html.SYNTAX_ERR, "Unsupported HTTP method") unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
-      url = URL.parse(URL.resolve(window.location.href, url))
-      url.hostname ||= window.location.hostname
-      url.host = if url.port then "#{url.hostname}:#{url.port}" else url.hostname
-      url.hash = null
-      throw new html.DOMException(html.SECURITY_ERR, "Cannot make request to different domain") unless url.host == window.location.host
-      throw new html.DOMException(html.NOT_SUPPORTED_ERR, "Only HTTP/S protocol supported") unless url.protocol in ["http:", "https:"]
-      [user, password] = url.auth.split(":") if url.auth
+          raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
 
-      # Aborting open request.
-      @_error = null
-      aborted = false
-      @abort = ->
-        aborted = true
-        reset()
 
-      headers = {}
-      @setRequestHeader = (header, value)-> headers[header.toString().toLowerCase()] = value.toString()
-      # Allow calling send method.
-      @send = (data)->
-        headers["content-type"] ||= "text/plain"
-        data = data.toString() if data
-        # Aborting request in progress.
-        @abort = ->
-          aborted = true
-          @_error = new html.DOMException(html.ABORT_ERR, "Request aborted")
-          stateChanged 4
-          reset()
-
-        # Make the actual request: called again when dealing with a redirect.
-        window._eventQueue.http method, URL.format(url), body: data, headers: headers, (error, response)=>
-          if error
-            @_error = new html.DOMException(html.NETWORK_ERR, error.message)
-            stateChanged 4
-            reset()
-          else
-            # At this state, allow retrieving of headers and status code.
-            @getResponseHeader = (header)-> response.headers[header.toLowerCase()]
-            @getAllResponseHeaders = ->
-              # XHR's getAllResponseHeaders, against all reason, returns a multi-line string.
-              # See http://www.w3.org/TR/XMLHttpRequest/#the-getallresponseheaders-method
-              headerStrings = for header, value of response.headers
-                "#{header}: #{value}"
-              return headerStrings.join("\n")
-            @__defineGetter__ "status", -> response.statusCode
-            @__defineGetter__ "statusText", -> response.statusText
-            stateChanged 2
-            unless aborted
-              @__defineGetter__ "responseText", -> response.body
-              @__defineGetter__ "responseXML", -> # not implemented
-              stateChanged 4
-
-      # Calling open at this point aborts the ongoing request, resets the
-      # state and starts a new request going
-      @open = (method, url, async, user, password)->
-        @abort()
-        @open method, url, async, user, password
-
-      # Successfully completed open method
-      stateChanged 1
-  reset()
-  return
-
+# Lifecycle states
 XMLHttpRequest.UNSENT = 0
 XMLHttpRequest.OPENED = 1
 XMLHttpRequest.HEADERS_RECEIVED = 2
@@ -105,9 +174,4 @@ XMLHttpRequest.LOADING = 3
 XMLHttpRequest.DONE = 4
 
 
-exports.use = ->
-  # Add XHR constructor to window.
-  extend = (window)->
-    window.XMLHttpRequest = -> XMLHttpRequest.call this, window
-  return extend: extend
-
+module.exports = XMLHttpRequest

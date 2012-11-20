@@ -47,6 +47,7 @@ class Resources extends Array
   #   headers   - Name/value pairs of headers to send in request
   #   params    - Parameters to pass in query string or document body
   #   body      - Request document body
+  #   timeout   - Request timeout in milliseconds (0 or null for no timeout)
   #
   # Response contains:
   #   url         - Actual resource URL (changed by redirects)
@@ -66,6 +67,7 @@ class Resources extends Array
       params:  options.params
       body:    options.body
       time:    Date.now()
+      timeout: options.timeout
 
     resource =
       request:    request
@@ -490,6 +492,7 @@ Resources.httpRequest = (request, callback)->
       jar:            false
       followRedirect: false
       encoding:       null
+      timeout:        request.timeout || 0
 
     Request httpRequest, (error, response)=>
       if error

@@ -101,7 +101,7 @@ describe "XMLHttpRequest", ->
       assert.equal @browser.document.received, "send"
     it "should return cookies from XHR request", ->
       assert /xhr=return/.test(@browser.document.cookie)
-  
+
 
   describe "redirect", ->
     before (done)->
