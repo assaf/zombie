@@ -1,3 +1,5 @@
+# Browser assertions convenience.
+
 assert        = require("assert")
 { isRegExp }  = require("util")
 

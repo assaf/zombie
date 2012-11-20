@@ -5,7 +5,6 @@ require "./xpath"
 
 Assert            = require("./assert")
 createTabs        = require("./tabs")
-Cache             = require("./cache")
 Cookies           = require("./cookies")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
@@ -45,7 +44,6 @@ MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 class Browser extends EventEmitter
   constructor: (options = {}) ->
     browser = this
-    @cache = new Cache()
     @_cookies = new Cookies()
     @_storages = new Storages()
     @_interact = Interact.use(this)
