@@ -341,4 +341,3 @@ createLocation = (history, url)->
 
 
 module.exports = createHistory
-

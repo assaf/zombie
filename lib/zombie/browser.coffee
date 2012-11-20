@@ -5,7 +5,6 @@ require "./xpath"
 
 Assert            = require("./assert")
 createTabs        = require("./tabs")
-{ deprecated }    = require("./helpers")
 Cache             = require("./cache")
 Cookies           = require("./cookies")
 { EventEmitter }  = require("events")
@@ -161,8 +160,6 @@ class Browser extends EventEmitter
       else if ~GLOBAL_OPTIONS.indexOf(name)
         @[name] = Browser[name]
 
-    @_setCredentials(options.credentials || Browser.credentials)
-
     # Returns all errors reported while loading this window.
     @errors = []
 
@@ -234,7 +231,6 @@ class Browser extends EventEmitter
       for k,v of options
         if ~BROWSER_OPTIONS.indexOf(k)
           [restore[k], @[k]] = [@[k], v]
-      @_setCredentials(options.credentials)
       return =>
         @[k] = v for k,v of restore
     else
@@ -427,11 +423,6 @@ class Browser extends EventEmitter
       return @queryAll(selector, context).map((e)-> e.outerHTML.trim()).join("")
     return @source
 
-  # **Deprecated** please use `queryAll` instead.
-  css: (selector, context)->
-    deprecated "Browser.css is deprecated, please use browser.query and browser.queryAll instead."
-    return @queryAll(selector, context)
-
   # ### browser.xpath(expression, context?) => XPathResult
   #
   # Evaluates the XPath expression against the document (or context node) and return the XPath result.  Shortcut for
@@ -622,18 +613,6 @@ class Browser extends EventEmitter
       else
         credentials = @authenticate()
     return credentials
-
-  # Legacy support, remove in the future.
-  _setCredentials: (credentials)->
-    return unless credentials
-    deprecated "This credentials option is deprecated, please use browser.authenticate(host) instead."
-    switch credentials.scheme.toLowerCase()
-      when "basic"
-        @authenticate().basic(credentials.user || credentials.username, credentials.password)
-      when "bearer"
-        @authenticate().bearer(credentials.token)
-      when "oauth"
-        @authenticate().oauth(credentials.token)
 
 
   # ### browser.saveHistory() => String

@@ -45,15 +45,6 @@ describe "Authentication", ->
       it "should have the authentication header", ->
         @browser.assert.text "body", "Basic dXNlcm5hbWU6cGFzczEyMw=="
 
-    describe "legacy credentials", ->
-      before (done)->
-        @browser = new Browser()
-        credentials = { scheme: "basic", user: "username", password: "pass123" }
-        @browser.visit "http://localhost:3003/auth/basic", credentials: credentials, done
-
-      it "should have the authentication header", ->
-        @browser.assert.text "body", "Basic dXNlcm5hbWU6cGFzczEyMw=="
-
 
   describe "OAuth bearer", ->
     before (done)->
