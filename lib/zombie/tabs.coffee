@@ -1,45 +1,4 @@
 # Tab management.
-#
-# Each browser has a set of open tabs, each tab having one current window.
-#
-# The set of tabs is an array, and you can access each tab by its index number.
-# Note that tab order will shift when you close a window.  You can also get the
-# number of tabs (tabs.length) and iterate over then (map, filter, forEach).
-#
-# If a window has a name, you can also access it by name.  Since names may
-# conflict with reserved properties/methods, you may need to use the find
-# method.
-#
-# You can get the window of the currently selected tab (tabs.current) or its
-# index number (tabs.index).
-#
-# To change the currently selected tab, set tabs.current to a different window,
-# a window name or the tab index number.  This changes the window returned from
-# browser.window.
-#
-# Examples
-#
-#   firstTab = browser.tabs[0]
-#   fooTab = browser.tabs["foo"]
-#   openTab = brower.tabs.find("open")
-#
-#   old = browser.current
-#   foo = browser.tabs["foo"]
-#   browser.current = foo
-#   ...
-#   browser.current = old
-#
-#   window = browser.tabs.open(url: "http://example.com")
-#
-#   count = browser.tabs.length
-#   browser.tabs.close(window)
-#   assert(browser.tabs.length == count - 1)
-#   browser.tabs.close()
-#   assert(browser.tabs.length == count - 2)
-#
-#   browser.tabs.closeAll()
-#   assert(browser.tabs.length == 0)
-#   assert(browser.tabs.current == null)
 
 
 createHistory = require("./history")
@@ -64,6 +23,15 @@ createTabs = (browser)->
           current = window
           browser.emit("active", current)
         return
+
+    # Dump list of all open tabs to stdout or output stream.
+    dump:
+      value: (output = process.stdout)->
+        if tabs.length == 0
+          output.write "No open tabs.\n"
+        else
+          for window in tabs
+            output.write "Window #{window.name || "unnamed"} open to #{window.location.href}\n"
 
     # Opens and returns a tab.  If an open window by the same name already exists,
     # opens this window in the same tab.  Omit name or use "_blank" to always open

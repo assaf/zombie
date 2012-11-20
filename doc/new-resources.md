@@ -18,6 +18,7 @@ any of the following:
 - Implement new mechanism for retrieving resources, for example, add new
   protocols or support new headers
 
+
 ### The Resources List
 
 Each browser provides access to its resources list through `browser.resources`.
@@ -57,6 +58,10 @@ a request is being made.
 The `target` property associates the resource with an HTML document or element
 (only applies to some resources, like documents and scripts).
 
+Use `browser.resources.dump()` to dump a list of all resources to the console.
+This method accepts an optional output stream.
+
+
 ### Mocking, Failing and Delaying Responses
 
 To help you in testing, you can use `browser.resources` to mock, fail or delay a
@@ -93,6 +98,7 @@ Once you're done mocking, failing or delaying a resource, restore it to its
 previous state:
 
   browser.resources.restore("http://3d.party.api/v1/request");
+
 
 ### Operating On Resources
 
