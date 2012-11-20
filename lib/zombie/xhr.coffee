@@ -1,4 +1,4 @@
-# window.XMLHttpRequest
+# Implemenets XMLHttpRequest.
 HTML      = require("jsdom").dom.level3.html
 URL       = require("url")
 { raise } = require("./scripts")
@@ -132,15 +132,18 @@ class XMLHttpRequest
       @_responseHeaders = response.headers
       @_stateChanged(XMLHttpRequest.HEADERS_RECEIVED, listener)
 
-      @responseText     = response.body
+      @responseText = response.body
+      @responseXML = null
       if response.headers["content-type"]
         mimeType = response.headers["content-type"].split(";")[0]
-      if /^text\/(html|xml)$/.test(mimeType)
-        document = new HTML.Document()
-        document.outerHTML = response.body
-        @responseXML = document
-      else
-        @responseXML = null
+        if /^text\/(html|xml)$/.test(mimeType)
+          try
+            document = new HTML.HTMLDocument()
+            document.write(response.body)
+            document.close()
+            @responseXML = document
+          catch error
+            @_window.console.error("Failed to parse XML response: #{error.message}")
       @_stateChanged(XMLHttpRequest.DONE, listener)
 
     return

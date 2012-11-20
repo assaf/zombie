@@ -155,3 +155,31 @@ describe "XMLHttpRequest", ->
     it "should post with no data", ->
       @browser.assert.text "title", "201posted"
 
+
+  describe "HTML document", ->
+    before (done)->
+      brains.get "/xhr/get-html", (req, res)->
+        res.send """
+        <html>
+          <head><script src="/jquery.js"></script></head>
+          <body>
+            <script>
+              $.get("/xhr/html", function(response, status, xhr) {
+                window.html = xhr.responseXML;
+              });
+            </script>
+          </body>
+        </html>
+        """
+      brains.get "/xhr/html", (req, res)->
+        res.type("text/html")
+        res.send "<foo><bar id='bar'></foo>"
+      brains.ready done
+
+    before (done)->
+      @browser = new Browser()
+      @browser.visit "http://localhost:3003/xhr/get-html", done
+
+    it "should parse HTML document", ->
+      assert @browser.window.html.querySelectorAll("foo > bar#bar")
+
