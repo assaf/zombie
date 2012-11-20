@@ -16,7 +16,7 @@ class Assert
   constructor: (@browser)->
 
   # -- Location/response --
- 
+
   # Asserts that a cookie with the given name has the expected value.
   cookie: (name, expected, message)->
     actual = @browser.cookies().get(name)
@@ -24,8 +24,8 @@ class Assert
     assertMatch actual, expected, message
 
   # Assert that document URL has the expected pathname.
-  pathname: (expected)->
-    assertMatch @browser.location.pathname, expected
+  pathname: (expected, message)->
+    assertMatch @browser.location.pathname, expected, message
 
   # Asserts that browser was redirected when retrieving the current page.
   redirected: (message)->
@@ -49,6 +49,7 @@ class Assert
   # Assert the named attribute of the selected element(s) has the expected value.
   attribute: (selector, name, expected, message)->
     elements = @browser.queryAll(selector)
+    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
     for element in elements
       actual = element.getAttribute(name)
       assertMatch actual, expected, message
@@ -104,7 +105,7 @@ class Assert
 
 
   # -- Window --
-  
+
   # Asserts that selected element has the focus.
   inFocus: (selector, message)->
     if selector
@@ -115,7 +116,7 @@ class Assert
 
 
   # -- JavaScript --
-  
+
   # Evaluates Javascript expression and asserts value.  With one argument,
   # asserts that the expression evaluates to (JS) true.
   evaluate: (expression, expected, message)->
@@ -132,8 +133,8 @@ class Assert
     assertMatch actual, expected, message
 
   # Assert that browser prompted with a given message.
-  prompted: (message)->
-    assert @browser.prompted(message)
+  prompted: (messageShown, message)->
+    assert @browser.prompted(messageShown), message
 
 
  module.exports = Assert
