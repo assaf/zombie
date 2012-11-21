@@ -204,7 +204,7 @@ describe "Browser", ->
 
     describe "global", ->
       before (done)->
-        Browser.runScripts = false
+        Browser.default.runScripts = false
         @browser = new Browser()
         @browser.visit "/browser/scripted", done
 
@@ -212,7 +212,7 @@ describe "Browser", ->
         @browser.assert.text "title", "Whatever"
 
       after ->
-        Browser.runScripts = true
+        Browser.default.runScripts = true
 
     describe "user agent", ->
 

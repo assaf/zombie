@@ -10,11 +10,11 @@ Cookies           = require("./cookies")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
 { format }        = require("util")
-FS                = require("fs")
+File              = require("fs")
 Hooks             = require("./hooks")
 { HTML5 }         = require("html5")
 Interact          = require("./interact")
-JSDOM             = require("jsdom")
+HTML              = require("jsdom").dom.level3.html
 Mime              = require("mime")
 ms                = require("ms")
 Q                 = require("q")
@@ -29,14 +29,6 @@ BROWSER_OPTIONS = ["debug", "headers", "htmlParser", "loadCSS", "waitDuration",
                    "proxy", "referer", "runScripts", "silent", "site", "userAgent",
                    "maxRedirects"]
 
-# Global options you can set on Browser and will be inherited by each new browser.
-GLOBAL_OPTIONS  = ["debug", "headers", "htmlParser", "loadCSS", "waitDuration", "proxy",
-                   "runScripts", "silent", "site", "userAgent", "maxRedirects"]
-
-
-PACKAGE = JSON.parse(require("fs").readFileSync(__dirname + "/../../package.json"))
-VERSION = PACKAGE.version
-HTML = JSDOM.dom.level3.html
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 
 
@@ -97,6 +89,9 @@ class Browser extends EventEmitter
     # The browser event loop.
     @eventLoop = new EventLoop(this)
 
+    # Returns all errors reported while loading this window.
+    @errors = []
+
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.
     @on "error", (error)->
@@ -117,7 +112,41 @@ class Browser extends EventEmitter
       browser.log "Fired interval every #{interval}ms"
 
 
+    # -- Resources --
 
+    # Start with no this referer.
+    @referer = undefined
+    # All the resources loaded by this browser.
+    @resources = new Resources(this)
+
+    @on "request", (resource)->
+      target = resource.target
+      if target && target.window && target.window.top == target.window.getGlobal()
+        # Loading the document of the top-level window: we're going to set all
+        # these fields when we get the response, but first need to reset them,
+        # e.g. so code testing the expected values don't find values from a
+        # previous request.
+        browser.request = resource.request
+        browser.redirected = undefined
+        browser.statusCode = undefined
+        browser.success = false
+        browser.source = undefined
+
+    @on "response", (resource)->
+      { request, response, target } = resource
+      if target && target.window && target.window.top == target.window.getGlobal()
+        # Loading the document of the top-level window: this is the most
+        # important resource, so we expose the outcome of loading it directly
+        # from the browser object.
+        browser.response = response
+        browser.redirected = response.redirects > 0
+        browser.statusCode = response.statusCode
+        browser.success = response.statusCode >= 200 && response.statusCode < 300
+        browser.source = response.body
+      browser.log "#{request.method} #{request.url} => #{response.statusCode}"
+
+
+    # -- Tabs/Windows --
 
     # The active browser window
     active = null
@@ -155,104 +184,22 @@ class Browser extends EventEmitter
     @on "loaded", (document)->
       browser.log "Loaded document", document.location.href
 
-    @on "request", (resource)->
-      target = resource.target
-      if target && target.window && target.window.top == target.window.getGlobal()
-        browser.request = resource.request
-        browser.redirected = undefined
-        browser.statusCode = undefined
-        browser.success = false
-        browser.source = undefined
-
-    @on "response", (resource)->
-      browser.log ->
-        request = resource.request
-        return "#{request.method} #{request.url} => #{resource.response.statusCode}"
-      target = resource.target
-      response = resource.response
-      if target && target.window && target.window.top == target.window.getGlobal()
-        browser.response = response
-        browser.redirected = response.redirects > 0
-        browser.statusCode = response.statusCode
-        browser.success = response.statusCode >= 200 && response.statusCode < 300
-        browser.source = response.body
-
 
     @on "submit", (form, url)->
-      browser.log -> "submit form to #{url}"
-
-    # Default (not global) options
-
-    # Send this referer.
-    @referer = undefined
+      browser.log "Submit form to #{url}"
 
     # Sets the browser options.
+    @runScripts = true
     for name in BROWSER_OPTIONS
       if options.hasOwnProperty(name)
         @[name] = options[name]
-      else if ~GLOBAL_OPTIONS.indexOf(name)
-        @[name] = Browser[name]
+      else if Browser.default.hasOwnProperty(name)
+        @[name] = Browser.default[name]
 
-    # Returns all errors reported while loading this window.
-    @errors = []
-
-    @resources = new Resources(this)
-    Browser.events.emit("created", this)
+    # You can extend browser here.
+    @hooks.run("created", this)
 
 
-  # Constructor (class) methods and properties
-  # ------------------------------------------
-
-  @VERSION: VERSION
-
-  # All browsers send events to this emitter.
-  @events: new EventEmitter()
-  # Make sure sending error events doesn't kill everything
-  @events.on "error", ->
-
-
-  # Global options
-  # -------
-
-  # True to have Zombie report what it's doing.
-  @debug: false
-
-  # Which parser to use (HTML5 by default). For example:
-  #   Browser.htmlParser = require("html5").HTML5 // HTML5, forgiving
-  #   Browser.htmlParser = require("htmlparser")  // Faster, stricter
-  @htmlParser: HTML5
-
-  # True to load external stylesheets.
-  @loadCSS: true
-
-  # Default time to wait (visit, wait, etc).
-  @waitDuration: "5s"
-
-  # Proxy URL.
-  #
-  # Example
-  #   Browser.proxy = "http://myproxy:8080"
-  #   browser.visit("site", function(error, browser) {
-  #   })
-  @proxy: null
-
-  # Run scripts included in or loaded from the page. Defaults to true.
-  @runScripts: true
-
-  # If true, supress `console.log` output from scripts.
-  @silent: false
-
-  # User agent string sent to server.
-  @userAgent: "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{VERSION}"
-
-  # You can use visit with a path, and it will make a request relative to this host/URL.
-  @site: undefined
-
-  # Tells the browser how many redirects to follow before aborting a request. Defaults to 5
-  @maxRedirects: 5
-
-  # Additional headers to be sent with each HTTP request
-  @headers: {}
 
   # Changes the browser options, and calls the function with a callback (reset).  When you're done processing, call the
   # reset function to bring options back to their previous values.
@@ -857,7 +804,7 @@ class Browser extends EventEmitter
     unless field && field.tagName == "INPUT" && field.type == "file"
       throw new Error("No file INPUT matching '#{selector}'")
     if filename
-      stat = FS.statSync(filename)
+      stat = File.statSync(filename)
       file = new (@window.File)()
       file.name = Path.basename(filename)
       file.type = Mime.lookup(filename)
@@ -1028,7 +975,7 @@ class Browser extends EventEmitter
   # debugging and submitting error reports.
   dump: ->
     indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
-    process.stdout.write "Zombie: #{VERSION}\n\n"
+    process.stdout.write "Zombie: #{Browser.VERSION}\n\n"
     process.stdout.write "URL: #{@window.location.href}\n"
     process.stdout.write "History:\n#{indent @window.history.dump()}\n"
     process.stdout.write "Cookies:\n#{indent @_cookies.dump()}\n"
@@ -1040,6 +987,53 @@ class Browser extends EventEmitter
       process.stdout.write "Document:\n#{indent html.split("\n")}\n"
     else
       process.stdout.write "No document\n" unless @document
+
+
+
+# Version number.  We get this from package.json.
+Browser.VERSION = JSON.parse(File.readFileSync("#{__dirname}/../../package.json")).version
+
+# -- Global options --
+
+# These defaults are used in any new browser instance.
+Browser.default =
+  # True to have Zombie report what it's doing.
+  debug: false
+
+  # Which features are enabled.
+  features: "scripts no-css"
+
+  # Which parser to use (HTML5 by default). For example:
+  #   Browser.default.htmlParser = require("html5").HTML5 // HTML5, forgiving
+  #   Browser.default.htmlParser = require("htmlparser")  // Faster, stricter
+  htmlParser: HTML5
+
+  # Tells the browser how many redirects to follow before aborting a request. Defaults to 5
+  maxRedirects: 5
+
+  # Proxy URL.
+  #
+  # Example
+  #   Browser.default.proxy = "http://myproxy:8080"
+  proxy: null
+
+  # If true, supress `console.log` output from scripts.
+  silent: false
+
+  # You can use visit with a path, and it will make a request relative to this host/URL.
+  site: undefined
+
+  # User agent string sent to server.
+  userAgent: "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{Browser.VERSION}"
+
+  # Default time to wait (visit, wait, etc).
+  waitDuration: "5s"
+
+
+# Some events are broadcasted here as well.
+Browser.events = new EventEmitter()
+# Make sure sending error events doesn't kill everything
+Browser.events.on "error", ->
 
 
 # Represents credentials for a given host.
