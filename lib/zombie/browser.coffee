@@ -5,6 +5,7 @@ require "./xpath"
 
 Assert            = require("./assert")
 createTabs        = require("./tabs")
+Console           = require("./console")
 Cookies           = require("./cookies")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
@@ -55,30 +56,71 @@ class Browser extends EventEmitter
     # Infinitely extensible browser hooks
     @hooks = new Hooks()
 
+
     # Open tabs.
     Object.defineProperty this, "tabs",
       value: createTabs(this)
 
-    # The browser event loop.
-    @_eventLoop = new EventLoop(this)
-    # The active browser window
-    active = null
 
-    # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
-    # reported while processing resources/JavaScript.
-    @on "error", (error)->
-      browser.errors.push(error)
-      browser.log(error.message, error.stack)
-      Browser.events.emit("error", error)
 
+    # -- Console/Logging --
+
+    # Shared by all windows.
+    @console = new Console(this)
+
+    # Message written to window.console.  Level is log, info, error, etc.
+    #
+    # Errors go to stderr, unless slient mode is on.
+    # Debug go to stdout, if debug mode is on.
+    # All other messages go to stdout, unless silent is on.
     @on "console", (level, message)->
+      unless browser.silent
+        switch level
+          when "error"
+            process.stderr.write(message + "\n")
+          when "debug"
+            if browser.debug
+              process.stdout.write(message + "\n")
+          else
+            process.stdout.write(message + "\n")
       Browser.events.emit("console", level, message)
 
+    # Message written to browser.log.
     @on "log", (message)->
       if browser.debug
         process.stdout.write("Zombie: #{message}\n")
       Browser.events.emit("log", message)
 
+
+    # -- Event loop --
+
+    # The browser event loop.
+    @eventLoop = new EventLoop(this)
+
+    # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
+    # reported while processing resources/JavaScript.
+    @on "error", (error)->
+      browser.errors.push(error)
+      browser.console.error(error.message, error.stack)
+      Browser.events.emit("error", error)
+
+    @on "done", (timedOut)->
+      if timedOut
+        browser.log "Event loop timed out"
+      else
+        browser.log "Event loop is empty"
+
+    @on "timeout", (fn, delay)->
+      browser.log "Fired timeout after #{delay}ms delay"
+
+    @on "interval", (fn, interval)->
+      browser.log "Fired interval every #{interval}ms"
+
+
+
+
+    # The active browser window
+    active = null
     # Window becomes inactive
     @on "active", (window)->
       return if active == window
@@ -112,18 +154,6 @@ class Browser extends EventEmitter
 
     @on "loaded", (document)->
       browser.log "Loaded document", document.location.href
-
-    @on "done", (timedOut)->
-      if timedOut
-        browser.log "Event loop timed out"
-      else
-        browser.log "Event loop is empty"
-
-    @on "timeout", (fn, delay)->
-      browser.log "Fired timeout after #{delay}ms delay"
-
-    @on "interval", (fn, interval)->
-      browser.log "Fired interval every #{interval}ms"
 
     @on "request", (resource)->
       target = resource.target
@@ -319,7 +349,7 @@ class Browser extends EventEmitter
     else
       waitDuration = @waitDuration
 
-    promise = @_eventLoop.wait(waitDuration, completionFunction)
+    promise = @eventLoop.wait(waitDuration, completionFunction)
 
     if callback
       promise.then(callback, callback)
@@ -1003,7 +1033,7 @@ class Browser extends EventEmitter
     process.stdout.write "History:\n#{indent @window.history.dump()}\n"
     process.stdout.write "Cookies:\n#{indent @_cookies.dump()}\n"
     process.stdout.write "Storage:\n#{indent @_storages.dump()}\n"
-    process.stdout.write "Eventloop:\n#{indent @window._eventLoop.dump()}\n"
+    process.stdout.write "Eventloop:\n#{indent @eventLoop.dump()}\n"
     if @document
       html = @document.outerHTML
       html = html.slice(0, 497) + "..." if html.length > 497

@@ -249,7 +249,7 @@ class EventQueue
   # timers    - Sparse array of timers (index is the timer handle)
   constructor: (@window)->
     @browser = @window.browser
-    @eventLoop = @browser._eventLoop
+    @eventLoop = @browser.eventLoop
     @timers = []
     @queue = []
     @expecting = []

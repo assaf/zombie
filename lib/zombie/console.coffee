@@ -13,7 +13,7 @@ class Console
     if expression
       return
     message = "Assertion failed:#{format("", Array.prototype.slice.call(arguments, 1)...)}"
-    @_output("error", message)
+    @browser.emit("console", "error", message)
     throw new Error(message)
 
   count: (name)->
@@ -21,15 +21,15 @@ class Console
     @counters[name] ||= 0
     @counters[name]++
     message = "#{name}: #{@counters[name]}"
-    @_output("count", message)
+    @browser.emit("console", "log", message)
     return
 
   debug: ->
-    @_output("debug", arguments...)
+    @browser.emit("console", "debug", format(arguments...))
     return
 
   error: ->
-    @_output("error", arguments...)
+    @browser.emit("console", "error", format(arguments...))
     return
 
   group: ->
@@ -37,11 +37,11 @@ class Console
   groupEnd: ->
 
   info: ->
-    @_output("info", arguments...)
+    @browser.emit("console", "info", format(arguments...))
     return
 
   log: ->
-    @_output("log", arguments...)
+    @browser.emit("console", "log", format(arguments...))
     return
 
   time: (name)->
@@ -53,36 +53,18 @@ class Console
       if start = @timers[name]
         delete @timers[name]
         message = "#{name}: #{Date.now() - start}ms"
-        @_output("time", message)
+        @browser.emit("console", "log", message)
     return
 
   trace: ->
     stack = (new Error).stack.split("\n")
     stack[0] = "console.trace()"
     message = stack.join("\n")
-    @_output("trace", message)
+    @browser.emit("console", "trace", message)
     return
 
   warn: ->
-    @_output("warn", arguments...)
-    return
-
-
-  # info, log and warn all go to stdout unless browser.silent
-  # debug goes to stdout only if debug flag is true
-  # error goes to stderr unless browser.silent
-  _output: (level, args...)->
-    message = format(args...)
-    @browser.emit("console", "level", message)
-    unless @browser.silent
-      switch level
-        when "error"
-          process.stderr.write(message + "\n")
-        when "debug"
-          if @browser.debug
-            process.stdout.write(message + "\n")
-        else
-          process.stdout.write(message + "\n")
+    @browser.emit("console", "warn", format(arguments...))
     return
 
 

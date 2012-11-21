@@ -67,7 +67,7 @@ createTabs = (browser)->
               if tabs.current == active
                 tabs.current = window
               active = window
-            browser._eventLoop.setActiveWindow(window)
+            browser.eventLoop.setActiveWindow(window)
 
           open = createHistory(browser, focus)
           window = open(name: name, opener: opener, url: url)

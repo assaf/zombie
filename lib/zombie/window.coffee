@@ -3,7 +3,6 @@
 # Also responsible for creating associated document and loading it.
 
 
-Console         = require("./console")
 createDocument  = require("./document")
 EventSource     = require("eventsource")
 History         = require("./history")
@@ -91,7 +90,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
     enumerable: true
 
   Object.defineProperty window, "console",
-    value: new Console(browser)
+    value: browser.console
     enumerable: true
 
   # javaEnabled, present in browsers, not in spec Used by Google Analytics see
@@ -214,7 +213,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
 
   # -- Event loop --
 
-  eventQueue = browser._eventLoop.createEventQueue(window)
+  eventQueue = browser.eventLoop.createEventQueue(window)
   Object.defineProperties window,
     _eventQueue:
       value: eventQueue
