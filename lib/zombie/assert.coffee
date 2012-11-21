@@ -18,6 +18,15 @@ assertMatch = (actual, expected, message)->
 class Assert
   constructor: (@browser)->
 
+  # Asserts the selected element(s) has the expected CSS class.
+  hasClass: (selector, expected, message)->
+    elements = @browser.queryAll(selector)
+    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
+    for element in elements
+      classNames = element.className.split(/\s+/)
+      assert ~classNames.indexOf(expected),
+        message || "Expected element '#{selector}' to have class #{expected}, found #{classNames.join(", ")}"
+
   # -- Location/response --
 
   # Asserts that a cookie with the given name has the expected value.
@@ -100,6 +109,7 @@ class Assert
   # Asserts that selected input field (text field, text area, etc) has the expected value.
   input: (selector, expected, message)->
     elements = @browser.queryAll(selector)
+    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
     for element in elements
       actual = element.value
       assertMatch actual, expected, message

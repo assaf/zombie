@@ -30,9 +30,7 @@ Zlib    = require("zlib")
 class Resources extends Array
   constructor: (browser)->
     @browser = browser
-    @filters = []
-    for i, filter of Resources.filters
-      @filters[i] = filter.bind(this)
+    @filters = Resources.filters.slice()
     @urlMatchers = []
 
 
@@ -218,12 +216,12 @@ class Resources extends Array
   # Processes the request using a chain of filters.
   runFilters: (request, callback)->
     beforeFilters = @filters.filter((fn)-> fn.length == 2)
-    beforeFilters.push(Resources.httpRequest.bind(this))
+    beforeFilters.push(Resources.makeHTTPRequest)
     afterFilters = @filters.filter((fn)-> fn.length == 3)
     response = null
 
     # Called to execute the next 'before' filter.
-    beforeFilterCallback = (error, responseFromFilter)->
+    beforeFilterCallback = (error, responseFromFilter)=>
       if error
         callback(error)
       else if responseFromFilter
@@ -234,12 +232,12 @@ class Resources extends Array
         # Use the next before filter.
         filter = beforeFilters.shift()
         try
-          filter(request, beforeFilterCallback)
+          filter.call(@browser, request, beforeFilterCallback)
         catch error
           callback(error)
 
     # Called to execute the next 'after' filter.
-    afterFilterCallback = (error)->
+    afterFilterCallback = (error)=>
       if error
         callback(error)
       else
@@ -247,7 +245,7 @@ class Resources extends Array
         if filter
           # Use the next after filter.
           try
-            filter(request, response, afterFilterCallback)
+            filter.call(@browser, request, response, afterFilterCallback)
           catch error
             callback(error)
         else
@@ -265,8 +263,6 @@ class Resources extends Array
 #
 # Filters used before the request take two arguments.  Filters used with the
 # response take three arguments.
-#
-# These filters are bound to the resources object.
 Resources.addFilter = (filter)->
   assert filter.call, "Filter must be a function"
   assert filter.length == 2 || filter.length == 3, "Filter function takes 2 (before filter) or 3 (after filter) arguments"
@@ -288,10 +284,10 @@ Resources.normalizeURL = (request, next)->
   else
     # Resolve URL relative to document URL/base, or for new browser, using
     # Browser.site
-    if @browser.document
-      request.url = HTML.resourceLoader.resolve(@browser.document, request.url)
+    if @document
+      request.url = HTML.resourceLoader.resolve(@document, request.url)
     else
-      request.url = URL.resolve(@browser.site || "http://localhost", request.url)
+      request.url = URL.resolve(@site || "http://localhost", request.url)
 
   if request.params
     method = request.method
@@ -315,11 +311,11 @@ Resources.normalizeURL = (request, next)->
 Resources.mergeHeaders = (request, next)->
   # Header names are down-cased and over-ride default
   headers =
-    "user-agent":       @browser.userAgent
+    "user-agent":       @userAgent
     "accept-encoding":  "identity" # No gzip/deflate support yet
 
   # Merge custom headers from browser first, followed by request.
-  for name, value of @browser.headers
+  for name, value of @headers
     headers[name.toLowerCase()] = value
   if request.headers
     for name, value of request.headers
@@ -331,7 +327,7 @@ Resources.mergeHeaders = (request, next)->
   headers.host = host
 
   # Apply authentication credentials
-  if credentials = @browser.authenticate(host, false)
+  if credentials = @authenticate(host, false)
     credentials.apply(headers)
 
   request.headers = headers
@@ -340,7 +336,7 @@ Resources.mergeHeaders = (request, next)->
 
 
 # Depending on the content type, this filter will create a request body from
-# request.params, set request.multipart for uploads, 
+# request.params, set request.multipart for uploads.
 Resources.createBody = (request, next)->
   method = request.method
   if method == "POST" || method == "PUT"
@@ -394,7 +390,7 @@ Resources.createBody = (request, next)->
 # Special URL handlers can be used to fail or delay a request, or mock a
 # response.
 Resources.specialURLHandlers = (request, next)->
-  for [url, handler] in @urlMatchers
+  for [url, handler] in @resources.urlMatchers
     if url == request.url
       handler(request, next)
       return
@@ -454,7 +450,7 @@ Resources.filters = [
 
 # Used to perform HTTP request (also supports file: resources).  This is always
 # the last 'before' filter.
-Resources.httpRequest = (request, callback)->
+Resources.makeHTTPRequest = (request, callback)->
   { protocol, hostname, pathname } = URL.parse(request.url)
   if protocol == "file:"
     # If the request is for a file:// descriptor, just open directly from the
@@ -479,7 +475,7 @@ Resources.httpRequest = (request, callback)->
   else
 
     # We're going to use cookies later when recieving response.
-    cookies = @browser.cookies(hostname, pathname)
+    cookies = @cookies(hostname, pathname)
     cookies.addHeader(request.headers)
 
     httpRequest =
@@ -488,7 +484,7 @@ Resources.httpRequest = (request, callback)->
       headers:        request.headers
       body:           request.body
       multipart:      request.multipart
-      proxy:          @browser.proxy
+      proxy:          @proxy
       jar:            false
       followRedirect: false
       encoding:       null
@@ -524,8 +520,8 @@ Resources.httpRequest = (request, callback)->
       if redirectURL
         # Handle redirection, make sure we're not caught in an infinite loop
         ++redirects
-        if redirects > @browser.maxRedirects
-          callback(new Error("More than #{@browser.maxRedirects} redirects, giving up"))
+        if redirects > @maxRedirects
+          callback(new Error("More than #{@maxRedirects} redirects, giving up"))
           return
 
         redirectHeaders = {}
@@ -543,7 +539,7 @@ Resources.httpRequest = (request, callback)->
           url:        redirectURL
           headers:    redirectHeaders
           redirects:  redirects
-        Resources.httpRequest.call(this, redirectRequest, callback)
+        Resources.makeHTTPRequest.call(this, redirectRequest, callback)
 
       else
 

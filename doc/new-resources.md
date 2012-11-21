@@ -162,8 +162,7 @@ If you need anything more complicated, you can access the pipeline directly via
 `browser.resources.filters`.
 
 You can add filters to all browsers via `Browser.Resources.addFilter`.  These
-filters are automatically added to every new `browser.resources` instance.  They
-are also bound to `browser.resources`:
+filters are automatically added to every new `browser.resources` instance.
 
   Browser.Resources.addFilter(function(request, response, next) {
     // Log the response body
@@ -172,3 +171,5 @@ are also bound to `browser.resources`:
   });
 
 That list of filters is available from `Browser.Resources.filters`.
+
+When filters are executed, `this` is set to the browser instance.

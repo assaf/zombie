@@ -27,8 +27,8 @@ test = (version)->
 
             <div id="response"></div>
 
-            <input id="edit-subject" value="subject">
-            <textarea id="edit-note">note</textarea>
+            <input id="edit-subject" value="Subject">
+            <textarea id="edit-note">Note</textarea>
 
             <form action="/zombie/dead-end">
               <button class="some-class">Click Me</button>
@@ -93,13 +93,13 @@ test = (version)->
 
     describe "setting val to empty", ->
       it "should set to empty", ->
-        @browser.assert.input "input#edit-subject", "subject"
+        @browser.assert.input "#edit-subject", "Subject"
         @browser.window.$("input#edit-subject").val("")
-        @browser.assert.input "input#edit-subject", ""
+        @browser.assert.input "#edit-subject", ""
 
-        @browser.assert.input "input#edit-note", "Note"
+        @browser.assert.input "#edit-note", "Note"
         @browser.window.$("textarea#edit-note").val("")
-        @browser.assert.input "input#edit-note", ""
+        @browser.assert.input "#edit-note", ""
 
 
     # See issue 235 https://github.com/assaf/zombie/issues/235
