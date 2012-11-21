@@ -49,12 +49,6 @@ class Browser extends EventEmitter
     @hooks = new Hooks()
 
 
-    # Open tabs.
-    Object.defineProperty this, "tabs",
-      value: createTabs(this)
-
-
-
     # -- Console/Logging --
 
     # Shared by all windows.
@@ -147,6 +141,10 @@ class Browser extends EventEmitter
 
 
     # -- Tabs/Windows --
+
+    # Open tabs.
+    tabs = createTabs(this)
+    Object.defineProperty this, "tabs", value: tabs
 
     # The active browser window
     active = null
@@ -1005,6 +1003,7 @@ class Browser extends EventEmitter
 
 # Version number.  We get this from package.json.
 Browser.VERSION = JSON.parse(File.readFileSync("#{__dirname}/../../package.json")).version
+
 
 # -- Global options --
 

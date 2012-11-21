@@ -2,6 +2,7 @@
 
 assert        = require("assert")
 { isRegExp }  = require("util")
+URL           = require("url")
 
 
 # Used to assert that actual matches expected value, where expected may be a function or a string.
@@ -11,7 +12,7 @@ assertMatch = (actual, expected, message)->
   else if typeof(expected) == "function"
     assert expected(actual), message
   else
-    assert.equal actual, expected, message
+    assert.deepEqual actual, expected, message
 
 
 class Assert
@@ -24,10 +25,6 @@ class Assert
     actual = @browser.cookies().get(name)
     message ||= "Expected cooking #{name} to have the value '#{expected}', found '#{actual}'"
     assertMatch actual, expected, message
-
-  # Assert that document URL has the expected pathname.
-  pathname: (expected, message)->
-    assertMatch @browser.location.pathname, expected, message
 
   # Asserts that browser was redirected when retrieving the current page.
   redirected: (message)->
@@ -42,8 +39,17 @@ class Assert
     assert.equal @browser.statusCode, 200, message
 
   # Asserts that current page has the expected URL.
-  url: (url, message)->
-    assert.equal @browser.location, url, message
+  #
+  # Expected value can be a String, RegExp, Function or an object, in which case
+  # object properties are tested against the actual URL (e.g. pathname, host,
+  # query).
+  url: (expected, message)->
+    if typeof(expected) == "string" || isRegExp(expected) || typeof(expected) == "function"
+      assertMatch @browser.location.href, expected, message
+    else
+      url = URL.parse(@browser.location.href, true)
+      for key, value of expected
+        assertMatch url[key], value, message
 
 
   # -- Document contents --

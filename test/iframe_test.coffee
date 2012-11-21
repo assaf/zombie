@@ -143,7 +143,7 @@ describe "IFrame", ->
           @browser.clickLink "self", done
 
       it "should open link", ->
-        @browser.assert.pathname "/target/_self"
+        @browser.assert.url pathname: "/target/_self"
 
       it "should open link in same window", ->
         assert.equal @browser.tabs.index, 0
@@ -158,7 +158,7 @@ describe "IFrame", ->
           @browser.clickLink "blank", done
 
       it "should open link", ->
-        @browser.assert.pathname "/target/_blank"
+        @browser.assert.url pathname: "/target/_blank"
 
       it "should open link in new window", ->
         assert.equal @browser.tabs.length, 2
@@ -177,7 +177,7 @@ describe "IFrame", ->
           @browser.wait done
 
       it "should open link", ->
-        @browser.assert.pathname "/target/_top"
+        @browser.assert.url pathname: "/target/_top"
 
       it "should open link in top window", ->
         assert.equal @browser.tabs.length, 1
@@ -198,7 +198,7 @@ describe "IFrame", ->
         assert.equal @browser.window.frames["child"].location.pathname, "/target/_parent"
 
       it "should open link in child window", ->
-        @browser.assert.pathname "/iframe/top"
+        @browser.assert.url pathname: "/iframe/top"
         assert.equal @browser.tabs.length, 1
 
 
@@ -213,7 +213,7 @@ describe "IFrame", ->
             .then(done, done)
 
         it "should open link", ->
-          @browser.assert.pathname "/target/new-window"
+          @browser.assert.url pathname: "/target/new-window"
 
         it "should open link in new window", ->
           assert.equal @browser.tabs.length, 2
@@ -233,7 +233,7 @@ describe "IFrame", ->
             .then(done, done)
 
         it "should open link", ->
-          @browser.assert.pathname "/target/existing-window"
+          @browser.assert.url pathname: "/target/existing-window"
 
         it "should open link in existing window", ->
           assert.equal @browser.tabs.length, 2

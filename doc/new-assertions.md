@@ -74,10 +74,6 @@ Asserts that selected element has the focus.
 Asserts that selected input field (text field, text area, etc) has the expected
 value.
 
-`browser.assert.pathname(expected, message)`
-
-Assert that document URL has the expected pathname.
-
 `browser.assert.prompted(messageShown, message)`
 
 Assert that browser prompted with a given message.
@@ -101,6 +97,15 @@ Assert that text content of selected element(s) matche the expected value.
 `browser.assert.url(url, message)`
 
 Asserts that current page has the expected URL.
+
+The expected URL value can be a string, regular expression, or function just
+like every other assertion.  It can also be an object, in which case, individual
+properties are matched against the URL.
+
+For example:
+
+  browser.assert.url({ pathame: "/resource" });
+  browser.assert.url({ query: { name: "joedoe" } });
 
 
 You can add more assertions by adding methods to the prototype of
