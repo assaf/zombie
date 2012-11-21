@@ -10,6 +10,7 @@ Cookies           = require("./cookies")
 EventLoop         = require("./eventloop")
 { format }        = require("util")
 FS                = require("fs")
+Hooks             = require("./hooks")
 { HTML5 }         = require("html5")
 Interact          = require("./interact")
 JSDOM             = require("jsdom")
@@ -51,6 +52,10 @@ class Browser extends EventEmitter
     # Used for assertions
     @assert = new Assert(this)
 
+    # Infinitely extensible browser hooks
+    @hooks = new Hooks()
+
+    # Open tabs.
     Object.defineProperty this, "tabs",
       value: createTabs(this)
 

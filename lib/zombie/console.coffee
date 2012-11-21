@@ -3,6 +3,7 @@
 
 
 { format } = require("util")
+Hooks      = require("./hooks")
 
 
 class Console
@@ -12,9 +13,7 @@ class Console
     if expression
       return
     message = "Assertion failed:#{format("", Array.prototype.slice.call(arguments, 1)...)}"
-    @browser.emit("console", "assert", message)
-    unless @browser.silent
-      process.stderr.write(message + "\n")
+    @_output("error", message)
     throw new Error(message)
 
   count: (name)->
@@ -22,59 +21,69 @@ class Console
     @counters[name] ||= 0
     @counters[name]++
     message = "#{name}: #{@counters[name]}"
-    @browser.emit("console", "count", message)
-    unless @browser.silent
-      process.stdout.write(message + "\n")
+    @_output("count", message)
+    return
+
+  debug: ->
+    @_output("debug", arguments...)
+    return
+
+  error: ->
+    @_output("error", arguments...)
+    return
 
   group: ->
   groupCollapsed: ->
   groupEnd: ->
+
+  info: ->
+    @_output("info", arguments...)
+    return
+
+  log: ->
+    @_output("log", arguments...)
+    return
 
   time: (name)->
     @timers ||= {}
     @timers[name] = Date.now()
 
   timeEnd: (name)->
-    return unless @timers
-    start = @timers[name]
-    return unless start
-    delete @timers[name]
-    message = "#{name}: #{Date.now() - start}ms"
-    @browser.emit("console", "time", message)
-    unless @browser.silent
-      process.stdout.write(message + "\n")
+    if @timers
+      if start = @timers[name]
+        delete @timers[name]
+        message = "#{name}: #{Date.now() - start}ms"
+        @_output("time", message)
+    return
 
   trace: ->
     stack = (new Error).stack.split("\n")
     stack[0] = "console.trace()"
     message = stack.join("\n")
-    @browser.emit("console", "trace", message)
+    @_output("trace", message)
+    return
+
+  warn: ->
+    @_output("warn", arguments...)
+    return
+
+
+  # info, log and warn all go to stdout unless browser.silent
+  # debug goes to stdout only if debug flag is true
+  # error goes to stderr unless browser.silent
+  _output: (level, args...)->
+    message = format(args...)
+    @browser.emit("console", "level", message)
     unless @browser.silent
-      process.stdout.write(message + "\n")
-
-
-# info, log and warn all go to stdout unless browser.silent
-for level in ["info", "log", "warn"]
-  do (level)->
-    Console.prototype[level] = ->
-      message = format(arguments...)
-      @browser.emit("console", level, message)
-      unless @browser.silent
-        process.stdout.write(message + "\n")
-
-# debug goes to stdout but only if browser.debug
-Console.prototype.debug = ->
-  message = format(arguments...)
-  @browser.emit("console", "debug", message)
-  if @browser.debug && ! @browser.silent
-    process.stdout.write(message + "\n")
-
-# error goes to stderr unless browser.silent
-Console.prototype.error = ->
-  message = format(arguments...)
-  @browser.emit("console", "error", message)
-  unless @browser.silent
-    process.stderr.write(message + "\n")
+      switch level
+        when "error"
+          process.stderr.write(message + "\n")
+        when "debug"
+          if @browser.debug
+            process.stdout.write(message + "\n")
+        else
+          process.stdout.write(message + "\n")
+    return
 
 
 module.exports = Console
