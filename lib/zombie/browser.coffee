@@ -25,8 +25,8 @@ URL               = require("url")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
-BROWSER_OPTIONS = ["debug", "headers", "htmlParser", "loadCSS", "waitDuration",
-                   "proxy", "referer", "runScripts", "silent", "site", "userAgent",
+BROWSER_OPTIONS = ["debug", "features", "headers", "htmlParser", "waitDuration",
+                   "proxy", "referer", "silent", "site", "userAgent",
                    "maxRedirects"]
 
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
@@ -189,7 +189,6 @@ class Browser extends EventEmitter
       browser.log "Submit form to #{url}"
 
     # Sets the browser options.
-    @runScripts = true
     for name in BROWSER_OPTIONS
       if options.hasOwnProperty(name)
         @[name] = options[name]
@@ -199,6 +198,20 @@ class Browser extends EventEmitter
     # You can extend browser here.
     @hooks.run("created", this)
 
+
+  # Returns true if the given feature is enabled.
+  #
+  # If the feature is listed, then it is enabled.  If the feature is listed
+  # with "no-" prefix, then it is disabled.  If the feature is missing, return
+  # the default value.
+  hasFeature: (name, ifMissing = true)->
+    if @features
+      features = @features.split(/\s+/)
+      if ~features.indexOf(name)
+        return true
+      if ~features.indexOf("no-#{name}")
+        return false
+    return ifMissing
 
 
   # Changes the browser options, and calls the function with a callback (reset).  When you're done processing, call the

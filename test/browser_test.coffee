@@ -195,16 +195,17 @@ describe "Browser", ->
     describe "per call", ->
       before (done)->
         @browser = new Browser()
-        @browser.visit "http://localhost:3003/browser/scripted", { runScripts: false }, done
+        @browser.visit "http://localhost:3003/browser/scripted", { features: "no-scripts" }, done
 
       it "should set options for the duration of the request", ->
         @browser.assert.text "title", "Whatever"
       it "should reset options following the request", ->
-        assert.equal @browser.runScripts, true
+        assert.equal @browser.features, "scripts no-css"
 
     describe "global", ->
       before (done)->
-        Browser.default.runScripts = false
+        @features = Browser.default.features
+        Browser.default.features = "no-scripts"
         @browser = new Browser()
         @browser.visit "/browser/scripted", done
 
@@ -212,7 +213,7 @@ describe "Browser", ->
         @browser.assert.text "title", "Whatever"
 
       after ->
-        Browser.default.runScripts = true
+        Browser.default.features = @features
 
     describe "user agent", ->
 
@@ -535,11 +536,10 @@ describe "Browser", ->
     it "should use same options", ->
       assert.equal @browser.debug, @forked.debug
       assert.equal @browser.htmlParser, @forked.htmlParser
-      assert.equal @browser.loadCSS, @forked.loadCSS
       assert.equal @browser.maxWait, @forked.maxWait
       assert.equal @browser.proxy, @forked.proxy
       assert.equal @browser.referer, @forked.referer
-      assert.equal @browser.runScripts, @forked.runScripts
+      assert.equal @browser.features, @forked.features
       assert.equal @browser.silent, @forked.silent
       assert.equal @browser.site, @forked.site
       assert.equal @browser.userAgent, @forked.userAgent

@@ -357,7 +357,7 @@ describe "Scripts", ->
       brains.get "/script/no-scripts.js", (req, res)->
         res.send "document.title = document.title + 'One'"
 
-      @browser = new Browser(runScripts: false)
+      @browser = new Browser(features: "no-scripts")
       @browser.visit "http://localhost:3003/script/order", done
 
     it "should not run scripts", ->

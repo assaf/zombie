@@ -23,16 +23,16 @@ createDocument = (browser, window)->
       FetchExternalResources:   ["iframe"]
     parser:                     browser.htmlParser
 
-  if browser.runScripts
+  if browser.hasFeature("scripts", true)
     jsdomOpts.features.ProcessExternalResources.push("script")
     jsdomOpts.features.FetchExternalResources.push("script")
-  if browser.loadCSS
+  if browser.hasFeature("css", false)
     jsdomOpts.features.FetchExternalResources.push("css")
 
   document = JSDOM.jsdom(null, HTML, jsdomOpts)
 
   # Add support for running in-line scripts
-  if browser.runScripts
+  if browser.hasFeature("scripts", true)
     Scripts.addInlineScriptSupport(document)
 
 
