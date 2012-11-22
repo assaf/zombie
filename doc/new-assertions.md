@@ -65,7 +65,7 @@ value of the expression matches the expected value.
 
 Asserts that the global (window) property has the expected value.
 
-`browser.assert.inFocus(selector, message)`
+`browser.assert.hasFocus(selector, message)`
 
 Asserts that selected element has the focus.
 

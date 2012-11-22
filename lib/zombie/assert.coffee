@@ -125,7 +125,7 @@ class Assert
   # -- Window --
 
   # Asserts that selected element has the focus.
-  inFocus: (selector, message)->
+  hasFocus: (selector, message)->
     if selector
       element = @browser.query(selector)
       assert.equal @browser.activeElement, element, "Expected element '#{selector}' to have the focus'"
