@@ -11,7 +11,6 @@ Cookies           = require("./cookies")
 EventLoop         = require("./eventloop")
 { format }        = require("util")
 File              = require("fs")
-Hooks             = require("./hooks")
 { HTML5 }         = require("html5")
 Interact          = require("./interact")
 HTML              = require("jsdom").dom.level3.html

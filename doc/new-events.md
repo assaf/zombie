@@ -80,15 +80,9 @@ Emitted whenever a DOM event is fired on the target element, document or window.
 
 
 The browser now acts as an EventEmitter and windows report a variety of events:
-loading - document is loading into window
-loaded - document loaded
-missing - document not found
-event - event fired on the window/document
 error - error reported
 executed - script executed
 prompt - user was prompted (alert, confirm, prompt)
-storage - change to local or session storage
-cookie - change to a cookie value
 xhr - XHR state change (open, loading and loaded)
 timeout - timeout or interval fired
 submit - form submitted
