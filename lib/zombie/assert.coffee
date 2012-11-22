@@ -18,15 +18,6 @@ assertMatch = (actual, expected, message)->
 class Assert
   constructor: (@browser)->
 
-  # Asserts the selected element(s) has the expected CSS class.
-  hasClass: (selector, expected, message)->
-    elements = @browser.queryAll(selector)
-    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
-    for element in elements
-      classNames = element.className.split(/\s+/)
-      assert ~classNames.indexOf(expected),
-        message || "Expected element '#{selector}' to have class #{expected}, found #{classNames.join(", ")}"
-
   # -- Location/response --
 
   # Asserts that a cookie with the given name has the expected value.
@@ -71,14 +62,6 @@ class Assert
       actual = element.getAttribute(name)
       assertMatch actual, expected, message
 
-  # Assert that the style property of all elements that match selector has the expected value.
-  css: (selector, style, expected, message)->
-    elements = @browser.queryAll(selector)
-    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
-    for element in elements
-      actual = element.style[style]
-      assertMatch actual, expected, message
-
   # Assert that element matching selector exists.
   element: (selector, message)->
     element = @browser.query(selector)
@@ -105,6 +88,25 @@ class Assert
       if count.atMost
         message ||= "Expected at most #{count.atMost} elements matching '#{selector}', found #{elements.length}"
         assert elements.length <= count.atMost, message
+
+  # Asserts the selected element(s) has the expected CSS class.
+  hasClass: (selector, expected, message)->
+    elements = @browser.queryAll(selector)
+    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
+    for element in elements
+      classNames = element.className.split(/\s+/)
+      assert ~classNames.indexOf(expected),
+        message || "Expected element '#{selector}' to have class #{expected}, found #{classNames.join(", ")}"
+
+  # Asserts the selected element(s) has the expected value for the named style
+  # property.
+  style: (selector, style, expected, message)->
+    elements = @browser.queryAll(selector)
+    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
+    for element in elements
+      actual = element.style[style]
+      assertMatch actual, expected,
+        message || "Expected element '#{selector}' to have style #{style} value of #{expected}, found #{actual}"
 
   # Asserts that selected input field (text field, text area, etc) has the expected value.
   input: (selector, expected, message)->

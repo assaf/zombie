@@ -37,10 +37,6 @@ Fails if no elements found.
 
 Asserts that a cookie with the given name has the expected value.
 
-`browser.assert.css(selector, style, expected, message)`
-
-Assert that the style property of the selected element(s) the expected value.
-
 `browser.assert.element(selector, message)`
 
 Assert that an element matching selector exists.
@@ -89,6 +85,10 @@ Assert that the last page load returned status code 200.
 `browser.assert.status(code, message)`
 
 Assert that the last page load returned the expected status code.
+
+`browser.assert.style(selector, style, expected, message)`
+
+Assert that the style property of the selected element(s) the expected value.
 
 `browser.assert.text(selector, expected, message)`
 
