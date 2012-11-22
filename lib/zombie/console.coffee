@@ -2,8 +2,8 @@
 # console event for each output.
 
 
-{ format } = require("util")
-Hooks      = require("./hooks")
+{ format, inspect } = require("util")
+Hooks               = require("./hooks")
 
 
 class Console
@@ -35,6 +35,10 @@ class Console
   group: ->
   groupCollapsed: ->
   groupEnd: ->
+
+  dir: (object)->
+    @browser.emit("console", "log", inspect(object))
+    return
 
   info: ->
     @browser.emit("console", "info", format(arguments...))
