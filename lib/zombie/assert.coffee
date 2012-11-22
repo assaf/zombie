@@ -73,8 +73,12 @@ class Assert
   # atLeast - Expect to find at least that many elements
   # atMost  - Expect to find at most that many elements
   # exactly - Expect to find exactly that many elements
+  #
+  # If count is unspecified, defaults to at least one.
   elements: (selector, count, message)->
     elements = @browser.queryAll(selector)
+    if count == undefined
+      count = { atLeast: 1 }
     if count.exactly
       count = count.exactly
     if typeof(count) == "number"
