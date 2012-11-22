@@ -3,7 +3,6 @@
 
 
 { format, inspect } = require("util")
-Hooks               = require("./hooks")
 
 
 class Console

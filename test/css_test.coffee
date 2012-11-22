@@ -21,16 +21,16 @@ describe "CSS", ->
 
     it "should be formatted string", ->
       @browser.query("#styled").style.opacity = .55
-      @browser.assert.css "#styled", "opacity", "0.55"
+      @browser.assert.style "#styled", "opacity", "0.55"
     it "should not accept non-numbers", ->
       @browser.query("#styled").style.opacity = ".46"
       @browser.query("#styled").style.opacity = "four-six"
-      @browser.assert.css "#styled", "opacity", "0.46"
+      @browser.assert.style "#styled", "opacity", "0.46"
     it "should default to empty string", ->
       style = @browser.query("#styled").style
       style.opacity = 1.0
       style.opacity = undefined
-      @browser.assert.css "#styled", "opacity", ""
+      @browser.assert.style "#styled", "opacity", ""
       style.opacity = null
-      @browser.assert.css "#styled", "opacity", ""
+      @browser.assert.style "#styled", "opacity", ""
 

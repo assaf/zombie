@@ -113,21 +113,19 @@ class Browser extends EventEmitter
     # All the resources loaded by this browser.
     @resources = new Resources(this)
 
-    @on "request", (resource)->
-      target = resource.target
+    @on "request", (request, target)->
       if target && target.window && target.window.top == target.window.getGlobal()
         # Loading the document of the top-level window: we're going to set all
         # these fields when we get the response, but first need to reset them,
         # e.g. so code testing the expected values don't find values from a
         # previous request.
-        browser.request = resource.request
+        browser.request = request
         browser.redirected = undefined
         browser.statusCode = undefined
         browser.success = false
         browser.source = undefined
 
-    @on "response", (resource)->
-      { request, response, target } = resource
+    @on "response", (request, response, target)->
       if target && target.window && target.window.top == target.window.getGlobal()
         # Loading the document of the top-level window: this is the most
         # important resource, so we expose the outcome of loading it directly
@@ -138,6 +136,9 @@ class Browser extends EventEmitter
         browser.success = response.statusCode >= 200 && response.statusCode < 300
         browser.source = response.body
       browser.log "#{request.method} #{request.url} => #{response.statusCode}"
+
+    @on "redirect", (request, response)->
+      browser.log "#{request.method} #{request.url} => #{response.statusCode} #{response.url}"
 
 
     # -- Tabs/Windows --

@@ -1,5 +1,7 @@
 # Retrieve resources (HTML pages, scripts, XHR, etc).
 #
+# If count is unspecified, defaults to at least one.
+#
 # Each browser has a resources objects that allows you to:
 # - Inspect the history of retrieved resources, useful for troubleshooting
 #   issues related to resource loading
@@ -59,22 +61,21 @@ class Resources extends Array
       [options, callback] = [{}, options]
 
     request =
-      method:  method.toUpperCase()
-      url:     url
-      headers: options.headers || {}
-      params:  options.params
-      body:    options.body
-      time:    Date.now()
-      timeout: options.timeout
+      method:     method.toUpperCase()
+      url:        url
+      headers:    options.headers || {}
+      params:     options.params
+      body:       options.body
+      time:       Date.now()
+      timeout:    options.timeout
 
     resource =
       request:    request
-      redirects:  0
       target:     options.target
     @push(resource)
-    @browser.emit("request", resource)
+    @browser.emit("request", request, options.target)
 
-    this.runFilters request, (error, response)=>
+    @runFilters request, (error, response)=>
       if error
         resource.error = error
         callback(error)
@@ -87,9 +88,10 @@ class Resources extends Array
         response.time       = Date.now()
         resource.response = response
 
-        @browser.emit("response", resource)
+        @browser.emit("response", request, response, options.target)
         callback(null, resource.response)
     return
+
 
 
   # GET request.
@@ -124,8 +126,8 @@ class Resources extends Array
   # You can use this to delay a response from a given URL.
   #
   # url   - URL to delay
-  # delay - Delay in milliseconds
-  delay: (url, delay)->
+  # delay - Delay in milliseconds (defaults to 10)
+  delay: (url, delay = 10)->
     delayTheResponse = (request, next)->
       setTimeout(next, delay)
     @urlMatchers.push([url, delayTheResponse])
@@ -136,6 +138,10 @@ class Resources extends Array
   # url     - The URL to mock
   # result  - The result to return (statusCode, headers, body)
   mock: (url, result)->
+    result ||=
+      statusCode: 200
+      headers:    {}
+      body:       ""
     mockTheResponse = (request, next)->
       next(null, result)
     @urlMatchers.push([url, mockTheResponse])
@@ -512,12 +518,12 @@ Resources.makeHTTPRequest = (request, callback)->
         when 301, 307
           # Do not follow POST redirects automatically, only GET/HEAD
           if request.method == "GET" || request.method == "HEAD"
-            redirectURL = URL.resolve(request.url, response.headers.location)
+            response.url = URL.resolve(request.url, response.headers.location)
         when 302, 303
           # Follow redirect using GET (e.g. after form submission)
-          redirectURL = URL.resolve(request.url, response.headers.location)
+          response.url = URL.resolve(request.url, response.headers.location)
 
-      if redirectURL
+      if response.url
         # Handle redirection, make sure we're not caught in an infinite loop
         ++redirects
         if redirects > @maxRedirects
@@ -533,13 +539,16 @@ Resources.makeHTTPRequest = (request, callback)->
         delete redirectHeaders["content-type"]
         delete redirectHeaders["content-length"]
         delete redirectHeaders["content-transfer-encoding"]
-
+        # Redirect must follow the entire chain of handlers.
         redirectRequest =
           method:     "GET"
-          url:        redirectURL
+          url:        response.url
           headers:    redirectHeaders
           redirects:  redirects
-        Resources.makeHTTPRequest.call(this, redirectRequest, callback)
+          time:       request.time
+          timeout:    request.timeout
+        @emit("redirect", request, response)
+        @resources.runFilters(redirectRequest, callback)
 
       else
 
