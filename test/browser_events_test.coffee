@@ -152,5 +152,44 @@ describe "Browser instance", ->
       assert.equal events.active.name, "open-test"
 
 
+  describe "loading a document", ->
+    before (done)->
+      brains.get "/browser-events/document", (req, res)->
+        res.send "Very well then"
+
+      browser.on "loaded", (document)->
+        events.loaded = document
+
+      browser.visit "/browser-events/document", done
+
+    it "should receive loaded event", ->
+      document = events.loaded
+      assert.equal document.URL, "http://localhost:3003/browser-events/document"
+
+
+  describe "firing an event", ->
+    before (done)->
+      brains.get "/browser-events/document", (req, res)->
+        res.send "Very well then"
+
+      browser.on "event", (event, target)->
+        if event.type == "click"
+          events.click = [event, target]
+
+      browser.visit "/browser-events/document", ->
+        browser.fire("body", "click")
+        done()
+
+    it "should receive DOM event", ->
+      event = events.click[0]
+      assert.equal event.type, "click"
+
+    it "should receive DOM event target", ->
+      target = events.click[1]
+      assert.equal target, browser.document.body
+
+
+
+
   after ->
     browser.destroy()

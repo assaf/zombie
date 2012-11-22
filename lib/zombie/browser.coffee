@@ -109,6 +109,10 @@ class Browser extends EventEmitter
     @on "redirect", (request, response)->
       browser.log "#{request.method} #{request.url} => #{response.statusCode} #{response.url}"
 
+    # Document loaded.
+    @on "loaded", (document)->
+      browser.log "Loaded document", document.location.href
+
 
     # -- Tabs/Windows --
 
@@ -123,8 +127,6 @@ class Browser extends EventEmitter
     @on "closed", (window)->
       browser.log "Closed window", window.location.href, window.name || ""
 
-    # The active browser window
-    active = null
     # Window becomes inactive
     @on "active", (window)->
       window._eventQueue.enqueue ->
@@ -145,10 +147,6 @@ class Browser extends EventEmitter
       onblur = window.document.createEvent("HTMLEvents")
       onblur.initEvent("blur", false, false)
       window.dispatchEvent(onblur)
-
-
-    @on "loaded", (document)->
-      browser.log "Loaded document", document.location.href
 
 
     # -- Event loop --

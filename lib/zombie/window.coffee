@@ -369,6 +369,21 @@ loadDocument = ({ document, history, url, method, encoding, params })->
       done(new Error("Cannot load resource #{url}, unsupported protocol"))
 
 
+# Wrap dispatchEvent to support inContext and error handling.
+jsdomDispatchElement = HTML.Element.prototype.dispatchEvent
+HTML.Node.prototype.dispatchEvent = (event)->
+  target = this
+  document = target.ownerDocument || target.document
+  if document && document.window
+    document.window.browser.emit("event", event, target)
+    return document.window._evaluate ->
+      return jsdomDispatchElement.call(target, event)
+  else
+    # Some events are fired when the document is first created, but still
+    # doesn't have a window.
+    return jsdomDispatchElement.call(target, event)
+
+
 # Screen object provides access to screen dimensions
 class Screen
   constructor: ->
@@ -386,18 +401,6 @@ class Screen
 
 # File access, not implemented yet
 class File
-
-
-# Wrap dispatchEvent to support inContext and error handling.
-jsdomDispatchElement = HTML.Element.prototype.dispatchEvent
-HTML.Node.prototype.dispatchEvent = (event)->
-  target = this
-  document = target.ownerDocument || target.document
-  if document && document.window
-    return document.window._evaluate ->
-      jsdomDispatchElement.call(target, event)
-  else
-    return jsdomDispatchElement.call(target, event)
 
 
 module.exports = createWindow

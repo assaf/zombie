@@ -69,6 +69,14 @@ Emitted when this window becomes the active window.
 
 Emitted when this window is no longer the active window.
 
+`loaded (document)`
+
+Emitted when a document is loaded into a window or frame.
+
+`event (event, target)`
+
+Emitted whenever a DOM event is fired on the target element, document or window.
+
 
 
 The browser now acts as an EventEmitter and windows report a variety of events:
