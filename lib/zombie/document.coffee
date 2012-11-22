@@ -2,38 +2,37 @@
 
 JSDOM   = require("jsdom")
 Scripts = require("./scripts")
-
-HTML        = JSDOM.dom.level3.html
+HTML     = JSDOM.dom.level3.html
 
 
 # Creates an returns a new document attached to the window.
 #
 # browser - The browser
 # window  - The window
-createDocument = (browser, window)->
-  # Create new DOM Level 3 document, add features (load external resources,
-  # etc) and associate it with current document. From this point on the browser
-  # sees a new document, client register event handler for
-  # DOMContentLoaded/error.
-  jsdomOpts =
-    deferClose:                 true
-    features:
-      MutationEvents:           "2.0"
-      ProcessExternalResources: []
-      FetchExternalResources:   ["iframe"]
-    parser:                     browser.htmlParser
+# referer - Referring URL
+createDocument = (browser, window, referer)->
+  features =
+    MutationEvents:           "2.0"
+    ProcessExternalResources: []
+    FetchExternalResources:   []
+    QuerySelector:            true
+
+  # JSDOM's way of creating a document.
+  jsdomBrowser = JSDOM.browserAugmentation(HTML, parser: browser.htmlParser)
+  # HTTP header Referer, but Document property referrer
+  document = new jsdomBrowser.HTMLDocument(referrer: referer)
 
   if browser.hasFeature("scripts", true)
-    jsdomOpts.features.ProcessExternalResources.push("script")
-    jsdomOpts.features.FetchExternalResources.push("script")
-  if browser.hasFeature("css", false)
-    jsdomOpts.features.FetchExternalResources.push("css")
-
-  document = JSDOM.jsdom(null, HTML, jsdomOpts)
-
-  # Add support for running in-line scripts
-  if browser.hasFeature("scripts", true)
+    features.ProcessExternalResources.push("script")
+    features.FetchExternalResources.push("script")
+    # Add support for running in-line scripts
     Scripts.addInlineScriptSupport(document)
+
+  if browser.hasFeature("css", false)
+    features.FetchExternalResources.push("css")
+  if browser.hasFeature("iframe", true)
+    features.FetchExternalResources.push("iframe")
+  JSDOM.applyDocumentFeatures(document, features)
 
 
   # Tie document and window together

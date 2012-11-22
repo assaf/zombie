@@ -69,9 +69,15 @@ Emitted when this window becomes the active window.
 
 Emitted when this window is no longer the active window.
 
+`loading (document)`
+
+Emitted when a document is loaded into a window or frame.  This event is emitted
+with an empty Document object, before parsing the HTML response.
+
 `loaded (document)`
 
-Emitted when a document is loaded into a window or frame.
+Emitted when a document is loaded into a window or frame.  This event is emitted
+after the HTML is parsed and loaded into the Document object.
 
 `event (event, target)`
 

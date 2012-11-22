@@ -46,18 +46,21 @@ addInlineScriptSupport = (document)->
   # doesn't have any of the script contents.
   document.addEventListener "DOMNodeInserted", (event)->
     element = event.target # Node being inserted
-    return unless element.tagName == "SCRIPT"
     # Let JSDOM deal with script tags with src attribute
-    return if element.src
-    window = document.window
-    # Process scripts in order.
-    loaded = (error, filename)->
-      # Only process supported languages
-      language = HTML.languageProcessors[element.language]
-      code = element.text
-      if code && language
-        language(element, code, filename)
-    HTML.resourceLoader.enqueue(element, loaded, document.location.href)()
+    if element.tagName == "SCRIPT" && !element.src
+      # We don't yet have access to the script contents, element.text returns
+      # nothing, so we need to wait a bit.
+      executeInlineScript = (error, filename)->
+        # Only process supported languages
+        language = HTML.languageProcessors[element.language]
+        code = element.text
+        if code && language
+          language(element, code, filename)
+      # Besides waiting (nextTick), we need to make sure all scripts are
+      # executed in order and the page waits for this script to execute before
+      # firing DCL (from inside document.close).
+      executeInOrder = HTML.resourceLoader.enqueue(element, executeInlineScript, document.location.href)
+      process.nextTick(executeInOrder)
     return
 
 
@@ -68,7 +71,7 @@ HTML.resourceLoader.load = (element, href, callback)->
   document = element.ownerDocument
   window = document.parentWindow
   ownerImplementation = document.implementation
-  tagName = element.tagName.toLowerCase() 
+  tagName = element.tagName.toLowerCase()
 
   if ownerImplementation.hasFeature("FetchExternalResources", tagName)
     # This guarantees that all scripts are executed in order

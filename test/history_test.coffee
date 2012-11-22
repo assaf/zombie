@@ -20,7 +20,7 @@ describe "History", ->
       res.redirect "/history/boo?redirected=true"
 
     brains.get "/history/redirect_back", (req, res)->
-      res.redirect req.headers["referer"]
+      res.redirect req.headers.referer
 
     brains.get "/history/referer", (req, res)->
       res.send "<html><title>#{req.headers["referer"]}</title></html>"
@@ -370,7 +370,7 @@ describe "History", ->
         @browser.visit "http://localhost:3003/history/referer", done
 
       it "should be empty", ->
-        @browser.assert.text "title", "undefined"
+        @browser.assert.text "title", ""
 
       describe "second page", ->
         before (done)->

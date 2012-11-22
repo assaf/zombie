@@ -1,8 +1,4 @@
-# Create and return a new Window object.
-#
-# Also responsible for creating associated document and loading it.
-
-
+# 
 createDocument  = require("./document")
 EventSource     = require("eventsource")
 History         = require("./history")
@@ -49,7 +45,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
   # -- Document --
 
   # Each window has its own document
-  document = createDocument(browser, window)
+  document = createDocument(browser, window, history.url || browser.referer)
   Object.defineProperty window, "document",
     value: document
     enumerable: true
@@ -291,7 +287,6 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
 loadDocument = ({ document, history, url, method, encoding, params })->
   window = document.window
   browser = window.browser
-  referer = history.url || browser.referer
 
   # Called on wrap up to update browser with outcome.
   done = (error, url)->
@@ -323,8 +318,9 @@ loadDocument = ({ document, history, url, method, encoding, params })->
     when "http:", "https:", "file:"
       # Proceeed to load resource ...
       headers = headers || {}
-      if referer
-        headers.referer = referer
+      unless headers.referer
+        # HTTP header Referer, but Document property referrer
+        headers.referer = document.referrer
 
       window._eventQueue.http method, url, headers: headers, params: params, target: document, (error, response)->
         if error
@@ -337,22 +333,25 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         # JSDOM fires load event on document but not on window
         windowLoaded = (event)->
           document.removeEventListener("load", windowLoaded)
-          window._eventQueue.enqueue ->
-            window.dispatchEvent(event)
+          window.dispatchEvent(event)
         document.addEventListener("load", windowLoaded)
 
         # JSDOM fires load event on document but not on window
         contentLoaded = (event)->
           document.removeEventListener("DOMContentLoaded", contentLoaded)
-          window._eventQueue.enqueue ->
-            window.dispatchEvent(event)
+          window.dispatchEvent(event)
         document.addEventListener("DOMContentLoaded", contentLoaded)
 
-        # For responses that contain a non-empty body, load it.  Otherwise, we
-        # already have an empty document in there courtesy of JSDOM.
-        body = response.body || "<html><body></body></html>"
+        # Give event handler chance to register listeners.
+        window.browser.emit("loading", document)
+
+        if response.body
+          body = response.body.toString("utf8")
+        else
+          body = "<body></body>"
+
         document.open()
-        document.write(body.toString())
+        document.write(body)
         document.close()
 
         # Error on any response that's not 2xx, or if we're not smart enough to
@@ -364,7 +363,6 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         else
           done(new Error("Could not parse document at #{url}"))
 
-
     else # but not any other protocol for now
       done(new Error("Cannot load resource #{url}, unsupported protocol"))
 
@@ -372,16 +370,18 @@ loadDocument = ({ document, history, url, method, encoding, params })->
 # Wrap dispatchEvent to support inContext and error handling.
 jsdomDispatchElement = HTML.Element.prototype.dispatchEvent
 HTML.Node.prototype.dispatchEvent = (event)->
-  target = this
-  document = target.ownerDocument || target.document
-  if document && document.window
-    document.window.browser.emit("event", event, target)
-    return document.window._evaluate ->
-      return jsdomDispatchElement.call(target, event)
-  else
-    # Some events are fired when the document is first created, but still
-    # doesn't have a window.
-    return jsdomDispatchElement.call(target, event)
+  self = this
+  # Could be node, window or document
+  document = self.ownerDocument || self.document || self
+  window = document.window
+  window.browser.emit("event", event, self)
+
+  if self.getAttribute
+    if onhandler = self.getAttribute("on#{event.type}")
+      console.log event.type, onhandler
+
+  return window._evaluate ->
+    return jsdomDispatchElement.call(self, event)
 
 
 # Screen object provides access to screen dimensions

@@ -157,14 +157,24 @@ describe "Browser instance", ->
       brains.get "/browser-events/document", (req, res)->
         res.send "Very well then"
 
+      browser.on "loading", (document)->
+        events.loading = [document.URL, document.readyState, document.outerHTML]
       browser.on "loaded", (document)->
-        events.loaded = document
+        events.loaded = [document.URL, document.readyState, document.outerHTML]
 
       browser.visit "/browser-events/document", done
 
+    it "should receive loading event", ->
+      [url, readyState, html] = events.loading
+      assert.equal url, "http://localhost:3003/browser-events/document"
+      assert.equal readyState, "loading"
+      assert.equal html, ""
+
     it "should receive loaded event", ->
-      document = events.loaded
-      assert.equal document.URL, "http://localhost:3003/browser-events/document"
+      [url, readyState, html] = events.loaded
+      assert.equal url, "http://localhost:3003/browser-events/document"
+      assert.equal readyState, "complete"
+      assert.equal html, "<html><head></head><body>Very well then</body></html>"
 
 
   describe "firing an event", ->

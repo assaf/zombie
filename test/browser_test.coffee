@@ -66,7 +66,7 @@ describe "Browser", ->
         status = error = errors = null
 
         before (done)->
-          Browser.visit "http://localhost:3003/browser/scripted", (@error, @browser, @status, @errors)=>
+          Browser.visit "http://localhost:3003/browser/scripted", (@error, @browser)=>
             done()
 
         it "should call callback without error", ->
@@ -77,8 +77,6 @@ describe "Browser", ->
           @browser.assert.success()
         it "should indicate success", ->
           assert @browser.success
-        it "should pass zero errors to callback", ->
-          assert.equal @errors.length, 0
         it "should reset browser errors", ->
           assert.equal @browser.errors.length, 0
         it "should have a resources object", ->
@@ -86,7 +84,7 @@ describe "Browser", ->
 
       describe "with error", ->
         before (done)->
-          Browser.visit "http://localhost:3003/browser/errored", (@error, @browser, @status, @errors)=>
+          Browser.visit "http://localhost:3003/browser/errored", (@error, @browser)=>
             done()
 
         it "should call callback with error", ->
@@ -94,16 +92,13 @@ describe "Browser", ->
           assert @error.constructor.name == "TypeError"
         it "should indicate success", ->
           @browser.assert.success()
-        it "should pass errors to callback", ->
-          assert.equal @errors.length, 1
-          assert.equal @errors[0].message, "Cannot read property 'wrong' of undefined"
         it "should set browser errors", ->
           assert.equal @browser.errors.length, 1
           assert.equal @browser.errors[0].message, "Cannot read property 'wrong' of undefined"
 
       describe "404", ->
         before (done)->
-          Browser.visit "http://localhost:3003/browser/missing", (@error, @browser, @status, @errors)=>
+          Browser.visit "http://localhost:3003/browser/missing", (@error, @browser)=>
             done()
 
         it "should call with error", ->
@@ -124,7 +119,7 @@ describe "Browser", ->
           brains.ready done
 
         before (done)->
-          Browser.visit "http://localhost:3003/browser/500", (@error, @browser, @status, @errors)=>
+          Browser.visit "http://localhost:3003/browser/500", (@error, @browser)=>
             done()
 
         it "should call callback with error", ->
@@ -145,7 +140,7 @@ describe "Browser", ->
           brains.ready done
 
         before (done)->
-          Browser.visit "http://localhost:3003/browser/empty", (@error, @browser, @status, @errors)=>
+          Browser.visit "http://localhost:3003/browser/empty", (@error, @browser)=>
             done()
 
         it "should load document", ->
