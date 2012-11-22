@@ -320,12 +320,18 @@ class Browser extends EventEmitter
   # name - Even name (e.g `click`)
   # target - Target element (e.g a link)
   # callback - Wait for events to be processed, then call me (optional)
-  fire: (name, target, callback)->
+  fire: (selector, eventName, callback)->
     unless @window
       throw new Error("No window open")
-    type = if name in MOUSE_EVENT_NAMES then "MouseEvents" else "HTMLEvents"
-    event = @document.createEvent(type)
-    event.initEvent(name, true, true)
+    target = @query(selector)
+    unless target && target.dispatchEvent
+      throw new Error("No target element (note: call with selector/element, event name and callback)")
+    if ~MOUSE_EVENT_NAMES.indexOf(eventName)
+      eventType = "MouseEvents"
+    else
+      eventType = "HTMLEvents"
+    event = @document.createEvent(eventType)
+    event.initEvent(eventName, true, true)
     @window._dispatchEvent(target, event, false)
     return @wait(callback)
 
@@ -567,7 +573,7 @@ class Browser extends EventEmitter
   clickLink: (selector, callback)->
     unless link = @link(selector)
       throw new Error("No link matching '#{selector}'")
-    return @fire("click", link, callback)
+    return @fire(link, "click", callback)
 
   # Return the history object.
   @prototype.__defineGetter__ "history", ->
@@ -672,7 +678,7 @@ class Browser extends EventEmitter
       throw new Error("This INPUT field is readonly")
     field.focus()
     field.value = value
-    @fire "change", field, callback
+    @fire field, "change", callback
     return this
 
   _setCheckbox: (selector, value, callback)->
@@ -767,7 +773,7 @@ class Browser extends EventEmitter
       select = @xpath("./ancestor::select", option).value[0]
       option.setAttribute("selected", "selected")
       select.focus()
-      @fire "change", select, callback
+      @fire select, "change", callback
     else if callback
       process.nextTick ->
         callback null, false
@@ -799,7 +805,7 @@ class Browser extends EventEmitter
         throw new Error("Cannot unselect in single select")
       option.removeAttribute("selected")
       select.focus()
-      @fire "change", select, callback
+      @fire select, "change", callback
     else if callback
       process.nextTick ->
         callback null, false
@@ -824,7 +830,7 @@ class Browser extends EventEmitter
       field.files.push file
       field.value = filename
     field.focus()
-    @fire "change", field, callback
+    @fire field, "change", callback
     return this
 
   # ### browser.button(selector) : Element
@@ -860,7 +866,7 @@ class Browser extends EventEmitter
     if button.getAttribute("disabled")
       throw new Error("This button is disabled")
     button.focus()
-    return @fire("click", button, callback)
+    return @fire(button, "click", callback)
 
 
   # Cookies and storage
