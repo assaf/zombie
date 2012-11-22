@@ -137,11 +137,7 @@ class Resources extends Array
   #
   # url     - The URL to mock
   # result  - The result to return (statusCode, headers, body)
-  mock: (url, result)->
-    result ||=
-      statusCode: 200
-      headers:    {}
-      body:       ""
+  mock: (url, result = {})->
     mockTheResponse = (request, next)->
       next(null, result)
     @urlMatchers.push([url, mockTheResponse])
@@ -233,6 +229,9 @@ class Resources extends Array
       else if responseFromFilter
         # Received response, switch to processing request
         response = responseFromFilter
+        # If we get redirected and the final filter doesn't provide a URL (e.g.
+        # mock response), then without this we end up with the original URL.
+        response.url ||= request.url
         afterFilterCallback()
       else
         # Use the next before filter.
