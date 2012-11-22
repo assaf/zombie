@@ -41,40 +41,47 @@ the target element/document.
 
 
 
+### Global Events
 
+`Browser.events` is a global event sink.  All browser instances forward some
+events to it, in particular the `console`, `error` and `log` events.
 
-`console (level, messsage)`
-`error (error)`
-`log (messsage)`
+In addition, it handles the following events.
 
+`created (browser)`
+
+Emitted when a new browser instance is created.  Allows you to modify the
+browser instance, e.g. add or modify supported features.
+
+`opened (window)`
+
+Emitted when a window is opened.
+
+`closed (window)`
+
+Emitted when a window is closed.
+
+`active (window)`
+
+Emitted when this window becomes the active window.
+
+`inactive (window)`
+
+Emitted when this window is no longer the active window.
 
 
 
 The browser now acts as an EventEmitter and windows report a variety of events:
-open - new window opened (also iframe and when navigating)
-closed - window closed
 loading - document is loading into window
 loaded - document loaded
 missing - document not found
-active - window became active (tab or history change)
-inactive - window became inactive
 event - event fired on the window/document
 error - error reported
 executed - script executed
-console - message sent to console
 prompt - user was prompted (alert, confirm, prompt)
 storage - change to local or session storage
 cookie - change to a cookie value
 xhr - XHR state change (open, loading and loaded)
 timeout - timeout or interval fired
 submit - form submitted
-
-
-Each browser is also an event emitter and you can listen to different lifecycle events and act on these. Events are different from hooks. Hooks are synchronous, your code executes before the next action. Events are asynchronous, they fire after the fact.
-
-Still they are mighty useful, especially for instrumenting the browser and troubleshooting issues. For example, if you wanted to list all page loads you could do this:
-
-Or to watch all timers as they fire, you could do this:
-
-If you wanted to send all console.log messages to a log file, or format them differently for your CI server log you could do this:
 

@@ -67,7 +67,7 @@ class Resources extends Array
       params:     options.params
       body:       options.body
       time:       Date.now()
-      timeout:    options.timeout
+      timeout:    options.timeout || 0
 
     resource =
       request:    request

@@ -64,11 +64,11 @@ setFocus = (document, element)->
     if document._inFocus
       onblur = document.createEvent("HTMLEvents")
       onblur.initEvent "blur", false, false
-      document.window._dispatchEvent(document._inFocus, onblur)
+      document._inFocus.dispatchEvent(onblur)
     if element
       onfocus = document.createEvent("HTMLEvents")
       onfocus.initEvent("focus", false, false)
-      document.window._dispatchEvent(element, onfocus)
+      element.dispatchEvent(onfocus)
     document._inFocus = element
 
 # Focus/blur exist on all elements but do nothing if not an input

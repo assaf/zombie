@@ -168,7 +168,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
     event.source = inContext.getGlobal()
     origin = event.source.location
     event.origin = URL.format(protocol: origin.protocol, host: origin.host)
-    window._dispatchEvent(window, event, true)
+    window.dispatchEvent(event)
 
 
   # -- JavaScript evaluation
@@ -190,20 +190,6 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
       browser.emit("error", error)
     finally
       inContext = original
-
-  # Dispatch event. If used synchronoulsy, returns false if preventDefault was
-  # set on the event. Does not throw an error.
-  #
-  # target - Event target (element or window)
-  # event  - HTML event object
-  # async  - True to dispatch asynchronously
-  window._dispatchEvent = (target, event, async = false)->
-    if async
-      window._eventQueue.enqueue ->
-        window._evaluate(-> target.dispatchEvent(event))
-      return
-    else
-      return window._evaluate(-> target.dispatchEvent(event))
 
   # Default onerror handler.
   window.onerror = (event)->
@@ -351,13 +337,15 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         # JSDOM fires load event on document but not on window
         windowLoaded = (event)->
           document.removeEventListener("load", windowLoaded)
-          window._dispatchEvent(window, event, true)
+          window._eventQueue.enqueue ->
+            window.dispatchEvent(event)
         document.addEventListener("load", windowLoaded)
 
         # JSDOM fires load event on document but not on window
         contentLoaded = (event)->
           document.removeEventListener("DOMContentLoaded", contentLoaded)
-          window._dispatchEvent(window, event, true)
+          window._eventQueue.enqueue ->
+            window.dispatchEvent(event)
         document.addEventListener("DOMContentLoaded", contentLoaded)
 
         # For responses that contain a non-empty body, load it.  Otherwise, we
@@ -398,6 +386,18 @@ class Screen
 
 # File access, not implemented yet
 class File
+
+
+# Wrap dispatchEvent to support inContext and error handling.
+jsdomDispatchElement = HTML.Element.prototype.dispatchEvent
+HTML.Node.prototype.dispatchEvent = (event)->
+  target = this
+  document = target.ownerDocument || target.document
+  if document && document.window
+    return document.window._evaluate ->
+      jsdomDispatchElement.call(target, event)
+  else
+    return jsdomDispatchElement.call(target, event)
 
 
 module.exports = createWindow

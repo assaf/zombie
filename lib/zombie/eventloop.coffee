@@ -315,7 +315,7 @@ class EventQueue
     event.initEvent("error", false, false)
     event.message = error.message
     event.error = error
-    @window._dispatchEvent(@window, event, true)
+    @window.dispatchEvent(event)
 
 
   # -- Timers --

@@ -96,7 +96,7 @@ HTML.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "submit", true, true
   event._button = button
-  @ownerDocument.parentWindow._dispatchEvent(this, event, true)
+  this.dispatchEvent(event)
 
 
 # Default behavior for submit events is to call the form's submit method, but we
@@ -115,7 +115,7 @@ HTML.HTMLInputElement.prototype._eventDefaults =
     change = ->
       event = input.ownerDocument.createEvent("HTMLEvents")
       event.initEvent "change", true, true
-      input.ownerDocument.parentWindow._dispatchEvent(input, event, true)
+      input.dispatchEvent(event)
     switch input.type
       when "reset"
         if form = input.form
@@ -141,14 +141,14 @@ HTML.HTMLInputElement.prototype.click = ->
   click = =>
     event = @ownerDocument.createEvent("HTMLEvents")
     event.initEvent "click", true, true
-    cancelled = @ownerDocument.parentWindow._dispatchEvent(this, event)
+    cancelled = this.dispatchEvent(event)
     return !cancelled
 
   # If that works out, we follow with a change event
   change = =>
     event = @ownerDocument.createEvent("HTMLEvents")
     event.initEvent "change", true, true
-    @ownerDocument.parentWindow._dispatchEvent(this, event)
+    this.dispatchEvent(event)
 
   switch @type
     when "checkbox"

@@ -45,9 +45,6 @@ class Browser extends EventEmitter
     # Used for assertions
     @assert = new Assert(this)
 
-    # Infinitely extensible browser hooks
-    @hooks = new Hooks()
-
 
     # -- Console/Logging --
 
@@ -69,47 +66,19 @@ class Browser extends EventEmitter
               process.stdout.write(message + "\n")
           else
             process.stdout.write(message + "\n")
-      Browser.events.emit("console", level, message)
+      Browser.events.emit "console", level, message
 
     # Message written to browser.log.
     @on "log", (message)->
       if browser.debug
         process.stdout.write("Zombie: #{message}\n")
-      Browser.events.emit("log", message)
-
-
-    # -- Event loop --
-
-    # The browser event loop.
-    @eventLoop = new EventLoop(this)
-
-    # Returns all errors reported while loading this window.
-    @errors = []
-
-    # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
-    # reported while processing resources/JavaScript.
-    @on "error", (error)->
-      browser.errors.push(error)
-      browser.console.error(error.message, error.stack)
-      Browser.events.emit("error", error)
-
-    @on "done", (timedOut)->
-      if timedOut
-        browser.log "Event loop timed out"
-      else
-        browser.log "Event loop is empty"
-
-    @on "timeout", (fn, delay)->
-      browser.log "Fired timeout after #{delay}ms delay"
-
-    @on "interval", (fn, interval)->
-      browser.log "Fired interval every #{interval}ms"
+      Browser.events.emit "log", message
 
 
     # -- Resources --
 
     # Start with no this referer.
-    @referer = undefined
+    @referer = null
     # All the resources loaded by this browser.
     @resources = new Resources(this)
 
@@ -144,44 +113,70 @@ class Browser extends EventEmitter
     # -- Tabs/Windows --
 
     # Open tabs.
-    tabs = createTabs(this)
-    Object.defineProperty this, "tabs", value: tabs
+    @tabs = createTabs(this)
+
+    # Window has been opened
+    @on "opened", (window)->
+      browser.log "Opened window", window.location.href, window.name || ""
+
+    # Window has been closed
+    @on "closed", (window)->
+      browser.log "Closed window", window.location.href, window.name || ""
 
     # The active browser window
     active = null
     # Window becomes inactive
     @on "active", (window)->
-      return if active == window
-      active = window
-      onfocus = window.document.createEvent("HTMLEvents")
-      onfocus.initEvent("focus", false, false)
-      window._dispatchEvent(window, onfocus, true)
-      if element = window.document.activeElement
+      window._eventQueue.enqueue ->
         onfocus = window.document.createEvent("HTMLEvents")
         onfocus.initEvent("focus", false, false)
-        window._dispatchEvent(element, onfocus, true)
+        window.dispatchEvent(onfocus)
+        if element = window.document.activeElement
+          onfocus = window.document.createEvent("HTMLEvents")
+          onfocus.initEvent("focus", false, false)
+          element.dispatchEvent(onfocus)
 
     # Window becomes inactive
     @on "inactive", (window)->
-      return unless active == window
-      active = null
       if element = window.document.activeElement
         onblur = window.document.createEvent("HTMLEvents")
         onblur.initEvent("blur", false, false)
-        window._dispatchEvent(element, onblur, true)
+        element.dispatchEvent(onblur)
       onblur = window.document.createEvent("HTMLEvents")
       onblur.initEvent("blur", false, false)
-      window._dispatchEvent(window, onblur, true)
+      window.dispatchEvent(onblur)
 
-    # Window has been closed
-    @on "closed", (window)->
-      browser.log "Closed window", window.location.href, window.name || "un-named"
-
-    @on "opened", (window)->
-      browser.log "Opened window", window.location.href, window.name || "un-named"
 
     @on "loaded", (document)->
       browser.log "Loaded document", document.location.href
+
+
+    # -- Event loop --
+
+    # The browser event loop.
+    @eventLoop = new EventLoop(this)
+
+    # Returns all errors reported while loading this window.
+    @errors = []
+
+    # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
+    # reported while processing resources/JavaScript.
+    @on "error", (error)->
+      browser.errors.push(error)
+      browser.console.error(error.message, error.stack)
+      Browser.events.emit("error", error)
+
+    @on "done", (timedOut)->
+      if timedOut
+        browser.log "Event loop timed out"
+      else
+        browser.log "Event loop is empty"
+
+    @on "timeout", (fn, delay)->
+      browser.log "Fired timeout after #{delay}ms delay"
+
+    @on "interval", (fn, interval)->
+      browser.log "Fired interval every #{interval}ms"
 
 
     @on "submit", (form, url)->
@@ -195,7 +190,7 @@ class Browser extends EventEmitter
         @[name] = Browser.default[name]
 
     # You can extend browser here.
-    @hooks.run("created", this)
+    Browser.events.emit("created", this)
 
 
   # Returns true if the given feature is enabled.
@@ -333,14 +328,15 @@ class Browser extends EventEmitter
       eventType = "HTMLEvents"
     event = @document.createEvent(eventType)
     event.initEvent(eventName, true, true)
-    @window._dispatchEvent(target, event, false)
+    target.dispatchEvent(event)
     return @wait(callback)
 
   # Dispatch asynchronously.  Returns true if preventDefault was set.
-  dispatchEvent: (target, event)->
+  dispatchEvent: (selector, event)->
+    target = @query(selector)
     unless @window
       throw new Error("No window open")
-    return @window._dispatchEvent(target, event)
+    return target.dispatchEvent(event)
 
 
   # Accessors
