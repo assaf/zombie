@@ -72,10 +72,11 @@ describe "Facebook Connect", ->
         FB = @browser.tabs[0].FB
         for id, fn of FB.XD._callbacks
           FB.XD._callbacks["f42febd2c"] = fn
-        @browser.pressButton "Log In with Facebook", =>
+        @browser.pressButton("Log In with Facebook")
+        @browser.wait duration: "0.5s", =>
           # Go back to the first window
           @browser.close()
-          @browser.wait(done)
+          done()
 
       it "should log user in", ->
         assert.equal @browser.window.connected.userID, "100001620738919"
