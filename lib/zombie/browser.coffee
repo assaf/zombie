@@ -70,13 +70,11 @@ class Browser extends EventEmitter
               process.stdout.write(message + "\n")
           else
             process.stdout.write(message + "\n")
-      Browser.events.emit "console", level, message
 
     # Message written to browser.log.
     @on "log", (message)->
       if browser.debug
         process.stdout.write("Zombie: #{message}\n")
-      Browser.events.emit "log", message
 
 
     # -- Resources --
@@ -165,7 +163,6 @@ class Browser extends EventEmitter
     @on "error", (error)->
       browser.errors.push(error)
       browser.console.error(error.message, error.stack)
-      Browser.events.emit("error", error)
 
     @on "done", (timedOut)->
       if timedOut
@@ -192,8 +189,8 @@ class Browser extends EventEmitter
       else if Browser.default.hasOwnProperty(name)
         @[name] = Browser.default[name]
 
-    # You can extend browser here.
-    Browser.events.emit("created", this)
+    for extensionFunction in extensionFunctions
+      extensionFunction(this)
 
 
   # Returns true if the given feature is enabled.
@@ -456,7 +453,6 @@ class Browser extends EventEmitter
     if @tabs
       @tabs.closeAll()
       @tabs = null
-      Browser.events.emit("destroyed", this)
 
 
   # Navigation
@@ -1049,10 +1045,9 @@ Browser.default =
   waitDuration: "5s"
 
 
-# Some events are broadcasted here as well.
-Browser.events = new EventEmitter()
-# Make sure sending error events doesn't kill everything
-Browser.events.on "error", ->
+extensionFunctions = []
+Browser.extend = (fn)->
+  extensionFunctions.push(fn)
 
 
 # Represents credentials for a given host.

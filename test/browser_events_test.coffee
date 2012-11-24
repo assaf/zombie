@@ -2,60 +2,7 @@
 HTML = require("jsdom").dom.level3.html
 
 
-# Events sent to Browser.events
-describe "Browser.events", ->
-  events =
-    created: []
-    console: []
-    log:     []
-  browsers = null
-
-
-  describe "creating new instance", ->
-    before ->
-      Browser.events.on "created", (browser)->
-        events.created.push(browser)
-      browsers = [new Browser(), new Browser()]
-
-    it "should receive created events", ->
-      assert.deepEqual events.created, browsers
-
-
-  describe "sending output to console", ->
-    before ->
-      Browser.events.on "console", (level, message)->
-        events.console.push(level: level, message: message)
-      browsers[0].console.log("Logging", "message")
-      browsers[1].console.error("Some", new Error("error"))
-
-    it "should receive console events with the log level", ->
-      assert.deepEqual events.console[0].level, "log"
-      assert.deepEqual events.console[1].level, "error"
-
-    it "should receive console events with the message", ->
-      assert.deepEqual events.console[0].message, "Logging message"
-      assert.deepEqual events.console[1].message, "Some [Error: error]"
-
-
-  describe "logging a message", ->
-    before ->
-      Browser.events.on "log", (message)->
-        events.log.push(message)
-      browsers[0].log("Zombie", "log")
-      browsers[1].log("Zombie", new Error("error"))
-
-    it "should receive log events", ->
-      assert.equal events.log[0], "Zombie log"
-      assert.equal events.log[1], "Zombie [Error: error]"
-
-
-  after ->
-    for browser in browsers
-      browser.destroy()
-
-
-# Events sent to browser instance
-describe "Browser instance", ->
+describe "Browser events", ->
   events =
     console:  []
     log:      []

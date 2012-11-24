@@ -134,16 +134,6 @@ class XMLHttpRequest
 
       @responseText = response.body
       @responseXML = null
-      if response.headers["content-type"]
-        mimeType = response.headers["content-type"].split(";")[0]
-        if /^text\/(html|xml)$/.test(mimeType)
-          try
-            document = new HTML.HTMLDocument()
-            document.write(response.body)
-            document.close()
-            @responseXML = document
-          catch error
-            @_window.console.error("Failed to parse XML response: #{error.message}")
       @_stateChanged(XMLHttpRequest.DONE, listener)
 
     return
