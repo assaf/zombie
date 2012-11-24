@@ -17,16 +17,18 @@ catch ex
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
 # fires on the Window.  We also want better stack traces.
 HTML.languageProcessors.javascript = (element, code, filename)->
-  document = element.ownerDocument
-  window = document.window
-  try
-    window._evaluate(code, filename)
-  catch error
-    unless error instanceof Error
-      cast = new Error(error.message)
-      cast.stack = error.stack
-      error = cast
-    raise element: element, location: filename, from: __filename, error: error
+  # This may be called without code, e.g. script element that has no body yet
+  if code
+    document = element.ownerDocument
+    window = document.window
+    try
+      window._evaluate(code, filename)
+    catch error
+      unless error instanceof Error
+        cast = new Error(error.message)
+        cast.stack = error.stack
+        error = cast
+      raise element: element, location: filename, from: __filename, error: error
 
 
 # HTML5 parser doesn't play well with JSDOM and inline scripts.  This methods
@@ -48,22 +50,26 @@ addInlineScriptSupport = (document)->
     element = event.target # Node being inserted
     # Let JSDOM deal with script tags with src attribute
     if element.tagName == "SCRIPT" && !element.src
-      # We don't yet have access to the script contents, element.text returns
-      # nothing, so we need to wait a bit.
-      executeInlineScript = (error, filename)->
+      language = HTML.languageProcessors[element.language]
+      if language
         # Only process supported languages
-        language = HTML.languageProcessors[element.language]
-        code = element.text
-        if code && language
-          language(element, code, filename)
-      # Besides waiting (nextTick), we need to make sure all scripts are
-      # executed in order and the page waits for this script to execute before
-      # firing DCL (from inside document.close).
-      executeInOrder = HTML.resourceLoader.enqueue(element, executeInlineScript, document.location.href)
-      if document.readyState == "loading"
-        process.nextTick(executeInOrder)
-      else
-        executeInOrder()
+
+        executeInlineScript = (error, filename)->
+          language(element, element.text, filename)
+        # Make sure we execute in order, relative to all other scripts on the
+        # page.  This also blocks document.close from firing DCL event until all
+        # scripts are executed.
+        executeInOrder = HTML.resourceLoader.enqueue(element, executeInlineScript, document.location.href)
+        # There are two scenarios:
+        # - script element added to existing document, we should evaluate it
+        #   immediately
+        # - inline script element parsed, when we get here, we still don't have
+        #   the element contents, so we have to wait before we can read and
+        #   execute it
+        if document.readyState == "loading"
+          process.nextTick(executeInOrder)
+        else
+          executeInOrder()
     return
 
 

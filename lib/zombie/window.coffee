@@ -174,12 +174,11 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
     try
       # The current window, postMessage and window.close need this
       [original, inContext] = [inContext, window]
-      inContext = window
       if typeof(code) == "string" || code instanceof String
         result = global.run(code, filename)
       else if code
         result = code.call(global)
-      browser.emit("evaluated", code, result)
+      browser.emit("evaluated", code, result, filename)
       return result
     catch error
       error.filename ||= filename
@@ -378,8 +377,16 @@ HTML.Node.prototype.dispatchEvent = (event)->
   document = self.ownerDocument || self.document || self
   window = document.window
   window.browser.emit("event", event, self)
-  return window._evaluate ->
+
+  try
+    # The current window, postMessage and window.close need this
+    [original, inContext] = [inContext, window]
     return jsdomDispatchElement.call(self, event)
+  catch error
+    error.filename ||= filename
+    browser.emit("error", error)
+  finally
+    inContext = original
 
 
 # Screen object provides access to screen dimensions

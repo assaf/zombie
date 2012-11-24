@@ -73,6 +73,12 @@ Emitted whenever a DOM event is fired on the target element, document or window.
 
 Emitted whenever an input element receives the focus.
 
+`evaluated (code, result, filename)`
+
+Emitted whenever JavaScript code is evaluated.  The first argument is the
+JavaScript function or source code, the second argument the result, and the
+third argument is the filename.
+
 `inactive (window)`
 
 Emitted when this window is no longer the active window.

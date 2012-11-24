@@ -271,5 +271,24 @@ describe "Browser instance", ->
       assert events.done
 
 
+  describe "evaluated", ->
+    before (done)->
+      brains.get "/browser-events/evaluated", (req, res)->
+        res.send """
+        <script>window.foo = true</script>
+        """
+
+      browser.on "evaluated", (code, result, filename)->
+        events.evaluated = [code, result, filename]
+
+      browser.visit("/browser-events/evaluated", done)
+
+    it "should receive evaluated event", ->
+      [code, result, filename] = events.evaluated
+      assert.equal code, "window.foo = true"
+      assert.equal result, true
+      assert.equal filename, "http://localhost:3003/browser-events/evaluated"
+
+
   after ->
     browser.destroy()
