@@ -357,7 +357,7 @@ describe "Browser", ->
       @browser.assert.text "body", "This is plain text"
 
 
-  describe.only "load HTML string", ->
+  describe "load HTML string", ->
     before (done)->
       @browser = new Browser()
       @browser.load("""

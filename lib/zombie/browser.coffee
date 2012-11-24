@@ -502,8 +502,9 @@ class Browser extends EventEmitter
     @location = "about:blank"
     try
       @errors = []
+      @document.readyState = "loading"
       @document.open()
-      @document.write html
+      @document.write(html)
       @document.close()
     catch error
       @emit "error", error
