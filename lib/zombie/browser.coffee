@@ -179,8 +179,10 @@ class Browser extends EventEmitter
     @on "interval", (fn, interval)->
       browser.log "Fired interval every #{interval}ms"
 
+    @on "link", (url, target)->
+      browser.log "Follow link to #{url}"
 
-    @on "submit", (form, url)->
+    @on "submit", (url, target)->
       browser.log "Submit form to #{url}"
 
     # Sets the browser options.

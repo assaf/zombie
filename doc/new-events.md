@@ -88,6 +88,11 @@ Emitted when this window is no longer the active window.
 Emitted whenever an interval event (`setInterval`) is fired, with the function and
 interval.
 
+`link (url, target)`
+
+Emitted when a link is clicked and the browser navigates to a new URL.  Includes
+the URL and the target window (default to `_self`).
+
 `loaded (document)`
 
 Emitted when a document is loaded into a window or frame.  This event is emitted
@@ -106,6 +111,11 @@ Emitted when a window is opened.
 
 Emitted whenever a timeout event (`setTimeout`) is fired, with the function and
 delay.
+
+`submit (url, target)`
+
+Emitted when a form is submitted.  Includes the action URL and the target window
+(default to `_self`).
 
 
 

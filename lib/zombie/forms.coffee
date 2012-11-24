@@ -69,12 +69,14 @@ HTML.HTMLFormElement.prototype.submit = (button)->
         params[button.name] ||= []
         params[button.name].push(button.value)
 
+      # Ask window to submit form, let it figure out how to handle this based on
+      # the target attribute.
       document.window._submit
         url:      @getAttribute("action") || document.location.href
         method:   @getAttribute("method") || "GET"
         encoding: @getAttribute("enctype")
         params:   params
-        form:     this
+        target:   @getAttribute("target")
 
   process 0
 

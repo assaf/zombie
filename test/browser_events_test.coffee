@@ -24,13 +24,17 @@ describe "Browser.events", ->
   describe "sending output to console", ->
     before ->
       Browser.events.on "console", (level, message)->
-        events.console.push([level, message])
+        events.console.push(level: level, message: message)
       browsers[0].console.log("Logging", "message")
       browsers[1].console.error("Some", new Error("error"))
 
-    it "should receive console events", ->
-      assert.deepEqual events.console[0], ["log", "Logging message"]
-      assert.deepEqual events.console[1], ["error", "Some [Error: error]"]
+    it "should receive console events with the log level", ->
+      assert.deepEqual events.console[0].level, "log"
+      assert.deepEqual events.console[1].level, "error"
+
+    it "should receive console events with the message", ->
+      assert.deepEqual events.console[0].message, "Logging message"
+      assert.deepEqual events.console[1].message, "Some [Error: error]"
 
 
   describe "logging a message", ->
@@ -65,13 +69,17 @@ describe "Browser instance", ->
   describe "sending output to console", ->
     before ->
       browser.on "console", (level, message)->
-        events.console.push([level, message])
+        events.console.push(level: level, message: message)
       browser.console.log("Logging", "message")
       browser.console.error("Some", new Error("error"))
 
-    it "should receive console events", ->
-      assert.deepEqual events.console[0], ["log", "Logging message"]
-      assert.deepEqual events.console[1], ["error", "Some [Error: error]"]
+    it "should receive console events with the log level", ->
+      assert.deepEqual events.console[0].level, "log"
+      assert.deepEqual events.console[1].level, "error"
+
+    it "should receive console events with the message", ->
+      assert.deepEqual events.console[0].message, "Logging message"
+      assert.deepEqual events.console[1].message, "Some [Error: error]"
 
 
   describe "logging a message", ->
@@ -184,18 +192,16 @@ describe "Browser instance", ->
 
       browser.on "event", (event, target)->
         if event.type == "click"
-          events.click = [event, target]
+          events.click = { event: event, target: target }
 
       browser.visit "/browser-events/document", ->
         browser.fire("body", "click", done)
 
     it "should receive DOM event", ->
-      event = events.click[0]
-      assert.equal event.type, "click"
+      assert.equal events.click.event.type, "click"
 
     it "should receive DOM event target", ->
-      target = events.click[1]
-      assert.equal target, browser.document.body
+      assert.equal events.click.target, browser.document.body
 
 
   describe "changing focus", ->
@@ -224,14 +230,15 @@ describe "Browser instance", ->
         """
 
       browser.on "timeout", (fn, delay)->
-        events.timeout = [fn, delay]
+        events.timeout = { fn: fn, delay: delay }
 
       browser.visit "/browser-events/timeout", done
 
-    it "should receive timeout event", ->
-      [fn, delay] = events.timeout
-      assert.equal typeof(fn), "function"
-      assert.equal delay, 1
+    it "should receive timeout event with the function", ->
+      assert.equal typeof(events.timeout.fn), "function"
+
+    it "should receive timeout event with the delay", ->
+      assert.equal events.timeout.delay, 1
 
 
   describe "interval fired", ->
@@ -242,15 +249,16 @@ describe "Browser instance", ->
         """
 
       browser.on "interval", (fn, interval)->
-        events.interval = [fn, interval]
+        events.interval = { fn: fn, interval: interval }
 
       browser.visit("/browser-events/interval")
       browser.wait(duration: 10, done)
 
-    it "should receive interval event", ->
-      [fn, interval] = events.interval
-      assert.equal typeof(fn), "function"
-      assert.equal interval, 2
+    it "should receive interval event with the function", ->
+      assert.equal typeof(events.interval.fn), "function"
+
+    it "should receive interval event with the interval", ->
+      assert.equal events.interval.interval, 2
 
 
   describe "event loop empty", ->
@@ -279,15 +287,55 @@ describe "Browser instance", ->
         """
 
       browser.on "evaluated", (code, result, filename)->
-        events.evaluated = [code, result, filename]
+        events.evaluated = { code: code, result: result, filename: filename }
 
       browser.visit("/browser-events/evaluated", done)
 
-    it "should receive evaluated event", ->
-      [code, result, filename] = events.evaluated
-      assert.equal code, "window.foo = true"
-      assert.equal result, true
-      assert.equal filename, "http://localhost:3003/browser-events/evaluated"
+    it "should receive evaluated event with the code", ->
+      assert.equal events.evaluated.code, "window.foo = true"
+
+    it "should receive evaluated event with the result", ->
+      assert.equal events.evaluated.result, true
+
+    it "should receive evaluated event with the filename", ->
+      assert.equal events.evaluated.filename, "http://localhost:3003/browser-events/evaluated"
+
+
+  describe "link", ->
+    before (done)->
+      brains.get "/browser-events/link", (req, res)->
+        res.send "<a href='follow'></a>"
+
+      browser.on "link", (url, target)->
+        events.link = { url: url, target: target }
+
+      browser.visit "/browser-events/link", ->
+        browser.fire "a", "click", ->
+          done()
+
+    it "should receive link event with the URL", ->
+      assert.equal events.link.url, "http://localhost:3003/browser-events/follow"
+    it "should receive link event with the target", ->
+      assert.equal events.link.target, "_self"
+
+
+  describe "submit", ->
+    before (done)->
+      brains.get "/browser-events/submit", (req, res)->
+        res.send "<form action='post'></form>"
+
+      browser.on "submit", (url, target)->
+        events.link = { url: url, target: target }
+
+      browser.visit "/browser-events/submit", ->
+        browser.query("form").submit()
+        browser.wait ->
+          done()
+
+    it "should receive submit event with the URL", ->
+      assert.equal events.link.url, "http://localhost:3003/browser-events/post"
+    it "should receive submit event with the target", ->
+      assert.equal events.link.target, "_self"
 
 
   after ->

@@ -149,7 +149,6 @@ class History
   # Form submission
   submit: ({ url, method, encoding, params })->
     window = @current.window
-    url = HTML.resourceLoader.resolve(window.document, url)
     newWindow = createWindow(
       browser:  @browser
       history:  this

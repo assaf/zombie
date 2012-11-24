@@ -59,6 +59,7 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
         window.top.location = anchor.href
       else # open named window
         browser.tabs.open(name: anchor.target, url: anchor.href)
+    browser.emit("link", anchor.href, anchor.target || "_self")
 
 
 

@@ -259,6 +259,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
     go:           history.go.bind(history)
     pushState:    history.pushState.bind(history)
     replaceState: history.replaceState.bind(history)
+    _submit:      history.submit.bind(history)
   Object.defineProperties windowHistory,
     length:
       get: -> return history.length
@@ -274,9 +275,22 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
   browser.emit("opened", window)
 
   # Form submission uses this
-  window._submit = (params)->
-    browser.emit("submit", params.form, params.url)
-    history.submit(params)
+  window._submit = ({url, method, encoding, params, target })->
+    url = HTML.resourceLoader.resolve(document, url)
+    target ||= "_self"
+    browser.emit("submit", url, target)
+    # Figure out which history is going to handle this
+    switch target
+      when "_self"   # navigate same window
+        submitTo = window
+      when "_parent" # navigate parent window
+        submitTo = window.parent
+      when "_top"    # navigate top window
+        submitTo = window.top
+      else # open named window
+        submitTo = browser.tabs.open(name: anchor.target)
+    submitTo.history._submit(url: url, method: method, encoding: encoding, params: params)
+
   # Load the document associated with this window.
   loadDocument document: document, history: history, url: url, method: method, encoding: encoding, params: params
   return window
