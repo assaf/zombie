@@ -26,6 +26,7 @@ setFocus = (document, element)->
       onfocus.initEvent("focus", false, false)
       element.dispatchEvent(onfocus)
       document._inFocus = element
+      document.window.browser.emit("focus", element)
 
 # All HTML elements have a no-op focus/blur methods.
 HTML.HTMLElement.prototype.focus = ->
@@ -47,4 +48,4 @@ HTML.HTMLElement.prototype.setAttribute = (name, value)->
   if name == "autofocus"
     document = @ownerDocument
     if ~FOCUS_ELEMENTS.indexOf(@tagName) && !document._inFocus
-      document._inFocus = this
+      @focus()

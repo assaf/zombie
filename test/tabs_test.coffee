@@ -62,9 +62,9 @@ describe "Tabs", ->
     browser = new Browser()
     browser.open(name: "first")
     browser.open(name: "second")
-    browser.tabs[1].addEventListener "focus", ->
+    browser.tabs[0].addEventListener "focus", ->
       done()
-    browser.tabs.current = 1
+    browser.tabs.current = 0
     browser.wait()
 
   it "should fire onblur event when selecting new tab", (done)->

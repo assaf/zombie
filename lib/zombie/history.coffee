@@ -134,6 +134,7 @@ class History
       @current = @first = entry
     else
       @current.prev.append(entry, keepAlive: window)
+      @current = entry
 
   # Update window location (navigating to new URL, same window, e.g pushState or hash change)
   updateLocation: (window, url)->
@@ -173,6 +174,7 @@ class History
     if @current
       url = HTML.resourceLoader.resolve(@current.window.document, url)
       name = @current.window.name
+      parent = parentFrom(@current.window)
     if @current && @current.url == url
       # Don't change history, but do reload the page.
       this.reload()
@@ -186,7 +188,7 @@ class History
       window._eventQueue.enqueue ->
         window.dispatchEvent(event)
     else
-      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parentFrom(@current.window))
+      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent)
       @addEntry(window, url)
     return
 
@@ -221,10 +223,12 @@ class History
   go: (amount)->
     was = @current
     while amount > 0
-      @current = @current.next if @current.next
+      if @current.next
+        @current = @current.next
       --amount
     while amount < 0
-      @current = @current.prev if @current.prev
+      if @current.prev
+        @current = @current.prev
       ++amount
 
     # If moving from one page to another

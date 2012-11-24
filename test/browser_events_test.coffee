@@ -187,8 +187,7 @@ describe "Browser instance", ->
           events.click = [event, target]
 
       browser.visit "/browser-events/document", ->
-        browser.fire("body", "click")
-        done()
+        browser.fire("body", "click", done)
 
     it "should receive DOM event", ->
       event = events.click[0]
@@ -199,6 +198,22 @@ describe "Browser instance", ->
       assert.equal target, browser.document.body
 
 
+  describe "changing focus", ->
+    before (done)->
+      brains.get "/browser-events/focus", (req, res)->
+        res.send """
+        <input id="input">
+        <script>document.getElementById("input").focus()</script>
+        """
+
+      browser.on "focus", (element)->
+        events.focus = element
+
+      browser.visit "/browser-events/focus", done
+
+    it "should receive focus event", ->
+      element = events.focus
+      assert.equal element.id, "input"
 
 
   after ->

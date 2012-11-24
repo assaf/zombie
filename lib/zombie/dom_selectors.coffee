@@ -5,7 +5,6 @@ Path          = require("path")
 HTML          = require("jsdom").dom.level3.html
 createSizzle  = require(Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/sizzle"))
 
-
 # Implement documentElement.contains
 # e.g., if(document.body.contains(el)) { ... }
 # See https://developer.mozilla.org/en-US/docs/DOM/Node.contains

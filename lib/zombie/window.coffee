@@ -226,13 +226,13 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
   window._destroy = ->
     # We call history.distroy which calls destroy on all windows, so need to
     # avoid infinite loop.
-    return if closed
-    closed = true
-    for frame in window.frames
-      frame.close()
-    eventQueue.destroy()
-    window.document = null
-    window.dispose()
+    unless closed
+      closed = true
+      for frame in window.frames
+        frame.close()
+      eventQueue.destroy()
+      window.document = null
+      window.dispose()
     return
 
   # window.close actually closes the tab, and disposes of all windows in the history.

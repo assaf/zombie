@@ -133,14 +133,13 @@ class Browser extends EventEmitter
 
     # Window becomes inactive
     @on "active", (window)->
-      window._eventQueue.enqueue ->
+      onfocus = window.document.createEvent("HTMLEvents")
+      onfocus.initEvent("focus", false, false)
+      window.dispatchEvent(onfocus)
+      if element = window.document.activeElement
         onfocus = window.document.createEvent("HTMLEvents")
         onfocus.initEvent("focus", false, false)
-        window.dispatchEvent(onfocus)
-        if element = window.document.activeElement
-          onfocus = window.document.createEvent("HTMLEvents")
-          onfocus.initEvent("focus", false, false)
-          element.dispatchEvent(onfocus)
+        element.dispatchEvent(onfocus)
 
     # Window becomes inactive
     @on "inactive", (window)->

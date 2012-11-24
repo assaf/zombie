@@ -124,15 +124,18 @@ createTabs = (browser)->
   # of circulation.
   browser.on "closed", (window)->
     index = tabs.indexOf(window)
-    return unless ~index
-    browser.emit("inactive", window)
-    tabs.splice(index, 1)
-    # If we closed the currently open tab, need to select another window.
-    if window == current
-      # Don't emit inactive event for closed window.
-      current = tabs[index - 1] || tabs[0]
-      if current
-        browser.emit("active", current)
+    if ~index
+      browser.emit("inactive", window)
+      tabs.splice(index, 1)
+      # If we closed the currently open tab, need to select another window.
+      if window == current
+        # Don't emit inactive event for closed window.
+        if index > 0
+          current = tabs[index - 1]
+        else
+          current = tabs[0]
+        if current
+          browser.emit("active", current)
 
   return tabs
 
