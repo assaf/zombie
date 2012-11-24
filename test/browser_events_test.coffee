@@ -216,5 +216,60 @@ describe "Browser instance", ->
       assert.equal element.id, "input"
 
 
+  describe "timeout fired", ->
+    before (done)->
+      brains.get "/browser-events/timeout", (req, res)->
+        res.send """
+        <script>setTimeout(function() { }, 1);</script>
+        """
+
+      browser.on "timeout", (fn, delay)->
+        events.timeout = [fn, delay]
+
+      browser.visit "/browser-events/timeout", done
+
+    it "should receive timeout event", ->
+      [fn, delay] = events.timeout
+      assert.equal typeof(fn), "function"
+      assert.equal delay, 1
+
+
+  describe "interval fired", ->
+    before (done)->
+      brains.get "/browser-events/interval", (req, res)->
+        res.send """
+        <script>setInterval(function() { }, 2);</script>
+        """
+
+      browser.on "interval", (fn, interval)->
+        events.interval = [fn, interval]
+
+      browser.visit("/browser-events/interval")
+      browser.wait(duration: 10, done)
+
+    it "should receive interval event", ->
+      [fn, interval] = events.interval
+      assert.equal typeof(fn), "function"
+      assert.equal interval, 2
+
+
+  describe "event loop empty", ->
+    before (done)->
+      brains.get "/browser-events/done", (req, res)->
+        res.send """
+        <script>setTimeout(function() { }, 1);</script>
+        """
+
+      browser.on "done", ->
+        events.done = true
+
+      browser.visit("/browser-events/done")
+      events.done = false
+      browser.wait(done)
+
+    it "should receive done event", ->
+      assert events.done
+
+
   after ->
     browser.destroy()

@@ -48,40 +48,58 @@ events to it, in particular the `console`, `error` and `log` events.
 
 In addition, it handles the following events.
 
-`created (browser)`
+`active (window)`
 
-Emitted when a new browser instance is created.  Allows you to modify the
-browser instance, e.g. add or modify supported features.
-
-`opened (window)`
-
-Emitted when a window is opened.
+Emitted when this window becomes the active window.
 
 `closed (window)`
 
 Emitted when a window is closed.
 
-`active (window)`
+`created (browser)`
 
-Emitted when this window becomes the active window.
+Emitted when a new browser instance is created.  Allows you to modify the
+browser instance, e.g. add or modify supported features.
+
+`done ()`
+
+Emitted whenever the event loop is empty.
+
+`event (event, target)`
+
+Emitted whenever a DOM event is fired on the target element, document or window.
+
+`focus (element)`
+
+Emitted whenever an input element receives the focus.
 
 `inactive (window)`
 
 Emitted when this window is no longer the active window.
 
-`loading (document)`
+`interval (function, interval)`
 
-Emitted when a document is loaded into a window or frame.  This event is emitted
-with an empty Document object, before parsing the HTML response.
+Emitted whenever an interval event (`setInterval`) is fired, with the function and
+interval.
 
 `loaded (document)`
 
 Emitted when a document is loaded into a window or frame.  This event is emitted
 after the HTML is parsed and loaded into the Document object.
 
-`event (event, target)`
+`loading (document)`
 
-Emitted whenever a DOM event is fired on the target element, document or window.
+Emitted when a document is loaded into a window or frame.  This event is emitted
+with an empty Document object, before parsing the HTML response.
+
+`opened (window)`
+
+Emitted when a window is opened.
+
+`timeout (function, delay)`
+
+Emitted whenever a timeout event (`setTimeout`) is fired, with the function and
+delay.
 
 
 
