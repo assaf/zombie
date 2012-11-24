@@ -306,6 +306,9 @@ loadDocument = ({ document, history, url, method, encoding, params })->
   { protocol, pathname } = URL.parse(url)
   switch protocol
     when "about:"
+      document.open()
+      document.write("<html><body></body></html>")
+      document.close()
       done()
 
     when "javascript:"
@@ -324,7 +327,7 @@ loadDocument = ({ document, history, url, method, encoding, params })->
 
       window._eventQueue.http method, url, headers: headers, params: params, target: document, (error, response)->
         if error
-          document.open()
+          document.close()
           document.write(error.message || error)
           document.close()
           done(error)
@@ -375,11 +378,6 @@ HTML.Node.prototype.dispatchEvent = (event)->
   document = self.ownerDocument || self.document || self
   window = document.window
   window.browser.emit("event", event, self)
-
-  if self.getAttribute
-    if onhandler = self.getAttribute("on#{event.type}")
-      console.log event.type, onhandler
-
   return window._evaluate ->
     return jsdomDispatchElement.call(self, event)
 

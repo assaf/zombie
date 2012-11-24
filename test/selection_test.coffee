@@ -69,7 +69,7 @@ describe "Selection", ->
 
     it "should find child from id", ->
       nodes = @root.querySelectorAll("#main button")
-      assert.equal nodes[0].textContent, "Sign Me Up"
+      assert.equal nodes.item(0).textContent, "Sign Me Up"
 
     it "should find child from parent", ->
       nodes = @root.querySelectorAll("button")

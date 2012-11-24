@@ -1,7 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-describe.skip "Google map", ->
+describe "Google map", ->
 
   before (done)->
     brains.get "/browser/map", (req, res)->
@@ -24,12 +24,12 @@ describe.skip "Google map", ->
         </body>
       </html>
       """
-
     brains.ready done
 
   before (done)->
     @browser = new Browser()
-    @browser.visit("http://localhost:3003/browser/map", element: ".gmnoprint", done)
+    @browser.visit("/browser/map")
+    @browser.wait(element: ".gmnoprint", done)
 
   it "should load map", ->
     assert @browser.window.map
