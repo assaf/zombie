@@ -1,7 +1,3 @@
-require "./jsdom_patches"
-require "./forms"
-require "./xpath"
-
 
 Assert            = require("./assert")
 createTabs        = require("./tabs")
@@ -21,6 +17,15 @@ Path              = require("path")
 Resources         = require("./resources")
 Storages          = require("./storage")
 URL               = require("url")
+
+
+# DOM extensions.
+require("./jsdom_patches")
+require("./forms")
+require("./xpath")
+require("./dom_focus")
+require("./dom_iframe")
+require("./dom_selectors")
 
 
 # Browser options you can set when creating new browser, or on browser instance.

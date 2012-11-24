@@ -181,5 +181,5 @@ describe "XMLHttpRequest", ->
       @browser.visit "http://localhost:3003/xhr/get-html", done
 
     it "should parse HTML document", ->
-      assert @browser.window.html.querySelectorAll("foo > bar#bar")
+      assert @browser.document.body.querySelectorAll("foo > bar#bar")
 

@@ -348,7 +348,7 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         if response.body
           body = response.body.toString("utf8")
         else
-          body = "<body></body>"
+          body = "<html><body></body></html>"
 
         document.open()
         document.write(body)

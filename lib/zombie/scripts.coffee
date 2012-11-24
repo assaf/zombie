@@ -60,7 +60,10 @@ addInlineScriptSupport = (document)->
       # executed in order and the page waits for this script to execute before
       # firing DCL (from inside document.close).
       executeInOrder = HTML.resourceLoader.enqueue(element, executeInlineScript, document.location.href)
-      process.nextTick(executeInOrder)
+      if document.readyState == "loading"
+        process.nextTick(executeInOrder)
+      else
+        executeInOrder()
     return
 
 

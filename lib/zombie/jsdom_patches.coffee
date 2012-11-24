@@ -1,10 +1,7 @@
 # Fix things that JSDOM doesn't do quite right.
-createHistory = require("./history")
-Path          = require("path")
-sizzle        = Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/sizzle")
-createSizzle  = require(sizzle)
+
+
 HTML          = require("jsdom").dom.level3.html
-URL           = require("url")
 
 
 HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
@@ -63,49 +60,6 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
       else # open named window
         browser.tabs.open(name: anchor.target, url: anchor.href)
 
-
-
-# Support for iframes that load content when you set the src attribute.
-HTML.Document.prototype._elementBuilders["iframe"] = (document, tag)->
-  parent = document.window
-  iframe = new HTML.HTMLIFrameElement(document, tag)
-
-  Object.defineProperties iframe,
-    contentWindow:
-      get: ->
-        return window || create()
-    contentDocument:
-      get: ->
-        return (window || create()).document
-
-  # URL created on the fly, or when src attribute set
-  window = null
-  create = (url)->
-    # Change the focus from window to active.
-    focus = (active)->
-      window = active
-    # Need to bypass JSDOM's window/document creation and use ours
-    open = createHistory(parent.browser, focus)
-    window = open(name: iframe.name, parent: parent, url: url)
-
-  # This is also necessary to prevent JSDOM from messing with window/document
-  iframe.setAttribute = (name, value)->
-    if name == "src" && value
-      # Point IFrame at new location and wait for it to load
-      url = HTML.resourceLoader.resolve(parent.document, value)
-      if window
-        window.location = url
-      else
-        create(url)
-      window.addEventListener "load", ->
-        onload = document.createEvent("HTMLEvents")
-        onload.initEvent("load", true, false)
-        iframe.dispatchEvent(onload)
-      HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
-    else
-      HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)
-
-  return iframe
 
 
 # Support for opacity style property.
@@ -177,50 +131,4 @@ HTML.NodeList.prototype.update = ->
         this[node.name] = node
     @_version = @_element._version
   return @_snapshot
-
-# Implement documentElement.contains
-# e.g., if(document.body.contains(el)) { ... }
-# See https://developer.mozilla.org/en-US/docs/DOM/Node.contains
-HTML.Node.prototype.contains = (otherNode) ->
-  # DDOPSON-2012-08-16 -- This implementation is stolen from Sizzle's implementation of 'contains' (around line 1402).
-  # We actually can't call Sizzle.contains directly: 
-  # * Because we define Node.contains, Sizzle will configure it's own "contains" method to call us. (it thinks we are a native browser implementation of "contains")
-  # * Thus, if we called Sizzle.contains, it would form an infinite loop.  Instead we use Sizzle's fallback implementation of "contains" based on "compareDocumentPosition".
-  return !!(this.compareDocumentPosition(otherNode) & 16)
-
-
-HTML.HTMLDocument.prototype.querySelector = (selector)->
-  @_sizzle ||= createSizzle(this)
-  return @_sizzle(selector, this)[0]
-HTML.HTMLDocument.prototype.querySelectorAll = (selector)->
-  @_sizzle ||= createSizzle(this)
-  return new HTML.NodeList(@_sizzle(selector, this))
-
-# True if element is child of context node or any of its children.
-descendantOf = (element, context)->
-  parent = element.parentNode
-  if parent
-    return parent == context || descendantOf(parent, context)
-  else
-    return false
-
-# Here comes the tricky part:
-#   getDocumentById("foo").querySelectorAll("#foo div")
-# should magically find the div descendant(s) of #foo, although
-# querySelectorAll can never "see" itself.
-descendants = (element, selector)->
-  document = element.ownerDocument
-  document._sizzle ||= createSizzle(document)
-  unless element.parentNode
-    parent = element.ownerDocument.createElement("div")
-    parent.appendChild(element)
-    element = parent
-  return document._sizzle(selector, element.parentNode || element)
-    .filter((node) -> descendantOf(node, element))
-
-
-HTML.Element.prototype.querySelector = (selector)->
-  return descendants(this, selector)[0]
-HTML.Element.prototype.querySelectorAll = (selector)->
-  return new HTML.NodeList(descendants(this, selector))
 

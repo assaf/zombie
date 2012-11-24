@@ -85,6 +85,7 @@ test = (version)->
 
     describe "jQuery.globalEval", ->
       it "should work as expected", ->
+        @browser.silent = false
         @browser.evaluate("(function () {
           $.globalEval('var globalEvalWorks = true;');
         })();")

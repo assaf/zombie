@@ -64,7 +64,7 @@ describe "Resources", ->
       @browser.wait duration: 90, done
 
     it "should not load page", ->
-      @browser.assert.text "title", ""
+      assert !@browser.document.body
 
     describe "after delay", ->
       before (done)->
