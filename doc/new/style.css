@@ -1,0 +1,72 @@
+body {
+  font-family: "Helvetica Neue" "Helvetica" "Verdana";
+  font-size: 13pt;
+  line-height: 1.3;
+  margin: 1in 0.75in;
+  color: #222;
+  text-rendering: optimizeLegibility;
+}
+h1 {
+  font-size: 300%;
+}
+h1, h2, h2, h4 {
+  font-family: "Optima" "Helvetica" "Trebuchet MS";
+  color: steelblue;
+  font-weight: 700;
+  margin: 1.2em 0 0.6em 0;
+  text-rendering: optimizeLegibility;
+}
+p {
+  margin: 0 0 0.6em 0;
+}
+pre, code {
+  font-family: "Source Code Pro" "Menlo" "Courier New";
+  font-size: 11pt;
+  color: #666;
+  background: #fcfcfc;
+  line-height: 1.2;
+}
+a {
+  color: steelblue;
+  text-decoration: none;
+}
+a:hover, a:active {
+  border-bottom: 1px solid steelblue;
+}
+ol, ul {
+  margin: 0.6em 0 0.6em 0;
+  padding: 0;
+  counter-reset: list-item;
+}
+li {
+  list-style: none;
+  margin: 0 0 0.6em 0;
+  padding: 0;
+  counter-increment: list-item;
+}
+ol li:before {
+  content: counter(list-item, decimal) ".";
+  font-weight: 400;
+  margin: 0 0.5em 0 0.3em;
+  width: 1.5em;
+  display: inline-block;
+  text-align: right;
+}
+ul li:before {
+  content: "\2022";
+  font-weight: 300;
+  margin: 0 0.5em 0 0.3em;
+}
+blockquote {
+  margin: 1.1em 2.3em 1.1em 2.3em;
+  color: #777;
+  font-style: italic;
+}
+
+em {
+  font-style: italic;
+}
+strong {
+  font-weight: 700;
+  color: #333;
+}
