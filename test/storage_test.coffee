@@ -13,7 +13,7 @@ test = (scope)->
     it "should handle key() with no key", ->
       assert !@storage.key(1)
     it "should handle getItem() with no item", ->
-      it assert !@storage.getItem("nosuch")
+      assert.equal @storage.getItem("nosuch"), null
     it "should handle removeItem() with no item", ->
       assert.doesNotThrow =>
         @storage.removeItem("nosuch")
@@ -75,7 +75,7 @@ test = (scope)->
       assert.equal @storage.key(0), "wants"
       assert !@storage.key(1)
     it "should forget value", ->
-      assert !@storage.getItem("is")
+      assert.equal @storage.getItem("is"), null
       assert.equal @storage.getItem("wants"), "brains"
 
 
@@ -93,8 +93,8 @@ test = (scope)->
     it "should forget all keys", ->
       assert !@storage.key(0)
     it "should forget all values", ->
-      assert !@storage.getItem("is")
-      assert !@storage.getItem("wants")
+      assert.equal @storage.getItem("is"), null
+      assert.equal @storage.getItem("wants"), null
 
 
   describe "store null", ->
