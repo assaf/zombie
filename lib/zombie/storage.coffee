@@ -34,7 +34,7 @@ class StorageArea
 
   # Get value from key
   get: (key)->
-    return @_items[key]
+    return @_items[key] || null
 
   # Set the value of a key. We also need the source storage (so we don't send
   # it a storage event).
