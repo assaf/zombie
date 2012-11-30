@@ -91,7 +91,7 @@ createTabs = (browser)->
     find:
       value: (name)->
         if tabs.propertyIsEnumerable(name)
-          return this[name]
+          return tabs[name]
         for window in this
           if window.name == name
             return window
@@ -127,6 +127,8 @@ createTabs = (browser)->
     if ~index
       browser.emit("inactive", window)
       tabs.splice(index, 1)
+      if tabs.propertyIsEnumerable(window.name)
+        delete tabs[window.name]
       # If we closed the currently open tab, need to select another window.
       if window == current
         # Don't emit inactive event for closed window.
