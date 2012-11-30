@@ -53,10 +53,12 @@ class Access
   # * name -- Cookie name
   remove: (name)->
     @_cookies.filter((cookie)=> !(cookie.key == name && cookie.domain == @domain && cookie.path == @path) )
+    return
 
   # Clears all cookies.
   clear: ->
     @_cookies.filter((cookie)=> !(cookie.domain == @domain && cookie.path == @path) )
+    return
 
   # Update cookies from serialized form. This method works equally well for
   # the Set-Cookie header and value passed to document.cookie setter.
@@ -99,12 +101,6 @@ class Cookies
   # Creates and returns cookie access scopes to given host/path.
   access: (hostname, pathname)->
     return new Access(this, hostname, pathname)
-
-  # Add cookies accessor to window: documents need this.
-  extend: (window)->
-    Object.defineProperty window, "cookies",
-      get: ->
-        return @browser.cookies(@location.hostname, @location.pathname)
 
   # Used to dump state to console (debugging)
   dump: ->

@@ -100,7 +100,9 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
     vendor:        { value: "Zombie Industries" }
 
   # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
-  browser._cookies.extend(window)
+  Object.defineProperty window, "cookies",
+    get: ->
+      return browser.cookies(@location.hostname, @location.pathname)
   browser._storages.extend(window)
   browser._interact.extend(window)
 

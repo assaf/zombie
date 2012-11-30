@@ -22,7 +22,7 @@ class Assert
 
   # Asserts that a cookie with the given name has the expected value.
   cookie: (name, expected, message)->
-    actual = @browser.cookies().get(name)
+    actual = @browser.getCookie(name)
     message ||= "Expected cooking #{name} to have the value '#{expected}', found '#{actual}'"
     assertMatch actual, expected, message
 
