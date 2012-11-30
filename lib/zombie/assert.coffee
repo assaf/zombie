@@ -64,8 +64,7 @@ class Assert
 
   # Assert that element matching selector exists.
   element: (selector, message)->
-    element = @browser.query(selector)
-    assert selector, message || "Could not find element '#{selector}'"
+    @elements(selector, exactly: 1, message)
 
   # Assert how many elements matching selector exist.
   #
@@ -82,7 +81,7 @@ class Assert
     if count.exactly
       count = count.exactly
     if typeof(count) == "number"
-      message ||= "Expected #{count.exactly} elements matching '#{selector}', found #{elements.length}"
+      message ||= "Expected #{count} elements matching '#{selector}', found #{elements.length}"
       assert.equal elements.length, count, message
     else
       if count.atLeast
@@ -101,6 +100,25 @@ class Assert
       classNames = element.className.split(/\s+/)
       assert ~classNames.indexOf(expected),
         message || "Expected element '#{selector}' to have class #{expected}, found #{classNames.join(", ")}"
+
+  # Asserts the selected element(s) doest not have the expected CSS class.
+  hasNoClass: (selector, expected, message)->
+    elements = @browser.queryAll(selector)
+    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
+    for element in elements
+      classNames = element.className.split(/\s+/)
+      assert classNames.indexOf(expected) == -1,
+        message || "Expected element '#{selector}' to not have class #{expected}, found #{classNames.join(", ")}"
+
+  # Asserts the selected element(s) has the expected class names.
+  className: (selector, expected, message)->
+    elements = @browser.queryAll(selector)
+    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
+    expected = expected.split(/\s+/).sort().join(" ")
+    for element in elements
+      actual = element.className.split(/\s+/).sort().join(" ")
+      assertMatch actual, expected, 
+        message || "Expected element '#{selector}' to have class #{expected}, found #{actual}"
 
   # Asserts the selected element(s) has the expected value for the named style
   # property.

@@ -33,6 +33,10 @@ The following assertions are available:
 Assert the named attribute of the selected element(s) has the expected value.
 Fails if no elements found.
 
+`browser.assert.className(selector, className, message)`
+
+Asserts that selected element(s) has the that and only that class name.
+
 `browser.assert.cookie(name, expected, message)`
 
 Asserts that a cookie with the given name has the expected value.
@@ -61,6 +65,11 @@ value of the expression matches the expected value.
 
 Asserts that the global (window) property has the expected value.
 
+`browser.assert.hasClass(selector, className, message)`
+
+Asserts that selected element(s) has the expected class name (it may have many
+other class names).
+
 `browser.assert.hasFocus(selector, message)`
 
 Asserts that selected element has the focus.
@@ -69,6 +78,11 @@ Asserts that selected element has the focus.
 
 Asserts that selected input field (text field, text area, etc) has the expected
 value.
+
+`browser.assert.hasNoClass(selector, className, message)`
+
+Asserts that selected element(s) does not have the expected class name (it may
+have many other class names).
 
 `browser.assert.prompted(messageShown, message)`
 
