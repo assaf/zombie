@@ -2,6 +2,7 @@
 
 
 describe "IFrame", ->
+  browser = new Browser()
 
   before (done)->
     brains.get "/iframe", (req, res)->
@@ -37,15 +38,14 @@ describe "IFrame", ->
     brains.ready done
 
   before (done)->
-    @browser = new Browser()
-    @browser.visit("http://localhost:3003/iframe")
+    browser.visit("/iframe")
       .then =>
-        @iframe = @browser.querySelector("iframe")
+        @iframe = browser.querySelector("iframe")
         return
       .then(done, done)
 
   it "should fire onload event", ->
-    @browser.assert.text "title", "Whatever"
+    browser.assert.text "title", "Whatever"
   it "should load iframe document", ->
     iframeDocument = @iframe.contentWindow.document
     assert.equal "Whatever", iframeDocument.title
@@ -54,16 +54,18 @@ describe "IFrame", ->
   it "should set frame src attribute", ->
     assert.equal @iframe.src, "/iframe/static"
   it "should reference parent window from iframe", ->
-    assert.equal @iframe.contentWindow.parent, @browser.window.parent
+    assert.equal @iframe.contentWindow.parent, browser.window.parent
   it "should not alter the parent", ->
-    @browser.assert.url "http://localhost:3003/iframe"
+    browser.assert.url "http://localhost:3003/iframe"
 
-
-  it "should handle javascript protocol gracefully", ->
+  describe "javascript: protocol", ->
     # Seen this in the wild, checking that it doesn't blow up
-    @iframe.src = "javascript:false"
-    assert true
+    before (done)->
+      @iframe.src = "javascript:false"
+      browser.wait(done)
 
+    it "should not blow up", ->
+      assert true
 
   describe "postMessage", ->
     before (done)->
@@ -98,11 +100,10 @@ describe "IFrame", ->
       brains.ready done
 
     before (done)->
-      @browser = new Browser()
-      @browser.visit "http://localhost:3003/iframe/ping", done
+      browser.visit("/iframe/ping", done)
 
     it "should pass messages back and forth", ->
-      @browser.assert.text "title", "pong http://localhost:3003"
+      browser.assert.text "title", "pong http://localhost:3003"
 
 
   describe "link target", ->
@@ -137,107 +138,111 @@ describe "IFrame", ->
       source = null
 
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/iframe/top", =>
-          @source = @browser.window
-          @browser.clickLink "self", done
+        browser.visit "/iframe/top", =>
+          @source = browser.window
+          browser.clickLink("self", done)
 
       it "should open link", ->
-        @browser.assert.url pathname: "/target/_self"
+        browser.assert.url pathname: "/target/_self"
 
       it "should open link in same window", ->
-        assert.equal @browser.tabs.index, 0
+        assert.equal browser.tabs.index, 0
 
 
     describe "_blank", ->
 
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/iframe/top", =>
-          assert.equal @browser.tabs.length, 1
-          @browser.clickLink "blank", done
+        browser.visit "/iframe/top", ->
+          assert.equal browser.tabs.length, 1
+          browser.clickLink("blank", done)
 
       it "should open link", ->
-        @browser.assert.url pathname: "/target/_blank"
+        browser.assert.url pathname: "/target/_blank"
 
       it "should open link in new window", ->
-        assert.equal @browser.tabs.length, 2
-        assert.equal @browser.tabs.index, 1
+        assert.equal browser.tabs.length, 2
+        assert.equal browser.tabs.index, 1
+
+      after ->
+        browser.close()
 
 
     describe "_top", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/iframe/top", =>
-          two_deep = @browser.window.frames["child"].frames["child"].document
-          link = two_deep.querySelector("a[target=_top]")
+        browser.visit "/iframe/top", ->
+          twoDeep = browser.window.frames["child"].frames["child"].document
+          link = twoDeep.querySelector("a[target=_top]")
+
           event = link.ownerDocument.createEvent("HTMLEvents")
-          event.initEvent "click", true, true
+          event.initEvent("click", true, true)
           link.dispatchEvent(event)
-          @browser.wait done
+          browser.wait(done)
 
       it "should open link", ->
-        @browser.assert.url pathname: "/target/_top"
+        browser.assert.url pathname: "/target/_top"
 
       it "should open link in top window", ->
-        assert.equal @browser.tabs.length, 1
+        assert.equal browser.tabs.length, 1
 
 
     describe "_parent", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/iframe/top", =>
-          two_deep = @browser.window.frames["child"].frames["child"].document
-          link = two_deep.querySelector("a[target=_parent]")
+        browser.visit "/iframe/top", ->
+          twoDeep = browser.window.frames["child"].frames["child"].document
+          link = twoDeep.querySelector("a[target=_parent]")
+
           event = link.ownerDocument.createEvent("HTMLEvents")
-          event.initEvent "click", true, true
+          event.initEvent("click", true, true)
           link.dispatchEvent(event)
-          @browser.wait done
+          browser.wait(done)
 
       it "should open link", ->
-        assert.equal @browser.window.frames["child"].location.pathname, "/target/_parent"
+        assert.equal browser.window.frames["child"].location.pathname, "/target/_parent"
 
       it "should open link in child window", ->
-        @browser.assert.url pathname: "/iframe/top"
-        assert.equal @browser.tabs.length, 1
+        browser.assert.url pathname: "/iframe/top"
+        assert.equal browser.tabs.length, 1
 
 
     describe "window", ->
 
       describe "new", ->
         before (done)->
-          @browser = new Browser()
-          @browser.visit("http://localhost:3003/iframe/top")
-            .then =>
-              @browser.clickLink "new window"
-            .then(done, done)
+          browser.visit "/iframe/top", ->
+            browser.clickLink("new window", done)
 
         it "should open link", ->
-          @browser.assert.url pathname: "/target/new-window"
+          browser.assert.url pathname: "/target/new-window"
 
         it "should open link in new window", ->
-          assert.equal @browser.tabs.length, 2
-          assert.equal @browser.tabs.index, 1
+          assert.equal browser.tabs.length, 2
+          assert.equal browser.tabs.index, 1
+
+        after ->
+          browser.close()
 
 
       describe "existing", ->
         before (done)->
-          @browser = new Browser()
-          @browser.visit("http://localhost:3003/iframe/top")
-            .then =>
-              @browser.clickLink "new window"
-            .then =>
-              @browser.visit "http://localhost:3003/iframe/top"
-            .then =>
-              @browser.clickLink "existing window"
-            .then(done, done)
+          browser.visit "/iframe/top", ->
+            browser.clickLink("new window", done)
+
+        before (done)->
+          browser.tabs.current = 0
+          browser.clickLink("existing window", done)
 
         it "should open link", ->
-          @browser.assert.url pathname: "/target/existing-window"
+          browser.assert.url pathname: "/target/existing-window"
 
         it "should open link in existing window", ->
-          assert.equal @browser.tabs.length, 2
+          assert.equal browser.tabs.length, 2
 
         it "should select existing window", ->
-          assert.equal @browser.tabs.index, 1
+          assert.equal browser.tabs.index, 1
 
+        after ->
+          browser.close(1)
+
+
+   after ->
+     browser.destroy()

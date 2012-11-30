@@ -142,7 +142,8 @@ describe "Browser events", ->
           events.click = { event: event, target: target }
 
       browser.visit "/browser-events/document", ->
-        browser.fire("body", "click", done)
+        browser.click("body")
+        browser.wait(done)
 
     it "should receive DOM event", ->
       assert.equal events.click.event.type, "click"
@@ -199,7 +200,7 @@ describe "Browser events", ->
         events.interval = { fn: fn, interval: interval }
 
       browser.visit("/browser-events/interval")
-      browser.wait(duration: 10, done)
+      browser.wait(duration: 100, done)
 
     it "should receive interval event with the function", ->
       assert.equal typeof(events.interval.fn), "function"
@@ -257,8 +258,8 @@ describe "Browser events", ->
         events.link = { url: url, target: target }
 
       browser.visit "/browser-events/link", ->
-        browser.fire "a", "click", ->
-          done()
+        browser.click("a")
+        done()
 
     it "should receive link event with the URL", ->
       assert.equal events.link.url, "http://localhost:3003/browser-events/follow"

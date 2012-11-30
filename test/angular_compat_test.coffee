@@ -1,5 +1,6 @@
 { assert, brains, Browser } = require("./helpers")
 
+
 describe "angularjs", ->
   before (done)->
     brains.get "/angular/show.html", (req, res)->
@@ -47,14 +48,16 @@ describe "angularjs", ->
 
 
   describe "routing system", ->
+    browser = null
 
     before (done)->
-      @browser = new Browser()
-      @browser.visit("http://localhost:3003/angular")
-      @browser.wait 3000, =>
-        @browser.clickLink "my link"
-        @browser.wait 1000, done
+      browser = new Browser()
+      browser.visit "/angular", ->
+        browser.clickLink("my link")
+        browser.wait(duration: 100, done)
 
     it "should follow the link to the detail", ->
-      assert.equal @browser.text("h1"), "my title"
+      assert.equal browser.text("h1"), "my title"
 
+    after ->
+      browser.destroy()

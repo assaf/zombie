@@ -4,8 +4,7 @@ URL   = require("url")
 
 
 describe "History", ->
-
-  file_url = "file://#{__dirname}/data/index.html"
+  browser = null
 
 
   before (done)->
@@ -28,28 +27,28 @@ describe "History", ->
     brains.get "/history/referer2", (req, res)->
       res.send "<html><title>#{req.headers["referer"]}</title></html>"
 
+    browser = new Browser()
     brains.ready done
 
 
   describe "URL without path", ->
     before (done)->
-      @browser = new Browser()
-      @browser.visit "http://localhost:3003", done
+      browser.visit("/", done)
 
     it "should resolve URL", ->
-      @browser.assert.url "http://localhost:3003/"
+      browser.assert.url "http://localhost:3003/"
     it "should load page", ->
-      @browser.assert.text "title", "Tap, Tap"
+      browser.assert.text "title", "Tap, Tap"
 
 
   describe "new window", ->
     before ->
-      @browser = new Browser()
-      @window = @browser.open()
+      browser.close()
+      @window = browser.open()
 
     it "should start out with one location", ->
       assert.equal @window.history.length, 1
-      @browser.assert.url "about:blank"
+      browser.assert.url "about:blank"
 
     describe "go forward", ->
       before ->
@@ -57,7 +56,7 @@ describe "History", ->
 
       it "should have no effect", ->
         assert.equal @window.history.length, 1
-        @browser.assert.url "about:blank"
+        browser.assert.url "about:blank"
 
     describe "go backwards", ->
       before ->
@@ -65,24 +64,24 @@ describe "History", ->
 
       it "should have no effect", ->
         assert.equal @window.history.length, 1
-        @browser.assert.url "about:blank"
+        browser.assert.url "about:blank"
 
 
   describe "history", ->
 
     describe "pushState", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", =>
-          @browser.history.pushState({ is: "start" }, null, "/start")
-          @browser.history.pushState({ is: "end" },   null, "/end")
-          @window = @browser.window
-          @browser.wait(done)
+        browser.visit "/", ->
+          browser.history.pushState({ is: "start" }, null, "/start")
+          browser.history.pushState({ is: "end" },   null, "/end")
+          browser.wait(done)
+      before ->
+        @window = browser.window
 
       it "should add state to history", ->
         assert.equal @window.history.length, 3
       it "should change location URL", ->
-        @browser.assert.url "http://localhost:3003/end"
+        browser.assert.url "http://localhost:3003/end"
 
       describe "go backwards", ->
         before (done)->
@@ -90,7 +89,7 @@ describe "History", ->
           @window.addEventListener "popstate", (@event)=>
             done()
           @window.history.back()
-          @browser.wait()
+          browser.wait()
 
         it "should fire popstate event", ->
           assert @event instanceof JSDOM.dom.level3.events.Event
@@ -103,8 +102,7 @@ describe "History", ->
 
       describe "go forwards", ->
         before (done)->
-          browser = new Browser()
-          browser.visit "http://localhost:3003/", =>
+          browser.visit "/", =>
             browser.history.pushState { is: "start" }, null, "/start"
             browser.history.pushState { is: "end" },   null, "/end"
             browser.back()
@@ -120,197 +118,189 @@ describe "History", ->
 
     describe "replaceState", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", =>
-          @browser.history.pushState { is: "start" },  null, "/start"
-          @browser.history.replaceState { is: "end" }, null, "/end"
-          @window = @browser.window
-          @browser.wait(done)
+        browser.visit "/", ->
+          browser.history.pushState { is: "start" },  null, "/start"
+          browser.history.replaceState { is: "end" }, null, "/end"
+          browser.wait(done)
+      before ->
+        @window = browser.window
 
       it "should not add state to history", ->
         assert.equal @window.history.length, 2
       it "should change location URL", ->
-        @browser.assert.url "http://localhost:3003/end"
+        browser.assert.url "http://localhost:3003/end"
 
       describe "go backwards", ->
         before (done)->
           @window.addEventListener "popstate", (evt)=>
             @window.popstate = true
           @window.history.back()
-          @browser.wait(done)
+          browser.wait(done)
 
         it "should change location URL", ->
-          @browser.assert.url "http://localhost:3003/"
+          browser.assert.url "http://localhost:3003/"
         it "should fire popstate event", ->
           assert @window.popstate
 
 
     describe "redirect", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/history/redirect", done
+        browser.visit("/history/redirect", done)
 
       it "should redirect to final destination", ->
-        @browser.assert.url "http://localhost:3003/history/boo/?redirected=true"
+        browser.assert.url "http://localhost:3003/history/boo/?redirected=true"
       it "should pass query parameter", ->
-        @browser.assert.text "title", "Redirected"
+        browser.assert.text "title", "Redirected"
       it "should not add location in history", ->
-        assert.equal @browser.history.length, 1
+        assert.equal browser.history.length, 1
       it "should indicate last request followed a redirect", ->
-        @browser.assert.redirected()
+        browser.assert.redirected()
 
     describe "redirect back", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/history/boo", =>
-          @browser.visit "http://localhost:3003/history/redirect_back", done
+        browser.visit "/history/boo", ->
+          browser.location = "/history/redirect_back"
+          browser.wait(done)
 
       it "should redirect to the previous path", ->
-        @browser.assert.url "http://localhost:3003/history/boo/"
+        browser.assert.url "http://localhost:3003/history/boo/"
       it "should pass query parameter", ->
-        @browser.assert.text "title", /Eeek!/
+        browser.assert.text "title", /Eeek!/
       it "should not add location in history", ->
-        assert.equal @browser.history.length, 2
+        assert.equal browser.history.length, 2
       it "should indicate last request followed a redirect", ->
-        @browser.assert.redirected()
+        browser.assert.redirected()
 
 
   describe "location", ->
 
     describe "open page", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", done
+        browser.visit("/history/boo", done)
 
       it "should add page to history", ->
-        assert.equal @browser.history.length, 1
+        assert.equal browser.history.length, 1
       it "should change location URL", ->
-        @browser.assert.url "http://localhost:3003/"
+        browser.assert.url "http://localhost:3003/history/boo/"
       it "should load document", ->
-        @browser.assert.text "html", /Tap, Tap/
+        browser.assert.text "title", /Eeek!/
       it "should set window location", ->
-        @browser.assert.url "http://localhost:3003/"
+        browser.assert.url "http://localhost:3003/history/boo/"
       it "should set document location", ->
-        @browser.assert.url "http://localhost:3003/"
+        browser.assert.url "http://localhost:3003/history/boo/"
 
     describe "open from file system", ->
+      fileURL = "file://#{__dirname}/data/index.html"
+
       before (done)->
-        @browser = new Browser()
-        @browser.visit file_url, done
+        browser.visit(fileURL, done)
 
       it "should add page to history", ->
-        assert.equal @browser.history.length, 1
+        assert.equal browser.history.length, 1
       it "should change location URL", ->
-        @browser.assert.url file_url
+        browser.assert.url fileURL
       it "should load document", ->
-        assert ~@browser.html("title").indexOf("Insanely fast, headless full-stack testing using Node.js")
+        assert ~browser.html("title").indexOf("Insanely fast, headless full-stack testing using Node.js")
       it "should set window location", ->
-        assert.equal @browser.window.location.href, file_url
+        assert.equal browser.window.location.href, fileURL
       it "should set document location", ->
-        assert.equal @browser.document.location.href, file_url
+        assert.equal browser.document.location.href, fileURL
 
     describe "change pathname", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", =>
-          @browser.window.location.pathname = "/history/boo"
-          @browser.on "loaded", ->
+        browser.visit "/", ->
+          browser.window.location.pathname = "/history/boo"
+          browser.once "loaded", ->
             done()
-          @browser.wait()
+          browser.wait()
 
       it "should add page to history", ->
-        assert.equal @browser.history.length, 2
+        assert.equal browser.history.length, 2
       it "should change location URL", ->
-        @browser.assert.url "http://localhost:3003/history/boo/"
+        browser.assert.url "http://localhost:3003/history/boo/"
       it "should load document", ->
-        @browser.assert.text "html", /Eeek!/
+        browser.assert.text "title", /Eeek!/
 
     describe "change relative href", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", =>
-          @browser.window.location.href = "/history/boo"
-          @browser.on "loaded", ->
+        browser.visit "/", ->
+          browser.window.location.href = "/history/boo"
+          browser.once "loaded", ->
             done()
-          @browser.wait()
+          browser.wait()
 
       it "should add page to history", ->
-        assert.equal @browser.history.length, 2
+        assert.equal browser.history.length, 2
       it "should change location URL", ->
-        @browser.assert.url "http://localhost:3003/history/boo/"
+        browser.assert.url "http://localhost:3003/history/boo/"
       it "should load document", ->
-        @browser.assert.text "html", /Eeek!/
+        browser.assert.text "title", /Eeek!/
 
     describe "change hash", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", =>
-          @browser.document.innerHTML = "Wolf"
-          @browser.window.addEventListener "hashchange", ->
+        browser.visit "/", ->
+          browser.document.innerHTML = "Wolf"
+          browser.window.addEventListener "hashchange", ->
             done()
-          @browser.window.location.hash = "boo"
-          @browser.wait()
+          browser.window.location.hash = "boo"
+          browser.wait()
 
       it "should add page to history", ->
-        assert.equal @browser.history.length, 2
+        assert.equal browser.history.length, 2
       it "should change location URL", ->
-        @browser.assert.url "http://localhost:3003/#boo"
+        browser.assert.url "http://localhost:3003/#boo"
       it "should not reload document", ->
-        @browser.assert.text "body", /Wolf/
+        browser.assert.text "body", /Wolf/
 
     describe "assign", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", =>
-          @browser.window.location.assign "http://localhost:3003/history/boo"
-          @browser.on "loaded", ->
+        browser.visit "/", ->
+          browser.window.location.assign "http://localhost:3003/history/boo"
+          browser.once "loaded", ->
             done()
-          @browser.wait()
+          browser.wait()
 
       it "should add page to history", ->
-        assert.equal @browser.history.length, 2
+        assert.equal browser.history.length, 2
       it "should change location URL", ->
-        @browser.assert.url "http://localhost:3003/history/boo/"
+        browser.assert.url "http://localhost:3003/history/boo/"
       it "should load document", ->
-        @browser.assert.text "html", /Eeek!/
+        browser.assert.text "title", /Eeek!/
 
     describe "replace", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", =>
-          @browser.window.location.replace "http://localhost:3003/history/boo"
-          @browser.on "loaded", ->
+        browser.visit "/", ->
+          browser.window.location.replace "http://localhost:3003/history/boo"
+          browser.once "loaded", ->
             done()
-          @browser.wait()
+          browser.wait()
 
       it "should not add page to history", ->
-        assert.equal @browser.history.length, 1
+        assert.equal browser.history.length, 1
       it "should change location URL", ->
-        @browser.assert.url "http://localhost:3003/history/boo/"
+        browser.assert.url "http://localhost:3003/history/boo/"
       it "should load document", ->
-        @browser.assert.text "html", /Eeek!/
+        browser.assert.text "title", /Eeek!/
 
     describe "reload", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", =>
-          @browser.window.document.innerHTML = "Wolf"
-          @browser.reload()
-          @browser.on "loaded", ->
+        browser.visit "/", ->
+          browser.window.document.innerHTML = "Wolf"
+          browser.reload()
+          browser.once "loaded", ->
             done()
-          @browser.wait()
+          browser.wait()
 
       it "should not add page to history", ->
-        assert.equal @browser.history.length, 1
+        assert.equal browser.history.length, 1
       it "should not change location URL", ->
-        @browser.assert.url "http://localhost:3003/"
+        browser.assert.url "http://localhost:3003/"
       it "should reload document", ->
-        @browser.assert.text "html", /Tap, Tap/
+        browser.assert.text "title", /Tap, Tap/
 
     describe "components", ->
       before (done)->
-        browser = new Browser()
-        browser.visit "http://localhost:3003/", =>
+        browser.visit "/", =>
           @location = browser.location
           done()
 
@@ -331,79 +321,59 @@ describe "History", ->
 
     describe "set window.location", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", =>
-          @browser.window.location = "http://localhost:3003/history/boo"
-          @browser.on "loaded", ->
+        browser.visit "/", ->
+          browser.window.location = "http://localhost:3003/history/boo"
+          browser.once "loaded", ->
             done()
-          @browser.wait()
+          browser.wait()
 
       it "should add page to history", ->
-        assert.equal @browser.history.length, 2
+        assert.equal browser.history.length, 2
       it "should change location URL", ->
-        @browser.assert.url "http://localhost:3003/history/boo/"
+        browser.assert.url "http://localhost:3003/history/boo/"
       it "should load document", ->
-        @browser.assert.text "html", /Eeek!/
+        browser.assert.text "title", /Eeek!/
 
     describe "set document.location", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/", =>
-          @browser.window.document.location = "http://localhost:3003/history/boo"
-          @browser.on "loaded", ->
+        browser.visit "/", ->
+          browser.window.document.location = "http://localhost:3003/history/boo"
+          browser.once "loaded", ->
             done()
-          @browser.wait()
+          browser.wait()
 
       it "should add page to history", ->
-        assert.equal @browser.history.length, 2
+        assert.equal browser.history.length, 2
       it "should change location URL", ->
-        @browser.assert.url "http://localhost:3003/history/boo/"
+        browser.assert.url "http://localhost:3003/history/boo/"
       it "should load document", ->
-        @browser.assert.text "html", /Eeek!/
+        browser.assert.text "title", /Eeek!/
 
 
   describe "referer not set", ->
+    before (done)->
+      browser.visit("/history/referer", done)
 
-    describe "first page", ->
-      before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/history/referer", done
-
-      it "should be empty", ->
-        @browser.assert.text "title", ""
-
-      describe "second page", ->
-        before (done)->
-          @browser.visit "http://localhost:3003/history/referer2", done
-
-        it "should point to first page", ->
-          @browser.assert.text "title", "http://localhost:3003/history/referer"
+    it "should be empty", ->
+      browser.assert.text "title", ""
 
   describe "referer set", ->
+    before (done)->
+      browser.visit("/history/referer", referer: "http://braindepot", done)
 
-    describe "first page", ->
-      before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/history/referer", referer: "http://braindepot", done
-
-      it "should be set from browser", ->
-        @browser.assert.text "title", "http://braindepot"
-
-      describe "second page", ->
-        before (done)->
-          @browser.visit "http://localhost:3003/history/referer2", done
-
-        it "should point to first page", ->
-          @browser.assert.text "title", "http://localhost:3003/history/referer"
+    it "should be set from browser", ->
+      browser.assert.text "title", "http://braindepot"
 
 
   describe "URL with hash", ->
     before (done)->
-      @browser = new Browser()
-      @browser.visit "http://localhost:3003#with-hash", done
+      browser.visit("/#with-hash", done)
 
     it "should load page", ->
-      @browser.assert.text "title", "Tap, Tap"
+      browser.assert.text "title", "Tap, Tap"
     it "should set location to hash", ->
-      assert.equal @browser.location.hash, "#with-hash"
+      assert.equal browser.location.hash, "#with-hash"
 
+
+  after ->
+    browser.destroy()

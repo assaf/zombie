@@ -2,19 +2,21 @@
 
 
 describe "Scripts", ->
+  browser = null
 
   before (done)->
+    browser = new Browser()
     brains.ready done
 
   describe "basic", ->
     before ->
-      brains.get "/script/living/", (req, res)->
+      brains.get "/script/living", (req, res)->
         res.send """
         <html>
           <head>
             <script src="/jquery.js"></script>
             <script src="/sammy.js"></script>
-            <script src="./app.js"></script>
+            <script src="/script/living/app.js"></script>
           </head>
           <body>
             <div id="main">
@@ -48,53 +50,47 @@ describe "Scripts", ->
 
     describe "run app", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/script/living/", done
+        browser.visit("/script/living", done)
 
       it "should execute route", ->
-        @browser.assert.text "title", "The Living"
+        browser.assert.text "title", "The Living"
       it "should change location", ->
-        @browser.assert.url "http://localhost:3003/script/living/#/"
+        browser.assert.url "http://localhost:3003/script/living#/"
 
       describe "move around", ->
         before (done)->
-          @browser.visit @browser.location.href + "dead", done
+          browser.visit("/script/living#/dead")
+          hashChanged = (window)->
+            return browser.text("#main") == "The Living Dead"
+          browser.wait(function: hashChanged, done)
 
         it "should execute route", ->
-          @browser.assert.text "#main", "The Living Dead"
+          browser.assert.text "#main", "The Living Dead"
         it "should change location", ->
-          @browser.assert.url "http://localhost:3003/script/living/#/dead"
-
-      after ->
-        @browser.destroy()
+          browser.assert.url "http://localhost:3003/script/living#/dead"
 
 
     describe "live events", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit("http://localhost:3003/script/living/")
-          .then =>
-            @browser.fill "Email", "armbiter@zombies"
-            @browser.fill "Password", "br41nz"
-            @browser.pressButton "Sign Me Up"
-          .then(done, done)
+        browser.visit "/script/living/", ->
+          browser
+            .fill("Email", "armbiter@zombies")
+            .fill("Password", "br41nz")
+            .pressButton("Sign Me Up", done)
 
       it "should change location", ->
-        @browser.assert.url "http://localhost:3003/script/living/#/"
+        browser.assert.url "http://localhost:3003/script/living/#/"
       it "should process event", ->
-        @browser.assert.text "title", "Signed up"
+        browser.assert.text "title", "Signed up"
 
-      after ->
-        @browser.destroy()
 
     describe "evaluate", ->
       before (done)->
-        Browser.visit "http://localhost:3003/script/living/", (error, browser)=>
-          @title = browser.evaluate("document.title")
-          done(error)
+        browser.visit("/script/living/", done)
 
       it "should evaluate in context and return value", ->
-        assert.equal @title, "The Living"
+        title = browser.evaluate("document.title")
+        assert.equal title, "The Living"
 
 
   describe "evaluating", ->
@@ -113,11 +109,10 @@ describe "Scripts", ->
             });</script>
           </html>
           """
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/script/context", done
+        browser.visit("/script/context", done)
 
       it "should be shared by all scripts", ->
-        @browser.assert.text "title", "4"
+        browser.assert.text "title", "4"
 
 
     describe "window", ->
@@ -133,11 +128,10 @@ describe "Scripts", ->
                                       top == parent].join(',')</script>
           </html>
           """
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/script/window", done
+        browser.visit("/script/window", done)
 
       it "should be the same as this, top and parent", ->
-        @browser.assert.text "title", "true,true,true,true,true,true"
+        browser.assert.text "title", "true,true,true,true,true,true"
 
 
     describe "global and function", ->
@@ -155,13 +149,12 @@ describe "Scripts", ->
             </script>
           </html>
           """
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/script/global_and_fn", done
+        browser.visit("/script/global_and_fn", done)
 
       it "should not fail with an error", ->
-        assert.equal @browser.errors.length, 0
+        assert.equal browser.errors.length, 0
       it "should set global variable", ->
-        @browser.assert.text "title", "foo"
+        browser.assert.text "title", "foo"
 
 
   describe "order", ->
@@ -181,13 +174,11 @@ describe "Scripts", ->
         </html>
         """
       brains.get "/script/order.js", (req, res)->
-        res.send "document.title = document.title + 'One'"
-
-      @browser = new Browser()
-      @browser.visit "http://localhost:3003/script/order", done
+        res.send("document.title = document.title + 'One'")
+      browser.visit("/script/order", done)
 
     it "should run scripts in order regardless of source", ->
-      @browser.assert.text "title", "ZeroOneTwo"
+      browser.assert.text "title", "ZeroOneTwo"
 
 
   describe "eval", ->
@@ -215,11 +206,10 @@ describe "Scripts", ->
           </script>
         </html>
         """
-      @browser = new Browser()
-      @browser.visit "http://localhost:3003/script/eval", done
+      browser.visit("/script/eval", done)
 
     it "should evaluate in global scope", ->
-      @browser.assert.text "title", "OneTwoThreeOne"
+      browser.assert.text "title", "OneTwoThreeOne"
 
 
   describe "failing", ->
@@ -231,15 +221,15 @@ describe "Scripts", ->
               <script>1+</script>
             </html>
           """
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/script/incomplete", (@error)=>
+        browser.visit("/script/incomplete")
+        browser.wait (@error)=>
           done()
 
       it "should pass error to callback", ->
         assert.equal @error.message, "Unexpected end of input"
 
       it "should propagate error to window", ->
-        assert.equal @browser.error.message, "Unexpected end of input"
+        assert.equal browser.error.message, "Unexpected end of input"
 
     describe "error", ->
       before (done)->
@@ -249,15 +239,15 @@ describe "Scripts", ->
               <script>(function(foo) { foo.bar })()</script>
             </html>
           """
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/script/error", (@error)=>
+        browser.visit("/script/error")
+        browser.wait (@error)=>
           done()
 
       it "should pass error to callback", ->
         assert.equal @error.message, "Cannot read property 'bar' of undefined"
 
       it "should propagate error to window", ->
-        assert.equal @browser.error.message, "Cannot read property 'bar' of undefined"
+        assert.equal browser.error.message, "Cannot read property 'bar' of undefined"
 
 
   describe "loading", ->
@@ -270,27 +260,24 @@ describe "Scripts", ->
             <script>foo = 1 < 2 ? 1 : 2; '&'; document.title = foo</script>
           </html>
           """
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/script/split", done
+        browser.visit("/script/split", done)
 
       it "should run full script", ->
-        @browser.assert.text "title", "1"
+        browser.assert.text "title", "1"
 
-    # TODO: handle CDATA scripts
-    ###
-    describe "with CDATA", ->
+
+    describe.skip "with CDATA", ->
       before (done)->
         brains.get "/script/cdata", (req, res)-> res.send """
           <html>
             <script>foo = 2; <![CDATA[ document.title ]]> = foo</script>
           </html>
           """
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/script/cdata", done
+        browser.visit("/script/cdata", done)
 
       it "should run full script", ->
-        assert.equal @browser.text("title"), "2"
-    ###
+        assert.equal browser.text("title"), "2"
+
 
     describe "using document.write", ->
       before (done)->
@@ -304,11 +291,10 @@ describe "Scripts", ->
             </body>
           </html>
           """
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/script/write", done
+        browser.visit("/script/write", done)
 
       it "should run script", ->
-        @browser.assert.text "title", "document.write"
+        browser.assert.text "title", "document.write"
 
 
     describe "using appendChild", ->
@@ -331,12 +317,11 @@ describe "Scripts", ->
           </html>
           """
         brains.get "/script/append.js", (req, res)->
-          res.send "document.title = document.title + \"appendChild\""
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/script/append", done
+          res.send("document.title = document.title + \"appendChild\"")
+        browser.visit "/script/append", done
 
       it "should run script", ->
-        @browser.assert.text "title", "element.appendChild"
+        browser.assert.text "title", "element.appendChild"
 
 
   describe "scripts disabled", ->
@@ -356,45 +341,50 @@ describe "Scripts", ->
         """
       brains.get "/script/no-scripts.js", (req, res)->
         res.send "document.title = document.title + 'One'"
-
-      @browser = new Browser(features: "no-scripts")
-      @browser.visit "http://localhost:3003/script/order", done
+      browser.features = "no-scripts"
+      browser.visit("/script/order", done)
 
     it "should not run scripts", ->
-      @browser.assert.text "title", "Zero"
+      browser.assert.text "title", "Zero"
+
+    after ->
+      browser.features = "scripts"
 
 
   describe "file:// uri scheme", ->
     before (done)->
-      @browser = new Browser()
-      @browser.visit "file://#{__dirname}/data/file_scheme.html", done
+      browser.visit("file://#{__dirname}/data/file_scheme.html", done)
 
     it "should run scripts with file url src", ->
-      @browser.assert.text "title", "file://"
+      browser.assert.text "title", "file://"
 
 
   describe "javascript: URL", ->
-    before (done)->
-      @browser = new Browser()
-      @browser.visit "javascript:document.write('hi')", done
+    describe "existing page", ->
+      before (done)->
+        browser.visit "/script/living", ->
+          browser.visit("javascript:window.message = 'hi'", done)
 
-    it "should evaluate script in context of window", ->
-      @browser.assert.text "html", "hi"
+      it "should evaluate script in context of window", ->
+        browser.assert.evaluate "message", "hi"
 
+    describe "blank page", ->
+      before (done)->
+        browser.tabs.close()
+        browser.visit("javascript:window.message = 'hi'", done)
+
+      it "should evaluate script in context of window", ->
+        browser.assert.evaluate "message", "hi"
 
   describe "new Image", ->
-    before ->
-      @browser = new Browser()
-
     it "should construct an img tag", ->
-      @browser.assert.evaluate "new Image().tagName", "IMG"
+      browser.assert.evaluate "new Image().tagName", "IMG"
     it "should construct an img tag with width and height", ->
-      @browser.assert.evaluate "new Image(1, 1).height", 1
+      browser.assert.evaluate "new Image(1, 1).height", 1
 
 
   describe "Event", ->
     it "should be available in global context", ->
-      browser = new Browser()
       browser.assert.evaluate "Event"
 
 
@@ -409,24 +399,25 @@ describe "Scripts", ->
       brains.ready done
 
     before (done)->
-      @browser = new Browser()
-      @browser.visit("http://localhost:3003/script/event")
+      browser.visit("/script/event")
         .then =>
-          @browser.pressButton "Submit"
+          browser.pressButton("Submit")
         .then(done, done)
 
     it "should prevent default handling by returning false", ->
-      @browser.assert.url "http://localhost:3003/script/event"
+      browser.assert.url "http://localhost:3003/script/event"
 
     it "should have access to window.event", ->
-      @browser.assert.text "title", "HTMLEvents"
+      browser.assert.text "title", "HTMLEvents"
 
 
   describe "JSON parsing", ->
     it "should respect prototypes", ->
-      browser = new Browser()
       browser.assert.evaluate """
         Array.prototype.method = function() {};
         JSON.parse("[0, 1]").method;
       """
 
+
+  after ->
+    browser.destroy()

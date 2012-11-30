@@ -2,6 +2,7 @@
 
 
 describe "Cookies", ->
+  browser = null
 
   # Parse string with cookies in it (like document.cookies) and return object
   # with name/value pairs for each cookie.
@@ -15,9 +16,8 @@ describe "Cookies", ->
         , Object.create({}))
 
   # Extracts cookies from @browser, parses and sets @cookies.
-  cookies_from_html = ->
-    @cookies = parse(@browser.text("html"))
-    return
+  cookiesFromHtml = (browser)->
+    return parse(browser.source)
 
 
   before (done)->
@@ -41,54 +41,57 @@ describe "Cookies", ->
 
     brains.get "/cookies/echo", (req,res)->
       cookies = ("#{k}=#{v}" for k,v of req.cookies).join("; ")
-      res.send "<html>#{cookies}</html>"
+      res.send cookies
 
     brains.get "/cookies/empty", (req,res)->
-      res.send "<html></html>"
+      res.send ""
 
     brains.ready done
+
+  before ->
+    browser = new Browser()
 
 
   describe "get cookies", ->
 
     before (done)->
-      @browser = new Browser()
-      @browser.visit "http://localhost:3003/cookies", done
+      browser.clearCookies()
+      browser.visit("/cookies", done)
 
     describe "cookies", ->
       it "should have access to session cookie", ->
-        @browser.assert.cookie "_name", "value"
+        browser.assert.cookie "_name", "value"
       it "should have access to persistent cookie", ->
-        @browser.assert.cookie "_expires1", "3s"
-        @browser.assert.cookie "_expires2", "5s"
+        browser.assert.cookie "_expires1", "3s"
+        browser.assert.cookie "_expires2", "5s"
       it "should not have access to expired cookies", ->
-        @browser.assert.cookie "_expires3", undefined
+        browser.assert.cookie "_expires3", undefined
       it "should have access to cookies for the path /cookies", ->
-        @browser.assert.cookie "_path1", "yummy"
+        browser.assert.cookie "_path1", "yummy"
       it "should have access to cookies for paths which are ancestors of /cookies", ->
-        @browser.assert.cookie "_path4", "yummy"
+        browser.assert.cookie "_path4", "yummy"
       it "should not have access to other paths", ->
-        @browser.assert.cookie "_path2", undefined
-        @browser.assert.cookie "_path3", undefined
+        browser.assert.cookie "_path2", undefined
+        browser.assert.cookie "_path3", undefined
       it "should have access to .domain", ->
-        @browser.assert.cookie "_domain1", "here"
+        browser.assert.cookie "_domain1", "here"
       it "should not have access to other domains", ->
-        @browser.assert.cookie "_domain2", undefined
-        @browser.assert.cookie "_domain3", undefined
+        browser.assert.cookie "_domain2", undefined
+        browser.assert.cookie "_domain3", undefined
       it "should access most specific cookie", ->
-        @browser.assert.cookie "_multiple", "specific"
+        browser.assert.cookie "_multiple", "specific"
 
 
     describe "host in domain", ->
       it "should have access to host cookies", ->
-        @browser.assert.cookie "_domain1", "here"
+        browser.assert.cookie "_domain1", "here"
       it "should not have access to other hosts' cookies", ->
-        @browser.assert.cookie "_domain2", undefined
-        @browser.assert.cookie "_domain3", undefined
+        browser.assert.cookie "_domain2", undefined
+        browser.assert.cookie "_domain3", undefined
 
     describe "document.cookie", ->
       before ->
-        @cookie = @browser.document.cookie
+        @cookie = browser.document.cookie
 
       it "should return name/value pairs", ->
         assert /^(\w+=\w+; )+\w+=\w+$/.test(@cookie)
@@ -111,15 +114,12 @@ describe "Cookies", ->
   describe "host", ->
 
     before (done)->
-      browser = new Browser()
-      browser.visit("http://host.localhost:3003/cookies")
-        .then =>
-          @cookies = browser.cookies("localhost", "/cookies")
-          return
-        .then(done, done)
+      browser.clearCookies()
+      browser.visit("/cookies", done)
 
     it "should be able to set domain cookies", ->
-      assert.equal @cookies.get("_domain1"), "here"
+      cookies = browser.cookies("localhost", "/cookies")
+      assert.equal cookies.get("_domain1"), "here"
 
 
   describe "get cookies and redirect", ->
@@ -129,42 +129,13 @@ describe "Cookies", ->
         res.cookie "_expires4", "3s" #, expires: new Date(Date.now() + 3000), "Path": "/"
         res.redirect "/"
 
-      browser = new Browser()
-      browser.visit("http://localhost:3003/cookies/redirect")
-        .then =>
-          @cookies = browser.cookies("localhost", "/cookies/redirect")
-          return
-        .then(done, done)
+      browser.clearCookies()
+      browser.visit("/cookies/redirect", done)
 
     it "should have access to persistent cookie", ->
-      assert.equal @cookies.get("_expires4"), "3s"
+      cookies = browser.cookies("localhost", "/cookies/redirect")
+      assert.equal cookies.get("_expires4"), "3s"
 
-  describe "default path", ->
-
-    before (done)->
-      brains.get "/nopath1", (req, res)->
-        res.cookie "_nopath1", "one"
-        res.send ""
-      brains.get "/sub/nopath2", (req, res)->
-        res.cookie "_nopath2", "two"
-        res.send ""
-      brains.get "/nopath3", (req, res)->
-        res.cookie "_nopath3", "three"
-        res.send ""
-
-      @browser = new Browser()
-      @browser.visit("http://localhost:3003/nopath1")
-        .then =>
-          @browser.visit "http://localhost:3003/sub/nopath2"
-        .then =>
-          @browser.visit "http://localhost:3003/nopath3"
-        .then(done, done)
-
-    it "should have access to cookies set on the same path", ->
-      assert.equal @browser.cookies().get("_nopath1"), "one"
-      assert.equal @browser.cookies().get("_nopath3"), "three"
-    it "should not have access to cookies set on a descendant path", ->
-      assert @cookies.get("_nopath2") == undefined
 
   describe "duplicates", ->
 
@@ -176,80 +147,78 @@ describe "Cookies", ->
         res.cookie "_dup", "three", path: "/"
         res.send ""
 
-      @browser = new Browser()
-      @browser.visit("http://localhost:3003/cookies")
-        .then =>
-          @browser.visit "http://localhost:3003/cookies2"
-        .then =>
-          @browser.visit "http://localhost:3003/cookies3"
+      browser.clearCookies()
+      browser.visit("/cookies")
+        .then ->
+          browser.visit("/cookies2")
+        .then ->
+          browser.visit("/cookies3")
         .then(done, done)
 
     it "should retain last value", ->
-      assert.equal @browser.cookies().get("_dup"), "three"
+      browser.assert.cookie "_dup", "three"
     it "should only retain last cookie", ->
-      dups = @browser.cookies().all().filter((c)-> c.key == "_dup")
+      dups = browser.cookies().all().filter((c)-> c.key == "_dup")
       assert.equal dups.length, 1
 
 
   describe "send cookies", ->
 
     before (done)->
-      @browser = new Browser()
-      @browser.cookies("localhost"                   ).set "_name",      "value"
-      @browser.cookies("localhost"                   ).set "_expires1",  "3s",     "max-age": 3000
-      @browser.cookies("localhost"                   ).set "_expires2",  "0s",     "max-age": 0
-      @browser.cookies("localhost", "/cookies"       ).set "_path1",     "here"
-      @browser.cookies("localhost", "/cookies/echo"  ).set "_path2",     "here"
-      @browser.cookies("localhost", "/jars"          ).set "_path3",     "there",  "path": "/jars"
-      @browser.cookies("localhost", "/cookies/fido"  ).set "_path4",     "there",  "path": "/cookies/fido"
-      @browser.cookies("localhost", "/"              ).set "_path5",     "here",   "path": "/cookies"
-      @browser.cookies("localhost", "/jars/"         ).set "_path6",     "there"
-      @browser.cookies(".localhost"                  ).set "_domain1",   "here"
-      @browser.cookies("not.localhost"               ).set "_domain2",   "there"
-      @browser.cookies("notlocalhost"                ).set "_domain3",   "there"
-      @browser.visit("http://localhost:3003/cookies/echo")
-        .then(cookies_from_html.bind(this))
-        .then(done, done)
+      browser.clearCookies()
+      browser.cookies("localhost"                   ).set("_name",      "value")
+      browser.cookies("localhost"                   ).set("_expires1",  "3s",     "max-age": 3000)
+      browser.cookies("localhost"                   ).set("_expires2",  "0s",     "max-age": 0)
+      browser.cookies("localhost", "/cookies"       ).set("_path1",     "here")
+      browser.cookies("localhost", "/cookies/echo"  ).set("_path2",     "here")
+      browser.cookies("localhost", "/jars"          ).set("_path3",     "there",  "path": "/jars")
+      browser.cookies("localhost", "/cookies/fido"  ).set("_path4",     "there",  "path": "/cookies/fido")
+      browser.cookies("localhost", "/"              ).set("_path5",     "here",   "path": "/cookies")
+      browser.cookies(".localhost"                  ).set("_domain1",   "here")
+      browser.cookies("not.localhost"               ).set("_domain2",   "there")
+      browser.cookies("notlocalhost"                ).set("_domain3",   "there")
+      browser.visit "/cookies/echo", =>
+        @cookies = cookiesFromHtml(browser)
+        done()
 
     it "should send session cookie", ->
-      @browser.assert.cookie "_name", "value"
+      assert.equal @cookies._name, "value"
     it "should pass persistent cookie to server", ->
-      @browser.assert.cookie "_expires1", "3s"
+      assert.equal @cookies._expires1, "3s"
     it "should not pass expired cookie to server", ->
-      @browser.assert.cookie "_expires2", undefined
+      assert.equal @cookie._expires2, undefined
     it "should pass path cookies to server", ->
-      @browser.assert.cookie "_path1", "here"
-      @browser.assert.cookie "_path2", "here"
-    it "should pass cookies that specified a different path when they were assigned", ->
-      @browser.assert.cookie "_path5", "here"
+      assert.equal @cookies._path1, "here"
+      assert.equal @cookies._path2, "here"
+      assert.equal @cookies._path5, "here"
     it "should not pass unrelated path cookies to server", ->
-      @browser.assert.cookie "_path3", undefined
-      @browser.assert.cookie "_path4", undefined
-      @browser.assert.cookie "_path6", undefined
+      assert.equal @cookies._path3, undefined, "path3"
+      assert.equal @cookies._path4, undefined, "path4"
+      assert.equal @cookies._path6, undefined, "path5"
     it "should pass sub-domain cookies to server", ->
-      @browser.assert.cookie "_domain1", "here"
+      assert.equal @cookies._domain1, "here"
     it "should not pass other domain cookies to server", ->
-      @browser.assert.cookie "_domain2", undefined
-      @browser.assert.cookie "_domain3", undefined
+      assert.equal @cookies._domain2, undefined
+      assert.equal @cookies._domain3, undefined
 
 
   describe "setting cookies from subdomains", ->
     before ->
-      @browser = new Browser()
-      @browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
-      
+      browser.clearCookies()
+      browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
+
     it "should be accessible", ->
-      assert.equal "bar", @browser.cookies("localhost").get("foo")
-      assert.equal "bar", @browser.cookies("www.localhost").get("foo")
+      assert.equal "bar", browser.cookies("localhost").get("foo")
+      assert.equal "bar", browser.cookies("www.localhost").get("foo")
 
 
   describe "setting Cookie header", ->
     before ->
       @header = { cookie: "" }
-      browser = new Browser()
+      browser.clearCookies()
       browser.cookies().update("foo=bar;")
-      browser.cookies().addHeader @header
-      
+      browser.cookies().addHeader(@header)
+
     it "should send V0 header", ->
       assert.equal @header.cookie, "foo=bar"
 
@@ -258,69 +227,70 @@ describe "Cookies", ->
 
     describe "setting cookie", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit("http://localhost:3003/cookies")
-          .then =>
-            @browser.document.cookie = "foo=bar"
+        browser.visit("/cookies")
+          .then ->
+            browser.document.cookie = "foo=bar"
             return
           .then(done, done)
 
       it "should be available from document", ->
-        assert ~@browser.document.cookie.split("; ").indexOf("foo=bar")
+        assert ~browser.document.cookie.split("; ").indexOf("foo=bar")
 
       describe "on reload", ->
         before (done)->
-          @browser.visit("http://localhost:3003/cookies/echo")
-            .then(cookies_from_html.bind(this))
-            .then(done, done)
+          browser.visit("/cookies/echo", done)
 
         it "should send to server", ->
-          assert.equal @cookies.foo, "bar"
+          cookies = cookiesFromHtml(browser)
+          assert.equal cookies.foo, "bar"
 
       describe "different path", ->
         before (done)->
-          @browser.visit("http://localhost:3003/cookies")
-            .then =>
-              @browser.document.cookie = "foo=bar"
+          browser.visit("/cookies")
+            .then ->
+              browser.document.cookie = "foo=bar"
               return
             .then(done, done)
 
         before (done)->
-          @browser.visit("http://localhost:3003/cookies/other")
-            .then =>
-              @browser.document.cookie = "foo=qux" # more specific path, not visible to /cookies.echo
+          browser.visit("/cookies/other")
+            .then ->
+              browser.document.cookie = "foo=qux" # more specific path, not visible to /cookies.echo
               return
             .finally(done)
 
         before (done)->
-          @browser.visit("http://localhost:3003/cookies/echo")
-            .then(cookies_from_html.bind(this))
-            .then(done, done)
+          browser.visit("/cookies/echo", done)
 
         it "should not be visible", ->
-          assert !@cookies.bar
-          assert.equal @cookies.foo, "bar"
+          cookies = cookiesFromHtml(browser)
+          assert !cookies.bar
+          assert.equal cookies.foo, "bar"
 
 
     describe "setting cookie with quotes", ->
       before (done)->
-        @browser.visit("http://localhost:3003/cookies/empty")
-          .then =>
-            @browser.document.cookie = "foo=bar\"baz"
+        browser.visit("/cookies/empty")
+          .then ->
+            browser.document.cookie = "foo=bar\"baz"
             return
           .then(done, done)
 
       it "should be available from document", ->
-        @browser.assert.cookie "foo", "bar\"baz"
+        browser.assert.cookie "foo", "bar\"baz"
 
 
     describe "setting cookie with semicolon", ->
       before (done)->
-        @browser.visit("http://localhost:3003/cookies/empty")
-          .then =>
-            @browser.document.cookie = "foo=bar; baz"
+        browser.visit("/cookies/empty")
+          .then ->
+            browser.document.cookie = "foo=bar; baz"
             return
           .then(done, done)
 
       it "should be available from document", ->
-        @browser.assert.cookie "foo", "bar"
+        browser.assert.cookie "foo", "bar"
+
+
+  after ->
+    browser.destroy()

@@ -2,6 +2,7 @@
 
 
 describe "Authentication", ->
+  browser = null
 
   describe "basic", ->
     before (done)->
@@ -13,37 +14,36 @@ describe "Authentication", ->
             res.send "Invalid credentials", 401
         else
           res.send "Missing credentials", 401
+
+      browser = new Browser()
       brains.ready done
 
 
     describe "without credentials", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit("http://localhost:3003/auth/basic").
+        browser.visit("/auth/basic").
           finally(done)
 
       it "should return status code 401", ->
-        @browser.assert.status 401
+        browser.assert.status 401
 
 
     describe "with invalid credentials", ->
       before (done)->
-        @browser = new Browser()
-        @browser.authenticate("localhost:3003").basic("username", "wrong")
-        @browser.visit("http://localhost:3003/auth/basic")
+        browser.authenticate("localhost:3003").basic("username", "wrong")
+        browser.visit("/auth/basic")
           .finally(done)
 
       it "should return status code 401", ->
-        @browser.assert.status 401
+        browser.assert.status 401
 
     describe "with valid credentials", ->
       before (done)->
-        @browser = new Browser()
-        @browser.authenticate("localhost:3003").basic("username", "pass123")
-        @browser.visit "http://localhost:3003/auth/basic", done
+        browser.authenticate("localhost:3003").basic("username", "pass123")
+        browser.visit("/auth/basic", done)
 
       it "should have the authentication header", ->
-        @browser.assert.text "body", "Basic dXNlcm5hbWU6cGFzczEyMw=="
+        browser.assert.text "body", "Basic dXNlcm5hbWU6cGFzczEyMw=="
 
 
   describe "OAuth bearer", ->
@@ -51,40 +51,37 @@ describe "Authentication", ->
       brains.get "/auth/oauth2", (req, res) ->
         if auth = req.headers.authorization
           if auth == "Bearer 12345"
-            res.send "<html><body>#{req.headers["authorization"]}</body></html>"
+            res.send("<html><body>#{req.headers["authorization"]}</body></html>")
           else
-            res.send "Invalid token", 401
+            res.send("Invalid token", 401)
         else
-          res.send "Missing token", 401
+          res.send("Missing token", 401)
       brains.ready done
 
     describe "without credentials", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit("http://localhost:3003/auth/oauth2")
+        browser.visit("/auth/oauth2")
           .finally(done)
 
       it "should return status code 401", ->
-        @browser.assert.status 401
+        browser.assert.status 401
 
     describe "with invalid credentials", ->
       before (done)->
-        @browser = new Browser()
-        @browser.authenticate("localhost:3003").bearer("wrong")
-        @browser.visit("http://localhost:3003/auth/oauth2")
+        browser.authenticate("localhost:3003").bearer("wrong")
+        browser.visit("/auth/oauth2")
           .finally(done)
 
       it "should return status code 401", ->
-        @browser.assert.status 401
+        browser.assert.status 401
 
     describe "with valid credentials", ->
       before (done)->
-        @browser = new Browser()
-        @browser.authenticate("localhost:3003").bearer("12345")
-        @browser.visit "http://localhost:3003/auth/oauth2", done
+        browser.authenticate("localhost:3003").bearer("12345")
+        browser.visit("/auth/oauth2", done)
 
       it "should have the authentication header", ->
-        @browser.assert.text "body", "Bearer 12345"
+        browser.assert.text "body", "Bearer 12345"
 
 
   describe "Scripts on secure pages", ->
@@ -101,17 +98,20 @@ describe "Authentication", ->
           </html>
           """
         else
-          res.send "No Credentials on the html page", 401
+          res.send("No Credentials on the html page", 401)
 
       brains.get "/auth/script.js", (req, res) ->
         if auth = req.headers.authorization
-          res.send "document.title = document.title + 'One'"
+          res.send("document.title = document.title + 'One'")
         else
-          res.send "No Credentials on the javascript", 401
+          res.send("No Credentials on the javascript", 401)
 
-      @browser = new Browser()
-      @browser.authenticate("localhost:3003").basic("username", "pass123")
-      @browser.visit "http://localhost:3003/auth/script", done
+      browser.authenticate("localhost:3003").basic("username", "pass123")
+      browser.visit("/auth/script", done)
 
     it "should download the script", ->
-      @browser.assert.text "title", "ZeroOne"
+      browser.assert.text "title", "ZeroOne"
+
+
+  after ->
+    browser.destroy()
