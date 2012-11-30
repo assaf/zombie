@@ -629,19 +629,19 @@ class Browser extends EventEmitter
       return selector
     try
       # Try more specific selector first.
-      field = @querySelector(selector)
+      field = @query(selector)
       if field && (field.tagName == "INPUT" || field.tagName == "TEXTAREA" || field.tagName == "SELECT")
         return field
     catch error
       # Invalid selector, but may be valid field name
 
     # Use field name (case sensitive).
-    for field in @querySelectorAll(":input[name]")
+    for field in @queryAll(":input[name]")
       if field.getAttribute("name") == selector
         return field
 
     # Try finding field from label.
-    for label in @querySelectorAll("label")
+    for label in @queryAll("label")
       if label.textContent.trim() == selector
         # Label can either reference field or enclose it
         if forAttr = label.getAttribute("for")
@@ -658,7 +658,7 @@ class Browser extends EventEmitter
   # value - Field value
   #
   # Without callback, returns this.
-  fill: (selector, value, callback)->
+  fill: (selector, value)->
     field = @field(selector)
     unless field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT"))
       throw new Error("No INPUT matching '#{selector}'")
@@ -668,10 +668,10 @@ class Browser extends EventEmitter
       throw new Error("This INPUT field is readonly")
     field.focus()
     field.value = value
-    @fire field, "change", callback
+    @fire(field, "change")
     return this
 
-  _setCheckbox: (selector, value, callback)->
+  _setCheckbox: (selector, value)->
     field = @field(selector)
     unless field && field.tagName == "INPUT" && field.type == "checkbox"
       throw new Error("No checkbox INPUT matching '#{selector}'")
@@ -681,7 +681,6 @@ class Browser extends EventEmitter
       throw new Error("This INPUT field is readonly")
     if field.checked ^ value
       field.click()
-    @wait callback if callback
     return this
 
   # ### browser.check(selector, callback) => this
@@ -691,8 +690,8 @@ class Browser extends EventEmitter
   # selector - CSS selector, field name or text of the field label
   #
   # Without callback, returns this.
-  check: (selector, callback)->
-    return @_setCheckbox(selector, true, callback)
+  check: (selector)->
+    return @_setCheckbox(selector, true)
 
   # ### browser.uncheck(selector, callback) => this
   #
@@ -701,8 +700,8 @@ class Browser extends EventEmitter
   # selector - CSS selector, field name or text of the field label
   #
   # Without callback, returns this.
-  uncheck: (selector, callback)->
-    return @_setCheckbox(selector, false, callback)
+  uncheck: (selector)->
+    return @_setCheckbox(selector, false)
 
   # ### browser.choose(selector, callback) => this
   #
@@ -711,13 +710,11 @@ class Browser extends EventEmitter
   # selector - CSS selector, field value or text of the field label
   #
   # Returns this.
-  choose: (selector, callback)->
+  choose: (selector)->
     field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
     unless field && field.tagName == "INPUT" && field.type == "radio"
       throw new Error("No radio INPUT matching '#{selector}'")
     field.click()
-    if callback
-      @wait(callback)
     return this
 
   _findOption: (selector, value)->
@@ -747,9 +744,10 @@ class Browser extends EventEmitter
   # value - Value (or label) or option to select
   #
   # Without callback, returns this.
-  select: (selector, value, callback)->
+  select: (selector, value )->
     option = @_findOption(selector, value)
-    return @selectOption(option, callback)
+    @selectOption(option)
+    return this
 
   # ### browser.selectOption(option, callback) => this
   #
@@ -758,15 +756,13 @@ class Browser extends EventEmitter
   # option - option to select
   #
   # Without callback, returns this.
-  selectOption: (option, callback)->
+  selectOption: (selector)->
+    option = @query(selector)
     if option && !option.getAttribute("selected")
       select = @xpath("./ancestor::select", option).value[0]
       option.setAttribute("selected", "selected")
       select.focus()
-      @fire select, "change", callback
-    else if callback
-      process.nextTick ->
-        callback null, false
+      @fire(select, "change")
     return this
 
   # ### browser.unselect(selector, value, callback) => this
@@ -777,9 +773,10 @@ class Browser extends EventEmitter
   # value - Value (or label) or option to unselect
   #
   # Without callback, returns this.
-  unselect: (selector, value, callback)->
+  unselect: (selector, value )->
     option = @_findOption(selector, value)
-    return @unselectOption(option, callback)
+    @unselectOption(option)
+    return this
 
   # ### browser.unselectOption(option, callback) => this
   #
@@ -788,17 +785,14 @@ class Browser extends EventEmitter
   # option - option to unselect
   #
   # Without callback, returns this.
-  unselectOption: (option, callback)->
+  unselectOption: (option)->
     if option && option.getAttribute("selected")
       select = @xpath("./ancestor::select", option).value[0]
       unless select.multiple
         throw new Error("Cannot unselect in single select")
       option.removeAttribute("selected")
       select.focus()
-      @fire select, "change", callback
-    else if callback
-      process.nextTick ->
-        callback null, false
+      @fire(select, "change")
     return this
 
   # ### browser.attach(selector, filename, callback) => this
@@ -806,7 +800,7 @@ class Browser extends EventEmitter
   # Attaches a file to the specified input field.  The second argument is the file name.
   #
   # Without callback, returns this.
-  attach: (selector, filename, callback)->
+  attach: (selector, filename)->
     field = @field(selector)
     unless field && field.tagName == "INPUT" && field.type == "file"
       throw new Error("No file INPUT matching '#{selector}'")
@@ -820,7 +814,7 @@ class Browser extends EventEmitter
       field.files.push file
       field.value = filename
     field.focus()
-    @fire field, "change", callback
+    @fire(field, "change")
     return this
 
   # ### browser.button(selector) : Element
@@ -856,7 +850,8 @@ class Browser extends EventEmitter
     if button.getAttribute("disabled")
       throw new Error("This button is disabled")
     button.focus()
-    return @fire(button, "click", callback)
+    @fire(button, "click")
+    return @wait(callback)
 
 
   # Cookies and storage
