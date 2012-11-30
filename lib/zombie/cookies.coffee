@@ -14,7 +14,8 @@ class Access
   # Returns all the cookies for this domain/path.
   all: ->
     return @_cookies.all().filter((cookie)=>
-      return Tough.domainMatch(@domain, cookie.domain) && Tough.pathMatch(@path, cookie.path) && cookie.TTL() > 0
+      pathMatches = @path == "/" || Tough.pathMatch(@path, cookie.path)
+      return Tough.domainMatch(@domain, cookie.domain) && pathMatches && cookie.TTL() > 0
     ).sort(Tough.cookieCompare)
 
   # Returns the value of a cookie.
@@ -45,8 +46,10 @@ class Access
     # Delete cookie before setting it, so we only store one cookie (per
     # domain/path/name)
     @_cookies.filter((c)=> !(cookie.key == c.key && cookie.domain == c.domain && cookie.path == c.path) )
-    if Tough.domainMatch(cookie.domain, @domain) && Tough.pathMatch(cookie.path, @path) && cookie.TTL() > 0
-      @_cookies.push cookie
+    pathMatches = @path == "/" || Tough.pathMatch(@path, cookie.path)
+    if Tough.domainMatch(cookie.domain, @domain) && pathMatches && cookie.TTL() > 0
+      @_cookies.push(cookie)
+    return
 
   # Deletes a cookie.
   #
@@ -75,8 +78,9 @@ class Access
       # Delete cookie before setting it, so we only store one cookie (per
       # domain/path/name)
       @_cookies.filter((c)-> !(cookie.key == c.key && cookie.domain == c.domain && cookie.path == c.path) )
-      if Tough.domainMatch(@domain, cookie.domain) && Tough.pathMatch(@path, cookie.path) && cookie.TTL() > 0
-        @_cookies.push cookie
+      pathMatches = @path == "/" || Tough.pathMatch(@path, cookie.path)
+      if Tough.domainMatch(@domain, cookie.domain) && pathMatches && cookie.TTL() > 0
+        @_cookies.push(cookie)
 
   # Adds Cookie header suitable for sending to the server.
   addHeader: (headers)->
