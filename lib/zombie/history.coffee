@@ -175,8 +175,7 @@ class History
       name = @current.window.name
       parent = parentFrom(@current.window)
     if @current && @current.url == url
-      # Don't change history, but do reload the page.
-      this.reload()
+      @replace(url)
       return
 
     if hashChange(@current, url)
@@ -197,8 +196,6 @@ class History
     if @current
       url = HTML.resourceLoader.resolve(@current.window.document, url)
       name = @current.window.name
-    if @current && @current.url == url
-      return # Not moving anywhere
 
     if hashChange(@current, url)
       window = @current.window
@@ -288,8 +285,11 @@ class History
 # Returns true if the hash portion of the URL changed between the history entry
 # (entry) and the new URL we want to inspect (url).
 hashChange = (entry, url)->
-  return false unless entry
-  return /^https?:/i.test(entry.url) && entry.url.split("#")[0] == url.split("#")[0]
+  unless entry
+    return false
+  [aBase, aHash] = url.split("#")
+  [bBase, bHash] = entry.url.split("#")
+  return aBase == bBase && aHash != bHash
 
 
 # DOM Location object
