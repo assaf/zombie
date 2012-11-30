@@ -36,7 +36,7 @@ class Assert
 
   # Assert that the last page load returned status code 200.
   success: (message)->
-    assert.equal @browser.statusCode, 200, message
+    assert @browser.success, message
 
   # Asserts that current page has the expected URL.
   #

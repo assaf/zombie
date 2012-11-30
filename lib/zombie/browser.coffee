@@ -85,27 +85,8 @@ class Browser extends EventEmitter
     @resources = new Resources(this)
 
     @on "request", (request, target)->
-      if target && target.window && target.window.top == target.window.getGlobal()
-        # Loading the document of the top-level window: we're going to set all
-        # these fields when we get the response, but first need to reset them,
-        # e.g. so code testing the expected values don't find values from a
-        # previous request.
-        browser.request = request
-        browser.redirected = undefined
-        browser.statusCode = undefined
-        browser.success = false
-        browser.source = undefined
 
     @on "response", (request, response, target)->
-      if target && target.window && target.window.top == target.window.getGlobal()
-        # Loading the document of the top-level window: this is the most
-        # important resource, so we expose the outcome of loading it directly
-        # from the browser object.
-        browser.response = response
-        browser.redirected = response.redirects > 0
-        browser.statusCode = response.statusCode
-        browser.success = response.statusCode >= 200 && response.statusCode < 300
-        browser.source = response.body
       browser.log "#{request.method} #{request.url} => #{response.statusCode}"
 
     @on "redirect", (request, response)->
@@ -402,7 +383,11 @@ class Browser extends EventEmitter
   text: (selector, context)->
     if @document.documentElement
       return @queryAll(selector, context).map((e)-> e.textContent).join("").trim().replace(/\s+/g, " ")
-    return @source
+    else if @source
+      return @source.toString()
+    else
+      return ""
+
 
   # ### browser.html(selector?, context?) => String
   #
@@ -415,7 +400,10 @@ class Browser extends EventEmitter
   html: (selector, context)->
     if @document.documentElement
       return @queryAll(selector, context).map((e)-> e.outerHTML.trim()).join("")
-    return @source
+    else if @source
+      return @source.toString()
+    else
+      return ""
 
   # ### browser.xpath(expression, context?) => XPathResult
   #
@@ -962,6 +950,26 @@ class Browser extends EventEmitter
 
   # Debugging
   # ---------
+
+  @prototype.__defineGetter__ "statusCode", ->
+    if @window && @window._response
+      return @window._response.statusCode
+    else
+      return null
+
+  @prototype.__defineGetter__ "success", ->
+    statusCode = @statusCode
+    return statusCode >= 200 && statusCode < 400
+
+  @prototype.__defineGetter__ "redirected", ->
+    return @window && @window._response && @window._response.redirects > 0
+
+  @prototype.__defineGetter__ "source", ->
+    if @window && @window._response
+      return @window._response.body
+    else
+      return null
+
 
   # ### browser.viewInBrowser(name?)
   #

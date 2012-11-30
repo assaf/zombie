@@ -300,6 +300,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
 loadDocument = ({ document, history, url, method, encoding, params })->
   window = document.window
   browser = window.browser
+  window._response = { }
 
   # Called on wrap up to update browser with outcome.
   done = (error, url)->
@@ -346,6 +347,7 @@ loadDocument = ({ document, history, url, method, encoding, params })->
           done(error)
           return
 
+        window._response = response
         # JSDOM fires load event on document but not on window
         windowLoaded = (event)->
           document.removeEventListener("load", windowLoaded)
