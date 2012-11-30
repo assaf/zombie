@@ -330,13 +330,16 @@ class Browser extends EventEmitter
   # Evaluates the CSS selector against the document (or context node) and return array of nodes.
   # (Unlike `document.querySelectorAll` that returns a node list).
   queryAll: (selector, context)->
-    if selector
+    if Array.isArray(selector)
+      return selector
+    else if selector instanceof HTML.Element
+      return [selector]
+    else if selector
       context ||= @document
       elements = context.querySelectorAll(selector)
       return Array.prototype.slice.call(elements, 0)
     else
-      context ||= @document.documentElement
-      return [context]
+      return []
 
   # ### browser.query(selector, context?) => Element
   #
@@ -344,9 +347,9 @@ class Browser extends EventEmitter
   query: (selector, context)->
     if selector instanceof HTML.Element
       return selector
-    context ||= @document
     if selector
-      context.querySelector(selector)
+      context ||= @document
+      return context.querySelector(selector)
     else
       return context
 
@@ -542,12 +545,13 @@ class Browser extends EventEmitter
     # If the link has already been queried, return itself
     if selector instanceof HTML.Element
       return selector
-    if link = @querySelector(selector)
-      return link if link.tagName == "A"
+    link = @querySelector(selector)
+    if link && link.tagName == "A"
+      return link
     for link in @querySelectorAll("body a")
       if link.textContent.trim() == selector
         return link
-    return
+    return null
 
   # ### browser.clickLink(selector, callback)
   #

@@ -37,10 +37,10 @@ queryForDescendants = (element, selector)->
     parent.appendChild(element)
     element = parent
 
-  return ->
-    sizzle = document._sizzle ||= createSizzle(document)
-    return sizzle(selector, element.parentNode || element)
+  query = ->
+    return document._sizzle(selector, element.parentNode || element)
       .filter((node) -> isDescendantOf(node, element))
+  return query
 
 
 # querySelector(All) for HTML document.
@@ -48,20 +48,30 @@ queryForDescendants = (element, selector)->
 # This may be called before the document is loaded (e.g. form completion
 # function), and Sizzle will fail if there is no document element.
 HTML.HTMLDocument.prototype.querySelector = (selector)->
-  if @documentElement
-    @_sizzle ||= createSizzle(this)
-    return @_sizzle(selector, this)[0]
+  document = this
+  documentElement = document.documentElement
+  if documentElement
+    sizzle = @_sizzle ||= createSizzle(document)
+    return sizzle(selector, documentElement)[0]
   else
     return null
+
 HTML.HTMLDocument.prototype.querySelectorAll = (selector)->
-  if @documentElement
-    @_sizzle ||= createSizzle(this)
-    return new HTML.NodeList(@_sizzle(selector, this))
+  document = this
+  documentElement = document.documentElement
+  if documentElement
+    sizzle = @_sizzle ||= createSizzle(document)
+    query = ->
+      return sizzle(selector, document)
+    return new HTML.NodeList(documentElement, query)
   else
     return new HTML.NodeList()
 
 # querySelector(All) for HTML element
 HTML.Element.prototype.querySelector = (selector)->
+  @ownerDocument._sizzle ||= createSizzle(@ownerDocument)
   return queryForDescendants(this, selector)()[0]
+
 HTML.Element.prototype.querySelectorAll = (selector)->
+  @ownerDocument._sizzle ||= createSizzle(@ownerDocument)
   return new HTML.NodeList(this, queryForDescendants(this, selector))
