@@ -224,9 +224,11 @@ class Browser extends EventEmitter
   @prototype.__defineGetter__ "window", ->
     return @tabs.current
 
-  # Open new browser window.  Options are undocumented, use at your own peril.
+  # Open new browser window.
   open: (options)->
-    return @tabs.open(options)
+    if options
+      { url, name, referer } = options
+    return @tabs.open(url: url, name: name, referer: referer)
 
   # ### browser.error => Error
   #
@@ -458,17 +460,16 @@ class Browser extends EventEmitter
       [callback, options] = [options, null]
 
     deferred = Q.defer()
-    reset_options = @withOptions(options)
+    resetOptions = @withOptions(options)
     if site = @site
       site = "http://#{site}" unless /^(https?:|file:)/i.test(site)
       url = URL.resolve(site, URL.parse(URL.format(url)))
 
     if @window
-      @window.location = url
-    else
-      this.open(url: url)
+      @tabs.close(@window)
+    @tabs.open(url: url, referer: @referer)
     @wait options, (error)=>
-      reset_options()
+      resetOptions()
       if error
         deferred.reject(error)
       else

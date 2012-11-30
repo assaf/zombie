@@ -39,10 +39,11 @@ createTabs = (browser)->
     #
     # name    - Window name (optional)
     # opener  - Opening window (window.open call)
+    # referer - Referrer
     # url     - Set document location to this URL upon opening
     open:
       value: (options = {})->
-        { name, opener, url } = options
+        { name, url } = options
         # If name window in open tab, reuse that tab. Otherwise, open new window.
         if name && window = @find(name.toString())
           # Select this as the currenly open tab. Changing the location would then
@@ -70,7 +71,8 @@ createTabs = (browser)->
             browser.eventLoop.setActiveWindow(window)
 
           open = createHistory(browser, focus)
-          window = open(name: name, opener: opener, url: url)
+          options.url = url
+          window = open(options)
           @push(window)
           if name && (Object.propertyIsEnumerable(name) || !this[name])
             this[name] = window

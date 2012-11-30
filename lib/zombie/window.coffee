@@ -27,8 +27,9 @@ inContext = null
 # name      - Window name (optional)
 # opener    - Opening window (window.open call)
 # parent    - Parent window (for frames)
+# referer   - Use this as referer
 # url       - Set document location to this URL upon opening
-createWindow = ({ browser, params, encoding, history, method, name, opener, parent, url })->
+createWindow = ({ browser, params, encoding, history, method, name, opener, parent, referer, url })->
   name ||= ""
   url ||= "about:blank"
 
@@ -45,7 +46,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
   # -- Document --
 
   # Each window has its own document
-  document = createDocument(browser, window, history.url || browser.referer)
+  document = createDocument(browser, window, referer || history.url)
   Object.defineProperty window, "document",
     value: document
     enumerable: true
@@ -213,7 +214,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
   # Open one window from another.
   window.open = (url, name, features)->
     url = url && HTML.resourceLoader.resolve(document, url)
-    return browser.open(name: name, url: url, opener: window)
+    return browser.tabs.open(name: name, url: url, opener: window)
 
   # Indicates if window was closed
   Object.defineProperty window, "closed",

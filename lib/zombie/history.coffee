@@ -98,9 +98,11 @@ class History
     @first = @current = null
 
   # Opens the first window and returns it.
-  open: ({ name, opener, parent, url })->
-    window = createWindow(browser: @browser, history: this, name: name, opener: opener, parent: parent, url: url)
-    @addEntry(window, url)
+  open: (options)->
+    options.browser = @browser
+    options.history = this
+    window = createWindow(options)
+    @addEntry(window, options.url)
     return window
 
   # Dispose of all windows in history
@@ -147,19 +149,15 @@ class History
       enumerable: true
 
   # Form submission
-  submit: ({ url, method, encoding, params })->
-    window = @current.window
-    newWindow = createWindow(
-      browser:  @browser
-      history:  this
-      name:     window.name
-      parent:   parentFrom(window)
-      url:      url
-      method:   method
-      encoding: encoding
-      params:   params
-    )
-    @addEntry(newWindow, url)
+  submit: (options)->
+    options.browser = @browser
+    options.history = this
+    if window = @current.window
+      options.name = window.name
+      options.parent = parentFrom(window)
+      options.referer = window.URL
+    newWindow = createWindow(options)
+    @addEntry(newWindow, options.url)
 
   # Returns current URL.
   @prototype.__defineGetter__ "url", ->
@@ -212,7 +210,8 @@ class History
   reload: ->
     if window = @current.window
       url = window.location.href
-      newWindow = createWindow(browser: @browser, history: this, name: window.name, url: url, parent: parentFrom(window))
+      newWindow = createWindow(browser: @browser, history: this, name: window.name, url: url,
+                               parent: parentFrom(window), referer: window.referrer)
       @replaceEntry(newWindow, url)
 
   # This method is available from Location.
