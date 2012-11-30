@@ -312,7 +312,11 @@ class Browser extends EventEmitter
     event = @document.createEvent(eventType)
     event.initEvent(eventName, true, true)
     target.dispatchEvent(event)
-    return @wait(callback)
+    return this
+
+  click: (selector)->
+    @fire(selector, "click")
+    return this
 
   # Dispatch asynchronously.  Returns true if preventDefault was set.
   dispatchEvent: (selector, event)->
@@ -563,7 +567,8 @@ class Browser extends EventEmitter
   clickLink: (selector, callback)->
     unless link = @link(selector)
       throw new Error("No link matching '#{selector}'")
-    return @fire(link, "click", callback)
+    @fire(link, "click")
+    return @wait(callback)
 
   # Return the history object.
   @prototype.__defineGetter__ "history", ->
