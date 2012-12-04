@@ -567,7 +567,7 @@ of the many methods that accept a callback.
 In addition the browser is also an `EventEmitter`.  You can register any number
 of event listeners to any of the emitted events.
 
-### browser.fire(name, target, calback?)
+### browser.fire(target, name, calback?)
 
 Fires a DOM event.  You can use this to simulate a DOM event, e.g. clicking a
 link or clicking the mouse.  These events will bubble up and can be cancelled.
