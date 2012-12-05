@@ -142,7 +142,9 @@ class Assert
   #
   # You can also call this with a regular expression, or a function.
   text: (selector, expected, message)->
-    actual = @browser.text(selector)
+    elements = @browser.queryAll(selector)
+    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
+    actual = elements.map((e)-> e.textContent).join("").trim().replace(/\s+/g, " ")
     assertMatch actual, expected , message
 
 
@@ -151,8 +153,9 @@ class Assert
   # Asserts that selected element has the focus.
   hasFocus: (selector, message)->
     if selector
-      element = @browser.query(selector)
-      assert.equal @browser.activeElement, element, "Expected element '#{selector}' to have the focus'"
+      elements = @browser.queryAll(selector)
+      assert.equal elements.length, 1, "Expected selector '#{selector}' to return one element"
+      assert.equal @browser.activeElement, elements[0], "Expected element '#{selector}' to have the focus'"
     else
       assert.equal @browser.activeElement, @browser.body, "Expected no element to have focus"
 
