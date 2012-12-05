@@ -48,19 +48,18 @@ describe "Browser events", ->
       brains.get "/browser-events/redirected", (req, res)->
         res.send "Very well then"
 
-      browser.on "request", (request, target)->
-        events.resource.push([request, target])
+      browser.on "request", (request)->
+        events.resource.push([request])
       browser.on "redirect", (request, response)->
         events.resource.push([request, response])
-      browser.on "response", (request, response, target)->
-        events.resource.push([request, response, target])
+      browser.on "response", (request, response)->
+        events.resource.push([request, response])
 
       browser.visit "/browser-events/resource", done
 
     it "should receive resource requests", ->
-      [request, target] = events.resource[0]
+      [request] = events.resource[0]
       assert.equal request.url, "http://localhost:3003/browser-events/resource"
-      assert target instanceof HTML.HTMLDocument
 
     it "should receive resource redirects", ->
       [request, response] = events.resource[1]
@@ -69,11 +68,10 @@ describe "Browser events", ->
       assert.equal response.url, "http://localhost:3003/browser-events/redirected"
 
     it "should receive resource responses", ->
-      [request, response, target] = events.resource[2]
+      [request, response] = events.resource[2]
       assert.equal request.url, "http://localhost:3003/browser-events/resource"
       assert.equal response.statusCode, 200
       assert.equal response.redirects, 1
-      assert target instanceof HTML.HTMLDocument
 
 
   describe "opening a window", ->

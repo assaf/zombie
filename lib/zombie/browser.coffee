@@ -84,9 +84,9 @@ class Browser extends EventEmitter
     # All the resources loaded by this browser.
     @resources = new Resources(this)
 
-    @on "request", (request, target)->
+    @on "request", (request)->
 
-    @on "response", (request, response, target)->
+    @on "response", (request, response)->
       browser.log "#{request.method} #{request.url} => #{response.statusCode}"
 
     @on "redirect", (request, response)->

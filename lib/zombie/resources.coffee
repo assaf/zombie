@@ -73,7 +73,7 @@ class Resources extends Array
       request:    request
       target:     options.target
     @push(resource)
-    @browser.emit("request", request, options.target)
+    @browser.emit("request", request)
 
     @runFilters request, (error, response)=>
       if error
@@ -88,7 +88,7 @@ class Resources extends Array
         response.time       = Date.now()
         resource.response = response
 
-        @browser.emit("response", request, response, options.target)
+        @browser.emit("response", request, response)
         callback(null, resource.response)
     return
 
