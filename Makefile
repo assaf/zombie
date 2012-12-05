@@ -32,6 +32,7 @@ clean :
 	rm -rf html man7
 	rm -f lib/zombie/*.js
 	rm -rf lib-cov
+	rm doc/new/index.html doc/new/zombie.{mobi,pdf}
 
 
 # Documentation consists of Markdown files converted to HTML, CSS/images copied over, annotated source code and PDF.
@@ -94,12 +95,19 @@ publish-docs : clean html html/source html/zombie.pdf html/coverage.html
 	@echo "Uploading documentation ..."
 	rsync -chr --del --stats html/ labnotes.org:/var/www/zombie/
 
+
+publish-new-docs: 
+	cd doc/new && scripts/generate.coffee
+	@echo "Uploading documentation ..."
+	rsync -chr --del --stats doc/new/ labnotes.org:/var/www/zombie/new
+
 # npm publish, public-docs and tag
 publish : build
 	npm publish
 	git push
 	#git tag v$(version)
 	#git push --tags origin master
-	#make publish-docs
-	#make clean
+	npm tag zombie@1.4.1 latest # change after 2.0 goes out
+	make publish-new-docs
+	make clean
 
