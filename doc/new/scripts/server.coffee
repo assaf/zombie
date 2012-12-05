@@ -6,8 +6,8 @@ File          = require("fs")
 server = Express()
 
 server.get "/", (req, res)->
-  layout = File.readFileSync("style/layout.html").toString()
-  execFile "markdown", ["README.md"], {}, (error, stdout, stderr)->
+  layout = File.readFileSync("#{__dirname}/../style/layout.html").toString()
+  execFile "markdown", ["#{__dirname}/../README.md"], {}, (error, stdout, stderr)->
     if error
       res.send(500, error.message)
     else
@@ -16,7 +16,7 @@ server.get "/", (req, res)->
 
 server.get "/*", (req, res)->
   try
-    File.createReadStream("#{req.params[0]}")
+    File.createReadStream("#{__dirname}/../#{req.params[0]}")
       .on "error", (error)->
         res.send(404, error.message)
       .pipe(res)

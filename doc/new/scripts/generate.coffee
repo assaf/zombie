@@ -1,11 +1,24 @@
 #!/usr/bin/env coffee
+#
+# Generates Web page (index.html), PDF (zombie.pdf) and Kindle Mobile
+# (zombie.mobi).
+#
+# You'll need Markdown to generate all three:
+#
+#   brew install markdown
+#
+# WkHTMLtoPDF to generate the PDF:
+#
+#   brew install wkhtmltopdf
+#
+# And kindlegen available for download from Amazon.
 { execFile }  = require("child_process")
 File          = require("fs")
 
 
 console.log "Generating index.html ..."
-layout = File.readFileSync("style/layout.html").toString()
-execFile "markdown", ["README.md"], (error, stdout, stderr)->
+layout = File.readFileSync("#{__dirname}/../style/layout.html").toString()
+execFile "markdown", ["#{__dirname}/../README.md"], (error, stdout, stderr)->
   if error
     console.error("Note: if you haven't already, brew install markdown")
     console.error(error.message)
@@ -18,7 +31,7 @@ execFile "markdown", ["README.md"], (error, stdout, stderr)->
   content = stdout.replace(/<h([1-3])>(.*)<\/h[1-3]>/g, addIDToHeader)
 
   html = layout.replace("{content}", content)
-  File.writeFileSync("index.html", html)
+  File.writeFileSync("#{__dirname}/../index.html", html)
 
   console.log "Generating zombie.pdf ..."
   pdfOptions = [
@@ -28,8 +41,8 @@ execFile "markdown", ["README.md"], (error, stdout, stderr)->
     "--title", "Zombie.js",
     "--allow", "images",
     "--footer-center", "Page [page]",
-    "index.html",
-    "zombie.pdf"
+    "#{__dirname}/../index.html",
+    "#{__dirname}/../zombie.pdf"
   ]
   execFile "wkhtmltopdf", pdfOptions, (error, stdout, stderr)->
     if error
@@ -39,7 +52,7 @@ execFile "markdown", ["README.md"], (error, stdout, stderr)->
     console.log "Generating zombie.mobi ..."
     kindleOptions = [
       "-c2"
-      "index.html",
+      "#{__dirname}/../index.html",
       "-o", "zombie.mobi"
     ]
     execFile "kindlegen", kindleOptions, (error, stdout, stderr)->

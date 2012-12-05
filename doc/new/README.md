@@ -2,22 +2,22 @@
 
 ## Browser
 
-#### `browser.assert`
+#### browser.assert
 
 Methods for making assertions against the browser, such as
 `browser.assert.element(".foo")`.
 
 See [Assertions](#assertions) for detailed discussion.
 
-#### `browser.console`
+#### browser.console
 
 Provides access to the browser console (same as `window.console`).
 
-#### `browser.referer`
+#### browser.referer
 
 You can use this to set the HTTP Referer header.
 
-#### `browser.resources`
+#### browser.resources
 
 Access to history of retrieved resources.  Also provides methods for retrieving
 resources and managing the resource pipeline.  When things are not going your
@@ -25,15 +25,15 @@ way, try calling `browser.resources.dump()`.
 
 See [Resources](#resources) for detailed discussion.
 
-#### `browser.tabs`
+#### browser.tabs
 
 Array of all open tabs (windows).  Allows you to operate on more than one open
 window at a time.
 
 See [Tabs](#tabs) for detailed discussion.
 
-#### `browser.eventLoop`
-#### `browser.errors`
+#### browser.eventLoop
+#### browser.errors
 
 ### Extending The Browser
 
@@ -79,59 +79,58 @@ first tab would be the window with the document "/foo".
 
 The following operations are used for managing tabs:
 
-#### `browser.close(window)`
+#### browser.close(window)
 
 Closes the tab with the given window.
 
-#### `browser.close()`
+#### browser.close()
 
 Closes the currently open tab.
 
-#### `browser.tabs`
+#### browser.tabs
 
 Returns an array of all open tabs.
 
-#### `browser.tabs[number]`
+#### browser.tabs[number]
 
 Returns the tab with that index number.
 
-#### `browser.tabs[string]`
-#### `browser.tabs.find(string)`
+#### browser.tabs[string]
+#### browser.tabs.find(string)
 
 Returns the tab with that name.
 
-#### `browser.tabs.closeAll()`
+#### browser.tabs.closeAll()
 
 Closes all tabs.
 
-#### `browser.tabs.current`
+#### browser.tabs.current
 
-Returns the currently active tab.
+This is a read/write property.  It returns the currently active tab.
 
-#### `browser.tabs.current = window`
+Can also be used to change the currently active tabe.  You can set it to a
+window (e.g. as currently returned from `browser.current`), a window name or the
+tab index number.
 
-Changes the currently active tab.  You can set it to a window (e.g. as currently
-returned from `browser.current`), a window name or the tab index number.
-
-#### `browser.tabs.dump(output)`
+#### browser.tabs.dump(output)
 
 Dump a list of all open tabs to standard output, or the output stream.
 
-#### `browser.tabs.index`
+#### browser.tabs.index
 
 Returns the index of the currently active tab.
 
-#### `browser.tabs.length`
+#### browser.tabs.length
 
 Returns the number of currently opened tabs.
 
-#### `browser.open(url: "http://example.com")`
+#### browser.open(url: "http://example.com")
 
 Opens and returns a new tab.  Supported options are:
 - `name` - Window name.
 - `url` - Load document from this URL.
 
-#### `browser.window`
+#### browser.window
 
 Returns the currently active window, same as `browser.tabs.current.`
 
@@ -140,136 +139,195 @@ Returns the currently active window, same as `browser.tabs.current.`
 
 ## Assertions
 
-Node.js core includes an `assert` function, and there are many alternatives you
-can use for assertions and expectations.  Obviously Zombie will support all of
-them.
-
-To make your life easier, it also introduces a set of convenience assertions you
-can execute directly against the browser object.  For example, to check that a
-page load completed successfully, you may do:
-
+To make life easier, Zombie introduces a set of convenience assertions that you
+can access directly from the browser object.  For example, to check that a page
+loaded successfuly:
 
     browser.assert.success();
     browser.assert.text("title", "My Awesome Site");
     browser.assert.element("#main");
 
-Assertions that take an expected value, will compare that against the actual
-value.  The expected value can be a primitive JavaScript value (string, number,
-etc), a regular expression or a function.  In the later case, the function is
-called with the actual value, and the assertion passes if the function returns
-true.
+These assertions are available from the `browser` object since they operate on a
+particular browser instance -- generally dependent on the currently open window,
+or document loaded in that window.
 
-Assertions that take a CSS selector use it to retrieve an HTML element or
-elements.  You can also pass the element(s) directly instead of a selector (e.g.
-if you need to access an element inside an iframe).
+Many assertions require an element/elements as the first argument, for example,
+to compare the text content (`assert.text`), or attribute value
+(`assert.attribute`).  You can pass one of the following values:
+
+- An HTML element or an array of HTML elements
+- A CSS selector string (e.g. "h2", ".book", "#first-name")
+
+Many assertions take an expected value and compare it against the actual value.
+For example, `assert.text` compares the expected value against the text contents
+of one or more strings.  The expected value can be one of:
+
+- A JavaScript primitive value (string, number)
+- `undefined` or `null` are used to assert the lack of value
+- A regular expression
+- A function that is called with the actual value and returns true if the
+  assertion is true
+- Any other object will be matched using `assert.deepEqual`
+
+Note that in some cases the DOM specification indicates that lack of value is an
+empty string, not `null`/`undefined`.
 
 All assertions take an optional last argument that is the message to show if the
-assertion fails, but when using frameworks that has good reporting (e.g. Mocha)
-you want to let the assertion format the message for you.
+assertion fails.  Better yet, use a testing framework like
+[Mocha](http://visionmedia.github.com/mocha/) that has good diff support and
+don't worry about these messages.
+
+
+### Available Assertions
 
 The following assertions are available:
 
-#### `browser.assert.attribute(selector, name, expected, message)`
+#### assert.attribute(selection, name, expected, message)
 
-Assert the named attribute of the selected element(s) has the expected value.
-Fails if no elements found.
+Asserts the named attribute of the selected element(s) has the expected value.
 
-#### `browser.assert.className(selector, className, message)`
+Fails if no element found.
 
-Asserts that selected element(s) has the that and only that class name.
+#### assert.className(selection, className, message)
 
-#### `browser.assert.cookie(name, expected, message)`
+Asserts that selected element(s) has that and only that class name.  May also be
+space-separated list of class names.
+
+Fails if no element found.
+
+#### assert.cookie(name, expected, message)
 
 Asserts that a cookie with the given name has the expected value.
 
-#### `browser.assert.element(selector, message)`
+#### assert.element(selection, message)
 
-Assert that an element matching selector exists.
+Asserts that one element matching selection exists.
 
-#### `browser.assert.elements(selector, count, message)`
+Fails if no element or more than one matching element are found.
 
-Assert how many elements exist that match the selector.
+#### assert.elements(selection, count, message)
 
-The count can be a number, or an object with the following properties:
+Asserts how many elements exist in the selection.
 
-- `atLeast` - Expect to find at least that many elements.
-- `atMost`  - Expect to find at most that many elements.
-- `exactly` - Expect to find exactly that many elements.
+The argument `count` can be a number, or an object with the following
+properties:
 
-#### `browser.assert.evaluate(expression, expected, message)`
+- `atLeast` - Expecting to find at least that many elements
+- `atMost`  - Expecting to find at most that many elements
+- `exactly` - Expecting to find exactly that many elements
 
-Evaluates the JavaScript expression in the browser context.  With one argument,
-asserts that the value is true.  With two or three arguments, asserts that the
-value of the expression matches the expected value.
+#### assert.evaluate(expression, expected, message)
 
-#### `browser.assert.global(name, expected, message)`
+Evaluates the JavaScript expression in the context of the currently open window.
+
+With one argument, asserts that the value is equal to `true`.
+
+With two/three arguments, asserts that the returned value matches the expected
+value.
+
+#### assert.global(name, expected, message)
 
 Asserts that the global (window) property has the expected value.
 
-#### `browser.assert.hasClass(selector, className, message)`
+#### assert.hasClass(selection, className, message)
 
-Asserts that selected element(s) has the expected class name (it may have many
-other class names).
+Asserts that selected element(s) have the expected class name.  Elements may
+have other class names (unlike `assert.className`).
 
-#### `browser.assert.hasFocus(selector, message)`
+Fails if no element found.
+
+#### assert.hasFocus(selection, message)
 
 Asserts that selected element has the focus.
 
-#### `browser.assert.input(selector, expected, message)`
+If the first argument is `null`, asserts that no element has the focus.
 
-Asserts that selected input field (text field, text area, etc) has the expected
-value.
+Otherwise, fails if element not found, or if more than one element found.
 
-#### `browser.assert.hasNoClass(selector, className, message)`
+#### assert.input(selection, expected, message)
 
-Asserts that selected element(s) does not have the expected class name (it may
-have many other class names).
+Asserts that selected input field(s) (`input`, `textarea`, `select` etc) have
+the expected value.
 
-#### `browser.assert.prompted(messageShown, message)`
+Fails if no element found.
 
-Assert that browser prompted with a given message.
+#### assert.hasNoClass(selection, className, message)
 
-#### `browser.assert.redirected(message)`
+Asserts that selected element(s) does not have the expected class name.  Elements may
+have other class names (unlike `assert.className`).
 
-Asserts that browser was redirected when retrieving the current page.
+Fails if no element found.
 
-#### `browser.assert.success(message)`
+#### assert.prompted(messageShown, message)
 
-Assert that the last page load returned status code 200.
+Asserts the browser prompted with a given message.
 
-#### `browser.assert.status(code, message)`
+#### assert.redirected(message)
 
-Assert that the last page load returned the expected status code.
+Asserts the browser was redirected when retrieving the current page.
 
-#### `browser.assert.style(selector, style, expected, message)`
+#### assert.success(message)
 
-Assert that the style property of the selected element(s) the expected value.
+Asserts the current page loaded successfully (status code 2xx or 3xx).
 
-#### `browser.assert.text(selector, expected, message)`
+#### assert.status(code, message)
 
-Assert that text content of selected element(s) matche the expected value.
+Asserts the current page loaded with the expected status code.
 
-#### `browser.assert.url(url, message)`
+#### assert.style(selection, style, expected, message)
 
-Asserts that current page has the expected URL.
+Asserts that selected element(s) have the expected value for the named style
+property.  For example:
 
-The expected URL value can be a string, regular expression, or function just
-like every other assertion.  It can also be an object, in which case, individual
-properties are matched against the URL.
+    browser.assert.style(".navigation", "opacity", 0.5)
+
+Fails if no element found.
+
+#### assert.text(selection, expected, message)
+
+Asserts that selected element(s) have the expected text content.  For example:
+
+    browser.assert.text("title", "My Awesome Page")
+
+Fails if no element found.
+
+#### assert.url(url, message)
+
+Asserts the current page has the expected URL.
+
+The expected URL can be one of:
+
+- The full URL as a string
+- A regular expression
+- A function, called with the URL and returns true if the assertion is true
+- An object, in which case individual properties are matched against the URL
 
 For example:
 
-    browser.assert.url({ pathame: "/resource" });
+    browser.assert.url("http://localhost/foo/bar")
+    browser.assert.url({ pathame: "/foo/bar" });
     browser.assert.url({ query: { name: "joedoe" } });
 
-### Add Your Own Assertions
 
-You can add more assertions by adding methods to the prototype of
-`Browser.Assert`.  These have access to the browser as a property, for example:
+### Roll Your Own Assertions
+
+Not seeing an assertion you want?  You can add your own assertions to the
+prototype of `Browser.Assert`.
+
+For example:
 
     // Asserts the browser has the expected number of open tabs.
     Browser.Assert.prototype.openTabs = function(expected, message) {
       assert.equal(this.browser.tabs.length, expected, message);
+    };
+
+Or application specific:
+
+
+    // Asserts which links is highlighted in the navigation bar
+    Browser.Assert.navigationOn = function(linkText) {
+      this.assert.element(".navigation-bar");
+      this.assert.text(".navigation-bar a.highlighted", linkText);
     };
 
 
@@ -277,7 +335,7 @@ You can add more assertions by adding methods to the prototype of
 
 ## Events
 
-#### `console (level, messsage)`
+#### console (level, messsage)
 
 Emitted whenever a message is printed to the console (`console.log`,
 `console.error`, `console.trace`, etc).
@@ -285,75 +343,75 @@ Emitted whenever a message is printed to the console (`console.log`,
 The first argument is the logging level, one of `debug`, `error`, `info`, `log`,
 `trace` or `warn`.  The second argument is the message to log.
 
-#### `active (window)`
+#### active (window)
 
 Emitted when this window becomes the active window.
 
-#### `closed (window)`
+#### closed (window)
 
 Emitted when a window is closed.
 
-#### `done ()`
+#### done ()
 
 Emitted whenever the event loop is empty.
 
-#### `evaluated (code, result, filename)`
+#### evaluated (code, result, filename)
 
 Emitted whenever JavaScript code is evaluated.  The first argument is the
 JavaScript function or source code, the second argument the result, and the
 third argument is the filename.
 
-#### `event (event, target)`
+#### event (event, target)
 
 Emitted whenever a DOM event is fired on the target element, document or window.
 
-#### `focus (element)`
+#### focus (element)
 
 Emitted whenever an input element receives the focus.
 
-#### `inactive (window)`
+#### inactive (window)
 
 Emitted when this window is no longer the active window.
 
-#### `interval (function, interval)`
+#### interval (function, interval)
 
 Emitted whenever an interval event (`setInterval`) is fired, with the function and
 interval.
 
-#### `link (url, target)`
+#### link (url, target)
 
 Emitted when a link is clicked and the browser navigates to a new URL.  Includes
 the URL and the target window (default to `_self`).
 
-#### `loaded (document)`
+#### loaded (document)
 
 Emitted when a document is loaded into a window or frame.  This event is emitted
 after the HTML is parsed and loaded into the Document object.
 
-#### `loading (document)`
+#### loading (document)
 
 Emitted when a document is loaded into a window or frame.  This event is emitted
 with an empty Document object, before parsing the HTML response.
 
-#### `opened (window)`
+#### opened (window)
 
 Emitted when a window is opened.
 
-#### `redirect (request, response)`
+#### redirect (request, response)
 
 Emitted when following a redirect.
 
 The first argument is the request, the second argument is the redirect response.
 The URL of the new resource to retrieve is given by `response.url`.
 
-#### `request (request, target)`
+#### request (request, target)
 
 Emitted before making a request to retrieve the resource.
 
 The first argument is the request object (see *Resources* for more details), the
 second argument is the target element/document.
 
-#### `response (request, response, target)`
+#### response (request, response, target)
 
 Emitted after receiving the response when retrieving a resource.
 
@@ -361,12 +419,12 @@ The first argument is the request object (see *Resources* for more details), the
 second argument is the response that is passed back, and the third argument is
 the target element/document.
 
-#### `submit (url, target)`
+#### submit (url, target)
 
 Emitted when a form is submitted.  Includes the action URL and the target window
 (default to `_self`).
 
-#### `timeout (function, delay)`
+#### timeout (function, delay)
 
 Emitted whenever a timeout event (`setTimeout`) is fired, with the function and
 delay.
