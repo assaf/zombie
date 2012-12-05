@@ -484,53 +484,50 @@ any of the following:
 ### The Resources List
 
 Each browser provides access to its resources list through `browser.resources`.
-This is an array of resources, and you can iterate and manipulate it just like
-any other JS array.
 
-Each resource provides four properties: `request`, `response`, `error` and
-`target`.
+The resources list is an array of all resouces requested by the browser.  You
+can iterate and manipulate it just like any other JavaScript array.
+
+Each resource provides four properties:
+
+- `request`   - The request object
+- `response`  - The resource object (if received)
+- `error`     - The error received instead of response
+- `target`    - The target element or document (when loading HTML page, script,
+  etc)
 
 The request object consists of:
 
-- `method` - HTTP method, e.g. "GET"
-- `url` - The requested URL
-- `headers` - All request headers
-- `body` - The request body can be Buffer or String, only applies to POST and
-  PUT methods multiparty - Used instead of a body to support file upload
-- `time` - Timestamp when request was made
-- `timeout` - Request timeout (0 for no timeout)
+- `method`      - HTTP method, e.g. "GET"
+- `url`         - The requested URL
+- `headers`     - All request headers
+- `body`        - The request body can be `Buffer` or string; only applies to
+  POST and PUT methods
+- `multiparty`  - Used instead of a body to support file upload
+- `time`        - Timestamp when request was made
+- `timeout`     - Request timeout (0 for no timeout)
 
 The response object consists of:
 
-- `url` - The actual URL of the resource. This may be different from the request
-  URL after redirects.
-- `statusCode` - HTTP status code, eg 200
-- `statusText` - HTTP static code as text, eg "OK"
-- `headers` - All response headers
-- `body` - The response body, may be Buffer or String, depending on the content
-  type
-- `redirects` - Number of redirects followed
-- `time` - Timestamp when response was completed
-
-While a request is in progress, the resource entry would only contain the
-`request` property. If an error occurred during the request, e.g the server was
-down, the resource entry would contain an `error` property instead of `request`.
+- `url`         - The actual URL of the resource; different from request URL if
+  there were any redirects
+- `statusCode`  - HTTP status code, eg 200
+- `statusText`  - HTTP static code as text, eg "OK"
+- `headers`     - All response headers
+- `body`        - The response body, may be `Buffer` or string, depending on the
+  content type encoding
+- `redirects`   - Number of redirects followed (0 if no redirects)
+- `time`        - Timestamp when response was completed
 
 Request for loading pages and scripts include the target DOM element or
 document. This is used internally, and may also give you more insight as to why
 a request is being made.
 
-The `target` property associates the resource with an HTML document or element
-(only applies to some resources, like documents and scripts).
-
-Use `browser.resources.dump()` to dump a list of all resources to the console.
-This method accepts an optional output stream.
-
 
 ### Mocking, Failing and Delaying Responses
 
-To help you in testing, you can use `browser.resources` to mock, fail or delay a
-server response.
+To help in testing, Zombie includes some convenience methods for mocking,
+failing and delaying responses.
 
 For example, to mock a response:
 
@@ -545,13 +542,10 @@ conditions by asking Zombie to simulate a failure.  For example:
 
     browser.resource.fail("http://3rd.party.api/v1/request");
 
-Use `mock` to simulate a server failing to process a request by returning status
-code 500.  Use `fail` to simulate a server that is not accessible.
-
 Another issue you'll encounter in real-life applications are network latencies.
-When running a test suite, Zombie will request resources in the order in which
-they appear on the page, and likely receive them from a local server in that
-same order.
+When running tests, Zombie will request resources in the order in which they
+appear on the page, and likely receive them from the local server in that same
+order.
 
 Occassionally you'll need to force the server to return resources in a different
 order, for example, to check what happens when script A loads after script B.
@@ -559,10 +553,51 @@ You can introduce a delay into any response as simple as:
 
     browser.resources.delay("http://3d.party.api/v1/request", 50);
 
-Once you're done mocking, failing or delaying a resource, restore it to its
-previous state:
 
-    browser.resources.restore("http://3d.party.api/v1/request");
+### The Pipeline
+
+Zombie uses a pipeline to operate on resources.  You can extend that pipeline
+with your own set of handlers, for example, to support additional protocols,
+content types, special handlers, better resource mocking, etc.
+
+The pipeline consists of a set of handlers.  There are two types of handlers:
+
+Functions with two arguments deal with requests.  They are called with the
+request object and a callback, and must call that callback with one of:
+
+- No arguments to pass control to the next handler
+- An error to stop processing and return that error
+- `null` and the response objec to return that response
+
+Functions with three arguments deal with responses.  They are called with the
+request object, response object and a callback, and must call that callback with
+one of:
+
+- No arguments to pass control to the next handler
+- An error to stop processing and return that error
+
+To add a new handle to the end of the pipeline:
+
+    browser.resources.addHandler(function(request, next) {
+      // Let's delay this request by 1/10th second
+      setTimeout(function() {
+        Resources.httpRequest(request, next);
+      }, Math.random() * 100);
+    });
+
+If you need anything more complicated, you can access the pipeline directly via
+`browser.resources.pipeline`.
+
+You can add handlers to all browsers via `Browser.Resources.addHandler`.  These
+handlers are automatically added to every new `browser.resources` instance.
+
+    Browser.Resources.addHandler(function(request, response, next) {
+      // Log the response body
+      console.log("Response body: " + response.body);
+      next();
+    });
+
+When handlers are executed, `this` is set to the browser instance.
 
 
 ### Operating On Resources
@@ -571,15 +606,62 @@ If you need to retrieve of operate on resources directly, you can do that as
 well, using all the same features available to Zombie, including mocks, cookies,
 authentication, etc.
 
-The `browser.resources` object exposes `get`, `post` and the more generic
-`request` method.
+#### resources.addHandler(handler)
 
-For example, to download a document:
+Adds a handler to the pipeline of this browser instance.  To add a handler to the
+pipeline of every browser instance, use `Browser.Resources.addHandler`.
+
+#### resources.delay(url, delay)
+
+Retrieve the resource with the given URL, but only after a delay.
+
+#### resources.dump(output)
+
+Dumps the resources list to the output stream (defaults to standard output
+stream). 
+
+#### resources.fail(url, error)
+
+Do not attempt to retrieve the resource with the given URL, but act as if the
+request failed with the given message.
+
+This is used to simulate network failures (can't resolve hostname, can't make
+connection, etc).  To simulate server failures (status codes 5xx), use
+`resources.mock`.
+
+#### resources.pipeline
+
+Returns the current pipeline (array of handlers) for this browser instance.
+
+#### resources.get(url, callback)
+
+Retrieves a resource with the given URL and passes response to the callback.
+
+For example:
 
     browser.resources.get("http://some.service", function(error, response) {
       console.log(response.statusText);
       console.log(response.body);
     });
+
+#### resources.mock(url, response)
+
+Do not attempt to retrieve the resource with the given URL, but return the
+response object instead.
+
+#### resources.post(url, options, callback)
+
+Posts a document to the resource with the given URL and passes the response to
+the callback.
+
+Supported options are:
+
+- `body`- Request document body
+- `headers` - Headers to include in the request
+- `params` - Parameters to pass in the document body
+- `timeout` - Request timeout in milliseconds (0 or `null` for no timeout)
+
+For example:
 
     var params  = { "count": 5 };
     browser.resources.post("http://some.service", { params: params }, function(error, response) {
@@ -591,50 +673,28 @@ For example, to download a document:
        . . .
     });
 
+
+#### resources.request(method, url, options, callback)
+
+Makes an HTTP request to the resource and passes the response to the callback.
+
+Supported options are:
+
+- `body`- Request document body
+- `headers` - Headers to include in the request
+- `params` - Parameters to pass in the query string (`GET`, `DELETE`) or
+  document body (`POST`, `PUT`)
+- `timeout` - Request timeout in milliseconds (0 or `null` for no timeout)
+
+For example:
+
     browser.resources.request("DELETE", "http://some.service", function(error) {
       . . .
     });
 
+#### resources.restore(url)
 
-### The Resource Chain
+Reset any special resource handling from a previous call to `delay`, `fail` or
+`mock`.
 
-Zombie uses a pipeline to operate on resources.  You can extend that pipeline
-with your own set of handlers, for example, to support additional protocols,
-content types, special handlers, better resource mocking, etc.
-
-The pipeline consists of a set of filters.  There are two types of filters.
-Functions with two arguments are request filters, they take a request object and
-a callback.  The function then calls the callback with no arguments to pass
-control to the next filter, with an error to stop processing, or with null and
-a request object.
-
-Functions with three arguments are response filters, they take a request object,
-response object and callback.  The function then calls the callback with no
-arguments to pass control to the next filter, or with an error to stop
-processing.
-
-To add a new filter at the end of the pipeline:
-
-    browser.resources.addFilter(function(request, next) {
-      // Let's delay this request by 1/10th second
-      setTimeout(function() {
-        Resources.httpRequest(request, next);
-      }, Math.random() * 100);
-    });
-
-If you need anything more complicated, you can access the pipeline directly via
-`browser.resources.filters`.
-
-You can add filters to all browsers via `Browser.Resources.addFilter`.  These
-filters are automatically added to every new `browser.resources` instance.
-
-    Browser.Resources.addFilter(function(request, response, next) {
-      // Log the response body
-      console.log("Response body: " + response.body);
-      next();
-    });
-
-That list of filters is available from `Browser.Resources.filters`.
-
-When filters are executed, `this` is set to the browser instance.
 

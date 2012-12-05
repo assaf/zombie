@@ -32,7 +32,7 @@ Zlib    = require("zlib")
 class Resources extends Array
   constructor: (browser)->
     @browser = browser
-    @filters = Resources.filters.slice()
+    @pipeline = Resources.pipeline.slice()
     @urlMatchers = []
 
 
@@ -75,7 +75,7 @@ class Resources extends Array
     @push(resource)
     @browser.emit("request", request)
 
-    @runFilters request, (error, response)=>
+    @runPipeline request, (error, response)=>
       if error
         resource.error = error
         callback(error)
@@ -189,92 +189,70 @@ class Resources extends Array
       output.write "\n\n"
 
 
-  # Add a before/after filter.  This filter will only be used by this browser.
-  #
-  #
-  # A function with two arguments will be executed in order to prepare the
-  # request, and will be called with request object and a callback.
-  #
-  # If the callback is called with an error, processing of the request stops.
-  #
-  # It the callback is called with no arguments, the next filter will be used.
-  #
-  # If the callback is called with null/undefined and request, that will
-  # request will be used.
-  #
-  #
-  # A function with three arguments will be executed in order to process the
-  # resposne, and will be called with request object, response object and a
-  # callback.
-  #
-  # If the callback is called with an error, processing of the response stops.
-  #
-  # If the callback is called with no no error, the next filter will be used.
-  addFilter: (filter)->
-    assert filter.call, "Filter must be a function"
-    assert filter.length == 2 || filter.length == 3, "Filter function takes 2 (before filter) or 3 (after filter) arguments"
-    @filters.push(filter)
+  # Add a request/response handler.  This handler will only be used by this
+  # browser.
+  addHandler: (handler)->
+    assert handler.call, "Handler must be a function"
+    assert handler.length == 2 || handler.length == 3, "Handler function takes 2 (request handler) or 3 (reponse handler) arguments"
+    @pipeline.push(handler)
 
-  # Processes the request using a chain of filters.
-  runFilters: (request, callback)->
-    beforeFilters = @filters.filter((fn)-> fn.length == 2)
-    beforeFilters.push(Resources.makeHTTPRequest)
-    afterFilters = @filters.filter((fn)-> fn.length == 3)
+  # Processes the request using the pipeline.
+  runPipeline: (request, callback)->
+    requestHandlers = @pipeline.filter((fn)-> fn.length == 2)
+    requestHandlers.push(Resources.makeHTTPRequest)
+    responseHandlers = @pipeline.filter((fn)-> fn.length == 3)
     response = null
 
-    # Called to execute the next 'before' filter.
-    beforeFilterCallback = (error, responseFromFilter)=>
+    # Called to execute the next request handler.
+    nextRequestHandler = (error, responseFromHandler)=>
       if error
         callback(error)
-      else if responseFromFilter
+      else if responseFromHandler
         # Received response, switch to processing request
-        response = responseFromFilter
-        # If we get redirected and the final filter doesn't provide a URL (e.g.
+        response = responseFromHandler
+        # If we get redirected and the final handler doesn't provide a URL (e.g.
         # mock response), then without this we end up with the original URL.
         response.url ||= request.url
-        afterFilterCallback()
+        nextResponseHandler()
       else
-        # Use the next before filter.
-        filter = beforeFilters.shift()
+        # Use the next request handler.
+        handler = requestHandlers.shift()
         try
-          filter.call(@browser, request, beforeFilterCallback)
+          handler.call(@browser, request, nextRequestHandler)
         catch error
           callback(error)
 
-    # Called to execute the next 'after' filter.
-    afterFilterCallback = (error)=>
+    # Called to execute the next response handler.
+    nextResponseHandler = (error)=>
       if error
         callback(error)
       else
-        filter = afterFilters.shift()
-        if filter
-          # Use the next after filter.
+        handler = responseHandlers.shift()
+        if handler
+          # Use the next response handler
           try
-            filter.call(@browser, request, response, afterFilterCallback)
+            handler.call(@browser, request, response, nextResponseHandler)
           catch error
             callback(error)
         else
-          # No more filters, callback with response.
+          # No more handlers, callback with response.
           callback(null, response)
 
-    # Start with first before filter
-    beforeFilterCallback()
+    # Start with first request handler
+    nextRequestHandler()
     return
 
 
-# -- Filters
+# -- Handlers
 
-# Add a before/after filter.  This filter will be used in all browsers.
-#
-# Filters used before the request take two arguments.  Filters used with the
-# response take three arguments.
-Resources.addFilter = (filter)->
-  assert filter.call, "Filter must be a function"
-  assert filter.length == 2 || filter.length == 3, "Filter function takes 2 (before filter) or 3 (after filter) arguments"
-  @filters.push(filter)
+# Add a request/response handler.  This handler will be used in all browsers.
+Resources.addHandler = (handler)->
+  assert handler.call, "Handler must be a function"
+  assert handler.length == 2 || handler.length == 3, "Handler function takes 2 (request handler) or 3 (response handler) arguments"
+  @pipeline.push(handler)
 
 
-# This filter normalizes the request URL.
+# This handler normalizes the request URL.
 #
 # It turns relative URLs into absolute URLs based on the current document URL
 # or base element, or if no document open, based on browser.site property.
@@ -307,7 +285,7 @@ Resources.normalizeURL = (request, next)->
   return
 
 
-# This filter mergers request headers.
+# This handler mergers request headers.
 #
 # It combines headers provided in the request with custom headers defined by
 # the browser (user agent, authentication, etc).
@@ -340,7 +318,7 @@ Resources.mergeHeaders = (request, next)->
   return
 
 
-# Depending on the content type, this filter will create a request body from
+# Depending on the content type, this handler will create a request body from
 # request.params, set request.multipart for uploads.
 Resources.createBody = (request, next)->
   method = request.method
@@ -422,7 +400,7 @@ Resources.decompressBody = (request, response, next)->
   return
 
 
-# This filter decodes the response body based on the response content type.
+# This handler decodes the response body based on the response content type.
 Resources.decodeBody = (request, response, next)->
   # Use content type to determine how to decode response
   if response.body && response.headers
@@ -439,8 +417,8 @@ Resources.decodeBody = (request, response, next)->
   return
 
 
-# All browsers start out with this list of filters.
-Resources.filters = [
+# All browsers start out with this list of handler.
+Resources.pipeline = [
   Resources.normalizeURL
   Resources.mergeHeaders
   Resources.createBody
@@ -454,7 +432,7 @@ Resources.filters = [
 
 
 # Used to perform HTTP request (also supports file: resources).  This is always
-# the last 'before' filter.
+# the last request handler.
 Resources.makeHTTPRequest = (request, callback)->
   { protocol, hostname, pathname } = URL.parse(request.url)
   if protocol == "file:"
@@ -547,7 +525,7 @@ Resources.makeHTTPRequest = (request, callback)->
           time:       request.time
           timeout:    request.timeout
         @emit("redirect", request, response)
-        @resources.runFilters(redirectRequest, callback)
+        @resources.runPipeline(redirectRequest, callback)
 
       else
 
