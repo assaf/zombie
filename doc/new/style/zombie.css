@@ -32,6 +32,10 @@ pre, code {
   overflow-y: hidden;
   white-space: pre;
 }
+pre {
+  background: #eef;
+  padding: 0.6em;
+}
 a {
   color: steelblue;
   text-decoration: none;
