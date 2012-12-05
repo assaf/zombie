@@ -136,7 +136,7 @@ strong {
   transition: all .5s ease-in-out;  
 }
 #navigation-bar.contracted {
-  height: 30px;
+  height: 28px;
 }
 #navigation-bar.expanded {
 }
@@ -165,7 +165,7 @@ strong {
 #navigation-bar li {
   display: inline-block;
   padding: 0;
-  margin: 0 5em 0 0;
+  margin: 0 5em 6px 0;
 }
 #navigation-bar a {
   color: #eee;

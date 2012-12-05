@@ -88,18 +88,18 @@ function pageReady() {
   // Navigation bar contains an "expand me" link, clicking on it expands and
   // contracts the navigation bar.  This works differently in different
   // browsers, but all handled by CSS magic.
-  function expandNavigationBar(event) {
+  expandNavigationLink.addEventListener("click", function(event) {
     if (navigationBar.className == "contracted")
       navigationBar.className = "expanded";
     else
       navigationBar.className = "contracted";
-    return false;
-  }
-  expandNavigationLink.addEventListener("click", function(event) {
     event.stopPropagation();
     event.preventDefault();
-    expandNavigationBar();
-    return false;
+  });
+  // Clicking anywhere else on the page, including navigation link, closes the
+  // navigation bar.
+  document.addEventListener("click", function(event) {
+    navigationBar.className = "contracted";
   });
 
 
@@ -133,6 +133,7 @@ function pageReady() {
   // animations?
   populateNavigationLinks();
   setNavigationBarHeight();
+  navigationBar.style.visibility = "visible";
 }
 
 
