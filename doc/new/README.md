@@ -335,13 +335,28 @@ Or application specific:
 
 ## Events
 
+Each browser instance is an `EventEmitter`, and will emit a variety of events
+you can listen to.
+
+Some things you can do with events:
+
+- Trace what the browser is doing, e.g. log every page loaded, every DOM event
+  emitted, every timeout fired
+- Wait for something to happen, e.g. form submitted, link clicked, input element
+  getting the focus
+- Strip out code from HTML pages, e.g remove analytics code when running tests
+- Add event listeners to the page before any JavaScript executes
+- Mess with the browser, e.g. modify loaded resources, capture and change DOM
+  events
+
 #### console (level, messsage)
 
 Emitted whenever a message is printed to the console (`console.log`,
 `console.error`, `console.trace`, etc).
 
-The first argument is the logging level, one of `debug`, `error`, `info`, `log`,
-`trace` or `warn`.  The second argument is the message to log.
+The first argument is the logging level, and the second argument is the message.
+
+The logging levels are: `debug`, `error`, `info`, `log`, `trace` and `warn`.
 
 #### active (window)
 
@@ -349,17 +364,18 @@ Emitted when this window becomes the active window.
 
 #### closed (window)
 
-Emitted when a window is closed.
+Emitted when this window is closed.
 
 #### done ()
 
-Emitted whenever the event loop is empty.
+Emitted when the event loop goes empty.
 
 #### evaluated (code, result, filename)
 
-Emitted whenever JavaScript code is evaluated.  The first argument is the
-JavaScript function or source code, the second argument the result, and the
-third argument is the filename.
+Emitted after JavaScript code is evaluated.
+
+The first argument is the JavaScript function or code (string).  The second
+argument is the result.  The third argument is the filename.
 
 #### event (event, target)
 
@@ -367,7 +383,7 @@ Emitted whenever a DOM event is fired on the target element, document or window.
 
 #### focus (element)
 
-Emitted whenever an input element receives the focus.
+Emitted whenever an element receives the focus.
 
 #### inactive (window)
 
@@ -375,59 +391,70 @@ Emitted when this window is no longer the active window.
 
 #### interval (function, interval)
 
-Emitted whenever an interval event (`setInterval`) is fired, with the function and
-interval.
+Emitted whenever an interval (`setInterval`) is fired.
+
+The first argument is the function or code to evaluate, the second argument is
+the interval in milliseconds.
 
 #### link (url, target)
 
-Emitted when a link is clicked and the browser navigates to a new URL.  Includes
-the URL and the target window (default to `_self`).
+Emitted when a link is clicked.
+
+The first argument is the URL of the new location, the second argument
+identifies the target window (`_self`, `_blank`, window name, etc).
 
 #### loaded (document)
 
-Emitted when a document is loaded into a window or frame.  This event is emitted
-after the HTML is parsed and loaded into the Document object.
+Emitted when a document has been loaded into a window or frame.
+
+This event is emitted after the HTML is parsed, and some scripts executed.
 
 #### loading (document)
 
-Emitted when a document is loaded into a window or frame.  This event is emitted
-with an empty Document object, before parsing the HTML response.
+Emitted when a document is about to be loaded into a window or frame.
+
+This event is emitted when the document is still empty, before parsing any HTML.
 
 #### opened (window)
 
-Emitted when a window is opened.
+Emitted when a new window is opened.
 
 #### redirect (request, response)
 
 Emitted when following a redirect.
 
-The first argument is the request, the second argument is the redirect response.
+The first argument is the request, the second argument is the response that
+caused the redirect.  See [Resources](#resources) for more details.
+
 The URL of the new resource to retrieve is given by `response.url`.
 
-#### request (request, target)
+#### request (request)
 
-Emitted before making a request to retrieve the resource.
+Emitted before making a request to retrieve a resource.
 
-The first argument is the request object (see *Resources* for more details), the
-second argument is the target element/document.
+The first argument is the request object.  See [Resources](#resources) for more
+details.
 
-#### response (request, response, target)
+#### response (request, response)
 
-Emitted after receiving the response when retrieving a resource.
+Emitted after receiving the response (excluding redirects).
 
-The first argument is the request object (see *Resources* for more details), the
-second argument is the response that is passed back, and the third argument is
-the target element/document.
+The first argument is the request object, the second argument is the response
+object.  See [Resources](#resources) for more details.
 
 #### submit (url, target)
 
-Emitted when a form is submitted.  Includes the action URL and the target window
-(default to `_self`).
+Emitted whenever a form is submitted.
+
+The first argument is the URL of the new location, the second argument
+identifies the target window (`_self`, `_blank`, window name, etc).
 
 #### timeout (function, delay)
 
-Emitted whenever a timeout event (`setTimeout`) is fired, with the function and
-delay.
+Emitted whenever a timeout (`setTimeout`) is fired.
+
+The first argument is the function or code to evaluate, the second argument is
+the delay in milliseconds.
 
 
 

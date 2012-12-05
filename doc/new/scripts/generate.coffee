@@ -3,7 +3,14 @@
 # Generates Web page (index.html), PDF (zombie.pdf) and Kindle Mobile
 # (zombie.mobi).
 #
-# You'll need Markdown to generate all three:
+# To use:
+#
+#   ./scripts/generate
+#   open index.html
+#   open zombie.pdf
+#   open zombie.mobi
+#
+# You'll need Markdown to generate all three documents:
 #
 #   brew install markdown
 #
@@ -12,6 +19,8 @@
 #   brew install wkhtmltopdf
 #
 # And kindlegen available for download from Amazon.
+
+
 { execFile }  = require("child_process")
 File          = require("fs")
 

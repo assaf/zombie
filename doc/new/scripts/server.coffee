@@ -1,4 +1,18 @@
 #!/usr/bin/env coffee
+#
+# Simple Web server to serve HTML documentation.
+#
+# To use:
+#
+#   ./scripts/server &
+#   open http://localhost:3000
+#
+# This server is necessary to test some behavior that only works when viewing
+# the documentation over HTTP and fails when opening a file.  Specifically, it
+# seems JavaScript cannot access external stylesheets when HTML is loaded from
+# the file system.
+
+
 Express       = require("express")
 { execFile }  = require("child_process")
 File          = require("fs")
