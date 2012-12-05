@@ -95,11 +95,11 @@ publish-docs : clean html html/source html/zombie.pdf html/coverage.html
 	rsync -chr --del --stats html/ labnotes.org:/var/www/zombie/
 
 # npm publish, public-docs and tag
-publish : build doc man7
+publish : build
 	npm publish
 	git push
-	git tag v$(version)
-	git push --tags origin master
-	make publish-docs
-	make clean
+	#git tag v$(version)
+	#git push --tags origin master
+	#make publish-docs
+	#make clean
 
