@@ -1,0 +1,5 @@
+#!/bin/sh
+# Clean build/documentation files
+rm -rf html man7
+rm -f lib/zombie/*.js
+rm -rf lib-cov

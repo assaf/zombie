@@ -13,11 +13,12 @@
     "html", "html5", "dom", "css", "javascript", "integration", "ajax", "full-stack", "DSL" ],
   "main": "lib/zombie",
   "scripts": {
-    "prepublish":   "make build",
+    "prepublish":   "./scripts/clean && ./scripts/build",
+    "postpublish":  "./scripts/publish",
     "test":         "./node_modules/.bin/mocha"
   },
   "engines": {
-    "node": ">= 0.6.0"
+    "node": ">= 0.8.0"
   },
   "dependencies": {
     "contextify":       "~0.1.3",

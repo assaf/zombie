@@ -16,12 +16,17 @@
 Express       = require("express")
 { execFile }  = require("child_process")
 File          = require("fs")
+Path          = require("path")
+
+
+DOC_DIR   = Path.resolve("#{__dirname}/../doc/new")
+
 
 server = Express()
 
 server.get "/", (req, res)->
-  layout = File.readFileSync("#{__dirname}/../style/layout.html").toString()
-  execFile "markdown", ["#{__dirname}/../README.md"], {}, (error, stdout, stderr)->
+  layout = File.readFileSync("#{DOC_DIR}/layout.html").toString()
+  execFile "markdown", ["#{DOC_DIR}/README.md"], {}, (error, stdout, stderr)->
     if error
       res.send(500, error.message)
     else
@@ -30,7 +35,7 @@ server.get "/", (req, res)->
 
 server.get "/*", (req, res)->
   try
-    File.createReadStream("#{__dirname}/../#{req.params[0]}")
+    File.createReadStream("#{DOC_DIR}/#{req.params[0]}")
       .on "error", (error)->
         res.send(404, error.message)
       .pipe(res)

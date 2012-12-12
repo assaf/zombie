@@ -1,18 +1,5 @@
 default : test
-.PHONY : build clean publish setup test
-
-
-# Setup everything
-setup :
-	npm install
-
-# CoffeeScript to JavaScript
-build :
-	coffee -b -c -l -o lib/zombie lib/zombie/*.coffee
-
-# Run test suite
-test : setup
-	npm test
+.PHONY : clean
 
 
 # Run coverage report
@@ -20,19 +7,14 @@ coverage : setup lib-cov html
 	env LIB_PATH=lib-cov mocha -R html-cov > html/coverage.html
 	echo open html/coverage.html
 
-lib-cov : build
+lib-cov :
+	./scripts/build
 	jscoverage --no-highlight lib lib-cov
 
 html/coverage.html :
 	if [ `which jscoverage` ] ; then make coverage ; fi
 
 
-# Remove temporary files
-clean :
-	rm -rf html man7
-	rm -f lib/zombie/*.js
-	rm -rf lib-cov
-	rm doc/new/index.html doc/new/zombie.{mobi,pdf}
 
 
 # Documentation consists of Markdown files converted to HTML, CSS/images copied over, annotated source code and PDF.
@@ -87,27 +69,7 @@ man7/zombie-%.7 : doc/%.md
 	ronn --roff $< > $@
 
 
-# Get version number from package.json, need this for tagging.
-version = $(shell node -e "console.log(JSON.parse(require('fs').readFileSync('package.json')).version)")
-
 # Publish site only.
 publish-docs : clean html html/source html/zombie.pdf html/coverage.html
 	@echo "Uploading documentation ..."
 	rsync -chr --del --stats html/ labnotes.org:/var/www/zombie/
-
-
-publish-new-docs: 
-	cd doc/new && scripts/generate.coffee
-	@echo "Uploading documentation ..."
-	rsync -chr --del --stats doc/new/ labnotes.org:/var/www/zombie/new
-
-# npm publish, public-docs and tag
-publish : build
-	npm publish
-	git push
-	#git tag v$(version)
-	#git push --tags origin master
-	npm tag zombie@1.4.1 latest # change after 2.0 goes out
-	make publish-new-docs
-	make clean
-
