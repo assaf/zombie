@@ -32,9 +32,9 @@ pre, code {
   overflow-y: hidden;
   white-space: pre;
 }
-pre {
+pre, .code {
   background: #eef;
-  padding: 0.6em;
+  padding: 0.1em 0.3em 0.6em 0.3em;
 }
 h4 code {
   color: steelblue;
@@ -219,10 +219,11 @@ strong {
   h2, h3, h4 {
     page-break-after: avoid; 
   }
-  p, pre, code, ul, ol, blockquote { 
+  p, pre, code, ul, ol, blockquote, .syntaxhighlighter { 
     page-break-inside: avoid;
     widows: 3;
     orphans: 3;
+    font-size: 10pt;
   }
   #navigation-bar {
     display: none;
@@ -234,4 +235,25 @@ strong {
        content: "Page " counter(pages);
     }
   } 
+}
+
+
+
+/** Syntax highlighting **/
+code.plain {
+}
+code.comments {
+  color: #998;
+  font-style: italic;
+}
+code.string {
+  color: #14d;
+}
+code.keyword {
+  color: #000;
+}
+code.variable {
+  color: #008080;
+}
+code.value {
 }

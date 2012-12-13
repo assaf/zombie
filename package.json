@@ -33,14 +33,13 @@
     "ws":               "~0.4.22"
   },
   "devDependencies": {
-    "coffee-script":    "~1.4.0",
-    "docco":            "~0.4.0",
-    "express":          "~3.0.3",
-    "highlight":        "~0.2.3",
-    "mocha":            "~1.7.0",
-    "replay":           "~1.6.0",
-    "requirejs":        "~2.1.1",
-    "ronn":             "~0.3.8"
+    "coffee-script":          "~1.4.0",
+    "express":                "~3.0.3",
+    "node-syntaxhighlighter": "~0.8.1",
+    "mocha":                  "~1.7.0",
+    "replay":                 "~1.6.0",
+    "requirejs":              "~2.1.1",
+    "robotskirt":             "~2.7.1"
   },
   "repository": {
     "type": "git",

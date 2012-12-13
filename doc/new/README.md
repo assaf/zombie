@@ -1,5 +1,6 @@
 # Zombie.js
 
+
 ## Browser
 
 #### browser.assert
@@ -37,14 +38,16 @@ See [Tabs](#tabs) for detailed discussion.
 
 ### Extending The Browser
 
-    Browser.extend(function(browser) {
-      browser.on("console", function(level, message) {
-        logger.log(message);
-      });
-      browser.on("log", function(level, message) {
-        logger.log(message);
-      });
-    });
+```js
+Browser.extend(function(browser) {
+  browser.on("console", function(level, message) {
+    logger.log(message);
+  });
+  browser.on("log", function(level, message) {
+    logger.log(message);
+  });
+});
+```
 
 
 
@@ -143,9 +146,11 @@ To make life easier, Zombie introduces a set of convenience assertions that you
 can access directly from the browser object.  For example, to check that a page
 loaded successfuly:
 
-    browser.assert.success();
-    browser.assert.text("title", "My Awesome Site");
-    browser.assert.element("#main");
+```js
+browser.assert.success();
+browser.assert.text("title", "My Awesome Site");
+browser.assert.element("#main");
+```
 
 These assertions are available from the `browser` object since they operate on a
 particular browser instance -- generally dependent on the currently open window,
@@ -279,7 +284,9 @@ Asserts the current page loaded with the expected status code.
 Asserts that selected element(s) have the expected value for the named style
 property.  For example:
 
-    browser.assert.style(".navigation", "opacity", 0.5)
+```js
+browser.assert.style(".navigation", "opacity", 0.5)
+```
 
 Fails if no element found.
 
@@ -287,7 +294,9 @@ Fails if no element found.
 
 Asserts that selected element(s) have the expected text content.  For example:
 
-    browser.assert.text("title", "My Awesome Page")
+```js
+browser.assert.text("title", "My Awesome Page")
+```
 
 Fails if no element found.
 
@@ -304,9 +313,11 @@ The expected URL can be one of:
 
 For example:
 
-    browser.assert.url("http://localhost/foo/bar")
-    browser.assert.url({ pathame: "/foo/bar" });
-    browser.assert.url({ query: { name: "joedoe" } });
+```js
+browser.assert.url("http://localhost/foo/bar")
+browser.assert.url({ pathame: "/foo/bar" });
+browser.assert.url({ query: { name: "joedoe" } });
+```
 
 
 ### Roll Your Own Assertions
@@ -316,19 +327,23 @@ prototype of `Browser.Assert`.
 
 For example:
 
-    // Asserts the browser has the expected number of open tabs.
-    Browser.Assert.prototype.openTabs = function(expected, message) {
-      assert.equal(this.browser.tabs.length, expected, message);
-    };
+```js
+// Asserts the browser has the expected number of open tabs.
+Browser.Assert.prototype.openTabs = function(expected, message) {
+  assert.equal(this.browser.tabs.length, expected, message);
+};
+```
 
 Or application specific:
 
 
-    // Asserts which links is highlighted in the navigation bar
-    Browser.Assert.navigationOn = function(linkText) {
-      this.assert.element(".navigation-bar");
-      this.assert.text(".navigation-bar a.highlighted", linkText);
-    };
+```js
+// Asserts which links is highlighted in the navigation bar
+Browser.Assert.navigationOn = function(linkText) {
+  this.assert.element(".navigation-bar");
+  this.assert.text(".navigation-bar a.highlighted", linkText);
+};
+```
 
 
 
@@ -531,16 +546,20 @@ failing and delaying responses.
 
 For example, to mock a response:
 
-    browser.resources.mock("http://3rd.party.api/v1/request", {
-      statusCode: 200,
-      headers:    { "ContentType": "application/json" },
-      body:       JSON.stringify({ "count": 5 })
-    })
+```js
+browser.resources.mock("http://3rd.party.api/v1/request", {
+  statusCode: 200,
+  headers:    { "ContentType": "application/json" },
+  body:       JSON.stringify({ "count": 5 })
+})
+```
 
 In the real world, servers and networks often fail.  You can test to for these
 conditions by asking Zombie to simulate a failure.  For example:
 
-    browser.resource.fail("http://3rd.party.api/v1/request");
+```js
+browser.resource.fail("http://3rd.party.api/v1/request");
+```
 
 Another issue you'll encounter in real-life applications are network latencies.
 When running tests, Zombie will request resources in the order in which they
@@ -551,7 +570,9 @@ Occassionally you'll need to force the server to return resources in a different
 order, for example, to check what happens when script A loads after script B.
 You can introduce a delay into any response as simple as:
 
-    browser.resources.delay("http://3d.party.api/v1/request", 50);
+```js
+browser.resources.delay("http://3d.party.api/v1/request", 50);
+```
 
 
 ### The Pipeline
@@ -578,12 +599,14 @@ one of:
 
 To add a new handle to the end of the pipeline:
 
-    browser.resources.addHandler(function(request, next) {
-      // Let's delay this request by 1/10th second
-      setTimeout(function() {
-        Resources.httpRequest(request, next);
-      }, Math.random() * 100);
-    });
+```js
+browser.resources.addHandler(function(request, next) {
+  // Let's delay this request by 1/10th second
+  setTimeout(function() {
+    Resources.httpRequest(request, next);
+  }, Math.random() * 100);
+});
+```
 
 If you need anything more complicated, you can access the pipeline directly via
 `browser.resources.pipeline`.
@@ -591,11 +614,13 @@ If you need anything more complicated, you can access the pipeline directly via
 You can add handlers to all browsers via `Browser.Resources.addHandler`.  These
 handlers are automatically added to every new `browser.resources` instance.
 
-    Browser.Resources.addHandler(function(request, response, next) {
-      // Log the response body
-      console.log("Response body: " + response.body);
-      next();
-    });
+```js
+Browser.Resources.addHandler(function(request, response, next) {
+  // Log the response body
+  console.log("Response body: " + response.body);
+  next();
+});
+```
 
 When handlers are executed, `this` is set to the browser instance.
 
@@ -639,10 +664,12 @@ Retrieves a resource with the given URL and passes response to the callback.
 
 For example:
 
-    browser.resources.get("http://some.service", function(error, response) {
-      console.log(response.statusText);
-      console.log(response.body);
-    });
+```js
+browser.resources.get("http://some.service", function(error, response) {
+  console.log(response.statusText);
+  console.log(response.body);
+});
+```
 
 #### resources.mock(url, response)
 
@@ -663,15 +690,21 @@ Supported options are:
 
 For example:
 
-    var params  = { "count": 5 };
-    browser.resources.post("http://some.service", { params: params }, function(error, response) {
-      . . .
-    });
+```js
+var params  = { "count": 5 };
+browser.resources.post("http://some.service",
+                       { params: params },
+                       function(error, response) {
+  . . .
+});
 
-    var headers = { "Content-Type": "application/x-www-form-urlencoded" };
-    browser.resources.post("http://some.service", { headers: headers, body: "count=5" }, function(error, response) {
-       . . .
-    });
+var headers = { "Content-Type": "application/x-www-form-urlencoded" };
+browser.resources.post("http://some.service",
+                       { headers: headers, body: "count=5" },
+                       function(error, response) {
+   . . .
+});
+```
 
 
 #### resources.request(method, url, options, callback)
@@ -688,9 +721,13 @@ Supported options are:
 
 For example:
 
-    browser.resources.request("DELETE", "http://some.service", function(error) {
-      . . .
-    });
+```js
+browser.resources.request("DELETE",
+                          "http://some.service",
+                          function(error) {
+  . . .
+});
+```
 
 #### resources.restore(url)
 
