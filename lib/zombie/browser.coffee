@@ -296,8 +296,8 @@ class Browser extends EventEmitter
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
   # can be cancelled.  Like `wait` this method either takes a callback or returns a promise.
   #
-  # name - Even name (e.g `click`)
   # target - Target element (e.g a link)
+  # name - Even name (e.g `click`)
   # callback - Wait for events to be processed, then call me (optional)
   fire: (selector, eventName, callback)->
     unless @window
