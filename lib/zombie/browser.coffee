@@ -408,8 +408,9 @@ class Browser extends EventEmitter
   # Returns a string
   html: (selector, context)->
     if @document.documentElement
-      return @document.documentElement.outerHTML.trim() unless selector
-      return @queryAll(selector, context).map((e)-> e.outerHTML.trim()).join("")
+      outerHtml = (node)-> node.outerHTML.trim()
+      nodes = if selector then @queryAll(selector, context) else [@document.documentElement]
+      nodes.map(outerHtml).join("")
     else if @source
       return @source.toString()
     else
