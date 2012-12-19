@@ -105,26 +105,9 @@ describe "Selection", ->
     it "should combine multiple elements", ->
       assert.equal @browser.html("title, #main a"), "<title>The Living</title><a href=\"/browser/dead\">Kill</a>"
     it "should return all if no selector", ->
-      assert.equal @browser.html(), """
-        <html><head>
-            <script src="/jquery.js"></script>
-            <script src="/sammy.js"></script>
-            <script src="/browser/app.js"></script>
-          <title>The Living</title></head>
-          <body>
-            <div id="main">
-              <a href="/browser/dead">Kill</a>
-              <form action="#/dead" method="post">
-                <label>Email <input type="text" name="email" /></label>
-                <label>Password <input type="password" name="password" /></label>
-                <button type="submit">Sign Me Up</button>
-              </form>
-            </div>
-            <div class="now">Walking Aimlessly</div>
-            <button type="submit">Do not press!</button>
-          
-        </body></html>
-        """
+      html = @browser.html()
+      assert html.match(/^<html>/), "begins with html tag"
+      assert html.match(/<label>/), "inside has label tag"
 
 
   describe "button", ->
