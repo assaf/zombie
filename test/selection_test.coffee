@@ -104,6 +104,10 @@ describe "Selection", ->
       assert.equal @browser.html(".now", @browser.querySelector("form")), ""
     it "should combine multiple elements", ->
       assert.equal @browser.html("title, #main a"), "<title>The Living</title><a href=\"/browser/dead\">Kill</a>"
+    it "should return all if no selector", ->
+      html = @browser.html()
+      assert html.match(/^<html>/), "begins with html tag"
+      assert html.match(/<label>/), "inside has label tag"
 
 
   describe "button", ->
