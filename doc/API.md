@@ -38,7 +38,7 @@ You can use the following options:
   environment variable `DEBUG` is set.
 - `headers` -- Additional HTTP headers to be sent with each browser request.
 - `loadCSS` -- Loads external stylesheets.  Defaults to true.
-- `maxWait` -- Maximum wait time (when calling `visit`, `wait`, etc).  Defaults
+- `waitDuration` -- Maximum wait time (when calling `visit`, `wait`, etc).  Defaults
   to 5 seconds.
 - `maxRedirects` -- Tells the browser how many redirects to follow before aborting a request. Defaults to 5
 - `proxy` -- Proxy URL.
@@ -49,8 +49,6 @@ You can use the following options:
   still view it with `window.console.output`.
 - `site` -- Base URL for all requests.  If set, you can call `visit` with
   relative URL.
-- `waitFor` -- Tells `wait` function how long to wait (in milliseconds) while
-  timers fire.  Defaults to 0.5 seconds.
 
 The proxy URL specifies the host and port of the proxy.  It also supports HTTP
 Basic authentication, for example:
