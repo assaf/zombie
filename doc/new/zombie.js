@@ -22,19 +22,19 @@ function pageReady() {
           return cssRule.style;
       }
     }
-    cssRule = document.styleSheets[0].addRule(selector, "color: red");
-    console.log(cssRule);
     return cssRule.style;
   }
 
 
   // Adds a navigation link to the navigation bar.  Obviously at the very end.
-  function addLinkToNavigationLinks(linkText, linkURL) {
+  function addLinkToNavigationLinks(linkText, linkURL, alwaysShown) {
     var a = document.createElement("a");
     a.textContent = linkText;
     a.href = linkURL;
     var li = document.createElement("li");
     li.appendChild(a);
+    if (alwaysShown)
+      li.setAttribute("class", "always-shown");
     navigationLinks.appendChild(li);
   }
 
@@ -56,7 +56,7 @@ function pageReady() {
 
     // Add static links to navigation links
     staticLinks.forEach(function(staticLink) {
-      addLinkToNavigationLinks(staticLink[0], staticLink[1]);
+      addLinkToNavigationLinks(staticLink[0], staticLink[1], true);
     });
 
     // Determine fix width for these links
@@ -95,6 +95,7 @@ function pageReady() {
       navigationBar.className = "contracted";
     event.stopPropagation();
     event.preventDefault();
+    setNavigationBarHeight();
   });
   // Clicking anywhere else on the page, including navigation link, closes the
   // navigation bar.

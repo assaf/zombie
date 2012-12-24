@@ -155,12 +155,18 @@ strong {
   content: "\02261\0A0 More";
 }
 #navigation-bar.expanded a.expand span:before {
-  content: "\02261\0A0 Fold";
+  content: "\02261\0A0 Close";
 }
 #navigation-bar ul {
   list-style: none;
   padding: 0 0 0.6em 1.2em;
   margin: 0;
+}
+#navigation-bar.contracted li {
+  display: none;
+}
+#navigation-bar.contracted li.always-shown {
+  display: inline-block;
 }
 #navigation-bar li {
   display: inline-block;
