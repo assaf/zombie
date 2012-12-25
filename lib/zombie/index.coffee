@@ -25,7 +25,7 @@ Path      = require("path")
 # * options -- Initialize the browser with these options
 # * callback -- Called with error, browser
 visit = (url, options, callback)->
-  new Browser(options).visit(url, options, callback)
+  Browser.create(options).visit(url, options, callback)
 
 
 # ### listen port, callback

@@ -2,9 +2,13 @@
 
 
 describe "IFrame", ->
-  browser = new Browser()
 
+  browser = null
   before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+  before ->
     brains.get "/iframe", (req, res)->
       res.send """
       <html>
@@ -35,7 +39,6 @@ describe "IFrame", ->
         </script>
       </html>
       """
-    brains.ready done
 
   before (done)->
     browser.visit("/iframe")
@@ -244,5 +247,5 @@ describe "IFrame", ->
           browser.close(1)
 
 
-   after ->
-     browser.destroy()
+  after ->
+    browser.destroy()

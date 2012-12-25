@@ -32,11 +32,13 @@ class Interaction
     this.extend = (window)->
       # Implements window.alert: show message.
       window.alert = (message)->
+        browser.emit("alert", message)
         prompts.push message
         fn message for fn in alertFns
         return
       # Implements window.confirm: show question and return true/false.
       window.confirm = (question)->
+        browser.emit("confirm", question)
         prompts.push question
         response = confirmCanned[question]
         unless response || response == false
@@ -45,16 +47,17 @@ class Interaction
             break if response || response == false
         return !!response
       # Implements window.prompt: show message and return value of null.
-      window.prompt = (message, def)->
+      window.prompt = (message, defaultValue)->
+        browser.emit("prompt", message)
         prompts.push message
         response = promptCanned[message]
         unless response || response == false
           for fn in promptFns
-            response = fn(message, def)
+            response = fn(message, defaultValue)
             break if response || response == false
         return response.toString() if response
         return null if response == false
-        return def || ""
+        return defaultValue || ""
 
 
 exports.use = (browser)->

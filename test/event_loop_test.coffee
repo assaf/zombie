@@ -4,14 +4,17 @@ Q = require("q")
 
 describe "EventLoop", ->
 
+  browser = null
   before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+  before ->
     brains.get "/eventloop/function", (req, res)-> res.send """
       <html>
         <head><title></title></head>
       </html>
       """
-    brains.ready done
-
 
   describe "setTimeout", ->
     before ->
@@ -26,22 +29,20 @@ describe "EventLoop", ->
     describe "no wait", ->
 
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/eventloop/timeout", =>
-          @browser.window.setTimeout ->
-            @document.title += " Two"
+        browser.visit "http://localhost:3003/eventloop/timeout", ->
+          browser.window.setTimeout ->
+            document.title += " Two"
           , 100
           done()
 
       it "should not fire any timeout events", ->
-        @browser.assert.text "title", "One"
+        browser.assert.text "title", "One"
 
     describe "from timeout", ->
 
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/eventloop/timeout", =>
-          @browser.window.setTimeout ->
+        browser.visit "http://localhost:3003/eventloop/timeout", ->
+          browser.window.setTimeout ->
             @setTimeout ->
               @document.title += " Two"
               @setTimeout ->
@@ -49,82 +50,78 @@ describe "EventLoop", ->
               , 100
             , 100
           , 100
-          @browser.wait done
+          browser.wait(done)
 
       it "should not fire any timeout events", ->
-        @browser.assert.text "title", "One Two Three"
+        browser.assert.text "title", "One Two Three"
 
     describe "wait for all", ->
 
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/eventloop/timeout", =>
-          @browser.window.setTimeout ->
+        browser.visit "http://localhost:3003/eventloop/timeout", ->
+          browser.window.setTimeout ->
             @document.title += " Two"
           , 100
-          @browser.window.setTimeout ->
+          browser.window.setTimeout ->
             @document.title += " Three"
           , 200
-          @browser.wait 250, done
+          browser.wait(250, done)
 
       it "should fire all timeout events", ->
-        @browser.assert.text "title", "One Two Three"
+        browser.assert.text "title", "One Two Three"
 
     describe "cancel timeout", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/eventloop/timeout", =>
-          first = @browser.window.setTimeout ->
+        browser.visit "http://localhost:3003/eventloop/timeout", ->
+          first = browser.window.setTimeout ->
             @document.title += " Two"
           , 100
-          second = @browser.window.setTimeout ->
+          second = browser.window.setTimeout ->
             @document.title += " Three"
           , 200
-          setTimeout =>
-            @browser.window.clearTimeout(second)
+          setTimeout ->
+            browser.window.clearTimeout(second)
           , 100
-          @browser.wait 300, done
+          browser.wait(300, done)
 
       it "should fire only uncancelled timeout events", ->
-        @browser.assert.text "title", "One Two"
+        browser.assert.text "title", "One Two"
       it "should not choke on invalid timers", ->
-        assert.doesNotThrow =>
+        assert.doesNotThrow ->
           # clearTimeout should not choke when clearing an invalid timer
           # https://developer.mozilla.org/en/DOM/window.clearTimeout
-          @browser.window.clearTimeout undefined
+          browser.window.clearTimeout(undefined)
 
     describe "outside wait", ->
 
       before (done)->
-        @browser = new Browser()
-        @browser.visit("http://localhost:3003/eventloop/function")
-          .then =>
-            @browser.window.setTimeout (-> @document.title += "1"), 100
-            @browser.window.setTimeout (-> @document.title += "2"), 200
-            @browser.window.setTimeout (-> @document.title += "3"), 300
+        browser.visit("http://localhost:3003/eventloop/function")
+          .then ->
+            browser.window.setTimeout (-> @document.title += "1"), 100
+            browser.window.setTimeout (-> @document.title += "2"), 200
+            browser.window.setTimeout (-> @document.title += "3"), 300
             return
-          .then =>
-            @browser.wait(120) # wait long enough to fire no. 1
-          .then =>
-            @browser.wait(120) # wait long enough to fire no. 2
+          .then ->
+            browser.wait(120) # wait long enough to fire no. 1
+          .then ->
+            browser.wait(120) # wait long enough to fire no. 2
           .then ->
             # wait long enough to fire no. 3, but no events processed
             setTimeout(done, 200)
 
       it "should not fire", ->
-        @browser.assert.text "title", "12"
+        browser.assert.text "title", "12"
 
     describe "zero wait", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/eventloop/timeout", =>
-          @browser.window.setTimeout ->
+        browser.visit "http://localhost:3003/eventloop/timeout", ->
+          browser.window.setTimeout ->
             @document.title += " Two"
           , 0
-          @browser.wait done
+          browser.wait(done)
 
       it "should wait for event to fire", ->
-        @browser.assert.text "title", "One Two"
+        browser.assert.text "title", "One Two"
 
 
   describe "setInterval", ->
@@ -138,110 +135,103 @@ describe "EventLoop", ->
 
     describe "no wait", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/eventloop/interval", =>
-          @browser.window.setInterval ->
+        browser.visit "http://localhost:3003/eventloop/interval", ->
+          browser.window.setInterval ->
             @document.title += "."
           , 100
           done()
 
       it "should not fire any timeout events", ->
-        @browser.assert.text "title", ""
+        browser.assert.text "title", ""
 
     describe "wait once", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit "http://localhost:3003/eventloop/interval", =>
-          @browser.window.setInterval ->
+        browser.visit "http://localhost:3003/eventloop/interval", ->
+          browser.window.setInterval ->
             @document.title += "."
           , 100
-          @browser.wait 150, done
+          browser.wait(150, done)
 
       it "should fire interval event once", ->
-        @browser.assert.text "title", "."
+        browser.assert.text "title", "."
 
     describe "wait long enough", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit("http://localhost:3003/eventloop/interval")
-          .then =>
+        browser.visit("http://localhost:3003/eventloop/interval")
+          .then ->
             # Fire every 100 ms
-            @browser.window.setInterval ->
+            browser.window.setInterval ->
               @document.title += "."
             , 100
             return
-          .then =>
+          .then ->
             # Only wait for first 3 events
-            @browser.wait(350)
+            browser.wait(350)
           .then(done, done)
 
       it "should fire five interval event", ->
-        @browser.assert.text "title", "..."
+        browser.assert.text "title", "..."
 
     describe "cancel interval", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit("http://localhost:3003/eventloop/interval")
-          .then =>
-            @interval = @browser.window.setInterval ->
+        interval = null
+        browser.visit("http://localhost:3003/eventloop/interval")
+          .then ->
+            interval = browser.window.setInterval ->
               @document.title += "."
             , 100
             return
-          .then =>
-            @browser.wait(250)
-          .then =>
-            @browser.window.clearInterval @interval
-            @browser.wait(200)
+          .then ->
+            browser.wait(250)
+          .then ->
+            browser.window.clearInterval(interval)
+            browser.wait(200)
           .then(done, done)
 
       it "should fire only uncancelled interval events", ->
-        @browser.assert.text "title", ".."
+        browser.assert.text "title", ".."
       it "should not throw an exception with invalid interval", ->
-        assert.doesNotThrow =>
+        assert.doesNotThrow ->
           # clearInterval should not choke on invalid interval
-          @browser.window.clearInterval undefined
+          browser.window.clearInterval(undefined)
 
     describe "outside wait", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit("http://localhost:3003/eventloop/function")
-          .then =>
-            @browser.window.setInterval ->
+        browser.visit("http://localhost:3003/eventloop/function")
+          .then ->
+            browser.window.setInterval ->
               @document.title += "."
             , 100
-          .then =>
-            @browser.wait(120) # wait long enough to fire no. 1
-          .then =>
-            @browser.wait(120) # wait long enough to fire no. 2
+          .then ->
+            browser.wait(120) # wait long enough to fire no. 1
+          .then ->
+            browser.wait(120) # wait long enough to fire no. 2
           .then ->
             # wait long enough to fire no. 3, but no events processed
             setTimeout(done, 200)
 
       it "should not fire", ->
-        @browser.assert.text "title", ".."
-
 
   describe "browser.wait completion", ->
     before (done)->
-      @browser = new Browser()
-      @browser.visit("http://localhost:3003/eventloop/function")
-        .then =>
-          @browser.window.setInterval ->
+      browser.visit("http://localhost:3003/eventloop/function")
+        .then ->
+          browser.window.setInterval ->
             @document.title += "."
           , 100
           return
-        .then =>
-          return @browser.wait (window)->
+        .then ->
+          return browser.wait (window)->
             return window.document.title == "...."
           , null
         .then(done, done)
 
     it "should not wait longer than specified", ->
-        @browser.assert.text "title", "...."
+        browser.assert.text "title", "...."
 
 
   describe "page load", ->
-    before (done)->
+    before ->
       brains.get "/eventloop/dcl", (req, res)-> res.send """
         <html>
           <head><title></title></head>
@@ -258,17 +248,17 @@ describe "EventLoop", ->
           <div id="foo"></div>
         </html>
         """
-      brains.ready =>
-        @browser = new Browser()
-        @browser.visit("/eventloop/dcl", done)
+
+    before (done)->
+      browser.visit("/eventloop/dcl", done)
 
     it "should file DOMContentLoaded event on document", ->
-      @browser.assert.global "documentDCL", 1
+      browser.assert.global "documentDCL", 1
     it "should file DOMContentLoaded event on window", ->
-      @browser.assert.global "windowDCL", 1
+      browser.assert.global "windowDCL", 1
 
   describe "all resources loaded", ->
-    before (done)->
+    before ->
       brains.get "/eventloop/onload", (req, res)-> res.send """
         <html>
           <head><title></title></head>
@@ -289,11 +279,15 @@ describe "EventLoop", ->
             });
           """
         , 100
-      brains.ready =>
-        @browser = new Browser()
-        @browser.visit("/eventloop/onload", done)
+
+    before (done)->
+      browser.visit("/eventloop/onload", done)
 
     it "should file load event on document", ->
-      @browser.assert.global "documentLoad", 1
+      browser.assert.global "documentLoad", 1
     it "should file load event on window", ->
-      @browser.assert.global "windowLoad", 1
+      browser.assert.global "windowLoad", 1
+
+
+  after ->
+    browser.destroy()

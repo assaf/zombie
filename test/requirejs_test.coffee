@@ -3,7 +3,12 @@
 
 describe "require.js", ->
 
+  browser = null
   before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+  before ->
     brains.get "/requirejs", (req, res)->
       res.send """
       <html>
@@ -28,12 +33,12 @@ describe "require.js", ->
           }
         })
       """
-    brains.ready done
 
   before (done)->
-    @browser = new Browser()
-    @browser.visit "http://localhost:3003/requirejs", done
+    browser.visit("http://localhost:3003/requirejs", done)
 
   it "should load dependencies", ->
-    @browser.assert.text "title", "Dependency loaded"
+    browser.assert.text "title", "Dependency loaded"
 
+  after ->
+    browser.destroy()

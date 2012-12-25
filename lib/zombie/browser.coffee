@@ -170,9 +170,6 @@ class Browser extends EventEmitter
       else if Browser.default.hasOwnProperty(name)
         @[name] = Browser.default[name]
 
-    for extensionFunction in extensionFunctions
-      extensionFunction(this)
-
 
   # Returns true if the given feature is enabled.
   #
@@ -207,7 +204,7 @@ class Browser extends EventEmitter
   # Return a new browser with a snapshot of this browser's state.
   # Any changes to the forked browser's state do not affect this browser.
   fork: ->
-    forked = new Browser()
+    forked = Browser.create()
     forked.loadCookies @saveCookies()
     forked.loadStorage @saveStorage()
     forked.loadHistory @saveHistory()
@@ -1072,9 +1069,10 @@ Browser.default =
   waitDuration: "5s"
 
 
-extensionFunctions = []
-Browser.extend = (fn)->
-  extensionFunctions.push(fn)
+
+# Use this function to create a new Browser instance.
+Browser.create = (options)->
+  return new Browser(options)
 
 
 # Represents credentials for a given host.

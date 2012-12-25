@@ -2,7 +2,11 @@
 
 
 describe "Cookies", ->
+
   browser = null
+  before (done)->
+    browser = Browser.create()
+    brains.ready(done)
 
   # Parse string with cookies in it (like document.cookies) and return object
   # with name/value pairs for each cookie.
@@ -20,7 +24,7 @@ describe "Cookies", ->
     return parse(browser.source)
 
 
-  before (done)->
+  before ->
     brains.get "/cookies", (req, res)->
       res.cookie "_name",     "value"
       res.cookie "_expires1", "3s",       expires: new Date(Date.now() + 3000)
@@ -45,11 +49,6 @@ describe "Cookies", ->
 
     brains.get "/cookies/empty", (req,res)->
       res.send ""
-
-    brains.ready done
-
-  before ->
-    browser = new Browser()
 
 
   describe "get cookies", ->
@@ -120,6 +119,7 @@ describe "Cookies", ->
     it "should be able to set domain cookies", ->
       cookies = browser.cookies("localhost", "/cookies")
       assert.equal cookies.get("_domain1"), "here"
+      #browser.assert.cookie name: "_domain1", domain: "localhost", path: "/cookies", "here"
 
 
   describe "get cookies and redirect", ->

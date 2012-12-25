@@ -3,6 +3,10 @@
 
 describe "XPath", ->
 
+  browser = null
+  before ->
+    browser = Browser.create()
+
   before (done)->
     brains.get "/xpath", (req, res)-> res.send """
     <html>
@@ -56,13 +60,12 @@ describe "XPath", ->
     brains.ready done
 
   before (done)->
-    @browser = new Browser()
-    @browser.visit "http://localhost:3003/xpath", done
+    browser.visit("http://localhost:3003/xpath", done)
 
 
   describe "evaluate nodes", ->
     before ->
-      @result = @browser.xpath("//a")
+      @result = browser.xpath("//a")
 
     it "should return result type node-set", ->
       assert.equal @result.type, "node-set"
@@ -75,7 +78,7 @@ describe "XPath", ->
 
   describe "evaluate with id", ->
     before ->
-      @result = @browser.xpath('//*[@id="post-2"]/h2')
+      @result = browser.xpath('//*[@id="post-2"]/h2')
 
     it "should return one node", ->
       assert.equal @result.value.length, 1
@@ -84,7 +87,7 @@ describe "XPath", ->
 
   describe "evaluate number", ->
     before ->
-      @result = @browser.xpath("count(//a)")
+      @result = browser.xpath("count(//a)")
 
     it "should return result type number", ->
       assert.equal @result.type, "number"
@@ -93,7 +96,7 @@ describe "XPath", ->
 
   describe "evaluate string", ->
     before ->
-      @result = @browser.xpath("'foobar'")
+      @result = browser.xpath("'foobar'")
 
     it "should return result type string", ->
       assert.equal @result.type, "string"
@@ -102,10 +105,13 @@ describe "XPath", ->
 
   describe "evaluate boolean", ->
     before ->
-      @result = @browser.xpath("2 + 2 = 4")
+      @result = browser.xpath("2 + 2 = 4")
 
     it "should return result type boolean", ->
       assert.equal @result.type, "boolean"
     it "should return number of nodes", ->
       assert.equal @result.value, true
 
+
+  after ->
+    browser.destroy()

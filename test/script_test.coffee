@@ -5,8 +5,8 @@ describe "Scripts", ->
   browser = null
 
   before (done)->
-    browser = new Browser()
-    brains.ready done
+    browser = Browser.create()
+    brains.ready(done)
 
   describe "basic", ->
     before ->

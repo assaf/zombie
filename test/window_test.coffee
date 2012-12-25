@@ -3,12 +3,17 @@
 
 describe "Window", ->
 
+  browser = null
+  before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+
   # -- Alert, confirm and popup; form when we let browsers handle our UI --
 
   describe ".alert", ->
-    browser = new Browser()
 
-    before (done)->
+    before ->
       brains.get "/window/alert", (req, res)->
         res.send """
         <html>
@@ -18,23 +23,21 @@ describe "Window", ->
           </script>
         </html>
         """
-      brains.ready done
 
     before (done)->
-      @browser = new Browser()
-      @browser.onalert (message)=>
+      browser.onalert (message)->
         if message = "Me again"
-          @browser.window.first = true
-      @browser.visit "/window/alert", done
+          browser.window.first = true
+      browser.visit("/window/alert", done)
 
     it "should record last alert show to user", ->
-      @browser.assert.prompted "Me again"
+      browser.assert.prompted "Me again"
     it "should call onalert function with message", ->
-      assert @browser.window.first
+      assert browser.window.first
 
 
   describe ".confirm", ->
-    before (done)->
+    before ->
       brains.get "/window/confirm", (req, res)->
         res.send """
         <html>
@@ -45,29 +48,27 @@ describe "Window", ->
           </script>
         </html>
         """
-      brains.ready done
 
     before (done)->
-      @browser = new Browser()
-      @browser.onconfirm "continue?", true
-      @browser.onconfirm (prompt)->
+      browser.onconfirm("continue?", true)
+      browser.onconfirm (prompt)->
         return prompt == "more?"
-      @browser.visit "/window/confirm", done
+      browser.visit("/window/confirm", done)
 
     it "should return canned response", ->
-      assert @browser.window.first
+      assert browser.window.first
     it "should return response from function", ->
-      assert @browser.window.second
+      assert browser.window.second
     it "should return false if no response/function", ->
-      assert.equal @browser.window.third, false
+      assert.equal browser.window.third, false
     it "should report prompted question", ->
-      @browser.assert.prompted "continue?"
-      @browser.assert.prompted "silent?"
-      assert !@browser.prompted("missing?")
+      browser.assert.prompted "continue?"
+      browser.assert.prompted "silent?"
+      assert !browser.prompted("missing?")
 
 
   describe ".prompt", ->
-    before (done)->
+    before ->
       brains.get "/window/prompt", (req, res)->
         res.send """
         <html>
@@ -79,36 +80,34 @@ describe "Window", ->
           </script>
         </html>
         """
-      brains.ready done
 
     before (done)->
-      @browser = new Browser()
-      @browser.onprompt "age", 31
-      @browser.onprompt (message, def)->
+      browser.onprompt("age", 31)
+      browser.onprompt (message, def)->
         if message == "gender"
           return "unknown"
-      @browser.onprompt "location", false
-      @browser.visit "/window/prompt", done
+      browser.onprompt("location", false)
+      browser.visit("/window/prompt", done)
 
     it "should return canned response", ->
-      assert.equal @browser.window.first, "31"
+      assert.equal browser.window.first, "31"
     it "should return response from function", ->
-      assert.equal @browser.window.second, "unknown"
+      assert.equal browser.window.second, "unknown"
     it "should return null if cancelled", ->
-      assert.equal @browser.window.third, null
+      assert.equal browser.window.third, null
     it "should return empty string if no response/function", ->
-      assert.equal @browser.window.fourth, ""
+      assert.equal browser.window.fourth, ""
     it "should report prompts", ->
-      @browser.assert.prompted "age"
-      @browser.assert.prompted "gender"
-      @browser.assert.prompted "location"
-      assert !@browser.prompted("not asked")
+      browser.assert.prompted "age"
+      browser.assert.prompted "gender"
+      browser.assert.prompted "location"
+      assert !browser.prompted("not asked")
 
 
   # -- This part deals with various windows properties ---
 
   describe ".title", ->
-    before (done)->
+    before ->
       brains.get "/window/title", (req, res)->
         res.send """
         <html>
@@ -118,22 +117,19 @@ describe "Window", ->
           <body>Hello World</body>
         </html>
         """
-      brains.ready done
 
     before (done)->
-      @browser = new Browser()
-      @browser.visit "/window/title", done
+      browser.visit("/window/title", done)
 
     it "should return the document's title", ->
-      @browser.assert.text "title", "Whatever"
+      browser.assert.text "title", "Whatever"
     it "should set the document's title", ->
-      @browser.window.title = "Overwritten"
-      assert.equal @browser.window.title, @browser.document.title
+      browser.window.title = "Overwritten"
+      assert.equal browser.window.title, browser.document.title
 
 
   describe ".screen", ->
     it "should have a screen object available", ->
-      browser = new Browser()
       browser.assert.evaluate "screen.width", 1280
       browser.assert.evaluate "screen.height", 800
       browser.assert.evaluate "screen.left", 0
@@ -144,11 +140,10 @@ describe "Window", ->
       browser.assert.evaluate "screen.availHeight", 800
       browser.assert.evaluate "screen.colorDepth", 24
       browser.assert.evaluate "screen.pixelDepth", 24
-      browser.destroy()
 
 
   describe ".navigator", ->
-    before (done)->
+    before ->
       brains.get "/window/navigator", (req, res)->
         res.send """
         <html>
@@ -158,33 +153,29 @@ describe "Window", ->
           <body>Hello World</body>
         </html>
         """
-      brains.ready done
 
     before (done)->
-      @browser = new Browser()
-      @browser.visit "/window/navigator", done
+      browser.visit("/window/navigator", done)
 
     it "should exist", ->
-      @browser.assert.evaluate "navigator"
+      browser.assert.evaluate "navigator"
     it ".javaEnabled should be false", ->
-      @browser.assert.evaluate "navigator.javaEnabled()", false
+      browser.assert.evaluate "navigator.javaEnabled()", false
 
 
   describe "atob", ->
     it "should decode base-64 string", ->
-      browser = new Browser()
       window = browser.open()
-      @browser.assert.evaluate "atob('SGVsbG8sIHdvcmxk')", "Hello, world"
+      browser.assert.evaluate "atob('SGVsbG8sIHdvcmxk')", "Hello, world"
 
   describe "btoa", ->
     it "should encode base-64 string", ->
-      browser = new Browser()
       window = browser.open()
-      @browser.assert.evaluate "btoa('Hello, world')", "SGVsbG8sIHdvcmxk"
+      browser.assert.evaluate "btoa('Hello, world')", "SGVsbG8sIHdvcmxk"
 
 
   describe "onload", ->
-    before (done)->
+    before ->
       brains.get "/windows/onload", (req, res)->
         res.send """
         <html>
@@ -208,20 +199,17 @@ describe "Window", ->
           </body>
         </html>
         """
-      brains.ready done
 
     before (done)->
-      @browser = new Browser()
-      @browser.visit "/windows/onload", (error)=>
-        @browser.clickLink "#das_link", done
+      browser.visit "/windows/onload", (error)=>
+        browser.clickLink("#das_link", done)
 
     it "should fire when document is done loading", ->
-      @browser.assert.text "body", "1 clicks here"
+      browser.assert.text "body", "1 clicks here"
 
 
   describe "resize", ->
     before ->
-      browser = new Browser()
       @window = browser.open()
       assert.equal @window.innerWidth, 1024
       assert.equal @window.innerHeight, 768
@@ -231,3 +219,6 @@ describe "Window", ->
       assert.equal @window.innerWidth, 800
       assert.equal @window.innerHeight, 600
 
+
+  after ->
+    browser.destroy()

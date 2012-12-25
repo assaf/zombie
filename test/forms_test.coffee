@@ -4,9 +4,13 @@ Crypto  = require("crypto")
 
 
 describe "Forms", ->
-  browser = null
 
+  browser = null
   before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+  before ->
     brains.get "/forms/form", (req, res)->
       res.send """
       <html>
@@ -146,9 +150,6 @@ describe "Forms", ->
         </body>
       </html>
       """
-
-    browser = new Browser()
-    brains.ready done
 
 
   describe "fill field", ->

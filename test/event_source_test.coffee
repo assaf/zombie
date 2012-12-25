@@ -3,7 +3,12 @@
 
 describe "EventSource", ->
 
+  browser = null
   before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+  before ->
     brains.get "/streaming", (req, res)->
       res.send """
       <html>
@@ -30,10 +35,7 @@ describe "EventSource", ->
         res.end()
       , 100
 
-    brains.ready done
-
   before (done)->
-    browser = new Browser()
     browser.visit("http://localhost:3003/streaming")
     browser.wait (window)->
       return window.events && window.events.length == 2
@@ -44,3 +46,6 @@ describe "EventSource", ->
   it "should stream to browser", ->
     assert.deepEqual @events, ["first", "second"]
 
+  after ->
+    # TODO: this blows up
+    # browser.destroy()

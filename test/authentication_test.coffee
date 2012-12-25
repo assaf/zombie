@@ -3,9 +3,12 @@
 
 describe "Authentication", ->
   browser = null
+  before (done)->
+    browser = Browser.create()
+    brains.ready(done)
 
   describe "basic", ->
-    before (done)->
+    before ->
       brains.get "/auth/basic", (req, res) ->
         if auth = req.headers.authorization
           if auth == "Basic dXNlcm5hbWU6cGFzczEyMw=="
@@ -14,9 +17,6 @@ describe "Authentication", ->
             res.send "Invalid credentials", 401
         else
           res.send "Missing credentials", 401
-
-      browser = new Browser()
-      brains.ready done
 
 
     describe "without credentials", ->
@@ -47,7 +47,7 @@ describe "Authentication", ->
 
 
   describe "OAuth bearer", ->
-    before (done)->
+    before ->
       brains.get "/auth/oauth2", (req, res) ->
         if auth = req.headers.authorization
           if auth == "Bearer 12345"
@@ -56,7 +56,6 @@ describe "Authentication", ->
             res.send("Invalid token", 401)
         else
           res.send("Missing token", 401)
-      brains.ready done
 
     describe "without credentials", ->
       before (done)->
@@ -85,7 +84,7 @@ describe "Authentication", ->
 
 
   describe "Scripts on secure pages", ->
-    before (done) ->
+    before ->
       brains.get "/auth/script", (req, res) ->
         if auth = req.headers.authorization
           res.send """
@@ -106,6 +105,7 @@ describe "Authentication", ->
         else
           res.send("No Credentials on the javascript", 401)
 
+    before (done)->
       browser.authenticate("localhost:3003").basic("username", "pass123")
       browser.visit("/auth/script", done)
 

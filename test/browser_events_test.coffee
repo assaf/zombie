@@ -7,11 +7,10 @@ describe "Browser events", ->
     console:  []
     log:      []
     resource: []
-  browser = new Browser()
-
+  browser = null
   before (done)->
-    brains.ready done
-
+    browser = Browser.create()
+    brains.ready(done)
 
   describe "sending output to console", ->
     before ->
@@ -30,6 +29,7 @@ describe "Browser events", ->
 
 
   describe "logging a message", ->
+    before ->
       # Zombie log
       browser.on "log", (message)->
         events.log.push(message)

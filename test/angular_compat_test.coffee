@@ -2,7 +2,12 @@
 
 
 describe "angularjs", ->
+  browser = null
   before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+  before ->
     brains.get "/angular/show.html", (req, res)->
       res.send """
       <h1>{{title}}</h1>
@@ -44,20 +49,15 @@ describe "angularjs", ->
         </body>
       </html>
       """
-    brains.ready done
 
 
-  describe "routing system", ->
-    browser = null
+  before (done)->
+    browser.visit "/angular", ->
+      browser.clickLink("my link")
+      browser.wait(duration: 100, done)
 
-    before (done)->
-      browser = new Browser()
-      browser.visit "/angular", ->
-        browser.clickLink("my link")
-        browser.wait(duration: 100, done)
+  it "should follow the link to the detail", ->
+    assert.equal browser.text("h1"), "my title"
 
-    it "should follow the link to the detail", ->
-      assert.equal browser.text("h1"), "my title"
-
-    after ->
-      browser.destroy()
+  after ->
+    browser.destroy()

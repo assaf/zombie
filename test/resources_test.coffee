@@ -5,7 +5,12 @@ Zlib = require("zlib")
 
 describe "Resources", ->
 
+  browser = null
   before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+  before ->
     brains.get "/resources/resource", (req, res)->
       res.send """
       <html>
@@ -23,80 +28,70 @@ describe "Resources", ->
         </script>
       </html>
       """
-    brains.ready done
 
 
   describe "as array", ->
     before (done)->
-      @browser = new Browser()
-      @browser.visit "/resources/resource", done
+      browser.resources.length = 0
+      browser.visit("/resources/resource", done)
 
     it "should have a length", ->
-      assert.equal @browser.resources.length, 2
+      assert.equal browser.resources.length, 2
     it "should include loaded page", ->
-      assert.equal @browser.resources[0].response.url, "http://localhost:3003/resources/resource"
+      assert.equal browser.resources[0].response.url, "http://localhost:3003/resources/resource"
     it "should include loaded JavaScript", ->
-      assert.equal @browser.resources[1].response.url, "http://localhost:3003/jquery-1.7.1.js"
-
-    after ->
-      @browser.destroy()
+      assert.equal browser.resources[1].response.url, "http://localhost:3003/jquery-1.7.1.js"
 
 
   describe "fail URL", ->
     before (done)->
-      @browser = new Browser()
-      @browser.resources.fail("http://localhost:3003/resource/resource", "Fail!")
-      @browser.visit "/resource/resource", (@error)=>
+      browser.resources.fail("http://localhost:3003/resource/resource", "Fail!")
+      browser.visit "/resource/resource", (@error)=>
         done()
 
     it "should fail the request", ->
       assert.equal @error.message, "Fail!"
 
     after ->
-      @browser.destroy()
+      browser.resources.restore("http://localhost:3003/resources/resource")
 
 
   describe "delay URL with timeout", ->
     before (done)->
-      @browser = new Browser()
-      @browser.resources.delay("http://localhost:3003/resources/resource", 100)
-      @browser.visit "/resources/resource"
-      @browser.wait duration: 90, done
+      browser.resources.delay("http://localhost:3003/resources/resource", 100)
+      browser.visit("/resources/resource")
+      browser.wait(duration: 90, done)
 
     it "should not load page", ->
-      assert !@browser.document.body
+      assert !browser.document.body
 
     describe "after delay", ->
       before (done)->
-        @browser.wait duration: 90, done
+        browser.wait(duration: 90, done)
 
       it "should successfully load page", ->
-        @browser.assert.text "title", "Awesome"
+        browser.assert.text "title", "Awesome"
 
     after ->
-      @browser.destroy()
+      browser.resources.restore("http://localhost:3003/resources/resource")
 
 
   describe "mock URL", ->
     before (done)->
-      @browser = new Browser()
-      @browser.resources.mock("http://localhost:3003/resources/resource", statusCode: 204, body: "empty")
-      @browser.visit "/resources/resource", done
+      browser.resources.mock("http://localhost:3003/resources/resource", statusCode: 204, body: "empty")
+      browser.visit("/resources/resource", done)
 
     it "should return mock result", ->
-      @browser.assert.status 204
-      @browser.assert.text "body", "empty"
+      browser.assert.status 204
+      browser.assert.text "body", "empty"
 
     describe "restore", ->
       before (done)->
-        @browser.resources.restore("http://localhost:3003/resources/resource")
-        @browser.visit "/resources/resource", done
+        browser.resources.restore("http://localhost:3003/resources/resource")
+        browser.visit("/resources/resource", done)
 
       it "should return actual page", ->
-        @browser.assert.text "title", "Awesome"
-
-    after ->
-      @browser.destroy()
+        browser.assert.text "title", "Awesome"
 
 
   describe "deflate", ->
@@ -108,16 +103,12 @@ describe "Resources", ->
           res.send(buffer)
 
     before (done)->
-      @browser = new Browser()
-      @browser.resources.get "http://localhost:3003/resources/deflate", (error, @response)=>
+      browser.resources.get "http://localhost:3003/resources/deflate", (error, @response)=>
         done()
 
     it "should uncompress deflated response", ->
       image = File.readFileSync("#{__dirname}/data/zombie.jpg")
       assert.deepEqual image, @response.body
-
-    after ->
-      @browser.destroy()
 
 
   describe "gzip", ->
@@ -129,16 +120,12 @@ describe "Resources", ->
           res.send(buffer)
 
     before (done)->
-      @browser = new Browser()
-      @browser.resources.get "http://localhost:3003/resources/gzip", (error, @response)=>
+      browser.resources.get "http://localhost:3003/resources/gzip", (error, @response)=>
         done()
 
     it "should uncompress gzipped response", ->
       image = File.readFileSync("#{__dirname}/data/zombie.jpg")
       assert.deepEqual image, @response.body
-
-    after ->
-      @browser.destroy()
 
 
   describe "301 redirect URL", ->
@@ -147,15 +134,16 @@ describe "Resources", ->
         res.redirect("/resources/resource", 301)
 
     before (done)->
-      @browser = new Browser()
-      @browser.visit "/resources/three-oh-one", done
+      browser.resources.length = 0
+      browser.visit("/resources/three-oh-one", done)
 
     it "should have a length", ->
-      assert.equal @browser.resources.length, 2
+      assert.equal browser.resources.length, 2
     it "should include loaded page", ->
-      assert.equal @browser.resources[0].response.url, "http://localhost:3003/resources/resource"
+      assert.equal browser.resources[0].response.url, "http://localhost:3003/resources/resource"
     it "should include loaded JavaScript", ->
-      assert.equal @browser.resources[1].response.url, "http://localhost:3003/jquery-1.7.1.js"
+      assert.equal browser.resources[1].response.url, "http://localhost:3003/jquery-1.7.1.js"
 
-    after ->
-      @browser.destroy()
+
+  after ->
+    browser.destroy()

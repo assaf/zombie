@@ -3,12 +3,17 @@
 
 describe "Promises", ->
 
+  browser = null
   before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+
+  before ->
     brains.get "/promises", (req, res)->
       res.send """
       <script>document.title = "Loaded"</script>
       """
-    brains.ready done
 
 
   # The simplest promise looks like this:
@@ -22,12 +27,11 @@ describe "Promises", ->
 
   describe "visit", ->
     before (done)->
-      @browser = new Browser()
-      @browser.visit("/promises")
+      browser.visit("/promises")
         .then(done, done)
 
     it "should resolve when page is done loading", ->
-      @browser.assert.text "title", "Loaded"
+      browser.assert.text "title", "Loaded"
 
 
     # You can chain multiple promises together, each one is used to
@@ -45,25 +49,24 @@ describe "Promises", ->
     # like you expect, resolving of that promise takes us to the fourth step.
     describe "chained", ->
       before (done)->
-        @browser = new Browser()
-        @browser.visit("/promises")
-          .then =>
+        browser.visit("/promises")
+          .then ->
             # This value is used to resolve the next value
             return "Then"
-          .then (value)=>
-            @browser.document.title = value
-          .then (value)=>
+          .then (value)->
+            browser.document.title = value
+          .then (value)->
             assert.equal value, "Then"
             # The document title changes only if we wait for the event loop
-            @browser.window.setTimeout ->
+            browser.window.setTimeout ->
               @document.title = "Later"
             , 0
             # This promise is used to resolve the next one
-            return @browser.wait()
+            return browser.wait()
           .then(done, done)
 
       it "should resolve when page is done loading", ->
-        @browser.assert.text "title", "Later"
+        browser.assert.text "title", "Later"
 
 
   # In practice you would do something like:
@@ -77,7 +80,6 @@ describe "Promises", ->
   #     .then done, done
   describe "error", ->
     before (done)->
-      browser = new Browser()
       browser.visit("/promises/nosuch")
         .then(done)
         .fail (@error)=>
@@ -95,7 +97,6 @@ describe "Promises", ->
   #     .then done, done
   describe "failed assertion", ->
     before (done)->
-      browser = new Browser()
       browser.visit("/promises")
         .then ->
           browser.assert.text "title", "Ooops", "Assertion haz a fail"
@@ -114,7 +115,6 @@ describe "Promises", ->
     # the test.
     describe "chained", ->
       before (done)->
-        browser = new Browser()
         browser.visit("/promises")
           .then ->
             browser.assert.text "title", "Ooops", "Assertion haz a fail"
@@ -128,3 +128,7 @@ describe "Promises", ->
 
       it "should reject with an error", ->
         assert.equal @error.message, "Assertion haz a fail"
+
+
+  after ->
+    browser.destroy()

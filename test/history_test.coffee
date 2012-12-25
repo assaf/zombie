@@ -4,10 +4,14 @@ URL   = require("url")
 
 
 describe "History", ->
+
   browser = null
-
-
   before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+
+  before ->
     brains.get "/history/boo/", (req, res)->
       response = if req.query.redirected then "Redirected" else "Eeek!"
       res.send "<html><title>#{response}</title></html>"
@@ -26,9 +30,6 @@ describe "History", ->
 
     brains.get "/history/referer2", (req, res)->
       res.send "<html><title>#{req.headers["referer"]}</title></html>"
-
-    browser = new Browser()
-    brains.ready done
 
 
   describe "URL without path", ->
