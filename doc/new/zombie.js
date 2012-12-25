@@ -2,6 +2,7 @@ function pageReady() {
   var staticLinks = [
     ["Github",        "https://github.com/assaf/zombie"],
     ["Google Group",  "https://groups.google.com/forum/?hl=en#!forum/zombie-js"],
+    ["Contributing",  "https://github.com/assaf/zombie/blob/master/CONTRIBUTING.md"],
     ["PDF",           "zombie.pdf"],
     ["Kindle",        "zombie.mobi"]
   ];

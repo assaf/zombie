@@ -1,3 +1,7 @@
+# Process Markdown files, page layout and generates HTML page.
+#
+# Used by scripts/docs and scripts/live.
+
 File        = require("fs")
 NSH         = require("node-syntaxhighlighter")
 Robotskirt  = require("robotskirt")
