@@ -1,6 +1,76 @@
 # Zombie.js
 
 
+## The Bite
+
+If you're going to write an insanely fast, headless browser, how can you not
+call it Zombie?  Zombie it is.
+
+Zombie.js is a lightweight framework for testing client-side JavaScript code in
+a simulated environment.  No browser required.
+
+Let's try to sign up to a page and see what happens:
+
+```js
+var Browser = require("zombie");
+var assert = require("assert");
+
+// Load the page from localhost
+browser = Browser.create()
+browser.visit("http://localhost:3000/", function (error) {
+
+  // Fill email, password and submit form
+  browser.
+    fill("email", "zombie@underworld.dead").
+    fill("password", "eat-the-living").
+    pressButton("Sign Me Up!", function() {
+
+      // Form submitted, new page loaded.
+      browser.assert.success();
+      browser.assert.text("title", "Welcome To Brains Depot");
+
+    });
+
+});
+```
+
+Well, that was easy.
+
+
+## Installing
+
+To install Zombie.js you will need [Node.js](http://nodejs.org/) 0.8 or later,
+[NPM](https://npmjs.org/), a [C++ toolchain and
+Python](https://github.com/TooTallNate/node-gyp).
+
+One-click installers for Windows, OS X, Linux and SunOS are available directly
+from the [Node.js site](http://nodejs.org/download/).
+
+On OS X you can download the full XCode from the Apple Store, or install the
+[OSX GCC toolchain](https://github.com/kennethreitz/osx-gcc-installer) directly
+(smaller download).
+
+You can also install Node and NPM using the wonderful
+[Homebrew](http://mxcl.github.com/homebrew/) (if you're serious about developing
+on the Mac, you should be using Homebrew):
+
+```sh
+$ brew install node
+$ node --version
+v0.8.16
+$ npm --version
+1.1.69
+$ npm install zombie
+```
+
+On Windows you will need to install a recent version of Python and Visual
+Studio. See [node-gyp for specific installation
+instructions](https://github.com/TooTallNate/node-gyp) and
+[Chocolatey](http://chocolatey.org/) for easy package management.
+
+
+
+
 ## Browser
 
 #### browser.assert

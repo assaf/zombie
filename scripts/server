@@ -13,24 +13,22 @@
 # the file system.
 
 
-Express       = require("express")
-{ execFile }  = require("child_process")
-File          = require("fs")
-Path          = require("path")
+Express = require("express")
+render  = require("./markdown")
+File    = require("fs")
+Path    = require("path")
 
 
-DOC_DIR   = Path.resolve("#{__dirname}/../doc/new")
+DOC_DIR = Path.resolve("#{__dirname}/../doc/new")
 
 
 server = Express()
 
 server.get "/", (req, res)->
-  layout = File.readFileSync("#{DOC_DIR}/layout.html").toString()
-  execFile "markdown", ["#{DOC_DIR}/README.md"], {}, (error, stdout, stderr)->
+  render "#{DOC_DIR}/README.md", "#{DOC_DIR}/layout.html", (error, html)->
     if error
       res.send(500, error.message)
     else
-      html = layout.replace("{content}", stdout)
       res.send(html)
 
 server.get "/*", (req, res)->

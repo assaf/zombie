@@ -1,56 +1,59 @@
-{ "name": "zombie",
-  "version": "2.0.0-alpha11",
-  "description": "Insanely fast, full-stack, headless browser testing using Node.js",
-  "homepage": "http://zombie.labnotes.org/",
-  "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
+{ "name":           "zombie",
+  "version":        "2.0.0-alpha11",
+  "description":    "Insanely fast, full-stack, headless browser testing using Node.js",
+  "homepage":       "http://zombie.labnotes.org/",
+  "author":         "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
   "contributors": [
     "Bob Lail <bob.lailfamily@gmail.com> (http://boblail.tumblr.com/)",
     "Brian McDaniel (https://github.com/brianmcd)",
     "Damian Janowski",
     "José Valim <jose.valim@plataformatec.com.br> (http://blog.plataformatec.com.br/)"
   ],
-  "keywords": [ "test", "tests", "testing", "TDD", "spec", "specs", "BDD", "headless", "browser",
-    "html", "html5", "dom", "css", "javascript", "integration", "ajax", "full-stack", "DSL" ],
-  "main": "lib/zombie",
+  "keywords": [
+    "test", "tests", "testing", "TDD", "spec", "specs", "BDD", "headless", "browser",
+    "html", "html5", "dom", "css", "javascript", "integration", "ajax", "full-stack",
+    "DSL"
+  ],
+  "main":           "lib/zombie",
   "scripts": {
     "prepublish":   "./scripts/clean && ./scripts/build",
     "postpublish":  "./scripts/publish",
     "test":         "./node_modules/.bin/mocha"
   },
   "engines": {
-    "node": ">= 0.8.0"
+    "node":         ">= 0.8.0"
   },
   "dependencies": {
-    "contextify":       "~0.1.3",
-    "eventsource":      "~0.0.5",
-    "html5":            "~0.3.8",
-    "jsdom":            "~0.2.19",
-    "mime":             "~1.2.7",
-    "ms":               "~0.5.0",
-    "q":                "~0.8.10",
-    "request":          "~2.12.0",
-    "tough-cookie":     "~0.9.14",
-    "ws":               "~0.4.22"
+    "contextify":             "~0.1.3",
+    "eventsource":            "~0.0.5",
+    "html5":                  "~0.3.8",
+    "jsdom":                  "~0.2.19",
+    "mime":                   "~1.2.7",
+    "ms":                     "~0.5.0",
+    "q":                      "~0.8.11",
+    "request":                "~2.12.0",
+    "tough-cookie":           "~0.9.14",
+    "ws":                     "~0.4.25"
   },
   "devDependencies": {
     "coffee-script":          "~1.4.0",
-    "express":                "~3.0.3",
+    "express":                "~3.0.5",
     "node-syntaxhighlighter": "~0.8.1",
-    "mocha":                  "~1.7.0",
+    "mocha":                  "~1.7.4",
     "replay":                 "~1.6.0",
-    "requirejs":              "~2.1.1",
+    "requirejs":              "~2.1.2",
     "robotskirt":             "~2.7.1"
   },
   "repository": {
-    "type": "git",
-    "url": "http://github.com/assaf/zombie"
+    "type":   "git",
+    "url":    "http://github.com/assaf/zombie"
   },
   "bugs": {
-    "url": "http://github.com/assaf/zombie/issues"
+    "url":    "http://github.com/assaf/zombie/issues"
   },
   "licenses": [
     { "type": "MIT",
-      "url": "http://github.com/assaf/zombie/blob/master/MIT-LICENSE"
+      "url":  "http://github.com/assaf/zombie/blob/master/MIT-LICENSE"
     }
   ]
 }
