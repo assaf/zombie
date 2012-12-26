@@ -23,6 +23,7 @@ QS      = require("querystring")
 Request = require("request")
 URL     = require("url")
 Zlib    = require("zlib")
+assert  = require("assert")
 
 
 # Each browser has a resources object that provides the means for retrieving
