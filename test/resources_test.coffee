@@ -144,6 +144,15 @@ describe "Resources", ->
     it "should include loaded JavaScript", ->
       assert.equal browser.resources[1].response.url, "http://localhost:3003/jquery-1.7.1.js"
 
+  describe "addHandler", ->
+    before (done) ->
+      browser.resources.addHandler (request, done) ->
+        done(null, statusCode: 204, body: "empty")
+      browser.visit("/resources/resource", done)
+
+    it "should call the handler and use its response", ->
+      browser.assert.status 204
+      browser.assert.text "body", "empty"
 
   after ->
     browser.destroy()
