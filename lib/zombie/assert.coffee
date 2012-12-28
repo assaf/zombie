@@ -23,7 +23,7 @@ class Assert
   # Asserts that a cookie with the given name has the expected value.
   cookie: (name, expected, message)->
     actual = @browser.getCookie(name)
-    message ||= "Expected cooking #{name} to have the value '#{expected}', found '#{actual}'"
+    message ||= "Expected cookie #{JSON.stringify(name)} to have the value '#{expected}', found '#{actual}'"
     assertMatch actual, expected, message
 
   # Asserts that browser was redirected when retrieving the current page.

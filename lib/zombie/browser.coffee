@@ -1,4 +1,5 @@
 
+assert            = require("assert")
 Assert            = require("./assert")
 createTabs        = require("./tabs")
 Console           = require("./console")
@@ -42,7 +43,7 @@ MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 class Browser extends EventEmitter
   constructor: (options = {}) ->
     browser = this
-    @_cookies = new Cookies()
+    @cookies = new Cookies()
     @_storages = new Storages()
     @_interact = Interact.use(this)
 
@@ -864,18 +865,90 @@ class Browser extends EventEmitter
   # Cookies and storage
   # -------------------
 
-  # Returns all the cookies for this domain/path. Domain defaults to hostname of currently open page. Path defaults to
-  # "/".
-  cookies: (domain, path)->
+  # Returns cookie that best matches the identifier.
+  getCookie: (identifier, allProperties)->
+    identifier = @_cookieIdentifier(identifier)
+    assert(identifier.name, "Missing cookie name")
+    assert(identifier.domain, "No domain specified and no open page")
+    cookie = @cookies.select(identifier)[0]
+    if cookie
+      if allProperties
+        return @_cookieProperties(cookie)
+      else
+        return cookie.value
+    else
+      return null
+
+  # Deletes cookie that best matches the identifier.
+  deleteCookie: (identifier)->
+    identifier = @_cookieIdentifier(identifier)
+    assert(identifier.name, "Missing cookie name")
+    assert(identifier.domain, "No domain specified and no open page")
+    cookie = @cookies.select(identifier)[0]
+    if cookie
+      @cookies.delete(cookie)
+      return true
+    else
+      return false
+
+  # Delete all cookies matching the identifier
+  deleteCookies: (identifier)->
+    if identifier
+      cookies = @cookies.select(identifier || {})
+      for cookie in cookies
+        @cookies.delete(cookie)
+      return cookies.length
+    else
+      count = @cookies.length
+      @cookies.length = 0
+      return count
+
+
+  # Converts Tough Cookie object into Zombie cookie representation.
+  _cookieProperties: (cookie)->
+    properties =
+      name:   cookie.key
+      value:  cookie.value
+      domain: cookie.domain
+      path:   cookie.path
+    if cookie.secure
+      properties.secure = true
+    if cookie.httpOnly
+      properties.httpOnly = true
+    if cookie.expires && cookie.expires < Infinity
+      properties.expires = cookie.expires
+    return properties
+
+  # Converts cookie name/identifier into an identifier object.
+  _cookieIdentifier: (identifier)->
     if location = @location
-      domain ||= location.hostname
-    return @_cookies.access(domain, path || "/")
+      domain = location.hostname
+    if typeof(identifier) == "string"
+      identifier =
+        name:   identifier
+        domain: domain
+        path:   "/"
+    else
+      identifier =
+        name:   identifier.name
+        domain: identifier.domain || domain
+        path:   identifier.path || "/"
+    return identifier
 
-  getCookie: (name)->
-    return @cookies().get(name)
 
-  setCookie: (name, value, options)->
-    @cookies().set(name, value, options)
+  setCookie: (options, value)->
+    if location = @location
+      domain = location.hostname
+    if typeof(options) == "string"
+      @cookies.set
+        name:     options
+        value:    value || ""
+        domain:   domain
+        path:     "/"
+        secure:   false
+        httpOnly: false
+    else
+      @cookies.set(options)
     return
 
   removeCookie: (name)->
@@ -883,17 +956,10 @@ class Browser extends EventEmitter
     return
 
   clearCookies: ->
-    @_cookies = new Cookies()
+    @cookies = new Cookies()
     return
 
 
-  # Save cookies to a text string.  You can use this to load them back later on using `browser.loadCookies`.
-  saveCookies: ->
-    @_cookies.save()
-
-  # Load cookies from a text string (e.g. previously created using `browser.saveCookies`.
-  loadCookies: (serialized)->
-    @_cookies.load serialized
 
   # Returns local Storage based on the document origin (hostname/port). This is the same storage area you can access
   # from any document of that origin.
@@ -1021,7 +1087,7 @@ class Browser extends EventEmitter
     process.stdout.write "Zombie: #{Browser.VERSION}\n\n"
     process.stdout.write "URL: #{@window.location.href}\n"
     process.stdout.write "History:\n#{indent @window.history.dump()}\n"
-    process.stdout.write "Cookies:\n#{indent @_cookies.dump()}\n"
+    process.stdout.write "Cookies:\n#{indent @cookies.dump()}\n"
     process.stdout.write "Storage:\n#{indent @_storages.dump()}\n"
     process.stdout.write "Eventloop:\n#{indent @eventLoop.dump()}\n"
     if @document

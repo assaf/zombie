@@ -120,6 +120,158 @@ Browser.extend(function(browser) {
 ```
 
 
+## Cookies
+
+Are delicious.  Also, somewhat tricky to work with.   A browser will only send a
+cookie to the server if it matches the request domain and path.
+
+Most modern Web applications don't care so much about the path and set all
+cookies to the root path of the application (`/`), but do pay attention to the
+domain.
+
+Consider this code:
+
+```js
+browser.setCookie(name: "session", domain: "example.com");
+browser.visit("http://example.com", function() {
+  var value = browser.getCookie("session");
+  console.log("Cookie", value);
+});
+```
+
+In order for the cookie to be set in this example, we need to specify the cookie
+name, domain and path.  In this example we omit the path and choose the default
+`/`.
+
+To get the cookie in this example, we only need the cookie name, because at that
+point the browser has an open document, and it can use the domain of that
+document to find the right cookie.  We do need to specify a domain if we're
+interested in other cookies, e.g for a 3rd party widget.
+
+There may be multiple cookies that match the same host, for example, cookies set
+for `.example.com` and `www.example.com` will both match `www.example.com`, but
+only the former will match `example.com`.  Likewise, cookies set for `/` and
+`/foo` will both match a request for `/foo/bar`.
+
+`getCookie`, `setCookie` and `deleteCookie` always operate on a single cookie,
+and they match the most specific one, starting with the cookies that have the
+longest matching domain, followed by the cookie that has the longest matching
+path.
+
+If the first argument is a string, they look for a cookie with that name using
+the hostname of the currently open page as the domain and `/` as the path.  To
+be more specific, the first argument can be an object with the properties
+`name`, `domain` and `path`.
+
+The following are equivalent:
+
+```js
+browser.getCookie("session");
+browser.getCookie({ name: "session",
+                    domain: browser.location.hostname,
+                    path: "/" });
+```
+
+`findCookies` and `deleteCookies` operate on all matching cookies.  This example
+operates on all cookies for `www.example.com` and `example.com`:
+
+```js
+browser.findCookies({ domain: ".example.com" });
+```
+
+This example operates on all cookies from all domains (you can also pass `null`
+or an empty object):
+
+```js
+browser.deleteCookies();
+```
+
+`getCookie` and `findCookies` take a third argument.  If false or missing, they
+return the cookie value.  If true, they return an object with all the cookie
+properties: `name`, `value`, `domain`, `path`, `expires`, `httpOnly` and
+`secure`.
+
+You can also reuse cookies across browsers.  The `cookies` object represents all
+cookies known to the browser, you can `export` them and then `import` to a
+different browser object.  The format is a string, with one line per cookie;
+each line has the same key/value format as used by `document.cookie`.
+
+#### browser.cookies
+
+Returns an object holding all cookies used by this browser.
+
+#### browser.cookies.dump(stream?)
+
+Dumps all cookies to standard output, or the output stream.
+
+#### browser.cookies.export(identifier?)
+
+Exports all cookies, or all cookies matching the identifier, to a string.
+
+The identifier is an object with the optional properties `name`, `domain` and
+`path`.
+
+#### browser.cookies.import(string)
+
+Imports all cookies from a string.
+
+#### browser.deleteCookie(identifier)
+
+Deletes a cookie matching the identifier.
+
+The identifier is either the name of a cookie, or an object with the property
+`name` and the optional properties `domain` and `path`.
+
+#### browser.deleteCookies(identifier?)
+
+Deletes all cookies, or all cookies matching the identifier.
+
+The identifier is an object with the optional properties `name`, `domain` and
+`path`.
+
+#### browser.findCookies(identifier, allProperties)
+
+Returns all cookies, or all cookies matching the identifier.
+
+The identifier is an object with the optional properties `name`, `domain` and
+`path`.
+
+If `allProperties` is true, returns an array of objects with all the cookie
+properties, otherwise returns an array of cookie values.
+
+#### browser.getCookie(identifier, allProperties?)
+
+Returns a cookie matching the identifier.
+
+The identifier is either the name of a cookie, or an object with the property
+`name` and the optional properties `domain` and `path`.
+
+If `allProperties` is true, returns an object with all the cookie properties,
+otherwise returns the cookie value.
+
+
+#### browser.setCookie(name, value)
+
+Sets the value of a cookie based on its name.
+
+#### browser.setCookie(options)
+
+Sets the value of a cookie based on the following properties:
+
+* `domain` - Domain of the cookie (requires, defaults to hostname of currently
+  open page)
+* `expires` - When cookie it set to expire (`Date`, optional, defaults to
+  session)
+* `maxAge` - How long before cookie expires (in seconds, defaults to session)
+* `name` - Cookie name (required)
+* `path` - Path for the cookie (defaults to `/`)
+* `httpOnly` - True if HTTP-only (not accessible from client-side JavaScript,
+  defaults to false)
+* `secure` - True if secure (requires HTTPS, defaults to false)
+* `value` - Cookie value (required)
+
+
+
 
 ## Tabs
 
@@ -270,9 +422,13 @@ space-separated list of class names.
 
 Fails if no element found.
 
-#### assert.cookie(name, expected, message)
+#### assert.cookie(identifier, expected, message)
 
-Asserts that a cookie with the given name has the expected value.
+Asserts that a cookie exists and  has the expected value, or if `expected` is
+`null`, that no such cookie exists.
+
+The identifier is either the name of a cookie, or an object with the property
+`name` and the optional properties `domain` and `path`.
 
 #### assert.element(selection, message)
 

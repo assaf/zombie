@@ -1,5 +1,6 @@
 # See [RFC 2109](http://tools.ietf.org/html/rfc2109.html) and
 # [document.cookie](http://developer.mozilla.org/en/document.cookie)
+assert  = require("assert")
 HTML    = require("jsdom").dom.level3.html
 Tough   = require("tough-cookie")
 Cookie  = Tough.Cookie
@@ -10,6 +11,7 @@ class Access
   constructor: (@_cookies, domain, path)->
     @domain = Tough.canonicalDomain(domain)
     @path   = path || "/"
+
 
   # Returns all the cookies for this domain/path.
   all: ->
@@ -37,7 +39,7 @@ class Access
   set: (name, value, options = {})->
     cookie = new Cookie(key: name, value: value, domain: options.domain || @domain, path: options.path || @path)
     if options.expires
-      cookie.setExpires(options.expirs)
+      cookie.setExpires(options.expires)
     else if options.hasOwnProperty("max-age")
       cookie.setMaxAge(options["max-age"])
     cookie.secure = !!options.secure
@@ -98,23 +100,18 @@ class Access
     return (cookie.toString() for cookie in @all()).join("\n")
 
 
-class Cookies
+class Cookies extends Array
   constructor: ->
-    @_cookies = []
-
-  # Creates and returns cookie access scopes to given host/path.
-  access: (hostname, pathname)->
-    return new Access(this, hostname, pathname)
 
   # Used to dump state to console (debugging)
   dump: ->
-    for cookie in @_cookies.sort(Tough.cookieCompare)
+    for cookie in @sort(Tough.cookieCompare)
       process.stdout.write cookie.toString() + "\n"
 
   # browser.saveCookies uses this
   save: ->
     serialized = ["# Saved on #{new Date().toISOString()}"]
-    for cookie in @_cookies.sort(Tough.cookieCompare)
+    for cookie in @sort(Tough.cookieCompare)
       serialized.push cookie.toString()
     return serialized.join("\n") + "\n"
 
@@ -123,27 +120,64 @@ class Cookies
     for line in serialized.split(/\n+/)
       line = line.trim()
       continue if line[0] == "#" || line == ""
-      @_cookies.push Cookie.parse(line)
+      @push(Cookie.parse(line))
 
-  filter: (fn)->
-    @_cookies = @_cookies.filter(fn)
 
-  push: (cookie)->
-    @_cookies.push cookie
 
-  all: ->
-    @_cookies.slice()
+
+  # Returns all cookies that match the identifier (name, domain and path).
+  # This is used for retrieving cookies.
+  select: (identifier)->
+    cookies = @filter((cookie)-> cookie.TTL() > 0)
+    if identifier.name
+      cookies = cookies.filter((cookie)-> cookie.key == identifier.name)
+    if identifier.path
+      cookies = cookies.filter((cookie)-> Tough.pathMatch(identifier.path, cookie.path))
+    if identifier.domain
+      cookies = cookies.filter((cookie)-> Tough.domainMatch(identifier.domain, cookie.domain))
+    return cookies
+      .sort((a, b)-> return (b.domain.length - a.domain.length))
+      .sort(Tough.cookieCompare)
+
+  # Adds a new cookie, updates existing cookie (same name, domain and path), or
+  # deletes a cookie (if expires in the past).
+  set: (params)->
+    cookie = new Cookie(key: params.name, value: params.value, domain: params.domain || "localhost", path: params.path || "/")
+    if params.expires
+      cookie.setExpires(params.expires)
+    else if params.hasOwnProperty("max-age")
+      cookie.setMaxAge(params["max-age"])
+    cookie.secure = !!params.secure
+    cookie.httpOnly = !!params.httpOnly
+
+    # Delete cookie before setting it, so we only store one cookie (per
+    # domain/path/name)
+    deleteIfExists = @filter((c)-> c.key == cookie.key && c.domain == cookie.domain && c.path == cookie.path)[0]
+    @delete(deleteIfExists)
+    if cookie.TTL() > 0
+      @push(cookie)
+    return
+
+  # Delete the specified cookie.
+  delete: (cookie)->
+    index = @indexOf(cookie)
+    if ~index
+      @splice(index, 1)
+
 
 
 # Returns name=value pairs
 HTML.HTMLDocument.prototype.__defineGetter__ "cookie", ->
-  cookies = ("#{cookie.key}=#{cookie.value}" for cookie in @parentWindow.cookies.all() when !cookie.httpOnly)
+  cookies = []
+  for cookie in @parentWindow.cookies.all()
+    unless cookie.httpOnly
+      cookies.push("#{cookie.key}=#{cookie.value}")
   return cookies.join("; ")
 
 # Accepts serialized form (same as Set-Cookie header) and updates cookie from
 # new values.
 HTML.HTMLDocument.prototype.__defineSetter__ "cookie", (cookie)->
-  @parentWindow.cookies.update cookie
+  @parentWindow.cookies.update(cookie)
 
 
 module.exports = Cookies

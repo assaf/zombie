@@ -24,6 +24,152 @@ describe "Cookies", ->
     return parse(browser.source)
 
 
+  # -- Browser API --
+
+  describe "deleteCookie", ->
+    describe "by name", ->
+      before ->
+        browser.deleteCookies()
+        browser.visit("http://example.com/")
+        browser.setCookie("foo", "delete me")
+        browser.setCookie("bar", "keep me")
+
+      it "should delete that cookie", ->
+        browser.assert.cookie("foo", "delete me")
+        assert browser.deleteCookie("foo")
+        browser.assert.cookie("foo", null)
+        browser.assert.cookie("bar", "keep me")
+
+      after ->
+        browser.close()
+
+    describe "by name and domain", ->
+      before ->
+        browser.deleteCookies()
+        browser.setCookie(name: "foo", domain: "www.example.com", value: "delete me")
+        browser.setCookie(name: "foo", domain: ".example.com",    value: "keep me")
+
+      it "should delete that cookie", ->
+        browser.assert.cookie(name: "foo", domain: "www.example.com", "delete me")
+        assert browser.deleteCookie(name: "foo", domain: "www.example.com")
+        browser.assert.cookie(name: "foo", domain: "www.example.com", "keep me")
+
+    describe "by name, domain and path", ->
+      before ->
+        browser.deleteCookies()
+        browser.setCookie(name: "foo", domain: "example.com", path: "/",    value: "keep me")
+        browser.setCookie(name: "foo", domain: "example.com", path: "/bar", value: "delete me")
+
+      it "should delete that cookie", ->
+        browser.assert.cookie(name: "foo", domain: "example.com", path: "/bar", "delete me")
+        assert browser.deleteCookie(name: "foo", domain: "example.com", path: "/bar")
+        browser.assert.cookie(name: "foo", domain: "example.com", path: "/bar", "keep me")
+
+
+  describe.only "deleteCookies", ->
+    describe "no arguments", ->
+      before ->
+        browser.deleteCookies()
+        browser.setCookie("foo", domain: "example.com", value: "delete me")
+        browser.setCookie("bar", domain: "example.com", value: "delete me")
+
+      it "should delete all cookies", ->
+        assert.equal browser.cookies.length, 2
+        assert.equal browser.deleteCookies(), 2
+        assert.equal browser.cookies.length, 0
+
+    describe "empty object", ->
+      before ->
+        browser.deleteCookies()
+        browser.setCookie("foo", domain: "example.com", value: "delete me")
+        browser.setCookie("bar", domain: "example.com", value: "delete me")
+
+      it "should delete all cookies", ->
+        assert.equal browser.cookies.length, 2
+        assert.equal browser.deleteCookies({}), 2
+        assert.equal browser.cookies.length, 0
+
+
+    describe "by name", ->
+      before ->
+        browser.deleteCookies()
+        browser.setCookie(name: "foo", domain: "example.com", value: "delete me")
+        browser.setCookie(name: "bar", domain: "example.com", value: "keep me")
+
+      it "should delete only named cookies", ->
+        assert.equal browser.deleteCookies(name: "foo"), 1
+        browser.assert.cookie(name: "foo", domain: "example.com", null)
+        browser.assert.cookie(name: "bar", domain: "example.com", "keep me")
+
+
+    describe "by name and domain", ->
+      before ->
+        browser.deleteCookies()
+        browser.setCookie(name: "foo", domain: "www.example.com", value: "delete me")
+        browser.setCookie(name: "foo", domain: ".example.com",    value: "delete me")
+
+      it "should delete that cookie", ->
+        browser.assert.cookie(name: "foo", domain: "www.example.com", "delete me")
+        assert.equal browser.deleteCookies(name: "foo", domain: "www.example.com"), 2
+        browser.assert.cookie(name: "foo", domain: "example.com", null)
+
+    describe "by name, domain and path", ->
+      before ->
+        browser.deleteCookies()
+        browser.setCookie(name: "foo", domain: "example.com", path: "/",        value: "keep me")
+        browser.setCookie(name: "foo", domain: "example.com", path: "/bar",     value: "delete me")
+        browser.setCookie(name: "foo", domain: "example.com", path: "/bar/baz", value: "delete me")
+
+      it "should delete that cookie", ->
+        console.dir browser.cookies
+        assert.equal browser.deleteCookies(name: "foo", domain: "example.com", path: "/bar"), 2
+        console.dir browser.cookies
+        browser.assert.cookie(name: "foo", domain: "example.com", path: "/", "keep me")
+
+
+  describe "getCookie", ->
+    before ->
+      browser.deleteCookies()
+      browser.setCookie(name: "foo", domain: ".example.com",               value: "partial domain")
+      browser.setCookie(name: "foo", domain: "www.example.com",            value: "full domain")
+      browser.setCookie(name: "foo", domain: ".example.com", path: "/bar", value: "full path")
+
+    it "should find cookie by name", ->
+      browser.visit("http://example.com/")
+      assert.equal browser.getCookie("foo"), "partial domain"
+      browser.close()
+
+    it "should find cookie with most specific domain", ->
+      assert.equal browser.getCookie(name: "foo", domain: "dox.example.com"), "partial domain"
+      assert.equal browser.getCookie(name: "foo", domain: "example.com"),     "partial domain"
+      assert.equal browser.getCookie(name: "foo", domain: "www.example.com"), "full domain"
+
+    it "should find cookie with most specific path", ->
+      assert.equal browser.getCookie(name: "foo", domain: "example.com", path: "/"),     "partial domain"
+      assert.equal browser.getCookie(name: "foo", domain: "example.com", path: "/bar"),  "full path"
+
+    it "should return cookie object if second argument is true", ->
+      assert.deepEqual browser.getCookie(name: "foo", domain: "www.example.com", true),
+        name:   "foo"
+        value:  "full domain"
+        domain: "www.example.com"
+        path:   "/"
+
+    it "should return null if no match", ->
+      assert.equal browser.getCookie(name: "unknown", domain: "example.com"), null
+
+    it "should return null if no match and second argument is true", ->
+      assert.equal browser.getCookie(name: "unknown", domain: "example.com", true), null
+
+    it "should fail if no domain specified", ->
+      assert.throws ->
+        assert.equal browser.getCookie("no-domain")
+      , "No domain specified and no open page"
+
+
+
+
+
   before ->
     brains.get "/cookies", (req, res)->
       res.cookie "_name",     "value"
