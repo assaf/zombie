@@ -39,10 +39,10 @@ Specifically:
 
 * We prefer explicit and verbose over crypted and terse
 * We shy away from clever code
-* We're opinonated and use two spaces
-* We understand that parentheses are optional in CoffeeScript, but required to
+* We're opinionated and use two spaces for indentation
+* We understand that parentheses are optional in CoffeeScript, but are required to
   read and understand the code
-* If it lookos like Perl or SQL, it's wrong
+* If it looks like Perl or SQL, it's wrong
 
 
 ## Documentation
