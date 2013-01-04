@@ -155,10 +155,23 @@ describe "Forms", ->
   describe "fill field", ->
     before (done)->
       browser.visit "/forms/form", =>
+        fill_events = ["change", "keydown", "keyup", "keypress"]
+        count = fill_events.length
         browser.on "event", (event, target)=>
-          if event.type == "change"
-            @changed = target
+          if event.type in fill_events
+            count -= 1
+            if count == 0
+              @changed = target
+              count = fill_events.length
+          else
+            count = fill_events.length
         done()
+
+    describe "fill input with same the same value", ->
+      before ->
+        browser.fill("Name", "")
+      it "should not fire change and key events", ->
+        assert.equal @change, undefined
 
     describe "text input enclosed in label", ->
       before ->
@@ -166,7 +179,7 @@ describe "Forms", ->
 
       it "should set text field", ->
         browser.assert.input "#field-name", "ArmBiter"
-      it "should fire change event", ->
+      it "should fire change and key events", ->
         assert.equal @changed.id, "field-name"
 
     describe "email input referenced from label", ->
@@ -175,7 +188,7 @@ describe "Forms", ->
 
       it "should set email field", ->
         browser.assert.input "#field-email", "armbiter@example.com"
-      it "should fire change event", ->
+      it "should fire change and key events", ->
         assert.equal @changed.id, "field-email"
 
     describe "textarea by field name", ->
@@ -184,7 +197,7 @@ describe "Forms", ->
 
       it "should set textarea", ->
         browser.assert.input "#field-likes", "Arm Biting"
-      it "should fire change event", ->
+      it "should fire change and key events", ->
         assert.equal @changed.id, "field-likes"
 
     describe "password input by selector", ->
@@ -193,7 +206,7 @@ describe "Forms", ->
 
       it "should set password", ->
         browser.assert.input "#field-password", "b100d"
-      it "should fire change event", ->
+      it "should fire change and key events", ->
         assert.equal @changed.id, "field-password"
 
     describe "input without a valid type", ->
@@ -202,7 +215,7 @@ describe "Forms", ->
 
       it "should set value", ->
         browser.assert.input "#field-invalidtype", "some value"
-      it "should fire change event", ->
+      it "should fire change and key events", ->
         assert.equal @changed.id, "field-invalidtype"
 
     describe "email2 input by node", ->
@@ -211,7 +224,7 @@ describe "Forms", ->
 
       it "should set email2 field", ->
         browser.assert.input "#field-email2", "headchomper@example.com"
-      it "should fire change event", ->
+      it "should fire change and key events", ->
         assert.equal @changed.id, "field-email2"
 
     describe "disabled input can not be modified", ->
