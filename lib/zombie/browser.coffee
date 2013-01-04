@@ -669,8 +669,13 @@ class Browser extends EventEmitter
     if field.getAttribute("readonly")
       throw new Error("This INPUT field is readonly")
     field.focus()
+    start_value = field.value
     field.value = value
-    @fire(field, "change")
+    if start_value != value
+      @fire(field, "change")
+      @fire(field, "keydown")
+      @fire(field, "keyup")
+      @fire(field, "keypress")
     return this
 
   _setCheckbox: (selector, value)->
