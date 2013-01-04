@@ -123,7 +123,7 @@ HTML.Element.prototype.setAttribute = (name, value)->
 # -- Utility methods --
 
 # Triggers an error event on the specified element.  Accepts:
-# element - Element/document associated wit this error
+# element - Element/document associated with this error
 # skip    - Filename of the caller (__filename), we use this to trim the stack trace
 # scope   - Execution scope, e.g. "XHR", "Timeout"
 # error   - Actual Error object
