@@ -286,11 +286,16 @@ class EventQueue
   # Makes an HTTP request.
   #
   # Parameters are:
-  # url     - URL (string)
-  # method  - Method (defaults to GET)
-  # headers - Headers to pass in request
-  # body    - Document body
-  # target  - Document or element being loaded
+  # method   - Method (defaults to GET)
+  # url      - URL (string)
+  # options  - See below
+  # callback - Called with error, or null and response
+  #
+  # Options:
+  #   headers   - Name/value pairs of headers to send in request
+  #   params    - Parameters to pass in query string or document body
+  #   body      - Request document body
+  #   timeout   - Request timeout in milliseconds (0 or null for no timeout)
   #
   # Calls callback with response error or null and response object.
   http: (method, url, options, callback)->
