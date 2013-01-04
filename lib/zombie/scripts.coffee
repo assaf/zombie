@@ -123,11 +123,11 @@ HTML.Element.prototype.setAttribute = (name, value)->
 # -- Utility methods --
 
 # Triggers an error event on the specified element.  Accepts:
-# element - Element/document associated wit this error
-# skip    - Filename of the caller (__filename), we use this to trim the stack trace
-# scope   - Execution scope, e.g. "XHR", "Timeout"
-# error   - Actual Error object
-raise = ({ element, location, from, scope, error })->
+# element  - Element/document associated with this error
+# location - Location of this error
+# scope    - Execution scope, e.g. "XHR", "Timeout"
+# error    - Actual Error object
+raise = ({ element, location, scope, error })->
   document = element.ownerDocument || element
   window = document.parentWindow
   message = if scope then "#{scope}: #{error.message}" else error.message

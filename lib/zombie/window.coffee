@@ -20,7 +20,7 @@ inContext = null
 #
 # Parameters
 # browser   - Browser that owns this window
-# param     - Data to submit (used by forms)
+# params    - Data to submit (used by forms)
 # encoding  - Encoding MIME type (used by forms)
 # history   - This window shares history with other windows
 # method    - HTTP method (used by forms)
