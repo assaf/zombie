@@ -132,7 +132,7 @@ class XMLHttpRequest
       @_responseHeaders = response.headers
       @_stateChanged(XMLHttpRequest.HEADERS_RECEIVED, listener)
 
-      @responseText = response.body
+      @responseText = @_textBody(response.body)
       @responseXML = null
       @_stateChanged(XMLHttpRequest.DONE, listener)
 
@@ -157,6 +157,13 @@ class XMLHttpRequest
           listener.call(this)
         catch error
           raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
+
+  _textBody: (body)->
+    if body instanceof Buffer
+      body.toString()
+    else
+      body
+      
 
 
 # Lifecycle states
