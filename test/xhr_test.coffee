@@ -154,6 +154,31 @@ describe "XMLHttpRequest", ->
     it "should post with no data", ->
       browser.assert.text "title", "201posted"
 
+  describe "empty response", ->
+    before (done)->
+      brains.get "/xhr/get-empty", (req, res)->
+        res.send """
+        <html>
+          <head><script src="/jquery.js"></script></head>
+          <body>
+            <script>
+              $.get("/xhr/empty", function(response, status, xhr) {
+                document.text = xhr.responseText;
+              });
+            </script>
+          </body>
+        </html>
+        """
+      brains.get "/xhr/empty", (req, res)->
+        res.send ""
+      brains.ready done
+
+    before (done)->
+      browser.visit("http://localhost:3003/xhr/get-empty", done)
+
+    it "responseText should be an empty string", ->
+      assert.strictEqual "", browser.document.text
+
   describe "response text", ->
     before (done)->
       brains.get "/xhr/get-utf8-octet-stream", (req, res)->
