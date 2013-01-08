@@ -69,7 +69,7 @@ class XMLHttpRequest
 
     # Check supported HTTP method
     method = method.toUpperCase()
-    if /^(connect|trace|track)$/.test(method)
+    if /^(CONNECT|TRACE|TRACK)$/.test(method)
       throw new HTML.DOMException(HTML.SECURITY_ERR, "Unsupported HTTP method")
     unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
       throw new HTML.DOMException(HTML.SYNTAX_ERR, "Unsupported HTTP method")
