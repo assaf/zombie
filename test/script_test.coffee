@@ -350,6 +350,24 @@ describe "Scripts", ->
     after ->
       browser.features = "scripts"
 
+  describe "script attributes", ->
+    before (done)->
+      brains.get "/script/inline", (req, res)->
+        res.send """
+        <html>
+          <head>
+            <title></title>
+            <script>var bar = null;</script>
+          </head>
+          <body>
+          </body>
+        </html>
+        """
+      browser.visit('/script/inline', done)
+
+    it "should have a valid src", ->
+      nodes = browser.queryAll("script")
+      assert.equal nodes[0].src, ""
 
   describe "file:// uri scheme", ->
     before (done)->
