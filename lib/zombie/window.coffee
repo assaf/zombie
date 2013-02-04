@@ -97,6 +97,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
     javaEnabled:   { value: -> false }
     plugins:       { value: [] }
     userAgent:     { value: browser.userAgent }
+    language:      { value: browser.language }
     vendor:        { value: "Zombie Industries" }
 
   # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
