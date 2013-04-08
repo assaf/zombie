@@ -20,7 +20,7 @@ module.exports = createDocument = (browser, window, referer)->
     QuerySelector:            true
 
   # JSDOM's way of creating a document.
-  jsdomBrowser = JSDOM.browserAugmentation(HTML) #, parser: browser.htmlParser)
+  jsdomBrowser = JSDOM.browserAugmentation(HTML, parser: browser.htmlParser)
   # HTTP header Referer, but Document property referrer
   document = new jsdomBrowser.HTMLDocument(referrer: referer)
   JSDOMSelectors.applyQuerySelector(document, HTML)
