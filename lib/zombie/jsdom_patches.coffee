@@ -18,6 +18,10 @@ HTML.Element.prototype.getAttribute = (name)->
   attribute = @_attributes.getNamedItem(name)
   return attribute?.value || null
 
+# Script elements should always respond to a src attribute with something
+HTML.HTMLScriptElement.prototype.__defineGetter__ "src", ->
+  return @getAttribute('src') || ""
+  
 # These two patches are required by the above fix.
 HTML.HTMLAnchorElement.prototype.__defineGetter__ "href", ->
   return HTML.resourceLoader.resolve(@_ownerDocument, @getAttribute('href') || "")
