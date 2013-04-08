@@ -18,6 +18,7 @@
 
 ms  = require("ms")
 Q   = require("q")
+global.setImmediate ||= process.nextTick
 
 
 # The browser event loop.
@@ -123,7 +124,7 @@ class EventLoop
 
     # Someone (us) just started paying attention, start processing events
     if @listeners.length == 1
-      process.nextTick =>
+      setImmediate =>
         if @active
           @active._eventQueue.resume()
           @run()
@@ -167,7 +168,7 @@ class EventLoop
   # in the next tick, but makes sure waiters block for the function.
   next: (fn)->
     ++@expected
-    process.nextTick =>
+    setImmediate =>
       --@expected
       try
         fn()
@@ -193,7 +194,7 @@ class EventLoop
 
     # Give other (Node) events a chance to process
     @running = true
-    process.nextTick =>
+    setImmediate =>
       @running = false
       unless @active
         @emit("done")
