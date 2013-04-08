@@ -24,7 +24,6 @@
     "node":         ">= 0.8.0"
   },
   "dependencies": {
-    "contextify":             "~0.1.5",
     "eventsource":            "~0.0.6",
     "html5":                  "~0.3.10",
     "jsdom":                  "~0.5.6",
