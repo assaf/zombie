@@ -408,12 +408,15 @@ Resources.decodeBody = (request, response, next)->
   if response.body && response.headers
     contentType = response.headers["content-type"]
   if contentType
+    validTypes = ['hex', 'utf8', 'utf-8', 'ascii', 'binary', 'base64', 'ucs2', 'ucs-2', 'utf16le', 'utf-16le']
     [mimeType, typeOptions...] = contentType.split(/;\s+/)
     unless mimeType == "application/octet-stream"
       for typeOption in typeOptions
         if /^charset=/.test(typeOption)
-          charset = typeOption.split("=")[1]
-          break
+          for type in validTypes
+            if typeOption.split("=")[1] == type
+              charset = type
+              break
       response.body = response.body.toString(charset || "utf8")
   next()
   return
