@@ -32,7 +32,7 @@ require("./dom_iframe")
 # Browser options you can set when creating new browser, or on browser instance.
 BROWSER_OPTIONS = ["debug", "features", "headers", "htmlParser", "waitDuration",
                    "proxy", "referer", "silent", "site", "userAgent",
-                   "maxRedirects"]
+                   "maxRedirects", "language"]
 
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 
@@ -1171,6 +1171,9 @@ Browser.default =
 
   # User agent string sent to server.
   userAgent: "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{Browser.VERSION}"
+  
+  # Navigator language code
+  language: "en-US"
 
   # Default time to wait (visit, wait, etc).
   waitDuration: "5s"

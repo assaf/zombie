@@ -161,7 +161,8 @@ describe "Window", ->
       browser.assert.evaluate "navigator"
     it ".javaEnabled should be false", ->
       browser.assert.evaluate "navigator.javaEnabled()", false
-
+    it ".language should be set to en-US", ->
+      browser.assert.evaluate "navigator.language", "en-US"
 
   describe "atob", ->
     it "should decode base-64 string", ->
