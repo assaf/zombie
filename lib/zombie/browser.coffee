@@ -8,7 +8,7 @@ Cookies           = require("./cookies")
 EventLoop         = require("./eventloop")
 { format }        = require("util")
 File              = require("fs")
-{ HTML5 }         = require("html5")
+HTML5             = require("html5")
 Interact          = require("./interact")
 HTML              = require("jsdom").dom.level3.html
 Mime              = require("mime")
@@ -389,7 +389,9 @@ class Browser extends EventEmitter
   # Returns a string
   text: (selector, context)->
     if @document.documentElement
-      return @queryAll(selector, context).map((e)-> e.textContent).join("").trim().replace(/\s+/g, " ")
+      return @queryAll(selector || "html", context)
+        .map((e)-> e.textContent)
+        .join("").trim().replace(/\s+/g, " ")
     else if @source
       return @source.toString()
     else
@@ -406,7 +408,9 @@ class Browser extends EventEmitter
   # Returns a string
   html: (selector, context)->
     if @document.documentElement
-      return @queryAll(selector, context).map((e)-> e.outerHTML.trim()).join("")
+      return @queryAll(selector || "html", context)
+        .map((e)-> e.outerHTML.trim())
+        .join("")
     else if @source
       return @source.toString()
     else
@@ -1150,7 +1154,7 @@ Browser.default =
   features: "scripts no-css"
 
   # Which parser to use (HTML5 by default). For example:
-  #   Browser.default.htmlParser = require("html5").HTML5 // HTML5, forgiving
+  #   Browser.default.htmlParser = require("html5")       // HTML5, forgiving
   #   Browser.default.htmlParser = require("htmlparser")  // Faster, stricter
   htmlParser: HTML5
 
