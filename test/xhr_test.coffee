@@ -207,7 +207,7 @@ describe "XMLHttpRequest", ->
       assert.equal "Text", browser.document.text
 
 
-  describe "HTML document", ->
+  describe.skip "HTML document", ->
     before (done)->
       brains.get "/xhr/get-html", (req, res)->
         res.send """
@@ -216,7 +216,7 @@ describe "XMLHttpRequest", ->
           <body>
             <script>
               $.get("/xhr/html", function(response, status, xhr) {
-                window.html = xhr.responseXML;
+                document.body.appendChild(xhr.responseXML);
               });
             </script>
           </body>
@@ -224,14 +224,14 @@ describe "XMLHttpRequest", ->
         """
       brains.get "/xhr/html", (req, res)->
         res.type("text/html")
-        res.send "<foo><bar id='bar'></foo>"
+        res.send("<foo><bar id='bar'></foo>")
       brains.ready done
 
     before (done)->
       browser.visit("http://localhost:3003/xhr/get-html", done)
 
     it "should parse HTML document", ->
-      assert browser.document.body.querySelectorAll("foo > bar#bar")
+      browser.assert.element "foo > bar#bar"
 
 
   after ->
