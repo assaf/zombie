@@ -30,8 +30,8 @@ inContext = null
 # referer   - Use this as referer
 # url       - Set document location to this URL upon opening
 createWindow = ({ browser, params, encoding, history, method, name, opener, parent, referer, url })->
-  name ||= ""
-  url ||= "about:blank"
+  name  ||= ""
+  url   ||= "about:blank"
 
   window = JSDOM.createWindow(HTML)
   global = window.getGlobal()

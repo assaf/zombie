@@ -202,7 +202,7 @@ describe "Forms", ->
 
     describe "password input by selector", ->
       before ->
-        browser.fill(":password[name=password]", "b100d")
+        browser.fill("input[name=password]", "b100d")
 
       it "should set password", ->
         browser.assert.input "#field-password", "b100d"
@@ -211,7 +211,7 @@ describe "Forms", ->
 
     describe "input without a valid type", ->
       before ->
-        browser.fill(":input[name=invalidtype]", "some value")
+        browser.fill("input[name=invalidtype]", "some value")
 
       it "should set value", ->
         browser.assert.input "#field-invalidtype", "some value"
@@ -630,7 +630,7 @@ describe "Forms", ->
         .fill("Hunter", "Bruce")
         .fill("hunter_hobbies", "Trying to get home")
         .fill("#hunter-password", "klaatubarada")
-        .fill(":input[name=hunter_invalidtype]", "necktie?")
+        .fill("input[name=hunter_invalidtype]", "necktie?")
         .check("Chainsaw")
         .choose("Powerglove")
         .select("Type", "Evil")
@@ -671,11 +671,11 @@ describe "Forms", ->
       before (done)->
         browser.visit("/forms/form")
           .then ->
-            browser.querySelector("form :reset").addEventListener "click", (event)->
+            browser.querySelector("form [type=reset]").addEventListener "click", (event)->
               eventType = event.type
               done()
           .then ->
-            browser.querySelector("form :reset").click()
+            browser.querySelector("form [type=reset]").click()
 
       it "should fire click event", ->
         assert.equal eventType, "click"
@@ -685,10 +685,10 @@ describe "Forms", ->
         browser.visit("/forms/form")
           .then ->
             browser.fill("Name", "ArmBiter")
-            browser.querySelector("form :reset").addEventListener "click", (event)->
+            browser.querySelector("form [type=reset]").addEventListener "click", (event)->
               event.preventDefault()
           .then ->
-            browser.querySelector("form :reset").click()
+            browser.querySelector("form [type=reset]").click()
           .then(done, done)
 
       it "should not reset input field", ->
@@ -699,7 +699,7 @@ describe "Forms", ->
         browser.visit("/forms/form")
           .then ->
             browser.fill("Name", "ArmBiter")
-            browser.querySelector("form :reset").click()
+            browser.querySelector("form [type=reset]").click()
           .then(done, done)
 
       it "should reset input field to original value", ->

@@ -26,7 +26,7 @@ require("./forms")
 require("./xpath")
 require("./dom_focus")
 require("./dom_iframe")
-require("./dom_selectors")
+#require("./dom_selectors")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
@@ -639,7 +639,7 @@ class Browser extends EventEmitter
       # Invalid selector, but may be valid field name
 
     # Use field name (case sensitive).
-    for field in @queryAll(":input[name]")
+    for field in @queryAll("input[name],textarea[name],select[name]")
       if field.getAttribute("name") == selector
         return field
 
@@ -650,7 +650,7 @@ class Browser extends EventEmitter
         if forAttr = label.getAttribute("for")
           return @document.getElementById(forAttr)
         else
-          return label.querySelector(":input")
+          return label.querySelector("input,textarea,select")
     return
 
   # ### browser.fill(selector, value, callback) => this
@@ -838,7 +838,7 @@ class Browser extends EventEmitter
       return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
     for button in @querySelectorAll("button")
       return button if button.textContent.trim() == selector
-    inputs = @querySelectorAll(":submit, :reset, :button")
+    inputs = @querySelectorAll("input[type=submit],button")
     for input in inputs
       return input if input.name == selector
     for input in inputs

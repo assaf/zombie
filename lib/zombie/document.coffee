@@ -1,8 +1,10 @@
 # Create an empty document.  Each window gets a new document.
 
-JSDOM   = require("jsdom")
-Scripts = require("./scripts")
-HTML     = JSDOM.dom.level3.html
+JSDOM           = require("jsdom")
+HTML            = JSDOM.dom.level3.html
+Scripts         = require("./scripts")
+Path            = require("path")
+JSDOMSelectors  = require(Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/index"))
 
 
 # Creates an returns a new document attached to the window.
@@ -10,7 +12,7 @@ HTML     = JSDOM.dom.level3.html
 # browser - The browser
 # window  - The window
 # referer - Referring URL
-createDocument = (browser, window, referer)->
+module.exports = createDocument = (browser, window, referer)->
   features =
     MutationEvents:           "2.0"
     ProcessExternalResources: []
@@ -18,9 +20,10 @@ createDocument = (browser, window, referer)->
     QuerySelector:            true
 
   # JSDOM's way of creating a document.
-  jsdomBrowser = JSDOM.browserAugmentation(HTML, parser: browser.htmlParser)
+  jsdomBrowser = JSDOM.browserAugmentation(HTML) #, parser: browser.htmlParser)
   # HTTP header Referer, but Document property referrer
   document = new jsdomBrowser.HTMLDocument(referrer: referer)
+  JSDOMSelectors.applyQuerySelector(document, HTML)
 
   if browser.hasFeature("scripts", true)
     features.ProcessExternalResources.push("script")
@@ -51,6 +54,3 @@ createDocument = (browser, window, referer)->
       return window.location.href
 
   return document
-
-
-module.exports = createDocument

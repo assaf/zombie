@@ -1,6 +1,5 @@
 # Support for CSS selectors (querySelector and querySelectorAll)
 
-
 Path          = require("path")
 HTML          = require("jsdom").dom.level3.html
 createSizzle  = require(Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/sizzle"))

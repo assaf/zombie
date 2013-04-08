@@ -99,6 +99,7 @@ Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
 # textContent returns the textual content of nodes like text, comment,
 # attribute, but when operating on elements, return only textual content of
 # child text/element nodes.
+###
 HTML.Node.prototype.__defineGetter__ "textContent", ->
   if @nodeType == HTML.Node.TEXT_NODE || @nodeType == HTML.Node.COMMENT_NODE ||
      @nodeType == HTML.Node.ATTRIBUTE_NODE || @nodeType == HTML.Node.CDATA_SECTION_NODE
@@ -111,6 +112,7 @@ HTML.Node.prototype.__defineGetter__ "textContent", ->
       .join("")
   else
     return null
+###
       
 
 # Form elements collection should allow retrieving individual element by its

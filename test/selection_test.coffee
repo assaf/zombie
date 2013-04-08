@@ -114,13 +114,13 @@ describe "Selection", ->
   describe "button", ->
     describe "when passed a valid HTML element", ->
       it "should return the already queried element", ->
-        elem = browser.querySelector("button:first")
+        elem = browser.querySelector("button")
         assert.equal browser.button(elem), elem
 
   describe "link", ->
     describe "when passed a valid HTML element", ->
       it "should return the already queried element", ->
-        elem = browser.querySelector("a:first")
+        elem = browser.querySelector("a:first-child")
         assert.equal browser.link(elem), elem
 
   describe "field", ->
