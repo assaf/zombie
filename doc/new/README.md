@@ -132,7 +132,7 @@ domain.
 Consider this code:
 
 ```js
-browser.setCookie(name: "session", domain: "example.com");
+browser.setCookie(name: "session", domain: "example.com", value: "delicious");
 browser.visit("http://example.com", function() {
   var value = browser.getCookie("session");
   console.log("Cookie", value);
@@ -169,32 +169,15 @@ The following are equivalent:
 browser.getCookie("session");
 browser.getCookie({ name: "session",
                     domain: browser.location.hostname,
-                    path: "/" });
+                    path: browser.location.pathname });
 ```
 
-`findCookies` and `deleteCookies` operate on all matching cookies.  This example
-operates on all cookies for `www.example.com` and `example.com`:
 
-```js
-browser.findCookies({ domain: ".example.com" });
-```
-
-This example operates on all cookies from all domains (you can also pass `null`
-or an empty object):
-
-```js
-browser.deleteCookies();
-```
-
-`getCookie` and `findCookies` take a third argument.  If false or missing, they
-return the cookie value.  If true, they return an object with all the cookie
+`getCookie` take a second argument.  If false (or missing), it returns the
+value of the cookie.  If true, it returns an object with all the cookie
 properties: `name`, `value`, `domain`, `path`, `expires`, `httpOnly` and
 `secure`.
 
-You can also reuse cookies across browsers.  The `cookies` object represents all
-cookies known to the browser, you can `export` them and then `import` to a
-different browser object.  The format is a string, with one line per cookie;
-each line has the same key/value format as used by `document.cookie`.
 
 #### browser.cookies
 
@@ -204,17 +187,6 @@ Returns an object holding all cookies used by this browser.
 
 Dumps all cookies to standard output, or the output stream.
 
-#### browser.cookies.export(identifier?)
-
-Exports all cookies, or all cookies matching the identifier, to a string.
-
-The identifier is an object with the optional properties `name`, `domain` and
-`path`.
-
-#### browser.cookies.import(string)
-
-Imports all cookies from a string.
-
 #### browser.deleteCookie(identifier)
 
 Deletes a cookie matching the identifier.
@@ -222,22 +194,9 @@ Deletes a cookie matching the identifier.
 The identifier is either the name of a cookie, or an object with the property
 `name` and the optional properties `domain` and `path`.
 
-#### browser.deleteCookies(identifier?)
+#### browser.deleteCookies()
 
-Deletes all cookies, or all cookies matching the identifier.
-
-The identifier is an object with the optional properties `name`, `domain` and
-`path`.
-
-#### browser.findCookies(identifier, allProperties)
-
-Returns all cookies, or all cookies matching the identifier.
-
-The identifier is an object with the optional properties `name`, `domain` and
-`path`.
-
-If `allProperties` is true, returns an array of objects with all the cookie
-properties, otherwise returns an array of cookie values.
+Deletes all cookies.
 
 #### browser.getCookie(identifier, allProperties?)
 
@@ -249,12 +208,11 @@ The identifier is either the name of a cookie, or an object with the property
 If `allProperties` is true, returns an object with all the cookie properties,
 otherwise returns the cookie value.
 
-
 #### browser.setCookie(name, value)
 
 Sets the value of a cookie based on its name.
 
-#### browser.setCookie(options)
+#### browser.setCookie(cookie)
 
 Sets the value of a cookie based on the following properties:
 

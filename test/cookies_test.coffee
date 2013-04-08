@@ -26,106 +26,6 @@ describe "Cookies", ->
 
   # -- Browser API --
 
-  describe "deleteCookie", ->
-    describe "by name", ->
-      before ->
-        browser.deleteCookies()
-        browser.visit("http://example.com/")
-        browser.setCookie("foo", "delete me")
-        browser.setCookie("bar", "keep me")
-
-      it "should delete that cookie", ->
-        browser.assert.cookie("foo", "delete me")
-        assert browser.deleteCookie("foo")
-        browser.assert.cookie("foo", null)
-        browser.assert.cookie("bar", "keep me")
-
-      after ->
-        browser.close()
-
-    describe "by name and domain", ->
-      before ->
-        browser.deleteCookies()
-        browser.setCookie(name: "foo", domain: "www.example.com", value: "delete me")
-        browser.setCookie(name: "foo", domain: ".example.com",    value: "keep me")
-
-      it "should delete that cookie", ->
-        browser.assert.cookie(name: "foo", domain: "www.example.com", "delete me")
-        assert browser.deleteCookie(name: "foo", domain: "www.example.com")
-        browser.assert.cookie(name: "foo", domain: "www.example.com", "keep me")
-
-    describe "by name, domain and path", ->
-      before ->
-        browser.deleteCookies()
-        browser.setCookie(name: "foo", domain: "example.com", path: "/",    value: "keep me")
-        browser.setCookie(name: "foo", domain: "example.com", path: "/bar", value: "delete me")
-
-      it "should delete that cookie", ->
-        browser.assert.cookie(name: "foo", domain: "example.com", path: "/bar", "delete me")
-        assert browser.deleteCookie(name: "foo", domain: "example.com", path: "/bar")
-        browser.assert.cookie(name: "foo", domain: "example.com", path: "/bar", "keep me")
-
-
-  describe.only "deleteCookies", ->
-    describe "no arguments", ->
-      before ->
-        browser.deleteCookies()
-        browser.setCookie("foo", domain: "example.com", value: "delete me")
-        browser.setCookie("bar", domain: "example.com", value: "delete me")
-
-      it "should delete all cookies", ->
-        assert.equal browser.cookies.length, 2
-        assert.equal browser.deleteCookies(), 2
-        assert.equal browser.cookies.length, 0
-
-    describe "empty object", ->
-      before ->
-        browser.deleteCookies()
-        browser.setCookie("foo", domain: "example.com", value: "delete me")
-        browser.setCookie("bar", domain: "example.com", value: "delete me")
-
-      it "should delete all cookies", ->
-        assert.equal browser.cookies.length, 2
-        assert.equal browser.deleteCookies({}), 2
-        assert.equal browser.cookies.length, 0
-
-
-    describe "by name", ->
-      before ->
-        browser.deleteCookies()
-        browser.setCookie(name: "foo", domain: "example.com", value: "delete me")
-        browser.setCookie(name: "bar", domain: "example.com", value: "keep me")
-
-      it "should delete only named cookies", ->
-        assert.equal browser.deleteCookies(name: "foo"), 1
-        browser.assert.cookie(name: "foo", domain: "example.com", null)
-        browser.assert.cookie(name: "bar", domain: "example.com", "keep me")
-
-
-    describe "by name and domain", ->
-      before ->
-        browser.deleteCookies()
-        browser.setCookie(name: "foo", domain: "www.example.com", value: "delete me")
-        browser.setCookie(name: "foo", domain: ".example.com",    value: "delete me")
-
-      it "should delete that cookie", ->
-        browser.assert.cookie(name: "foo", domain: "www.example.com", "delete me")
-        assert.equal browser.deleteCookies(name: "foo", domain: "www.example.com"), 2
-        browser.assert.cookie(name: "foo", domain: "example.com", null)
-
-    describe "by name, domain and path", ->
-      before ->
-        browser.deleteCookies()
-        browser.setCookie(name: "foo", domain: "example.com", path: "/",        value: "keep me")
-        browser.setCookie(name: "foo", domain: "example.com", path: "/bar",     value: "delete me")
-        browser.setCookie(name: "foo", domain: "example.com", path: "/bar/baz", value: "delete me")
-
-      it "should delete that cookie", ->
-        console.dir browser.cookies
-        assert.equal browser.deleteCookies(name: "foo", domain: "example.com", path: "/bar"), 2
-        console.dir browser.cookies
-        browser.assert.cookie(name: "foo", domain: "example.com", path: "/", "keep me")
-
 
   describe "getCookie", ->
     before ->
@@ -167,8 +67,64 @@ describe "Cookies", ->
       , "No domain specified and no open page"
 
 
+  describe "deleteCookie", ->
+    describe "by name", ->
+      before ->
+        browser.deleteCookies()
+        browser.visit("http://example.com/")
+        browser.setCookie("foo", "delete me")
+        browser.setCookie("bar", "keep me")
+
+      it "should delete that cookie", ->
+        browser.assert.cookie("foo", "delete me")
+        assert browser.deleteCookie("foo")
+        browser.assert.cookie("foo", null)
+        browser.assert.cookie("bar", "keep me")
+
+      after ->
+        browser.close()
+
+    describe "by name and domain", ->
+      before ->
+        browser.deleteCookies()
+        browser.setCookie(name: "foo", domain: "www.example.com", value: "delete me")
+        browser.setCookie(name: "foo", domain: ".example.com",    value: "keep me")
+
+      it "should delete that cookie", ->
+        browser.assert.cookie(name: "foo", domain: "www.example.com", "delete me")
+        assert browser.deleteCookie(name: "foo", domain: "www.example.com")
+        browser.assert.cookie(name: "foo", domain: "www.example.com", "keep me")
+
+    describe "by name, domain and path", ->
+      before ->
+        browser.deleteCookies()
+        browser.setCookie(name: "foo", domain: "example.com", path: "/",    value: "keep me")
+        browser.setCookie(name: "foo", domain: "example.com", path: "/bar", value: "delete me")
+
+      it "should delete that cookie", ->
+        browser.assert.cookie(name: "foo", domain: "example.com", path: "/bar", "delete me")
+        assert browser.deleteCookie(name: "foo", domain: "example.com", path: "/bar")
+        browser.assert.cookie(name: "foo", domain: "example.com", path: "/bar", "keep me")
 
 
+  describe "deleteCookies", ->
+    before ->
+      browser.deleteCookies()
+      browser.visit("http://example.com/")
+      browser.setCookie("foo", "delete me")
+      browser.setCookie("bar", "keep me")
+
+    it "should delete all cookies", ->
+      browser.deleteCookies()
+      browser.assert.cookie("foo", null)
+      browser.assert.cookie("bar", null)
+      assert.equal browser.cookies.length, 0
+
+    after ->
+      browser.close()
+
+
+  # -- Sending and receiving --
 
   before ->
     brains.get "/cookies", (req, res)->
@@ -200,7 +156,7 @@ describe "Cookies", ->
   describe "get cookies", ->
 
     before (done)->
-      browser.clearCookies()
+      browser.deleteCookies()
       browser.visit("/cookies", done)
 
     describe "cookies", ->
@@ -210,19 +166,19 @@ describe "Cookies", ->
         browser.assert.cookie "_expires1", "3s"
         browser.assert.cookie "_expires2", "5s"
       it "should not have access to expired cookies", ->
-        browser.assert.cookie "_expires3", undefined
+        browser.assert.cookie "_expires3", null
       it "should have access to cookies for the path /cookies", ->
         browser.assert.cookie "_path1", "yummy"
       it "should have access to cookies for paths which are ancestors of /cookies", ->
         browser.assert.cookie "_path4", "yummy"
       it "should not have access to other paths", ->
-        browser.assert.cookie "_path2", undefined
-        browser.assert.cookie "_path3", undefined
+        browser.assert.cookie "_path2", null
+        browser.assert.cookie "_path3", null
       it "should have access to .domain", ->
         browser.assert.cookie "_domain1", "here"
       it "should not have access to other domains", ->
-        browser.assert.cookie "_domain2", undefined
-        browser.assert.cookie "_domain3", undefined
+        browser.assert.cookie "_domain2", null
+        browser.assert.cookie "_domain3", null
       it "should access most specific cookie", ->
         browser.assert.cookie "_multiple", "specific"
 
@@ -231,8 +187,8 @@ describe "Cookies", ->
       it "should have access to host cookies", ->
         browser.assert.cookie "_domain1", "here"
       it "should not have access to other hosts' cookies", ->
-        browser.assert.cookie "_domain2", undefined
-        browser.assert.cookie "_domain3", undefined
+        browser.assert.cookie "_domain2", null
+        browser.assert.cookie "_domain3", null
 
     describe "document.cookie", ->
       before ->
@@ -259,13 +215,11 @@ describe "Cookies", ->
   describe "host", ->
 
     before (done)->
-      browser.clearCookies()
+      browser.deleteCookies()
       browser.visit("/cookies", done)
 
     it "should be able to set domain cookies", ->
-      cookies = browser.cookies("localhost", "/cookies")
-      assert.equal cookies.get("_domain1"), "here"
-      #browser.assert.cookie name: "_domain1", domain: "localhost", path: "/cookies", "here"
+      browser.assert.cookie name: "_domain1", domain: "localhost", path: "/cookies", "here"
 
 
   describe "get cookies and redirect", ->
@@ -275,12 +229,11 @@ describe "Cookies", ->
         res.cookie "_expires4", "3s" #, expires: new Date(Date.now() + 3000), "Path": "/"
         res.redirect "/"
 
-      browser.clearCookies()
+      browser.deleteCookies()
       browser.visit("/cookies/redirect", done)
 
     it "should have access to persistent cookie", ->
-      cookies = browser.cookies("localhost", "/cookies/redirect")
-      assert.equal cookies.get("_expires4"), "3s"
+      browser.assert.cookie name: "_expires4", domain: "localhost", path: "/cookies/redirect", "3s"
 
 
   describe "duplicates", ->
@@ -293,10 +246,8 @@ describe "Cookies", ->
         res.cookie "_dup", "three", path: "/"
         res.send ""
 
-      browser.clearCookies()
-      browser.visit("/cookies")
-        .then ->
-          browser.visit("/cookies2")
+      browser.deleteCookies()
+      browser.visit("/cookies2")
         .then ->
           browser.visit("/cookies3")
         .then(done, done)
@@ -304,25 +255,24 @@ describe "Cookies", ->
     it "should retain last value", ->
       browser.assert.cookie "_dup", "three"
     it "should only retain last cookie", ->
-      dups = browser.cookies().all().filter((c)-> c.key == "_dup")
-      assert.equal dups.length, 1
+      assert.equal browser.cookies.length, 1
 
 
   describe "send cookies", ->
 
     before (done)->
-      browser.clearCookies()
-      browser.cookies("localhost"                   ).set("_name",      "value")
-      browser.cookies("localhost"                   ).set("_expires1",  "3s",     "max-age": 3000)
-      browser.cookies("localhost"                   ).set("_expires2",  "0s",     "max-age": 0)
-      browser.cookies("localhost", "/cookies"       ).set("_path1",     "here")
-      browser.cookies("localhost", "/cookies/echo"  ).set("_path2",     "here")
-      browser.cookies("localhost", "/jars"          ).set("_path3",     "there",  "path": "/jars")
-      browser.cookies("localhost", "/cookies/fido"  ).set("_path4",     "there",  "path": "/cookies/fido")
-      browser.cookies("localhost", "/"              ).set("_path5",     "here",   "path": "/cookies")
-      browser.cookies(".localhost"                  ).set("_domain1",   "here")
-      browser.cookies("not.localhost"               ).set("_domain2",   "there")
-      browser.cookies("notlocalhost"                ).set("_domain3",   "there")
+      browser.deleteCookies()
+      browser.setCookie(domain: "localhost",                            name: "_name",                       value: "value")
+      browser.setCookie(domain: "localhost",                            name: "_expires1",  "max-age": 3000,  value: "3s")
+      browser.setCookie(domain: "localhost",                            name: "_expires2",  "max-age": 0,     value: "0s")
+      browser.setCookie(domain: "localhost",    path: "/cookies",       name: "_path1",                       value: "here")
+      browser.setCookie(domain: "localhost",    path: "/cookies/echo",  name: "_path2",                       value: "here")
+      browser.setCookie(domain: "localhost",    path: "/jars",          name: "_path3",                       value: "there")
+      browser.setCookie(domain: "localhost",    path: "/cookies/fido",  name: "_path4",                       value: "there")
+      browser.setCookie(domain: "localhost",    path: "/",              name:"_path5",                        value: "here")
+      browser.setCookie(domain: ".localhost",                           name: "_domain1",                     value: "here")
+      browser.setCookie(domain: "not.localhost",                        name: "_domain2",                     value: "there")
+      browser.setCookie(domain: "notlocalhost",                         name: "_domain3",                     value: "there")
       browser.visit "/cookies/echo", =>
         @cookies = cookiesFromHtml(browser)
         done()
@@ -332,42 +282,33 @@ describe "Cookies", ->
     it "should pass persistent cookie to server", ->
       assert.equal @cookies._expires1, "3s"
     it "should not pass expired cookie to server", ->
-      assert.equal @cookie._expires2, undefined
+      assert.equal @cookies._expires2, null
     it "should pass path cookies to server", ->
       assert.equal @cookies._path1, "here"
       assert.equal @cookies._path2, "here"
       assert.equal @cookies._path5, "here"
     it "should not pass unrelated path cookies to server", ->
-      assert.equal @cookies._path3, undefined, "path3"
-      assert.equal @cookies._path4, undefined, "path4"
-      assert.equal @cookies._path6, undefined, "path5"
+      assert.equal @cookies._path3, null, "path3"
+      assert.equal @cookies._path4, null, "path4"
+      assert.equal @cookies._path6, null, "path5"
     it "should pass sub-domain cookies to server", ->
       assert.equal @cookies._domain1, "here"
     it "should not pass other domain cookies to server", ->
-      assert.equal @cookies._domain2, undefined
-      assert.equal @cookies._domain3, undefined
+      assert.equal @cookies._domain2, null
+      assert.equal @cookies._domain3, null
 
 
   describe "setting cookies from subdomains", ->
     before ->
-      browser.clearCookies()
-      browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
+      browser.deleteCookies()
+      browser.cookies.update("foo=bar; domain=localhost")
 
     it "should be accessible", ->
-      assert.equal "bar", browser.cookies("localhost").get("foo")
-      assert.equal "bar", browser.cookies("www.localhost").get("foo")
+      browser.assert.cookie domain: "localhost", name: "foo", "bar"
+      browser.assert.cookie domain: "www.localhost", name: "foo", "bar"
 
 
-  describe "setting Cookie header", ->
-    before ->
-      @header = { cookie: "" }
-      browser.clearCookies()
-      browser.cookies().update("foo=bar;")
-      browser.cookies().addHeader(@header)
-
-    it "should send V0 header", ->
-      assert.equal @header.cookie, "foo=bar"
-
+  # -- Access from JS --
 
   describe "document.cookie", ->
 

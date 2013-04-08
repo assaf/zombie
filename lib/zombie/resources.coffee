@@ -459,8 +459,8 @@ Resources.makeHTTPRequest = (request, callback)->
   else
 
     # We're going to use cookies later when recieving response.
-    cookies = @cookies(hostname, pathname)
-    cookies.addHeader(request.headers)
+    cookies = @cookies
+    request.headers.cookie = cookies.serialize(hostname, pathname)
 
     httpRequest =
       method:         request.method
@@ -481,11 +481,8 @@ Resources.makeHTTPRequest = (request, callback)->
 
       # Set cookies from response
       setCookie = response.headers["set-cookie"]
-      if typeof(setCookie) == "string"
-        cookies.update(setCookie)
-      else if setCookie
-        for cookie in setCookie
-          cookies.update(cookie)
+      if setCookie
+        cookies.update(setCookie, hostname, pathname)
 
       # Number of redirects so far.
       redirects = request.redirects || 0

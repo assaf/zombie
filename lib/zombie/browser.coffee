@@ -862,10 +862,23 @@ class Browser extends EventEmitter
     return @wait(callback)
 
 
-  # Cookies and storage
-  # -------------------
+  # -- Cookies --
+
 
   # Returns cookie that best matches the identifier.
+  #
+  # identifier - Identifies which cookie to return
+  # allProperties - If true, return all cookie properties, other just the value
+  #
+  # Identifier is either the cookie name, in which case the cookie domain is
+  # determined from the currently open Web page, and the cookie path is "/".
+  #
+  # Or the identifier can be an object specifying:
+  # name   - The cookie name
+  # domain - The cookie domain (defaults to hostname of currently open page)
+  # path   - The cookie path (defaults to "/")
+  #
+  # Returns cookie value, or cookie object (see setCookie).
   getCookie: (identifier, allProperties)->
     identifier = @_cookieIdentifier(identifier)
     assert(identifier.name, "Missing cookie name")
@@ -880,29 +893,73 @@ class Browser extends EventEmitter
       return null
 
   # Deletes cookie that best matches the identifier.
+  #
+  # identifier - Identifies which cookie to return
+  #
+  # Identifier is either the cookie name, in which case the cookie domain is
+  # determined from the currently open Web page, and the cookie path is "/".
+  #
+  # Or the identifier can be an object specifying:
+  # name   - The cookie name
+  # domain - The cookie domain (defaults to hostname of currently open page)
+  # path   - The cookie path (defaults to "/")
+  #
+  # Returns true if cookie delete.
   deleteCookie: (identifier)->
     identifier = @_cookieIdentifier(identifier)
     assert(identifier.name, "Missing cookie name")
     assert(identifier.domain, "No domain specified and no open page")
     cookie = @cookies.select(identifier)[0]
+    console.log "cookie", cookie
     if cookie
       @cookies.delete(cookie)
       return true
     else
       return false
 
-  # Delete all cookies matching the identifier
-  deleteCookies: (identifier)->
-    if identifier
-      cookies = @cookies.select(identifier || {})
-      for cookie in cookies
-        @cookies.delete(cookie)
-      return cookies.length
+  # Sets a cookie.
+  #
+  # You can call this function with two arguments to set a session cookie: the
+  # cookie value and cookie name.  The domain is determined from the current
+  # page URL, and the path is always "/".
+  #
+  # Or you can call it with a single argument, with all cookie options:
+  # name     - Name of the cookie
+  # value    - Value of the cookie
+  # domain   - The cookie domain (e.g example.com, .example.com)
+  # path     - The cookie path
+  # expires  - Time when cookie expires
+  # maxAge   - How long before cookie expires
+  # secure   - True for HTTPS only cookie
+  # httpOnly - True if cookie not accessible from JS
+  setCookie: (nameOrOptions, value)->
+    if location = @location
+      domain = location.hostname
+    if typeof(nameOrOptions) == "string"
+      @cookies.set
+        name:     nameOrOptions
+        value:    value || ""
+        domain:   domain
+        path:     "/"
+        secure:   false
+        httpOnly: false
     else
-      count = @cookies.length
-      @cookies.length = 0
-      return count
+      assert(nameOrOptions.name, "Missing cookie name")
+      @cookies.set
+        name:       nameOrOptions.name
+        value:      nameOrOptions.value || value || ""
+        domain:     nameOrOptions.domain || domain
+        path:       nameOrOptions.path || "/"
+        secure:     !!nameOrOptions.secure
+        httpOnly:   !!nameOrOptions.httpOnly
+        expires:    nameOrOptions.expires
+        "max-age":  nameOrOptions["max-age"]
+    return
 
+  # Deletes all cookies.
+  deleteCookies: ->
+    @cookies.deleteAll()
+    return
 
   # Converts Tough Cookie object into Zombie cookie representation.
   _cookieProperties: (cookie)->
@@ -921,44 +978,23 @@ class Browser extends EventEmitter
 
   # Converts cookie name/identifier into an identifier object.
   _cookieIdentifier: (identifier)->
-    if location = @location
-      domain = location.hostname
+    location = @location
+    domain = location && location.hostname
+    path   = location && location.pathname || "/"
     if typeof(identifier) == "string"
       identifier =
         name:   identifier
         domain: domain
-        path:   "/"
+        path:   path
     else
       identifier =
         name:   identifier.name
         domain: identifier.domain || domain
-        path:   identifier.path || "/"
+        path:   identifier.path || path
     return identifier
 
 
-  setCookie: (options, value)->
-    if location = @location
-      domain = location.hostname
-    if typeof(options) == "string"
-      @cookies.set
-        name:     options
-        value:    value || ""
-        domain:   domain
-        path:     "/"
-        secure:   false
-        httpOnly: false
-    else
-      @cookies.set(options)
-    return
-
-  removeCookie: (name)->
-    @cookies().remove(name)
-    return
-
-  clearCookies: ->
-    @cookies = new Cookies()
-    return
-
+  # -- Local/Session Storage --
 
 
   # Returns local Storage based on the document origin (hostname/port). This is the same storage area you can access
