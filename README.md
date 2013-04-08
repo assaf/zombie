@@ -155,7 +155,7 @@ and fire timeouts events.  It is quite common for pages to fire timeout events
 as they load, e.g. jQuery's `onready`.  Usually these events delay the test by
 no more than a few milliseconds.
 
-Read more [on the Browser API](API)
+Read more [on the Browser API](doc/API.md)
 
 
 ## Hunting
@@ -202,7 +202,7 @@ get additional and quite useful extensions, such as `:not(selector)`,
 `[NAME!=VALUE]`, `:contains(TEXT)`, `:first/:last` and so forth.  Check out the
 [Sizzle.js documentation](http://sizzlejs.com/) for more details.
 
-Read more [on the Browser API](API) and [CSS selectors](selectors)
+Read more [on the Browser API](doc/API.md) and [CSS selectors](doc/selectors.md)
 
 
 ## Feeding
@@ -262,7 +262,7 @@ Let's combine all of that into one example:
 
       });
 
-Read more [on the Browser API](API)
+Read more [on the Browser API](doc/API.md)
 
 
 ## Believing
