@@ -107,27 +107,26 @@ describe "Promises", ->
       assert.equal @error.message, "Assertion haz a fail"
 
 
-    # Chaining allows us to capture errors once at the very end of the chain.
-    #
-    # Here we expect an error to happen and that should pass the test.
-    #
-    # If an error doesn't happen, we call done with a value and that would fail
-    # the test.
-    describe "chained", ->
-      before (done)->
-        browser.visit("/promises")
-          .then ->
-            browser.assert.text "title", "Ooops", "Assertion haz a fail"
-          .then ->
-            browser.assert.text "title", "Ooops", "I'm here against all odds"
-          .then ->
-            browser.assert.text "title", "Ooops", "I'm here against all odds"
-          .fail (@error)=>
-            done()
-          .finally(done)
+  # Chaining allows us to capture errors once at the very end of the chain.
+  #
+  # Here we expect an error to happen and that should pass the test.
+  #
+  # If an error doesn't happen, we call done with a value and that would fail
+  # the test.
+  describe "chained", ->
+    before (done)->
+      browser.visit("/promises")
+        .then ->
+          browser.assert.text "title", "Ooops", "Assertion haz a fail"
+        .then ->
+          browser.assert.text "title", "Ooops", "I'm here against all odds"
+        .then ->
+          browser.assert.text "title", "Ooops", "I'm here against all odds"
+        .fail (@error)=>
+          done()
 
-      it "should reject with an error", ->
-        assert.equal @error.message, "Assertion haz a fail"
+    it "should reject with an error", ->
+      assert.equal @error.message, "Assertion haz a fail"
 
 
   after ->

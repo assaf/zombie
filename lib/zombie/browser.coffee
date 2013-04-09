@@ -26,7 +26,6 @@ require("./forms")
 require("./xpath")
 require("./dom_focus")
 require("./dom_iframe")
-#require("./dom_selectors")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
@@ -287,7 +286,7 @@ class Browser extends EventEmitter
     promise = @eventLoop.wait(waitDuration, completionFunction)
 
     if callback
-      promise.then(callback, callback).done()
+      promise.then(callback).fail(callback)
     return promise
 
 
@@ -468,7 +467,6 @@ class Browser extends EventEmitter
     if typeof options == "function" && !callback
       [callback, options] = [options, null]
 
-    deferred = Q.defer()
     resetOptions = @withOptions(options)
     if site = @site
       site = "http://#{site}" unless /^(https?:|file:)/i.test(site)
@@ -477,15 +475,16 @@ class Browser extends EventEmitter
     if @window
       @tabs.close(@window)
     @tabs.open(url: url, referer: @referer)
-    @wait options, (error)=>
-      resetOptions()
-      if error
-        deferred.reject(error)
-      else
-        deferred.resolve()
-      if callback
-        callback error, this, @statusCode, @errors
-    return deferred.promise unless callback
+
+    promise = @wait(options)
+    # Q.finally is better, but emits an error
+    promise.then(resetOptions, resetOptions)
+    if callback
+      promise.then =>
+        callback null, this, @statusCode, @errors
+      , callback
+    else
+      return promise
 
 
   # ### browser.load(html, callback)
