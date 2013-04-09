@@ -344,7 +344,7 @@ describe "Cookies", ->
             .then ->
               browser.document.cookie = "foo=qux" # more specific path, not visible to /cookies.echo
               return
-            .finally(done)
+            .fail(-> done())
 
         before (done)->
           browser.visit("/cookies/echo", done)

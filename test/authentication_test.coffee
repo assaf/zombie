@@ -21,8 +21,9 @@ describe "Authentication", ->
 
     describe "without credentials", ->
       before (done)->
-        browser.visit("/auth/basic").
-          finally(done)
+        browser.visit("/auth/basic")
+          .fail ->
+            done()
 
       it "should return status code 401", ->
         browser.assert.status 401
@@ -32,7 +33,8 @@ describe "Authentication", ->
       before (done)->
         browser.authenticate("localhost:3003").basic("username", "wrong")
         browser.visit("/auth/basic")
-          .finally(done)
+          .fail ->
+            done()
 
       it "should return status code 401", ->
         browser.assert.status 401
@@ -60,7 +62,8 @@ describe "Authentication", ->
     describe "without credentials", ->
       before (done)->
         browser.visit("/auth/oauth2")
-          .finally(done)
+          .fail ->
+            done()
 
       it "should return status code 401", ->
         browser.assert.status 401
@@ -69,7 +72,8 @@ describe "Authentication", ->
       before (done)->
         browser.authenticate("localhost:3003").bearer("wrong")
         browser.visit("/auth/oauth2")
-          .finally(done)
+          .fail ->
+            done()
 
       it "should return status code 401", ->
         browser.assert.status 401

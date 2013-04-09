@@ -1,7 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-describe "Google map", ->
+describe.skip "Google map", ->
 
   browser = null
   before (done)->

@@ -270,13 +270,15 @@ describe "Browser events", ->
       brains.get "/browser-events/submit", (req, res)->
         res.send "<form action='post'></form>"
 
+      brains.get "/browser-events/post", (req, res)->
+        res.send(200)
+
       browser.on "submit", (url, target)->
         events.link = { url: url, target: target }
 
       browser.visit "/browser-events/submit", ->
         browser.query("form").submit()
-        browser.wait ->
-          done()
+        browser.wait(done)
 
     it "should receive submit event with the URL", ->
       assert.equal events.link.url, "http://localhost:3003/browser-events/post"

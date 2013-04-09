@@ -154,7 +154,7 @@ describe "Browser", ->
 
       describe "successful", ->
         before (done)->
-          browser.on "loaded", (@document)=>
+          browser.once "loaded", (@document)=>
             done()
           browser.visit("http://localhost:3003/browser/scripted")
 
@@ -164,7 +164,7 @@ describe "Browser", ->
       describe "wait over", ->
 
         before (done)->
-          browser.on("done", done)
+          browser.once("done", done)
           browser.location = "http://localhost:3003/browser/scripted"
           browser.wait()
 
@@ -173,7 +173,7 @@ describe "Browser", ->
 
       describe "error", ->
         before (done)->
-          browser.on "error", (@error)=>
+          browser.once "error", (@error)=>
             done()
           browser.location = "http://localhost:3003/browser/errored"
           browser.wait()

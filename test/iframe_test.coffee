@@ -1,7 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-describe "IFrame", ->
+describe.skip "IFrame", ->
 
   browser = null
   before (done)->
