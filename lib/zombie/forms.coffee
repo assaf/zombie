@@ -202,4 +202,3 @@ HTML.Document.prototype._elementBuilders["button"] = (doc, s)->
   button = new HTML.HTMLButtonElement(doc, s)
   button.type ||= "submit"
   return button
-

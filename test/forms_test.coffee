@@ -136,7 +136,6 @@ describe "Forms", ->
           <div id="brains">#{req.body.brains}</div>
           <div id="looks">#{req.body.looks}</div>
           <div id="hungry">#{JSON.stringify(req.body.hungry)}</div>
-          <div id="state">#{req.body.state}</div>
           <div id="scary">#{req.body.scary}</div>
           <div id="state">#{req.body.state}</div>
           <div id="empty-text">#{req.body.empty_text}</div>
