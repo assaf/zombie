@@ -1,7 +1,9 @@
 # Fix things that JSDOM doesn't do quite right.
 
 
-HTML          = require("jsdom").dom.level3.html
+HTML  = require("jsdom").dom.level3.html
+HTML5 = require("html5")
+
 
 
 HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
@@ -117,7 +119,7 @@ HTML.Node.prototype.__defineGetter__ "textContent", ->
   else
     return null
 ###
-      
+
 
 # Form elements collection should allow retrieving individual element by its
 # name, e.g. form.elements["username"] => <input name="username">
@@ -139,3 +141,16 @@ HTML.NodeList.prototype.update = ->
     @_version = @_element._version
   return @_snapshot
 
+
+# For some reason HTML5 uses elementBuilder instead of createElement
+HTML5.TreeBuilder.prototype.createElement = (name, attributes, namespace)->
+  el = this.document.createElement(name)
+  el.namespace = namespace
+  if(attributes)
+    if(attributes.item)
+      for i in [0...attributes.length]
+        this.copyAttributeToElement(el, attributes.item(i))
+    else
+      for i in [0...attributes.length]
+        this.copyAttributeToElement(el, attributes[i])
+  return el
