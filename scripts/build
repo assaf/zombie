@@ -1,2 +1,5 @@
 #!/bin/sh
-coffee -b -c -l -o lib/zombie lib/zombie/*.coffee
+#
+# Use this to compile Coffee-Script to JS
+coffee --bare --compile --lint --map --output lib/zombie lib/zombie/*.coffee
+echo Done
