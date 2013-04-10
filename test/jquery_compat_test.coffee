@@ -1,7 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.3", "1.7.1", "1.8.0"]
+JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.3", "1.7.1", "1.8.0", "1.9.1"]
 
 
 describe "Compatibility with jQuery", ->
@@ -120,26 +120,45 @@ describe "Compatibility with jQuery", ->
               assert.equal browser.window.$("#response .ok").closest("[id]").attr("id"), "response"
 
 
-        # Using new event delegation introduced in 1.7
-        if version > "1.7"
+        if version > "1.9"
 
-          describe "event handling", ->
-            it "should catch live event handler", (done)->
+          describe "live events", ->
+            before (done)->
+              browser.visit "http://localhost:3003/compat/jquery-#{version}", ->
+                browser.window.$(browser.document).on "click", ".skip-me", (event)->
+                  done(new Error("unexpected event capture"))
+                browser.window.$(browser.document).on "click", ".some-class", (event)->
+                  done()
+                browser.pressButton("Click Me")
+
+            it "should catch live event handler", ->
+              true
+
+        else if version > "1.7"
+
+          describe "live events", ->
+            before (done)->
               browser.visit "http://localhost:3003/compat/jquery-#{version}", ->
                 browser.window.$(browser.document).live "click", ".some-class", (event)->
                   done()
-                browser.pressButton "Click Me"
+                browser.pressButton("Click Me")
 
-            it "should respect preventDefault in event delegation", (done)->
-              browser.visit("http://localhost:3003/compat/jquery-#{version}")
-                .then ->
-                  browser.window.$(browser.document).on "click", ".some-class", (event)->
-                    event.preventDefault()
-                    return
-                  browser.pressButton "Click Me"
-                .then ->
-                  assert browser.location.pathname != "/zombie/dead-end"
-                .then(done, done)
+            it "should catch live event handler", ->
+              true
+
+        if version > "1.7"
+
+          describe "preventDefault", ->
+            before (done)->
+              browser.visit "http://localhost:3003/compat/jquery-#{version}", ->
+                browser.window.$(browser.document).on "click", ".some-class", (event)->
+                  event.preventDefault()
+                  return
+                browser.pressButton("Click Me", done)
+
+            it "should respect it", ->
+              assert browser.location.pathname != "/zombie/dead-end"
+
 
   after ->
     browser.destroy()
