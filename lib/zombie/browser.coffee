@@ -772,7 +772,7 @@ class Browser extends EventEmitter
   selectOption: (selector)->
     option = @query(selector)
     if option && !option.getAttribute("selected")
-      select = @xpath("./ancestor::select", option).value[0]
+      select = @xpath("./ancestor::select", option).iterateNext()
       option.setAttribute("selected", "selected")
       select.focus()
       @fire(select, "change")
@@ -800,7 +800,7 @@ class Browser extends EventEmitter
   # Without callback, returns this.
   unselectOption: (option)->
     if option && option.getAttribute("selected")
-      select = @xpath("./ancestor::select", option).value[0]
+      select = @xpath("./ancestor::select", option).iterateNext()
       unless select.multiple
         throw new Error("Cannot unselect in single select")
       option.removeAttribute("selected")
