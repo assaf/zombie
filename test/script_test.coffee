@@ -405,8 +405,7 @@ describe "Scripts", ->
     it "should be available in global context", ->
       browser.assert.evaluate "Event"
 
-
-  describe "on- event handler", ->
+  describe.skip "on- event handler", ->
     before (done)->
       brains.get "/script/event", (req, res)->
         res.send """

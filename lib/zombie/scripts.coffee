@@ -149,4 +149,3 @@ raise = ({ element, location, scope, error })->
 
 
 module.exports = { raise, addInlineScriptSupport }
-

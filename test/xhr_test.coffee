@@ -154,6 +154,7 @@ describe "XMLHttpRequest", ->
     it "should post with no data", ->
       browser.assert.text "title", "201posted"
 
+
   describe "empty response", ->
     before (done)->
       brains.get "/xhr/get-empty", (req, res)->
@@ -178,6 +179,7 @@ describe "XMLHttpRequest", ->
 
     it "responseText should be an empty string", ->
       assert.strictEqual "", browser.document.text
+
 
   describe "response text", ->
     before (done)->
