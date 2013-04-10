@@ -405,9 +405,9 @@ describe "Scripts", ->
     it "should be available in global context", ->
       browser.assert.evaluate "Event"
 
-  describe.skip "on- event handler", ->
+  describe "on- event handler (string)", ->
     before (done)->
-      brains.get "/script/event", (req, res)->
+      brains.get "/script/on-event/string", (req, res)->
         res.send """
           <form onsubmit="document.title = event.eventType; return false">
             <button>Submit</button>
@@ -416,13 +416,42 @@ describe "Scripts", ->
       brains.ready done
 
     before (done)->
-      browser.visit("/script/event")
+      browser.visit("/script/on-event/string")
         .then =>
           browser.pressButton("Submit")
         .then(done, done)
 
     it "should prevent default handling by returning false", ->
-      browser.assert.url "http://localhost:3003/script/event"
+      browser.assert.url "http://localhost:3003/script/on-event/string"
+
+    it "should have access to window.event", ->
+      browser.assert.text "title", "HTMLEvents"
+
+
+  describe "on- event handler (function)", ->
+    before (done)->
+      brains.get "/script/on-event/function", (req, res)->
+        res.send """
+          <form>
+            <button>Submit</button>
+          </form>
+          <script>
+            document.getElementsByTagName("form")[0].onsubmit = function(event) {
+              document.title = event.eventType;
+              event.preventDefault();
+            }
+          </script>
+        """
+      brains.ready done
+
+    before (done)->
+      browser.visit("/script/on-event/function")
+        .then =>
+          browser.pressButton("Submit")
+        .then(done, done)
+
+    it "should prevent default handling by returning false", ->
+      browser.assert.url "http://localhost:3003/script/on-event/function"
 
     it "should have access to window.event", ->
       browser.assert.text "title", "HTMLEvents"

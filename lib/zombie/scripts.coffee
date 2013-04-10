@@ -90,34 +90,35 @@ HTML.resourceLoader.load = (element, href, callback)->
     window._eventQueue.http "GET", url, { target: element }, @enqueue(element, loaded, url)
 
 
-# Support onload, onclick etc inline event handlers
-setAttribute = HTML.Element.prototype.setAttribute
-HTML.Element.prototype.setAttribute = (name, value)->
-  # JSDOM intercepts inline event handlers in a similar manner, but doesn't
-  # manage window.event property or allow return false.
-  if /^on.+/.test(name)
-    wrapped = "if ((function() { " + value + " }).call(this,event) === false) event.preventDefault();"
-    this[name] = (event)->
-      # We're the window. This can happen because inline handlers on the body are
-      # proxied to the window.
-      if @run
-        window = this
-      else
-        window = @_ownerDocument.parentWindow
-      # In-line event handlers rely on window.event
-      try
-        window.event = event
-        # The handler code probably refers to functions declared in the
-        # window context, so we need to call run().
-        window.run(wrapped)
-      finally
-        window.event = null
-    if @_ownerDocument
-      attr = @_ownerDocument.createAttribute(name)
-      attr.value = value
-      @_attributes.setNamedItem(attr)
+_attrModified = HTML.Node.prototype._attrModified
+HTML.Node.prototype._attrModified = (name, handler, oldValue)->
+  unless /^on.+/.test(name)
+    return _attrModified.apply(this, arguments)
+  unless handler
+    delete this[name]
+    return
+
+  # We're the window. This can happen because inline handlers on the body are
+  # proxied to the window.
+  if @run
+    context = this
   else
-    setAttribute.apply(this, arguments)
+    context = @_ownerDocument.parentWindow
+
+  # Wrap function so it passes event as first argument
+  if typeof(handler) == "string" || handler instanceof String
+    wrapped = "(function() { " + handler + " }).call(this, window.event)"
+
+  this[name] = (event)->
+    try
+      # The handler code probably refers to functions declared in the window
+      # context, so we need to call run().
+      result = context.run(wrapped || handler)
+      if result == false
+        event.preventDefault()
+      return result
+    finally
+      context.event = null
 
 
 # -- Utility methods --

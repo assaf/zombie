@@ -1,4 +1,6 @@
-# 
+# Exports single function for creating a new Window.
+
+
 createDocument  = require("./document")
 EventSource     = require("eventsource")
 History         = require("./history")
@@ -10,10 +12,6 @@ XMLHttpRequest  = require("./xhr")
 
 Events      = JSDOM.dom.level3.events
 HTML        = JSDOM.dom.level3.html
-
-
-# The current window in context.  Set during _evaluate, used by postMessage.
-inContext = null
 
 
 # Create and return a new Window.
@@ -29,7 +27,7 @@ inContext = null
 # parent    - Parent window (for frames)
 # referer   - Use this as referer
 # url       - Set document location to this URL upon opening
-createWindow = ({ browser, params, encoding, history, method, name, opener, parent, referer, url })->
+module.exports = createWindow = ({ browser, params, encoding, history, method, name, opener, parent, referer, url })->
   name  ||= ""
   url   ||= "about:blank"
 
@@ -159,13 +157,13 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
     # Window A (source) calls B.postMessage, to determine A we need the
     # caller's window.
 
-    # DDOPSON-2012-11-09 - inContext.getGlobal() is used here so that for
-    # website code executing inside the sandbox context, event.source == window.
-    # Even though the inContext object is mapped to the sandboxed version of the
-    # object returned by getGlobal, they are not the same object ie,
-    # inContext.foo == inContext.getGlobal().foo, but inContext !=
-    # inContext.getGlobal()
-    event.source = inContext.getGlobal()
+    # DDOPSON-2012-11-09 - _windowInScope.getGlobal() is used here so that for
+    # website code executing inside the sandbox context, event.source ==
+    # window. Even though the _windowInScope object is mapped to the sandboxed
+    # version of the object returned by getGlobal, they are not the same
+    # object ie, _windowInScope.foo == _windowInScope.getGlobal().foo, but
+    # _windowInScope != _windowInScope.getGlobal()
+    event.source = browser._windowInScope.getGlobal()
     origin = event.source.location
     event.origin = URL.format(protocol: origin.protocol, host: origin.host)
     window.dispatchEvent(event)
@@ -177,7 +175,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
   window._evaluate = (code, filename)->
     try
       # The current window, postMessage and window.close need this
-      [original, inContext] = [inContext, window]
+      [originalInScope, browser._windowInScope] = [browser._windowInScope, window]
       if typeof(code) == "string" || code instanceof String
         result = global.run(code, filename)
       else if code
@@ -188,7 +186,7 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
       error.filename ||= filename
       browser.emit("error", error)
     finally
-      inContext = original
+      browser._windowInScope = originalInScope
 
   # Default onerror handler.
   window.onerror = (event)->
@@ -241,10 +239,11 @@ createWindow = ({ browser, params, encoding, history, method, name, opener, pare
   # window.close actually closes the tab, and disposes of all windows in the history.
   # Also used to close iframe.
   window.close = ->
-    return if parent || closed
+    if parent || closed
+      return
     # Only opener window can close window; any code that's not running from
     # within a window's context can also close window.
-    if inContext == opener || inContext == null
+    if browser._windowInScope == opener || browser._windowInScope == null
       browser.emit("closed", window)
       history.destroy()
       window._destroy() # do this last to prevent infinite loop
@@ -389,24 +388,27 @@ loadDocument = ({ document, history, url, method, encoding, params })->
       done(new Error("Cannot load resource #{url}, unsupported protocol"))
 
 
-# Wrap dispatchEvent to support inContext and error handling.
+# Wrap dispatchEvent to support _windowInScope and error handling.
 jsdomDispatchElement = HTML.Element.prototype.dispatchEvent
 HTML.Node.prototype.dispatchEvent = (event)->
   self = this
   # Could be node, window or document
   document = self.ownerDocument || self.document || self
   window = document.window
-  window.browser.emit("event", event, self)
+  browser = window.browser
+  browser.emit("event", event, self)
 
   try
     # The current window, postMessage and window.close need this
-    [original, inContext] = [inContext, window]
+    [originalInScope, browser._windowInScope] = [browser._windowInScope, window]
+    # Inline event handlers rely on window.event
+    window.event = event
     return jsdomDispatchElement.call(self, event)
   catch error
-    error.filename ||= filename
     browser.emit("error", error)
   finally
-    inContext = original
+    delete window.event
+    browser._windowInScope = originalInScope
 
 
 # Screen object provides access to screen dimensions
@@ -426,6 +428,3 @@ class Screen
 
 # File access, not implemented yet
 class File
-
-
-module.exports = createWindow

@@ -45,6 +45,10 @@ class Browser extends EventEmitter
     @cookies = new Cookies()
     @_storages = new Storages()
     @_interact = Interact.use(this)
+    # The window that is currently in scope, some JS functions need this, e.g.
+    # when closing a window, you need to determine whether caller (window in
+    # scope) is same as window.opener
+    @_windowInScope = null
 
     # Used for assertions
     @assert = new Assert(this)
@@ -1175,7 +1179,7 @@ Browser.default =
 
   # User agent string sent to server.
   userAgent: "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{Browser.VERSION}"
-  
+
   # Navigator language code
   language: "en-US"
 
