@@ -27,7 +27,7 @@ describe.skip "angularjs", ->
       <html ng-app="test">
         <head>
           <title>Angular</title>
-          <script src="/scripts/angular-1.0.2.js"></script>
+          <script src="/scripts/angular-1.0.6.js"></script>
         </head>
         <body>
           <div ng-view></div>

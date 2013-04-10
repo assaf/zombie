@@ -17,7 +17,7 @@ describe "Facebook Connect", ->
             window.fbAsyncInit = function() {
               FB.init({
                 appId      : "190950381025985",
-                status     : true, 
+                status     : true,
                 cookie     : true,
                 xfbml      : true,
                 oauth      : true,
