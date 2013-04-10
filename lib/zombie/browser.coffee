@@ -18,12 +18,12 @@ Path              = require("path")
 Resources         = require("./resources")
 Storages          = require("./storage")
 URL               = require("url")
+XPath             = require("jsdom").dom.level3.xpath
 
 
 # DOM extensions.
 require("./jsdom_patches")
 require("./forms")
-require("./xpath")
 require("./dom_focus")
 require("./dom_iframe")
 
@@ -420,7 +420,7 @@ class Browser extends EventEmitter
   # Evaluates the XPath expression against the document (or context node) and return the XPath result.  Shortcut for
   # `document.evaluate`.
   xpath: (expression, context)->
-    return @document.evaluate(expression, context || @document.documentElement)
+    return @document.evaluate(expression, context || @document.documentElement, null, XPath.XPathResult.ANY_TYPE)
 
   # ### browser.document => Document
   #

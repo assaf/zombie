@@ -66,51 +66,55 @@ describe "XPath", ->
   describe "evaluate nodes", ->
     before ->
       @result = browser.xpath("//a")
+      @anchors = []
+      while node = @result.iterateNext()
+        @anchors.push(node)
 
-    it "should return result type node-set", ->
-      assert.equal @result.type, "node-set"
     it "should return eleven nodes", ->
-      assert.equal @result.value.length, 11
+      assert.equal @anchors.length, 11
     it "should return first anchor", ->
-      assert.equal @result.value[0].textContent, "First anchor"
+      assert.equal @anchors[0].textContent, "First anchor"
     it "should return third anchor", ->
-      assert.equal @result.value[2].textContent, "Third anchor"
+      assert.equal @anchors[2].textContent, "Third anchor"
 
   describe "evaluate with id", ->
     before ->
       @result = browser.xpath('//*[@id="post-2"]/h2')
+      @nodes = []
+      while node = @result.iterateNext()
+        @nodes.push(node)
 
     it "should return one node", ->
-      assert.equal @result.value.length, 1
+      assert.equal @nodes.length, 1
     it "should return second post title", ->
-      assert.equal @result.value[0].textContent, "Second post"
+      assert.equal @nodes[0].textContent, "Second post"
 
   describe "evaluate number", ->
     before ->
       @result = browser.xpath("count(//a)")
 
     it "should return result type number", ->
-      assert.equal @result.type, "number"
+      assert.equal @result.resultType, @result.NUMBER_TYPE
     it "should return number of nodes", ->
-      assert.equal @result.value, 11
+      assert.equal @result.numberValue, 11
 
   describe "evaluate string", ->
     before ->
       @result = browser.xpath("'foobar'")
 
     it "should return result type string", ->
-      assert.equal @result.type, "string"
+      assert.equal @result.resultType, @result.STRING_TYPE
     it "should return number of nodes", ->
-      assert.equal @result.value, "foobar"
+      assert.equal @result.stringValue, "foobar"
 
   describe "evaluate boolean", ->
     before ->
       @result = browser.xpath("2 + 2 = 4")
 
     it "should return result type boolean", ->
-      assert.equal @result.type, "boolean"
+      assert.equal @result.resultType, @result.BOOLEAN_TYPE
     it "should return number of nodes", ->
-      assert.equal @result.value, true
+      assert.equal @result.booleanValue, true
 
 
   after ->
