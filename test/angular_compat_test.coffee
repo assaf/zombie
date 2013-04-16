@@ -1,7 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-describe.skip "angularjs", ->
+describe "angularjs", ->
   browser = null
   before (done)->
     browser = Browser.create()

@@ -6,43 +6,48 @@ HTML          = require("jsdom").dom.level3.html
 
 
 # Support for iframes that load content when you set the src attribute.
-HTML.Document.prototype._elementBuilders["iframe"] = (document, tag)->
-  parent = document.window
-  iframe = new HTML.HTMLIFrameElement(document, tag)
+frameInit = HTML.HTMLFrameElement._init
+HTML.HTMLFrameElement._init = ->
+  frameInit.call(this)
+  frame = this
 
-  Object.defineProperties iframe,
+  parentWindow = frame.ownerDocument.parentWindow
+  contentWindow = null
+
+  Object.defineProperties frame,
     contentWindow:
       get: ->
-        return window || create()
+        return contentWindow || create()
     contentDocument:
       get: ->
-        return (window || create()).document
+        return (contentWindow || create()).document
 
   # URL created on the fly, or when src attribute set
-  window = null
   create = (url)->
     # Change the focus from window to active.
     focus = (active)->
-      window = active
+      contentWindow = active
     # Need to bypass JSDOM's window/document creation and use ours
-    open = createHistory(parent.browser, focus)
-    window = open(name: iframe.name, parent: parent, url: url)
+    open = createHistory(parentWindow.browser, focus)
+    contentWindow = open(name: frame.name, parent: parentWindow, url: url)
+    return contentWindow
 
-  # This is also necessary to prevent JSDOM from messing with window/document
-  iframe.setAttribute = (name, value)->
-    if name == "src" && value
-      # Point IFrame at new location and wait for it to load
-      url = HTML.resourceLoader.resolve(parent.document, value)
-      if window
-        window.location = url
-      else
-        create(url)
-      window.addEventListener "load", ->
-        onload = document.createEvent("HTMLEvents")
-        onload.initEvent("load", true, false)
-        iframe.dispatchEvent(onload)
-      HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
-    else
-      HTML.HTMLFrameElement.prototype.setAttribute.call(this, name, value)
+# This is also necessary to prevent JSDOM from messing with window/document
+HTML.HTMLFrameElement.prototype.setAttribute = (name, value)->
+  HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
 
-  return iframe
+HTML.HTMLFrameElement.prototype._attrModified = (name, value, oldValue)->
+  HTML.HTMLElement.prototype._attrModified.call(this, name, value, oldValue)
+  if name == "name"
+    @ownerDocument.parentWindow.__defineGetter__ value, =>
+      return @contentWindow
+  else if name == "src" && value
+    # Point IFrame at new location and wait for it to load
+    url = HTML.resourceLoader.resolve(@ownerDocument, value)
+    @contentWindow.location = url
+    onload = =>
+      @contentWindow.removeEventListener("load", onload)
+      onload = @ownerDocument.createEvent("HTMLEvents")
+      onload.initEvent("load", true, false)
+      @dispatchEvent(onload)
+    @contentWindow.addEventListener("load", onload)

@@ -394,7 +394,7 @@ HTML.Node.prototype.dispatchEvent = (event)->
   self = this
   # Could be node, window or document
   document = self.ownerDocument || self.document || self
-  window = document.window
+  window = document.parentWindow
   browser = window.browser
   browser.emit("event", event, self)
 
