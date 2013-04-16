@@ -174,6 +174,20 @@ class Browser extends EventEmitter
       else if Browser.default.hasOwnProperty(name)
         @[name] = Browser.default[name]
 
+    # Last, run all extensions in order.
+    for extension in Browser._extensions
+      extension(this)
+
+
+  # Register a browser extension.
+  #
+  # Browser extensions are called for each newly created browser object, and
+  # can be used to change browser options, register listeners, add methods,
+  # etc.
+  @extend: (extension)->
+    Browser._extensions.push(extension)
+
+  @_extensions = []
 
   # Returns true if the given feature is enabled.
   #
