@@ -91,7 +91,7 @@ class EventLoop
           # Next event too long in the future, or no events in queue
           # (Infinity), no point in waiting
           deferred.resolve()
-        else if completionFunction
+        else if completionFunction && @active.document.documentElement
           try
             waitFor = Math.max(next - Date.now(), 0)
             # Event processed, are we ready to complete?

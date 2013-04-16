@@ -310,12 +310,15 @@ class Browser extends EventEmitter
     return promise
 
 
-  # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking a link.  These events will bubble up and
-  # can be cancelled.  Like `wait` this method either takes a callback or returns a promise.
+  # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking
+  # a link.  These events will bubble up and can be cancelled.  Like `wait`
+  # this method takes an optional callback and returns a promise.
   #
   # name - Even name (e.g `click`)
   # target - Target element (e.g a link)
-  # callback - Wait for events to be processed, then call me (optional)
+  # callback - Called with error or nothing
+  #
+  # Returns a promise
   fire: (selector, eventName, callback)->
     unless @window
       throw new Error("No window open")
@@ -329,11 +332,16 @@ class Browser extends EventEmitter
     event = @document.createEvent(eventType)
     event.initEvent(eventName, true, true)
     target.dispatchEvent(event)
-    return this
+    return @wait(callback)
 
-  click: (selector)->
-    @fire(selector, "click")
-    return this
+  # Click on the element and returns a promise.
+  #
+  # selector - Element or CSS selector
+  # callback - Called with error or nothing
+  #
+  # Returns a promise.
+  click: (selector, callback)->
+    return @fire(selector, "click", callback)
 
   # Dispatch asynchronously.  Returns true if preventDefault was set.
   dispatchEvent: (selector, event)->
@@ -589,8 +597,7 @@ class Browser extends EventEmitter
   clickLink: (selector, callback)->
     unless link = @link(selector)
       throw new Error("No link matching '#{selector}'")
-    @fire(link, "click")
-    return @wait(callback)
+    return @click(link, callback)
 
   # Return the history object.
   @prototype.__defineGetter__ "history", ->
