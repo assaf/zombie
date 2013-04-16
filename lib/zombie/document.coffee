@@ -2,7 +2,6 @@
 
 JSDOM           = require("jsdom")
 HTML            = JSDOM.dom.level3.html
-Scripts         = require("./scripts")
 Path            = require("path")
 JSDOMSelectors  = require(Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/index"))
 
@@ -28,8 +27,6 @@ module.exports = createDocument = (browser, window, referer)->
   if browser.hasFeature("scripts", true)
     features.ProcessExternalResources.push("script")
     features.FetchExternalResources.push("script")
-    # Add support for running in-line scripts
-    Scripts.addInlineScriptSupport(document)
 
   if browser.hasFeature("css", false)
     features.FetchExternalResources.push("css")

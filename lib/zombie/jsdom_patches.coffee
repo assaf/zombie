@@ -13,7 +13,7 @@ HTML.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
 # Script elements should always respond to a src attribute with something
 HTML.HTMLScriptElement.prototype.__defineGetter__ "src", ->
   return @getAttribute('src') || ""
-  
+
 # These properties return empty string when attribute is not set.
 HTML.HTMLElement.prototype.__defineGetter__ "id", ->
   return @getAttribute("id") || ""

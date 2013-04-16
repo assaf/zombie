@@ -244,7 +244,7 @@ describe "Browser events", ->
       assert.equal events.evaluated.result, true
 
     it "should receive evaluated event with the filename", ->
-      assert.equal events.evaluated.filename, "http://localhost:3003/browser-events/evaluated"
+      assert.equal events.evaluated.filename, "http://localhost:3003/browser-events/evaluated:script"
 
 
   describe "link", ->

@@ -1,7 +1,7 @@
 # Implemenets XMLHttpRequest.
 HTML      = require("jsdom").dom.level3.html
 URL       = require("url")
-{ raise } = require("./scripts")
+raise      = require("./scripts")
 
 
 # Additional error codes defines for XHR and not in JSDOM.
@@ -157,7 +157,7 @@ class XMLHttpRequest
           listener.call(this)
         catch error
           raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
-      
+
 
 
 # Lifecycle states

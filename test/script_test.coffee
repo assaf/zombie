@@ -270,7 +270,7 @@ describe "Scripts", ->
       before (done)->
         brains.get "/script/cdata", (req, res)-> res.send """
           <html>
-            <script>foo = 2; <![CDATA[ document.title ]]> = foo</script>
+            <script><![CDATA[ document.title = 2 ]]></script>
           </html>
           """
         browser.visit("/script/cdata", done)

@@ -31,46 +31,39 @@ HTML.languageProcessors.javascript = (element, code, filename)->
       raise element: element, location: filename, from: __filename, error: error
 
 
-# HTML5 parser doesn't play well with JSDOM and inline scripts.  This methods
-# adds proper inline script support.
+# HTML5 parser doesn't play well with JSDOM so we need this trickey to sort of
+# get script execution to work properly.
 #
-# Basically, JSDOM listens on the script tag, waiting for
-# DOMNodeInsertedIntoDocument, at which point the script tag may have a src
-# attribute (external) but no text content (internal), so in the later case it
-# attempts to execute an empty string.
-#
-# OTOH when we listen to DOMNodeInserted event on the document, the script tag
-# includes its full text content and we're able to evaluate it correctly.
-addInlineScriptSupport = (document)->
-  # Basically we're going to listen to new script tags as they are inserted into
-  # the DOM and then queue them to be processed.  JSDOM does the same, but
-  # listens on the script element itself, and someone the event it captures
-  # doesn't have any of the script contents.
-  document.addEventListener "DOMNodeInserted", (event)->
-    element = event.target # Node being inserted
-    # Let JSDOM deal with script tags with src attribute
-    if element.tagName == "SCRIPT" && !element.src
-      language = HTML.languageProcessors[element.language]
-      if language
-        # Only process supported languages
-
-        executeInlineScript = (error, filename)->
-          language(element, element.text, filename)
-        # Make sure we execute in order, relative to all other scripts on the
-        # page.  This also blocks document.close from firing DCL event until all
-        # scripts are executed.
-        executeInOrder = HTML.resourceLoader.enqueue(element, executeInlineScript, document.location.href)
-        # There are two scenarios:
-        # - script element added to existing document, we should evaluate it
-        #   immediately
-        # - inline script element parsed, when we get here, we still don't have
-        #   the element contents, so we have to wait before we can read and
-        #   execute it
-        if document.readyState == "loading"
-          process.nextTick(executeInOrder)
-        else
-          executeInOrder()
-    return
+# Basically JSDOM listend for when the script tag is added to the DOM and
+# attemps to evaluate at, but the script has no contents at that point in
+# time.  This adds just enough delay for the inline script's content to be
+# parsed and ready for processing.
+HTML.HTMLScriptElement._init = ->
+  @addEventListener "DOMNodeInsertedIntoDocument", ->
+    if @src
+      # Script has a src attribute, load external resource.
+      HTML.resourceLoader.load(this, @src, @_eval)
+    else
+      if @id
+        filename = "#{@ownerDocument.URL}:##{id}"
+      else
+        filename = "#{@ownerDocument.URL}:script"
+      # Execute inline script
+      executeInlineScript = =>
+        @_eval(@textContent, filename)
+      # Queue to be executed in order with all other scripts
+      executeInOrder = HTML.resourceLoader.enqueue(this, executeInlineScript, filename)
+      # There are two scenarios:
+      # - script element added to existing document, we should evaluate it
+      #   immediately
+      # - inline script element parsed, when we get here, we still don't have
+      #   the element contents, so we have to wait before we can read and
+      #   execute it
+      if @ownerDocument.readyState == "loading"
+        process.nextTick(executeInOrder)
+      else
+        executeInOrder()
+  return
 
 
 # Fix resource loading to keep track of in-progress requests. Need this to wait
@@ -90,6 +83,9 @@ HTML.resourceLoader.load = (element, href, callback)->
     window._eventQueue.http "GET", url, { target: element }, @enqueue(element, loaded, url)
 
 
+# JSDOM has issues with on event handlers as well (onsubmit, onclick, etc). #
+# It doesn't pass event object to the event listener, and it doesn't care for
+# the return value.
 _attrModified = HTML.Node.prototype._attrModified
 HTML.Node.prototype._attrModified = (name, handler, oldValue)->
   unless /^on.+/.test(name)
@@ -121,14 +117,12 @@ HTML.Node.prototype._attrModified = (name, handler, oldValue)->
       context.event = null
 
 
-# -- Utility methods --
-
 # Triggers an error event on the specified element.  Accepts:
 # element  - Element/document associated with this error
 # location - Location of this error
 # scope    - Execution scope, e.g. "XHR", "Timeout"
 # error    - Actual Error object
-raise = ({ element, location, scope, error })->
+module.exports = raise = ({ element, location, scope, error })->
   document = element.ownerDocument || element
   window = document.parentWindow
   message = if scope then "#{scope}: #{error.message}" else error.message
@@ -147,6 +141,3 @@ raise = ({ element, location, scope, error })->
 
   window._eventQueue.onerror(error)
   return
-
-
-module.exports = { raise, addInlineScriptSupport }
