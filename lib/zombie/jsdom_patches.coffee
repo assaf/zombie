@@ -45,7 +45,6 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
     browser.emit("link", anchor.href, anchor.target || "_self")
 
 
-
 # Support for opacity style property.
 Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
   get: ->
@@ -57,6 +56,7 @@ Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
         @_opacity = opacity.toString()
     else
       delete @_opacity
+
 
 # Changing style.height/width affects clientHeight/Weight and offsetHeight/Width
 ["height", "width"].forEach (prop)->
@@ -77,24 +77,6 @@ Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
   Object.defineProperty HTML.HTMLElement.prototype, offset,
     get: ->
       return parseInt(this[internal] || 100)
-
-
-# textContent returns the textual content of nodes like text, comment,
-# attribute, but when operating on elements, return only textual content of
-# child text/element nodes.
-HTML.Node.prototype.__defineGetter__ "textContent", ->
-  if @nodeType == HTML.Node.TEXT_NODE || @nodeType == HTML.Node.COMMENT_NODE ||
-     @nodeType == HTML.Node.ATTRIBUTE_NODE || @nodeType == HTML.Node.CDATA_SECTION_NODE
-    return @nodeValue
-  else if @nodeType == HTML.Node.ELEMENT_NODE || @nodeType == HTML.Node.DOCUMENT_FRAGMENT_NODE
-    text = []
-    for child in @childNodes
-      if child.nodeType == HTML.Node.TEXT_NODE || child.nodeType == HTML.Node.ELEMENT_NODE ||
-         child.nodeType == HTML.Node.CDATA_SECTION_NODE
-        text.push(child.textContent)
-    return text.join("")
-  else
-    return null
 
 
 # For some reason HTML5 uses elementBuilder instead of createElement

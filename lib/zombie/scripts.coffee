@@ -83,40 +83,6 @@ HTML.resourceLoader.load = (element, href, callback)->
     window._eventQueue.http "GET", url, { target: element }, @enqueue(element, loaded, url)
 
 
-# JSDOM has issues with on event handlers as well (onsubmit, onclick, etc). #
-# It doesn't pass event object to the event listener, and it doesn't care for
-# the return value.
-_attrModified = HTML.Node.prototype._attrModified
-HTML.Node.prototype._attrModified = (name, handler, oldValue)->
-  unless /^on.+/.test(name)
-    return _attrModified.apply(this, arguments)
-  unless handler
-    delete this[name]
-    return
-
-  # We're the window. This can happen because inline handlers on the body are
-  # proxied to the window.
-  if @run
-    context = this
-  else
-    context = @_ownerDocument.parentWindow
-
-  # Wrap function so it passes event as first argument
-  if typeof(handler) == "string" || handler instanceof String
-    wrapped = "(function() { " + handler + " }).call(this, window.event)"
-
-  this[name] = (event)->
-    try
-      # The handler code probably refers to functions declared in the window
-      # context, so we need to call run().
-      result = context.run(wrapped || handler)
-      if result == false
-        event.preventDefault()
-      return result
-    finally
-      context.event = null
-
-
 # Triggers an error event on the specified element.  Accepts:
 # element  - Element/document associated with this error
 # location - Location of this error
