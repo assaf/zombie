@@ -478,7 +478,7 @@ Read more [about troubleshooting](troubleshoot)
 * Make your changes
 * Send a pull request
 
-Read more [about the guts of Zombie.js](guts) and check out the outstanding
+Read more [about the guts of Zombie.js](doc/guts.md) and check out the outstanding
 [to-dos](todo).
 
 Follow announcements, ask questions on [the Google
