@@ -304,7 +304,7 @@ class Browser extends EventEmitter
     promise = @eventLoop.wait(waitDuration, completionFunction)
 
     if callback
-      promise.then callback
+      Q.nodeify promise, callback
     return promise
 
 
