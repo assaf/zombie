@@ -229,6 +229,22 @@ describe "EventLoop", ->
     it "should not wait longer than specified", ->
         browser.assert.text "title", "...."
 
+  describe "browser.wait failure", ->
+    before (done)->
+      browser.visit("http://localhost:3003/eventloop/function")
+        .then ->
+          browser.window.setInterval ->
+            @document.title += "."
+          , 100
+          return
+        .then(done, done)
+
+    it "should call callback with error", (done) ->
+      finished = (err)->
+        assert(err is 'oops')
+        done()
+
+      browser.wait (-> throw 'oops'), finished
 
   describe "page load", ->
     before ->
