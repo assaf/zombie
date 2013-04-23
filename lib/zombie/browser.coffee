@@ -304,9 +304,7 @@ class Browser extends EventEmitter
     promise = @eventLoop.wait(waitDuration, completionFunction)
 
     if callback
-      promise.then ->
-        callback()
-      .fail(callback)
+      promise.then(callback, callback)
     return promise
 
 
