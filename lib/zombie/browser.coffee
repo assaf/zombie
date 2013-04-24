@@ -305,7 +305,7 @@ class Browser extends EventEmitter
 
     if callback
       promise.then ->
-        callback()
+        process.nextTick(callback)
       .fail(callback)
     return promise
 
