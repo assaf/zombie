@@ -127,7 +127,6 @@ class EventLoop
     if @listeners.length == 1
       setImmediate =>
         if @active
-          @active._eventQueue.resume()
           @run()
 
     return promise
@@ -143,11 +142,8 @@ class EventLoop
   # switches to processing events from this window's queue.
   setActiveWindow: (window)->
     return if window == @active
-    if @active
-      @active._eventQueue.suspend()
     @active = window
     if @active
-      @active._eventQueue.resume()
       @run() # new window, new events
 
   # Call this method when you know an event is coming, but don't have the event
@@ -267,7 +263,7 @@ class EventQueue
 
 
   # -- Events --
- 
+
   # Add a function to the event queue, to be executed in order.
   enqueue: (fn)->
     if fn && @queue
@@ -359,16 +355,6 @@ class EventQueue
     timer.stop() if timer
     return
 
-  # Used when window goes out of focus, prevents timers from firing
-  suspend: ->
-    for timer in @timers
-      timer.suspend() if timer
-
-  # Used when window goes back in focus, resumes timers
-  resume: ->
-    for timer in @timers
-      timer.resume() if timer
-
   # Returns the timestamp of the next timer event
   next: ->
     next = Infinity
@@ -395,11 +381,7 @@ class Timeout
   # handle  - Node.js timeout handle
   constructor: (@queue, @fn, @delay, @remove)->
     @delay = Math.max(@delay || 0, 0)
-    @resume()
-
-  # Resume (also start) this timer
-  resume: ->
-    return if @handle # already resumed
+    # When timeout fires, queue event for processing during a wait.
     fire = =>
       @queue.enqueue =>
         @queue.browser.emit("timeout", @fn, @delay)
@@ -408,14 +390,8 @@ class Timeout
     @handle = global.setTimeout(fire, @delay)
     @next = Date.now() + @delay
 
-  # Make sure timer doesn't fire until we're ready for it again
-  suspend: ->
-    global.clearTimeout(@handle)
-    @handle = null
-
   # clearTimeout
   stop: ->
-    @stopped = true
     global.clearTimeout(@handle)
     @remove()
 
@@ -433,23 +409,20 @@ class Interval
   # handle  - Node.js interval handle
   constructor: (@queue, @fn, @interval, @remove)->
     @interval =  Math.max(@interval || 0)
-    @resume()
-
-  # Resume (also start) this timer
-  resume: ->
-    return if @handle # already resumed
+    # When interval fires, queue event for processing during a wait.
+    # Don't queue if already processing.
+    pendingEvent = false
     fire = =>
+      @next = Date.now() + @interval
+      if pendingEvent
+        return
+      pendingEvent = true
       @queue.enqueue =>
+        pendingEvent = false
         @queue.browser.emit("interval", @fn, @interval)
         @queue.window._evaluate(@fn)
-      @next = Date.now() + @interval
     @handle = global.setInterval(fire, @interval)
     @next = Date.now() + @interval
-
-  # Make sure timer doesn't fire until we're ready for it again
-  suspend: ->
-    global.clearInterval(@handle)
-    @handle = null
 
   # clearTimeout
   stop: ->
