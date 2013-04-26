@@ -26,6 +26,8 @@ class Assert
   # expected   - Expected value (null to test cookie is not set)
   # message    - Assert message if cookie does not have expected value
   cookie: (identifier, expected, message)->
+    if arguments.length == 1
+      expected = null
     actual = @browser.getCookie(identifier)
     message ||= "Expected cookie #{JSON.stringify(identifier)} to have the value '#{expected}', found '#{actual}'"
     assertMatch actual, expected, message
@@ -53,13 +55,21 @@ class Assert
     else
       url = URL.parse(@browser.location.href, true)
       for key, value of expected
-        assertMatch url[key], value, message
+        # Gracefully handle default values, e.g. document.location.hash for
+        # "/foo" is "" not null, not undefined.
+        if key == "port"
+          defaultValue = 80
+        else
+          defaultValue = null
+        assertMatch url[key] || defaultValue, value || defaultValue, message
 
 
   # -- Document contents --
 
   # Assert the named attribute of the selected element(s) has the expected value.
   attribute: (selector, name, expected, message)->
+    if arguments.length == 2
+      expected = null
     elements = @browser.queryAll(selector)
     assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
     for element in elements
@@ -80,7 +90,7 @@ class Assert
   # If count is unspecified, defaults to at least one.
   elements: (selector, count, message)->
     elements = @browser.queryAll(selector)
-    if count == undefined
+    if arguments.length == 1
       count = { atLeast: 1 }
     if count.exactly
       count = count.exactly
@@ -127,6 +137,8 @@ class Assert
   # Asserts the selected element(s) has the expected value for the named style
   # property.
   style: (selector, style, expected, message)->
+    if arguments.length == 2
+      expected = null
     elements = @browser.queryAll(selector)
     assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
     for element in elements
@@ -136,11 +148,12 @@ class Assert
 
   # Asserts that selected input field (text field, text area, etc) has the expected value.
   input: (selector, expected, message)->
+    if arguments.length == 1
+      expected = null
     elements = @browser.queryAll(selector)
     assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
     for element in elements
-      actual = element.value
-      assertMatch actual, expected, message
+      assertMatch element.value, expected, message
 
   # Assert that text content of selected element(s) matches expected string.
   #
@@ -149,7 +162,7 @@ class Assert
     elements = @browser.queryAll(selector)
     assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
     actual = elements.map((e)-> e.textContent).join("").trim().replace(/\s+/g, " ")
-    assertMatch actual, expected , message
+    assertMatch actual, expected || "", message
 
 
   # -- Window --
@@ -178,8 +191,11 @@ class Assert
   # Asserts that the global (window) property name has the expected value.
   global: (name, expected, message)->
     actual = @browser.window[name]
-    message ||= "Expected global #{name} to have the value '#{expected}', found '#{actual}'"
-    assertMatch actual, expected, message
+    if arguments.length == 1
+      assert actual
+    else
+      message ||= "Expected global #{name} to have the value '#{expected}', found '#{actual}'"
+      assertMatch actual, expected, message
 
   # Assert that browser prompted with a given message.
   prompted: (messageShown, message)->
