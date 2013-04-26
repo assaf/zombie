@@ -1,5 +1,0 @@
-#!/bin/sh
-#
-# Clean build/documentation files
-rm -rf html man7 lib/zombie/*.js
-echo Done

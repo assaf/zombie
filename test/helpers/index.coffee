@@ -1,6 +1,6 @@
 # We switch this directory to instrumented code when running code coverage
 # report
-process.env.LIB_PATH ||= "lib"
+process.env.LIB_PATH ||= "src"
 Replay    = require("replay")
 Browser   = require("../../#{process.env.LIB_PATH}/zombie")
 

@@ -19,4 +19,4 @@ echo "Uploading documentation ..."
 rsync -chr --del --stats doc/new/ labnotes.org:/var/www/zombie/new
 
 # Clean after ourselves
-$(dirname $0)/clean
+npm run postpublish
