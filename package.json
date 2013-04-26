@@ -24,7 +24,7 @@
     "node":         ">= 0.8.0"
   },
   "dependencies": {
-    "eventsource":            "~0.0.6",
+    "eventsource":            "~0.0.7",
     "html5":                  "git://github.com/aredridel/html5.git#cd0f2da4e26f314fcdff718462b416272bda4a91",
     "jsdom":                  "~0.6.0",
     "mime":                   "~1.2.9",
