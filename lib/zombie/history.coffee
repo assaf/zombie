@@ -74,21 +74,24 @@ class Entry
   #   of the entry, but must keep the entry intact
   # - The current entry uses the same window as the new entry, also need to
   #   keep window intact
-  destroy: (options)->
+  #
+  # keepAlive - Call destory on every document except this one, since it's
+  #             being replaced.
+  destroy: (keepAlive)->
     if @next
-      @next.destroy(options)
+      @next.destroy(keepAlive || @window)
       @next = null
     # Do not close window if replacing entry with same window
-    if options && options.keepAlive == @window
+    if keepAlive == @window
       return
     # Do not close window if used by previous entry in history
     if @prev && @prev.window == @window
       return
     @window._destroy()
 
-  append: (newEntry, options)->
+  append: (newEntry, keepAlive)->
     if @next
-      @next.destroy(options)
+      @next.destroy(keepAlive)
     newEntry.prev = this
     @next = newEntry
 
@@ -108,9 +111,11 @@ class History
   # Dispose of all windows in history
   destroy: ->
     @focus(null)
-    if @first
-      @first.destroy()
-      @first = @current = null
+    # Re-entrant
+    first = @first
+    @first = @current = null
+    if first
+      first.destroy()
 
   # Add a new entry.  When a window opens it call this to add itself to history.
   addEntry: (window, url, pushState)->
@@ -132,10 +137,10 @@ class History
     @focus(window)
     if @current == @first
       if @current
-        @current.destroy(keepAlive: window)
+        @current.destroy(window)
       @current = @first = entry
     else
-      @current.prev.append(entry, keepAlive: window)
+      @current.prev.append(entry, window)
       @current = entry
 
   # Update window location (navigating to new URL, same window, e.g pushState or hash change)

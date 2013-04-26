@@ -227,13 +227,18 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
   window._destroy = ->
     # We call history.distroy which calls destroy on all windows, so need to
     # avoid infinite loop.
-    unless closed
-      closed = true
-      for frame in window.frames
-        frame.close()
-      eventQueue.destroy()
-      window.document = null
-      window.dispose()
+    if closed
+      return
+
+    closed = true
+    # Close all frames first
+    for frame in window.frames
+      frame.close()
+    # kill event queue, document and window.
+    eventQueue.destroy()
+    document.close()
+    delete window.document
+    window.dispose()
     return
 
   # window.close actually closes the tab, and disposes of all windows in the history.
@@ -244,9 +249,10 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
     # Only opener window can close window; any code that's not running from
     # within a window's context can also close window.
     if browser._windowInScope == opener || browser._windowInScope == null
+      # Only parent window gets the close event
       browser.emit("closed", window)
-      history.destroy()
-      window._destroy() # do this last to prevent infinite loop
+      window._destroy()
+      history.destroy() # do this last to prevent infinite loop
     else
       browser.log("Scripts may not close windows that were not opened by script")
     return

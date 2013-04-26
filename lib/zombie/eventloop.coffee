@@ -254,7 +254,6 @@ class EventQueue
 
   # Cleanup when we dispose of the window
   destroy: ->
-    return unless @queue
     for timer in @timers
       timer.stop() if timer
     for expecting in @expecting
