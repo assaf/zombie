@@ -8,7 +8,6 @@ describe "Compatibility with jQuery", ->
 
   browser = null
   before (done)->
-    browser = Browser.create()
     brains.ready(done)
 
   for version in JQUERY_VERSIONS
@@ -16,6 +15,7 @@ describe "Compatibility with jQuery", ->
       describe version, ->
 
         before ->
+          browser = Browser.create()
           brains.get "/compat/jquery-#{version}", (req, res)->
             res.send """
             <html>
@@ -24,43 +24,46 @@ describe "Compatibility with jQuery", ->
                 <script src="/jquery-#{version}.js"></script>
               </head>
               <body>
-                <select>
-                  <option>None</option>
-                  <option value="1">One</option>
-                </select>
-
-                <span id="option"></span>
-
-                <a href="#post">Post</a>
-
-                <div id="response"></div>
-
-                <input id="edit-subject" value="Subject">
-                <textarea id="edit-note">Note</textarea>
-
                 <form action="/zombie/dead-end">
+                  <select>
+                    <option>None</option>
+                    <option value="1">One</option>
+                  </select>
+
+                  <span id="option"></span>
+
+                  <a href="#post">Post</a>
+
+                  <div id="response"></div>
+
+                  <input id="edit-subject" value="Subject">
+                  <textarea id="edit-note">Note</textarea>
+
                   <button class="some-class">Click Me</button>
                 </form>
-              </body>
 
-              <script>
-                $(function() {
+                <script>
+                  $(function() {
 
-                  $("select").bind("change", function() {
-                    $("#option").text(this.value);
-                  });
-
-                  $("a[href='#post']").click(function() {
-                    $.post("/compat/echo/jquery-#{version}", {"foo": "bar"}, function(response) {
-                      $("#response").text(response);
+                    $("select").bind("change", function() {
+                      $("#option").text(this.value);
                     });
 
-                    return false;
+                    $("a[href='#post']").click(function() {
+                      $.post("/compat/echo/jquery-#{version}", {"foo": "bar"}, function(response) {
+                        $("#response").text(response);
+                      });
+
+                      return false;
+                    });
                   });
-                });
-              </script>
+                </script>
+              </body>
             </html>
             """
+
+          brains.get "/zombie/dead-end", (req, res)->
+            res.send ""
 
           brains.post "/compat/echo/jquery-#{version}", (req, res)->
             lines = ([key, value].join("=") for key, value of req.body)
@@ -159,6 +162,6 @@ describe "Compatibility with jQuery", ->
             it "should respect it", ->
               assert browser.location.pathname != "/zombie/dead-end"
 
+        after ->
+          browser.destroy()
 
-  after ->
-    browser.destroy()

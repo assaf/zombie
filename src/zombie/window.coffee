@@ -350,8 +350,8 @@ loadDocument = ({ document, history, url, method, encoding, params })->
 
       window._eventQueue.http method, url, headers: headers, params: params, target: document, (error, response)->
         if error
-          document.close()
-          document.write(error.message || error)
+          document.open()
+          document.write("<html><body>#{error.message || error}</body></html>")
           document.close()
           done(error)
           return
@@ -374,8 +374,8 @@ loadDocument = ({ document, history, url, method, encoding, params })->
 
         if response.body
           body = response.body.toString("utf8")
-        else
-          body = "<html><body></body></html>"
+        unless /<html>/.test(body)
+          body = "<html><body>#{body || ""}</body></html>"
 
         document.open()
         document.write(body)

@@ -1,5 +1,6 @@
 { assert, brains, Browser } = require("./helpers")
 JSDOM = require("jsdom")
+HTML5 = require("html5")
 
 
 describe "Browser", ->
@@ -320,24 +321,25 @@ describe "Browser", ->
 
 
   # NOTE: htmlparser doesn't handle tag soup.
-  describe "tag soup using HTML5 parser", ->
+  if Browser.htmlParser == HTML5
+    describe "tag soup using HTML5 parser", ->
 
-    before ->
-      brains.get "/browser/soup", (req, res)-> res.send """
-        <h1>Tag soup</h1>
-        <p>One paragraph
-        <p>And another
-        """
+      before ->
+        brains.get "/browser/soup", (req, res)-> res.send """
+          <h1>Tag soup</h1>
+          <p>One paragraph
+          <p>And another
+          """
 
-    before (done)->
-      browser.visit "http://localhost:3003/browser/soup", ->
-        done()
+      before (done)->
+        browser.visit "http://localhost:3003/browser/soup", ->
+          done()
 
-    it "should parse to complete HTML", ->
-      browser.assert.element "html head"
-      browser.assert.text "html body h1", "Tag soup"
-    it "should close tags", ->
-      browser.assert.text "body p", "One paragraph And another"
+      it "should parse to complete HTML", ->
+        browser.assert.element "html head"
+        browser.assert.text "html body h1", "Tag soup"
+      it "should close tags", ->
+        browser.assert.text "body p", "One paragraph And another"
 
   describe "comments", ->
 
@@ -357,9 +359,15 @@ describe "Browser", ->
   describe "load HTML string", ->
     before (done)->
       browser.load("""
-          <title>Load</title>
-          <script>document.title = document.title + " html"</script>
-          <div id="main"></div>
+          <html>
+            <head>
+              <title>Load</title>
+            </head>
+            <body>
+              <div id="main"></div>
+              <script>document.title = document.title + " html"</script>
+            </body>
+          </html>
         """)
           .then(done, done)
 

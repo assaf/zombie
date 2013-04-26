@@ -12,8 +12,9 @@ describe "Google map", ->
     brains.get "/browser/map", (req, res)->
       res.send """
       <html>
-        <head>
-          <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?v=3&sensor=false&callback=initialize"></script>
+        <head></head>
+        <body>
+          <div id="map"></div>
           <script type="text/javascript">
             window.initialize = function() {
               window.map = new google.maps.Map(document.getElementById("map"), {
@@ -23,9 +24,7 @@ describe "Google map", ->
               });
             }
           </script>
-        </head>
-        <body>
-          <div id="map"></div>
+          <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?v=3&sensor=false&callback=initialize"></script>
         </body>
       </html>
       """

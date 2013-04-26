@@ -12,6 +12,7 @@ describe "Document", ->
       brains.get "/document/activeElement", (req, res)->
         res.send """
         <html>
+          <body></body>
         </html>
         """
 

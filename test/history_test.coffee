@@ -240,7 +240,7 @@ describe "History", ->
     describe "change hash", ->
       before (done)->
         browser.visit "/", ->
-          browser.document.innerHTML = "Wolf"
+          browser.document.innerHTML = "<html><body>Wolf</body></html>"
           browser.window.addEventListener "hashchange", ->
             done()
           browser.window.location.hash = "boo"

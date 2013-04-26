@@ -10,7 +10,15 @@ brains.use(express.cookieParser())
 
 
 brains.get "/", (req, res)->
-  res.send "<html><title>Tap, Tap</title></html>"
+  res.send """
+    <html>
+      <head>
+        <title>Tap, Tap</title>
+      </head>
+      <body>
+      </body>
+    </html>
+  """
 
 # Prevent sammy from polluting the output. Comment this if you need its
 # messages for debugging.

@@ -46,7 +46,7 @@ describe "Browser events", ->
       brains.get "/browser-events/resource", (req, res)->
         res.redirect "/browser-events/redirected"
       brains.get "/browser-events/redirected", (req, res)->
-        res.send "Very well then"
+        res.send "<html>Very well then</html>"
 
       browser.on "request", (request)->
         events.resource.push([request])
@@ -108,7 +108,7 @@ describe "Browser events", ->
   describe "loading a document", ->
     before (done)->
       brains.get "/browser-events/document", (req, res)->
-        res.send "Very well then"
+        res.send "<html>Very well then</html>"
 
       browser.on "loading", (document)->
         events.loading = [document.URL, document.readyState, document.outerHTML]
@@ -127,21 +127,19 @@ describe "Browser events", ->
       [url, readyState, html] = events.loaded
       assert.equal url, "http://localhost:3003/browser-events/document"
       assert.equal readyState, "complete"
-      assert.equal html, "<html><head></head><body>Very well then</body></html>"
+      assert /Very well then/.test(html)
 
 
   describe "firing an event", ->
     before (done)->
-      brains.get "/browser-events/document", (req, res)->
-        res.send "Very well then"
+      browser.load("<html><body>Hello</body></html>")
 
       browser.on "event", (event, target)->
         if event.type == "click"
           events.click = { event: event, target: target }
 
-      browser.visit "/browser-events/document", ->
-        browser.click("body")
-        browser.wait(done)
+      browser.click("body")
+      browser.wait(done)
 
     it "should receive DOM event", ->
       assert.equal events.click.event.type, "click"
@@ -154,8 +152,10 @@ describe "Browser events", ->
     before (done)->
       brains.get "/browser-events/focus", (req, res)->
         res.send """
-        <input id="input">
-        <script>document.getElementById("input").focus()</script>
+        <html>
+          <input id="input">
+          <script>document.getElementById("input").focus()</script>
+        </html>
         """
 
       browser.on "focus", (element)->
@@ -172,7 +172,9 @@ describe "Browser events", ->
     before (done)->
       brains.get "/browser-events/timeout", (req, res)->
         res.send """
-        <script>setTimeout(function() { }, 1);</script>
+        <html>
+          <script>setTimeout(function() { }, 1);</script>
+        </html>
         """
 
       browser.on "timeout", (fn, delay)->
@@ -191,7 +193,9 @@ describe "Browser events", ->
     before (done)->
       brains.get "/browser-events/interval", (req, res)->
         res.send """
-        <script>setInterval(function() { }, 2);</script>
+        <html>
+          <script>setInterval(function() { }, 2);</script>
+        </html>
         """
 
       browser.on "interval", (fn, interval)->
@@ -211,7 +215,9 @@ describe "Browser events", ->
     before (done)->
       brains.get "/browser-events/done", (req, res)->
         res.send """
-        <script>setTimeout(function() { }, 1);</script>
+        <html>
+          <script>setTimeout(function() { }, 1);</script>
+        </html>
         """
 
       browser.on "done", ->
@@ -229,7 +235,9 @@ describe "Browser events", ->
     before (done)->
       brains.get "/browser-events/evaluated", (req, res)->
         res.send """
-        <script>window.foo = true</script>
+        <html>
+          <script>window.foo = true</script>
+        </html>
         """
 
       browser.on "evaluated", (code, result, filename)->
@@ -250,7 +258,7 @@ describe "Browser events", ->
   describe "link", ->
     before (done)->
       brains.get "/browser-events/link", (req, res)->
-        res.send "<a href='follow'></a>"
+        res.send "<html><a href='follow'></a></html>"
 
       browser.on "link", (url, target)->
         events.link = { url: url, target: target }
@@ -268,10 +276,10 @@ describe "Browser events", ->
   describe "submit", ->
     before (done)->
       brains.get "/browser-events/submit", (req, res)->
-        res.send "<form action='post'></form>"
+        res.send("<html><form action='post'></form></html>")
 
       brains.get "/browser-events/post", (req, res)->
-        res.send(200)
+        res.send("<html>Got it!</html>")
 
       browser.on "submit", (url, target)->
         events.link = { url: url, target: target }
