@@ -226,13 +226,14 @@ class Browser extends EventEmitter
   # Return a new browser with a snapshot of this browser's state.
   # Any changes to the forked browser's state do not affect this browser.
   fork: ->
-    forked = Browser.create()
+    opt = {}
+    for name in BROWSER_OPTIONS
+        opt[name] = @[name]
+    forked = Browser.create(opt)
     forked.loadCookies @saveCookies()
     forked.loadStorage @saveStorage()
     forked.loadHistory @saveHistory()
     forked.location = @location
-    for name in BROWSER_OPTIONS
-        forked[name] = @[name]
     return forked
 
 
