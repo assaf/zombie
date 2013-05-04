@@ -11,7 +11,6 @@ File              = require("fs")
 HTML5             = require("html5")
 Interact          = require("./interact")
 HTML              = require("jsdom").dom.level3.html
-HTMLParser        = require("htmlparser2");
 Mime              = require("mime")
 ms                = require("ms")
 Q                 = require("q")
@@ -35,9 +34,6 @@ BROWSER_OPTIONS = ["debug", "features", "headers", "htmlParser", "waitDuration",
                    "maxRedirects", "language"]
 
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
-
-# HTML5 parser is more forgiving, but doesn't support 0.10.x yet.
-DEFAULT_PARSER = if process.versions.node > "0.10." then HTMLParser else HTML5 
 
 
 # Use the browser to open up new windows and load documents.
@@ -1186,8 +1182,8 @@ Browser.default =
 
   # Which parser to use (HTML5 by default). For example:
   #   Browser.default.htmlParser = require("html5")       // HTML5, forgiving
-  #   Browser.default.htmlParser = require("htmlparser")  // Faster, stricter
-  htmlParser: DEFAULT_PARSER
+  #   Browser.default.htmlParser = require("htmlparser2")  // Faster, stricter
+  htmlParser: HTML5
 
   # Tells the browser how many redirects to follow before aborting a request. Defaults to 5
   maxRedirects: 5
