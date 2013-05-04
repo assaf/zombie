@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "coffee-script":          "~1.6.2",
-    "express":                "~3.1.1",
+    "express":                "~3.2.2",
     "node-syntaxhighlighter": "~0.8.1",
     "mocha":                  "~1.9.0",
     "replay":                 "~1.6.1",

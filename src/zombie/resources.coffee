@@ -357,8 +357,7 @@ Resources.createBody = (request, next)->
                 else
                   multipart.push
                     "Content-Disposition":        disp
-                    "Content-Type":               "text/plain"
-                    "Content-Transfer-Encoding":  "utf8"
+                    "Content-Type":               "text/plain; charset=utf8"
                     "Content-Length":             value.length
                     body:                         value
             request.multipart = multipart

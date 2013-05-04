@@ -903,7 +903,7 @@ describe "Forms", ->
               digest = Crypto.createHash("md5").update(data).digest("hex")
             res.send """
             <html>
-              <head><title>#{(text || image).filename}</title></head>
+              <head><title>#{(text || image).name}</title></head>
               <body>#{digest || data}</body>
             </html>
             """
