@@ -342,6 +342,13 @@ describe "Forms", ->
       it "should callback", ->
         browser.assert.elements "#field-uncheck:checked", 1
 
+    describe "inline callback", ->
+      before ->
+        browser.uncheck("You bet")
+
+      it "should invoke the callback", (done) ->
+        browser.check("You bet", done)
+
     describe "prevent default", ->
       values = []
 
@@ -466,6 +473,13 @@ describe "Forms", ->
 
       it "should fire blur event on previous field", ->
         assert true
+
+    describe "inline callback", ->
+      before ->
+        browser.choose("Not scary")
+
+      it "should invoke the callback", (done) ->
+        browser.choose("Scary", done)
 
 
   describe "select option", ->
@@ -857,7 +871,7 @@ describe "Forms", ->
               <script src="/jquery.js"></script>
               <script>
                 $(function() {
-                  $("form").submit(function() { 
+                  $("form").submit(function() {
                     return false;
                   })
                 })
@@ -1033,7 +1047,7 @@ describe "Forms", ->
           filename = "#{__dirname}/data/random.txt"
           return browser.attach("my_file", filename)
         .then(done, done)
-          
+
       it "should call callback", ->
         browser.assert.text "title", "Upload done"
       it "should have filename", ->
@@ -1148,14 +1162,14 @@ describe "Forms", ->
       browser.visit("/forms/inputs", done)
 
     it "should return empty string if name attribute not set", ->
-      for tagName in ["form", "input", "textarea", "select", "button"] 
+      for tagName in ["form", "input", "textarea", "select", "button"]
         browser.assert.attribute tagName, "name", null
     it "should return empty string if value attribute not set", ->
-      for tagName in ["input", "textarea", "select", "button"] 
+      for tagName in ["input", "textarea", "select", "button"]
         assert.equal browser.query(tagName).getAttribute("value"), null
         assert.equal browser.query(tagName).value, ""
     it "should return empty string if id attribute not set", ->
-      for tagName in ["form", "input", "textarea", "select", "button"] 
+      for tagName in ["form", "input", "textarea", "select", "button"]
         assert.equal browser.query(tagName).getAttribute("id"), null
         assert.equal browser.query(tagName).id, ""
 
