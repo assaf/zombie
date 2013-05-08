@@ -229,7 +229,7 @@ class Browser extends EventEmitter
     forked.loadCookies @saveCookies()
     forked.loadStorage @saveStorage()
     forked.loadHistory @saveHistory()
-    forked.location = @location
+    forked.location = @location.url
     return forked
 
 
