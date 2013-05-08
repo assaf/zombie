@@ -342,13 +342,6 @@ describe "Forms", ->
       it "should callback", ->
         browser.assert.elements "#field-uncheck:checked", 1
 
-    describe "inline callback", ->
-      before ->
-        browser.uncheck("You bet")
-
-      it "should invoke the callback", (done) ->
-        browser.check("You bet", done)
-
     describe "prevent default", ->
       values = []
 
@@ -473,13 +466,6 @@ describe "Forms", ->
 
       it "should fire blur event on previous field", ->
         assert true
-
-    describe "inline callback", ->
-      before ->
-        browser.choose("Not scary")
-
-      it "should invoke the callback", (done) ->
-        browser.choose("Scary", done)
 
 
   describe "select option", ->
