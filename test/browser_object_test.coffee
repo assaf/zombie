@@ -503,7 +503,7 @@ describe "Browser", ->
               assert.equal browser.tabs.length, 0
 
 
-  describe.skip "fork", ->
+  describe "fork", ->
     forked = null
 
     before ->
@@ -561,7 +561,7 @@ describe "Browser", ->
       assert.equal browser.evaluate("window.dead"), "almost"
       assert.equal forked.evaluate("window.dead"), "very"
 
-    describe "history", ->
+    describe.skip "history", ->
       it "should clone from source", ->
         assert.equal "http://localhost:3003/browser/dead", forked.location.href
         forked.window.history.back()
