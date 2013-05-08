@@ -17,6 +17,8 @@ Q                 = require("q")
 Path              = require("path")
 Resources         = require("./resources")
 Storages          = require("./storage")
+Tough             = require("tough-cookie")
+Cookie            = Tough.Cookie
 URL               = require("url")
 XPath             = require("jsdom").dom.level3.xpath
 
@@ -228,8 +230,8 @@ class Browser extends EventEmitter
     forked = Browser.create(opt)
     forked.loadCookies @saveCookies()
     forked.loadStorage @saveStorage()
-    forked.loadHistory @saveHistory()
-    forked.location = @location
+    # forked.loadHistory @saveHistory()
+    forked.location = @location.url
     return forked
 
 
@@ -991,6 +993,23 @@ class Browser extends EventEmitter
   deleteCookies: ->
     @cookies.deleteAll()
     return
+
+  # Save cookies to a text string.  You can use this to load them back
+  # later on using `Browser.loadCookies`.
+  saveCookies: ->
+    serialized = ["# Saved on #{new Date().toISOString()}"]
+    for cookie in @cookies.sort(Tough.cookieCompare)
+      serialized.push cookie.toString()
+    return serialized.join("\n") + "\n"
+
+  # Load cookies from a text string (e.g. previously created using
+  # `Browser.saveCookies`.
+  loadCookies: (serialized)->
+    for line in serialized.split(/\n+/)
+      line = line.trim()
+      continue if line[0] == "#" || line == ""
+      @cookies.push(Cookie.parse(line))
+
 
   # Converts Tough Cookie object into Zombie cookie representation.
   _cookieProperties: (cookie)->

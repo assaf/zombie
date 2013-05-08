@@ -503,7 +503,9 @@ describe "Browser", ->
               assert.equal browser.tabs.length, 0
 
 
-  describe.skip "fork", ->
+  describe "fork", ->
+    forked = null
+
     before ->
       brains.get "/browser/living", (req, res)->
         res.send """
@@ -515,16 +517,13 @@ describe "Browser", ->
         """
 
     before (done)->
-      forked = null
-
       browser.visit "http://localhost:3003/browser/living", ->
-        browser.cookies("www.localhost").update("foo=bar; domain=.localhost")
+        browser.setCookie(name: "foo", value: "bar")
         browser.localStorage("www.localhost").setItem("foo", "bar")
         browser.sessionStorage("www.localhost").setItem("baz", "qux")
-
         forked = browser.fork()
         forked.visit "http://localhost:3003/browser/dead", (err)->
-          forked.cookies("www.localhost").update("foo=baz; domain=.localhost")
+          forked.setCookie(name: "foo", value: "baz")
           forked.localStorage("www.localhost").setItem("foo", "new")
           forked.sessionStorage("www.localhost").setItem("baz", "value")
           done()
@@ -548,8 +547,8 @@ describe "Browser", ->
       assert.equal browser.location.href, "http://localhost:3003/browser/living"
       assert.equal forked.location, "http://localhost:3003/browser/dead"
     it "should manipulate cookies independently", ->
-      assert.equal browser.cookies("localhost").get("foo"), "bar"
-      assert.equal forked.cookies("localhost").get("foo"), "baz"
+      assert.equal browser.getCookie(name: "foo"), "bar"
+      assert.equal forked.getCookie(name: "foo"), "baz"
     it "should manipulate storage independently", ->
       assert.equal browser.localStorage("www.localhost").getItem("foo"), "bar"
       assert.equal browser.sessionStorage("www.localhost").getItem("baz"), "qux"
@@ -562,7 +561,7 @@ describe "Browser", ->
       assert.equal browser.evaluate("window.dead"), "almost"
       assert.equal forked.evaluate("window.dead"), "very"
 
-    describe "history", ->
+    describe.skip "history", ->
       it "should clone from source", ->
         assert.equal "http://localhost:3003/browser/dead", forked.location.href
         forked.window.history.back()
