@@ -225,7 +225,7 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
   # Destroy all the history (and all its windows), frames, and Contextify
   # global.
   window._destroy = ->
-    # We call history.distroy which calls destroy on all windows, so need to
+    # We call history.destroy which calls destroy on all windows, so need to
     # avoid infinite loop.
     if closed
       return
