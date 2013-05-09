@@ -307,9 +307,7 @@ class Browser extends EventEmitter
     promise = @eventLoop.wait(waitDuration, completionFunction)
 
     if callback
-      promise.then ->
-        process.nextTick(callback)
-      .fail(callback)
+      promise.done(callback, callback)
     return promise
 
 
@@ -508,14 +506,10 @@ class Browser extends EventEmitter
     @tabs.open(url: url, referer: @referer)
 
     promise = @wait(options)
-    if callback
-      promise.then =>
-        callback(null, this, @statusCode)
-      .fail (error)=>
-        callback(error, this, @statusCode)
-      .done()
     # Q.finally is better, but emits an error
     promise.then(resetOptions, resetOptions)
+    if callback
+      promise.done(callback, callback)
     return promise
 
 
