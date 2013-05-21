@@ -1,4 +1,3 @@
-
 assert            = require("assert")
 Assert            = require("./assert")
 createTabs        = require("./tabs")
@@ -1160,7 +1159,7 @@ class Browser extends EventEmitter
       args = arguments
     @emit "log", format(args...)
 
-  # Dump information to the consolt: Zombie version, current URL, history, cookies, event loop, etc.  Useful for
+  # Dump information to the console: Zombie version, current URL, history, cookies, event loop, etc.  Useful for
   # debugging and submitting error reports.
   dump: ->
     indent = (lines)-> lines.map((l) -> "  #{l}\n").join("")
