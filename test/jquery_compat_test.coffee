@@ -1,7 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.3", "1.7.1", "1.8.0", "1.9.1"]
+JQUERY_VERSIONS = ["1.4.4", "1.5.1", "1.6.3", "1.7.1", "1.8.0", "1.9.1", "2.0.1"]
 
 
 describe "Compatibility with jQuery", ->
