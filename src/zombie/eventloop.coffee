@@ -120,8 +120,7 @@ class EventLoop
       if @listeners.length == 0
         @emit("done")
       return
-    # Q.finally is better, but emits an error
-    promise.then(removeListener, removeListener)
+    promise.finally(removeListener)
 
     # Someone (us) just started paying attention, start processing events
     if @listeners.length == 1

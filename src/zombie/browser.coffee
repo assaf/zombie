@@ -505,8 +505,7 @@ class Browser extends EventEmitter
     @tabs.open(url: url, referer: @referer)
 
     promise = @wait(options)
-    # Q.finally is better, but emits an error
-    promise.then(resetOptions, resetOptions)
+    promise.finally(resetOptions)
     if callback
       promise.done(callback, callback)
     return promise
