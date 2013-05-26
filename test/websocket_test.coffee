@@ -50,9 +50,10 @@ describe "WebSockets", ->
     prompts = []
     before (done)->
       browser.visit("/websockets")
-      browser.on "alert", (prompt)->
-        prompts.push(prompt)
-      setTimeout done, 300
+      browser.on "alert", (message)->
+        prompts.push(message)
+        if message == "close"
+          done()
 
     it "should be possible", ->
       browser.assert.text "#ws-url", "ws://localhost:3004"
