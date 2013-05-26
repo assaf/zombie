@@ -134,6 +134,7 @@ class XMLHttpRequest
 
       @responseText = response.body?.toString() || ""
       @responseXML = null
+      @onload.call(@) if @onload
       @_stateChanged(XMLHttpRequest.DONE, listener)
 
     return
