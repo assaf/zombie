@@ -36,12 +36,12 @@
     "ws":                     "~0.4.25"
   },
   "devDependencies": {
-    "coffee-script":          "~1.6.2",
-    "express":                "~3.2.2",
+    "coffee-script":          "~1.6.3",
+    "express":                "~3.2.6",
     "node-syntaxhighlighter": "~0.8.1",
-    "mocha":                  "~1.9.0",
+    "mocha":                  "~1.10.0",
     "replay":                 "~1.7.0",
-    "requirejs":              "~2.1.5",
+    "requirejs":              "~2.1.6",
     "robotskirt":             "~2.7.1"
   },
   "repository": {
