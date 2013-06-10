@@ -347,6 +347,8 @@ loadDocument = ({ document, history, url, method, encoding, params })->
       unless headers.referer
         # HTTP header Referer, but Document property referrer
         headers.referer = document.referrer
+      unless headers.accept
+        headers.accept = 'text/html'
 
       window._eventQueue.http method, url, headers: headers, params: params, target: document, (error, response)->
         if error
