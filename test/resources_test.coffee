@@ -106,7 +106,24 @@ describe "Resources", ->
       browser.resources.get "http://localhost:3003/resources/deflate", (error, @response)=>
         done()
 
-    it "should uncompress deflated response", ->
+    it "should uncompress deflated response with transfer-encoding", ->
+      image = File.readFileSync("#{__dirname}/data/zombie.jpg")
+      assert.deepEqual image, @response.body
+
+
+  describe "deflate content", ->
+    before ->
+      brains.get "/resources/deflate", (req, res)->
+        res.setHeader "Content-Encoding", "deflate"
+        image = File.readFileSync("#{__dirname}/data/zombie.jpg")
+        Zlib.deflate image, (error, buffer)->
+          res.send(buffer)
+
+    before (done)->
+      browser.resources.get "http://localhost:3003/resources/deflate", (error, @response)=>
+        done()
+
+    it "should uncompress deflated response with content-encoding", ->
       image = File.readFileSync("#{__dirname}/data/zombie.jpg")
       assert.deepEqual image, @response.body
 
@@ -123,7 +140,24 @@ describe "Resources", ->
       browser.resources.get "http://localhost:3003/resources/gzip", (error, @response)=>
         done()
 
-    it "should uncompress gzipped response", ->
+    it "should uncompress gzipped response with transfer-encoding", ->
+      image = File.readFileSync("#{__dirname}/data/zombie.jpg")
+      assert.deepEqual image, @response.body
+
+
+  describe "gzip content", ->
+    before ->
+      brains.get "/resources/gzip", (req, res)->
+        res.setHeader "Content-Encoding", "gzip"
+        image = File.readFileSync("#{__dirname}/data/zombie.jpg")
+        Zlib.gzip image, (error, buffer)->
+          res.send(buffer)
+
+    before (done)->
+      browser.resources.get "http://localhost:3003/resources/gzip", (error, @response)=>
+        done()
+
+    it "should uncompress gzipped response with content-encoding", ->
       image = File.readFileSync("#{__dirname}/data/zombie.jpg")
       assert.deepEqual image, @response.body
 
