@@ -97,7 +97,7 @@ describe "Resources", ->
   describe "deflate", ->
     before ->
       brains.get "/resources/deflate", (req, res)->
-        res.setHeader "Transfer-Encoding", "deflate"
+        res.setHeader "Content-Encoding", "deflate"
         image = File.readFileSync("#{__dirname}/data/zombie.jpg")
         Zlib.deflate image, (error, buffer)->
           res.send(buffer)
@@ -114,7 +114,7 @@ describe "Resources", ->
   describe "gzip", ->
     before ->
       brains.get "/resources/gzip", (req, res)->
-        res.setHeader "Transfer-Encoding", "gzip"
+        res.setHeader "Content-Encoding", "gzip"
         image = File.readFileSync("#{__dirname}/data/zombie.jpg")
         Zlib.gzip image, (error, buffer)->
           res.send(buffer)
