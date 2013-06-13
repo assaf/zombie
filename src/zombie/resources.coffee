@@ -297,7 +297,6 @@ Resources.mergeHeaders = (request, next)->
   # Header names are down-cased and over-ride default
   headers =
     "user-agent":       @userAgent
-    "accept-encoding":  "identity" # No gzip/deflate support yet
 
   # Merge custom headers from browser first, followed by request.
   for name, value of @headers
@@ -385,7 +384,8 @@ Resources.specialURLHandlers = (request, next)->
 Resources.decompressBody = (request, response, next)->
   if response.body && response.headers
     transferEncoding = response.headers["transfer-encoding"]
-  switch transferEncoding
+    contentEncoding = response.headers["content-encoding"]
+  switch transferEncoding || contentEncoding
     when "deflate"
       Zlib.inflate response.body, (error, buffer)->
         unless error
