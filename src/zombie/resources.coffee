@@ -383,8 +383,9 @@ Resources.specialURLHandlers = (request, next)->
 # Handle deflate and gzip transfer encoding.
 Resources.decompressBody = (request, response, next)->
   if response.body && response.headers
+    transferEncoding = response.headers["transfer-encoding"]
     contentEncoding = response.headers["content-encoding"]
-  switch contentEncoding
+  switch transferEncoding || contentEncoding
     when "deflate"
       Zlib.inflate response.body, (error, buffer)->
         unless error
