@@ -607,6 +607,18 @@ describe "Forms", ->
         selected = (!!option.getAttribute("selected") for option in browser.querySelector("#field-hobbies").options)
         assert.deepEqual selected, [true, false, false]
 
+	  describe "unselect name using option selector", ->
+      before (done)->
+        browser.visit("/forms/form")
+          .then ->
+            browser.selectOption("#hobbies-messy")
+            browser.unselectOption("#hobbies-messy")
+            return
+          .then(done, done)
+
+      it "should unselect items", ->
+        assert !browser.query("#hobbies-messy").selected
+
     describe "with callback", ->
       before (done)->
         browser.visit "/forms/form", ->
