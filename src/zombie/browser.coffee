@@ -817,10 +817,11 @@ class Browser extends EventEmitter
   #
   # Unselects an option.
   #
-  # option - option to unselect
+  # selector - selector or option to unselect
   #
   # Without callback, returns this.
-  unselectOption: (option)->
+  unselectOption: (selector)->
+    option = @query(selector)
     if option && option.getAttribute("selected")
       select = @xpath("./ancestor::select", option).iterateNext()
       unless select.multiple
