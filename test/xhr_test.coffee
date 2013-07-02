@@ -240,11 +240,11 @@ describe "XMLHttpRequest", ->
 
       mush.get '/json', (req,res)->
         res.type "application/json"
-        res.setHeader('Access-Control-Allow-Origin', 'localhost:3003');
+        res.setHeader 'Access-Control-Allow-Origin', 'localhost:3003'
         res.send {some:"object"}
 
       mush.options '/*', (req,res)->
-        res.setHeader('Access-Control-Allow-Origin', 'localhost:3003');
+        res.setHeader 'Access-Control-Allow-Origin', 'localhost:3003'
         res.send 200
 
       mush.ready ->

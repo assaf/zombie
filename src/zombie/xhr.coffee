@@ -85,16 +85,16 @@ class XMLHttpRequest
     else
       url.host = url.hostname
 
-    if url.host != @_window.location.host
+    # If it's cross domain we need to check for some CORS headers
+    current_host = @_window.location.host
+    unless url.host == current_host
       options =
-        method: "OPTIONS"
+        method: "GET"
         url: url.href
 
-      request options, ( error, res) ->
-        @_window.location.host = res.headers['Access-Control-Allow-Origin']
-        unless @_window.location.host == @_window.location.host
-          throw new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
-
+      request options, (error, res) ->
+        unless current_host == res.headers['Access-Control-Allow-Origin']
+          throw new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain" )
 
     url.hash = null
     if user
