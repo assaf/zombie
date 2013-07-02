@@ -1,4 +1,5 @@
 { assert, brains, Browser } = require("./helpers")
+mush = require('./helpers/mush.coffee')
 
 
 describe "XMLHttpRequest", ->
@@ -207,6 +208,48 @@ describe "XMLHttpRequest", ->
     it "responseText should be a string", ->
       assert.equal "string", typeof browser.document.text
       assert.equal "Text", browser.document.text
+
+
+  describe "CORS", ->
+    before (done)->
+      brains.get "/xhr/script-call-foreign-domain", (req, res)->
+        res.send """
+        <html>
+         <head><script src="/jquery.js"></script></head>
+         <body>
+           Make a call to a foreign domain
+           <script>
+            // Make the x-domain jsonp request...
+            $.support.cors = true;
+            $.ajax({
+                url: 'http://localhost:3010/json',
+                type: 'GET',
+                success: function(data){
+                  document.text = data;
+                },
+                error: function(data) {
+                  document.error = data;
+                }
+            });
+           </script>
+         </body>
+        </html>
+        """
+
+      mush.get '/json', (req,res)->
+        res.setHeader('Access-Control-Allow-Origin', 'localhost:3003');
+        res.send "callback({some:object})"
+
+      brains.ready done
+
+    before (done)->
+      browser.visit("http://localhost:3003/xhr/script-call-foreign-domain", {debug:true}, done)
+
+    it "should load page with foreign script", ->
+      console.log browser.document.error
+      assert.equal "Text", browser.document.error
+      done()
+
 
 
   describe.skip "HTML document", ->
