@@ -89,7 +89,7 @@ class XMLHttpRequest
     current_host = @_window.location.host
     unless url.host == current_host
       options =
-        method: "GET"
+        method: "OPTIONS"
         url: url.href
 
       request options, (error, res) ->
