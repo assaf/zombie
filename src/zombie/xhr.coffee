@@ -2,7 +2,7 @@
 HTML      = require("jsdom").dom.level3.html
 URL       = require("url")
 raise     = require("./scripts")
-http      = require('http')
+request      = require('request')
 
 # Additional error codes defines for XHR and not in JSDOM.
 HTML.SECURITY_ERR = 18
@@ -85,19 +85,17 @@ class XMLHttpRequest
     else
       url.host = url.hostname
 
-    # make a head request to check the CORS header
-    options =
-      method: "HEAD"
-      host: url.host
-      port: url.port
-      path: url.pathname
+    if url.host != @_window.location.host
+      options =
+        method: "OPTIONS"
+        url: url.href
 
-    #req = http.request(options, (res) ->
-    res = {headers:[]}
-    res.headers['Access-Control-Allow-Origin'] = @_window.location.host
-    cors_header = res.headers['Access-Control-Allow-Origin']
-    unless url.host == @_window.location.host || cors_header == @_window.location.host
-        throw new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
+      request options, ( error, res) ->
+        @_window.location.host = res.headers['Access-Control-Allow-Origin']
+        unless @_window.location.host == @_window.location.host
+          throw new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
+
+
     url.hash = null
     if user
       url.auth = "#{user}:#{password}"
@@ -115,9 +113,6 @@ class XMLHttpRequest
     @_pending.push(request)
     @readyState = XMLHttpRequest.OPENED
     return
-    #)
-    #req.end()
-
 
   # Sends the request. If the request is asynchronous (which is the default),
   # this method returns as soon as the request is sent. If the request is

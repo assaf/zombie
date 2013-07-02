@@ -224,11 +224,13 @@ describe "XMLHttpRequest", ->
             $.ajax({
                 url: 'http://localhost:3010/json',
                 type: 'GET',
-                success: function(data){
-                  document.text = data;
+                dataType: 'json',
+                success: function(message,text,response){
+                  document.corsHeader = response.getResponseHeader('Access-Control-Allow-Origin')
+                  document.text = message;
                 },
-                error: function(data) {
-                  document.error = data;
+                error: function(message,text,response) {
+                  document.error = response;
                 }
             });
            </script>
@@ -237,18 +239,24 @@ describe "XMLHttpRequest", ->
         """
 
       mush.get '/json', (req,res)->
+        res.type "application/json"
         res.setHeader('Access-Control-Allow-Origin', 'localhost:3003');
-        res.send "callback({some:object})"
+        res.send {some:"object"}
 
-      brains.ready done
+      mush.options '/*', (req,res)->
+        res.setHeader('Access-Control-Allow-Origin', 'localhost:3003');
+        res.send 200
+
+      mush.ready ->
+        brains.ready done
 
     before (done)->
       browser.visit("http://localhost:3003/xhr/script-call-foreign-domain", {debug:true}, done)
 
-    it "should load page with foreign script", ->
+    it "should be able to do x-domain req with appropriate headers", ->
       console.log browser.document.error
-      assert.equal "Text", browser.document.error
-      done()
+      console.log browser.document.corsHeader
+      assert.equal '{"some":"object"}', JSON.stringify(browser.document.text)
 
 
 
