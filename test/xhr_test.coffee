@@ -224,7 +224,6 @@ describe "XMLHttpRequest", ->
             $.ajax({
                 url: 'http://localhost:3010/json',
                 type: 'GET',
-                dataType: 'json',
                 success: function(message,text,response){
                   document.corsHeader = response.getResponseHeader('Access-Control-Allow-Origin')
                   document.text = message;

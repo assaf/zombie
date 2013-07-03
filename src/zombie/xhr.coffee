@@ -2,7 +2,7 @@
 HTML      = require("jsdom").dom.level3.html
 URL       = require("url")
 raise     = require("./scripts")
-request      = require('request')
+util = require('util')
 
 # Additional error codes defines for XHR and not in JSDOM.
 HTML.SECURITY_ERR = 18
@@ -85,17 +85,6 @@ class XMLHttpRequest
     else
       url.host = url.hostname
 
-    # If it's cross domain we need to check for some CORS headers
-    current_host = @_window.location.host
-    unless url.host == current_host
-      options =
-        method: "OPTIONS"
-        url: url.href
-
-      request options, (error, res) ->
-        unless current_host == res.headers['Access-Control-Allow-Origin']
-          throw new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain" )
-
     url.hash = null
     if user
       url.auth = "#{user}:#{password}"
@@ -112,12 +101,26 @@ class XMLHttpRequest
       headers:  {}
     @_pending.push(request)
     @readyState = XMLHttpRequest.OPENED
+
+    # If it's cross domain we need to check for some CORS headers
+    unless url.host == @_window.location.host
+      request =
+        method:   "OPTIONS"
+        url: URL.format(url)
+        headers:  {}
+        corsChecks: true
+
+      @_pending.push(request)
+      @readyState = XMLHttpRequest.OPENED
+
     return
+
 
   # Sends the request. If the request is asynchronous (which is the default),
   # this method returns as soon as the request is sent. If the request is
   # synchronous, this method doesn't return until the response has arrived.
   send: (data)->
+    console.log('****** ' + JSON.stringify(@_pending[@_pending.length - 1]))
     # Request must be opened.
     unless @readyState == XMLHttpRequest.OPENED
       throw new HTML.DOMException(HTML.INVALID_STATE_ERR,  "Invalid state")
@@ -142,12 +145,18 @@ class XMLHttpRequest
       @_responseHeaders = response.headers
       @_stateChanged(XMLHttpRequest.HEADERS_RECEIVED, listener)
 
-      @responseText = response.body?.toString() || ""
-      @responseXML = null
-      @onload.call(@) if @onload
-      @_stateChanged(XMLHttpRequest.DONE, listener)
-
-    return
+      if(request.corsChecks )
+        console.log
+        unless @_window.location.host == response.headers['access-control-allow-origin']
+          throw new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain" )
+        @_pending.pop()
+        @send(data)
+      else
+        @responseText = response.body?.toString() || ""
+        @responseXML = null
+        @onload.call(@) if @onload
+        @_stateChanged(XMLHttpRequest.DONE, listener)
+        return
 
   # Sets the value of an HTTP request header.You must call setRequestHeader()
   # after open(), but before send().
