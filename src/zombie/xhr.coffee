@@ -2,7 +2,6 @@
 HTML      = require("jsdom").dom.level3.html
 URL       = require("url")
 raise     = require("./scripts")
-util = require('util')
 
 # Additional error codes defines for XHR and not in JSDOM.
 HTML.SECURITY_ERR = 18
@@ -102,7 +101,7 @@ class XMLHttpRequest
     @_pending.push(request)
     @readyState = XMLHttpRequest.OPENED
 
-    # If it's cross domain we need to check for some CORS headers
+    # If it's cross domain we need to check for some CORS headers... Add another 'OPTIONS' request to the queue
     unless url.host == @_window.location.host
       request =
         method:   "OPTIONS"
