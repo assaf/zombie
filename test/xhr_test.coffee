@@ -209,6 +209,55 @@ describe "XMLHttpRequest", ->
       assert.equal "Text", browser.document.text
 
 
+  describe "CORS", ->
+    before (done)->
+      brains.get "/xhr/script-call-foreign-domain", (req, res)->
+        res.send """
+        <html>
+         <head><script src="/jquery.js"></script></head>
+         <body>
+           Make a call to a foreign domain
+           <script>
+            // Make the x-domain jsonp request...
+            $.support.cors = true;
+            $.ajax({
+                url: 'http://localhost:3010/json',
+                type: 'GET',
+                success: function(message,text,response){
+                  document.corsHeader = response.getResponseHeader('Access-Control-Allow-Origin')
+                  document.text = message;
+                },
+                error: function(message,text,response) {
+                  document.error = response;
+                }
+            });
+           </script>
+         </body>
+        </html>
+        """
+
+      brains.get '/json', (req,res)->
+        res.type "application/json"
+        res.setHeader 'Access-Control-Allow-Origin', 'localhost:3003'
+        res.send {some:"object"}
+
+      brains.options '/*', (req,res)->
+        res.setHeader 'Access-Control-Allow-Origin', 'localhost:3003'
+        res.send 200
+
+      brains.ready ->
+        brains.ready done
+
+    before (done)->
+      browser.visit("http://localhost:3003/xhr/script-call-foreign-domain", {debug:true}, done)
+
+    it "should be able to do x-domain req with appropriate headers", ->
+      console.log browser.document.error
+      console.log browser.document.corsHeader
+      assert.equal '{"some":"object"}', JSON.stringify(browser.document.text)
+
+
+
   describe.skip "HTML document", ->
     before (done)->
       brains.get "/xhr/get-html", (req, res)->
