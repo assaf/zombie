@@ -1,5 +1,4 @@
 { assert, brains, Browser } = require("./helpers")
-mush = require('./helpers/mush.coffee')
 
 
 describe "XMLHttpRequest", ->
@@ -237,16 +236,16 @@ describe "XMLHttpRequest", ->
         </html>
         """
 
-      mush.get '/json', (req,res)->
+      brains.get '/json', (req,res)->
         res.type "application/json"
         res.setHeader 'Access-Control-Allow-Origin', 'localhost:3003'
         res.send {some:"object"}
 
-      mush.options '/*', (req,res)->
+      brains.options '/*', (req,res)->
         res.setHeader 'Access-Control-Allow-Origin', 'localhost:3003'
         res.send 200
 
-      mush.ready ->
+      brains.ready ->
         brains.ready done
 
     before (done)->

@@ -50,8 +50,9 @@ brains.ready = (callback)->
     process.nextTick callback
   else
     brains.listen 3003, ->
-      active = true
-      callback()
+      brains.listen 3010, ->
+        active = true
+        callback()
 
 
 module.exports = brains
