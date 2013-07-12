@@ -269,6 +269,7 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
     pushState:    history.pushState.bind(history)
     replaceState: history.replaceState.bind(history)
     _submit:      history.submit.bind(history)
+    dump:         history.dump.bind(history)
   Object.defineProperties windowHistory,
     length:
       get: -> return history.length
