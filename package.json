@@ -27,21 +27,21 @@
   "dependencies": {
     "eventsource":            "~0.0.7",
     "html5":                  "~0.3.13",
-    "jsdom":                  "~0.6.5",
+    "jsdom":                  "~0.8.1",
     "mime":                   "~1.2.9",
     "ms":                     "~0.6.1",
-    "q":                      "~0.9.4",
-    "request":                "~2.21.0",
+    "q":                      "~0.9.6",
+    "request":                "~2.22.0",
     "tough-cookie":           "~0.9.15",
-    "ws":                     "~0.4.25"
+    "ws":                     "~0.4.27"
   },
   "devDependencies": {
     "coffee-script":          "~1.6.3",
-    "express":                "~3.2.6",
+    "express":                "~3.3.4",
     "node-syntaxhighlighter": "~0.8.1",
-    "mocha":                  "~1.10.0",
+    "mocha":                  "~1.12.0",
     "replay":                 "~1.7.0",
-    "requirejs":              "~2.1.6",
+    "requirejs":              "~2.1.8",
     "robotskirt":             "~2.7.1"
   },
   "repository": {
