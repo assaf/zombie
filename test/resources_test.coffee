@@ -58,7 +58,7 @@ describe "Resources", ->
 
   describe "delay URL with timeout", ->
     before (done)->
-      browser.resources.delay("http://localhost:3003/resources/resource", 100)
+      browser.resources.delay("http://localhost:3003/resources/resource", 150)
       browser.visit("/resources/resource")
       browser.wait(duration: 90, done)
 
