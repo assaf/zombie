@@ -22,7 +22,7 @@ module.exports = createDocument = (browser, window, referer)->
   jsdomBrowser = JSDOM.browserAugmentation(HTML, parser: browser.htmlParser)
   # HTTP header Referer, but Document property referrer
   document = new jsdomBrowser.HTMLDocument(referrer: referer)
-  JSDOMSelectors.applyQuerySelector(document, HTML)
+  JSDOMSelectors.applyQuerySelectorPrototype(HTML)
 
   if browser.hasFeature("scripts", true)
     features.ProcessExternalResources.push("script")
