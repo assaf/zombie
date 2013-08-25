@@ -27,13 +27,13 @@
   "dependencies": {
     "eventsource":            "~0.0.7",
     "html5":                  "~0.3.13",
-    "jsdom":                  "~0.8.3",
-    "mime":                   "~1.2.10",
+    "jsdom":                  "~0.8.4",
+    "mime":                   "~1.2.11",
     "ms":                     "~0.6.1",
     "q":                      "~0.9.6",
     "request":                "~2.26.0",
     "tough-cookie":           "~0.9.15",
-    "ws":                     "~0.4.27"
+    "ws":                     "~0.4.29"
   },
   "devDependencies": {
     "coffee-script":          "~1.6.3",
