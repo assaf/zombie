@@ -209,7 +209,9 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
     clearInterval:
       value: eventQueue.clearInterval.bind(eventQueue)
     setImmediate:
-      value: (fn) -> window.setTimeout fn, 0
+      value: (fn) -> eventQueue.setTimeout(fn, 0)
+    clearImmediate:
+      value: eventQueue.clearTimeout.bind(eventQueue)
 
 
   # -- Opening and closing --
