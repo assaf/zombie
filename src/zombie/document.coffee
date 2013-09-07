@@ -30,6 +30,7 @@ module.exports = createDocument = (browser, window, referer)->
 
   if browser.hasFeature("css", false)
     features.FetchExternalResources.push("css")
+    features.FetchExternalResources.push("link")
   if browser.hasFeature("iframe", true)
     features.FetchExternalResources.push("iframe")
   JSDOM.applyDocumentFeatures(document, features)
