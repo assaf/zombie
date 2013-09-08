@@ -91,3 +91,9 @@ HTML5.TreeBuilder.prototype.createElement = (name, attributes, namespace)->
       for i in [0...attributes.length]
         this.copyAttributeToElement(el, attributes[i])
   return el
+
+# Attempt to load the image, this will trigger a 'load' event when succesful
+# jsdom seemed to only queue the 'load' event
+HTML.HTMLImageElement.prototype._attrModified = (name, value, oldVal) ->
+  if (name == 'src' && value != oldVal)
+    HTML.resourceLoader.load this, value, ->
