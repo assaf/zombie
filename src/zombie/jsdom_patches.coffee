@@ -94,25 +94,24 @@ HTML5.TreeBuilder.prototype.createElement = (name, attributes, namespace)->
 
 # Implement insertAdjacentHTML
 HTML.HTMLElement.prototype.insertAdjacentHTML = (position, html)->
-  ref = this
-  container = ref.ownerDocument.createElementNS("http://www.w3.org/1999/xhtml", "_")
-  ref_parent = ref.parentNode
+  container  = this.ownerDocument.createElementNS("http://www.w3.org/1999/xhtml", "_")
+  parentNode = this.parentNode
 
   container.innerHTML = html
 
   switch position.toLowerCase()
     when "beforebegin"
       while (node = container.firstChild)
-        ref_parent.insertBefore(node, ref)
+        parentNode.insertBefore(node, this)
     when "afterbegin"
-      first_child = ref.firstChild;
+      first_child = this.firstChild;
       while ((node = container.lastChild))
-        first_child = ref.insertBefore(node, first_child);
+        first_child = this.insertBefore(node, first_child);
     when "beforeend"
       while ((node = container.firstChild))
-        ref.appendChild(node)
+        this.appendChild(node)
     when "afterend"
-      next_sibling = ref.nextSibling
+      next_sibling = this.nextSibling
       while ((node = container.lastChild))
-        next_sibling = ref_parent.insertBefore(node, next_sibling)
+        next_sibling = parentNode.insertBefore(node, next_sibling)
 
