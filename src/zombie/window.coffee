@@ -173,6 +173,10 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
 
   # Evaulate in context of window. This can be called with a script (String) or a function.
   window._evaluate = (code, filename)->
+    # Surpress JavaScript validation and execution
+    if !browser.runScripts
+      return
+
     try
       # The current window, postMessage and window.close need this
       [originalInScope, browser._windowInScope] = [browser._windowInScope, window]
@@ -208,6 +212,10 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
       value: eventQueue.setInterval.bind(eventQueue)
     clearInterval:
       value: eventQueue.clearInterval.bind(eventQueue)
+    setImmediate:
+      value: (fn) -> eventQueue.setTimeout(fn, 0)
+    clearImmediate:
+      value: eventQueue.clearTimeout.bind(eventQueue)
 
 
   # -- Opening and closing --
@@ -269,6 +277,7 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
     pushState:    history.pushState.bind(history)
     replaceState: history.replaceState.bind(history)
     _submit:      history.submit.bind(history)
+    dump:         history.dump.bind(history)
   Object.defineProperties windowHistory,
     length:
       get: -> return history.length

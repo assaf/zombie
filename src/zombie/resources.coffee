@@ -408,7 +408,8 @@ Resources.decodeBody = (request, response, next)->
     contentType = response.headers["content-type"]
   if contentType
     [mimeType, typeOptions...] = contentType.split(/;\s+/)
-    unless mimeType == "application/octet-stream"
+    [type,subtype] = contentType.split(/\//,2);
+    unless mimeType == "application/octet-stream" || type == "image"
       for typeOption in typeOptions
         if /^charset=/.test(typeOption)
           charset = typeOption.split("=")[1]

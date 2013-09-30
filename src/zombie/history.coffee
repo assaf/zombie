@@ -285,6 +285,16 @@ class History
       return @current.pushState
 
 
+  dump: ()->
+    cur = this.first
+    i = 1
+    dump = while cur
+      line = if cur.next then '#'+i+': ' else i+'. '
+      line += URL.format(cur.url)
+      cur = cur.next
+      ++i
+      line
+    dump
 
 # Returns true if the hash portion of the URL changed between the history entry
 # (entry) and the new URL we want to inspect (url).

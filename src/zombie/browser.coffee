@@ -32,7 +32,7 @@ require("./dom_iframe")
 # Browser options you can set when creating new browser, or on browser instance.
 BROWSER_OPTIONS = ["debug", "features", "headers", "htmlParser", "waitDuration",
                    "proxy", "referer", "silent", "site", "userAgent",
-                   "maxRedirects", "language"]
+                   "maxRedirects", "language", "runScripts"]
 
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 
@@ -679,14 +679,14 @@ class Browser extends EventEmitter
           return label.querySelector("input,textarea,select")
     return
 
-  # ### browser.fill(selector, value, callback) => this
+  # ### browser.fill(selector, value) => this
   #
   # Fill in a field: input field or text area.
   #
   # selector - CSS selector, field name or text of the field label
   # value - Field value
   #
-  # Without callback, returns this.
+  # Returns this.
   fill: (selector, value)->
     field = @field(selector)
     unless field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT"))
@@ -718,27 +718,27 @@ class Browser extends EventEmitter
       field.click()
     return this
 
-  # ### browser.check(selector, callback) => this
+  # ### browser.check(selector) => this
   #
   # Checks a checkbox.
   #
   # selector - CSS selector, field name or text of the field label
   #
-  # Without callback, returns this.
+  # Returns this.
   check: (selector)->
     return @_setCheckbox(selector, true)
 
-  # ### browser.uncheck(selector, callback) => this
+  # ### browser.uncheck(selector) => this
   #
   # Unchecks a checkbox.
   #
   # selector - CSS selector, field name or text of the field label
   #
-  # Without callback, returns this.
+  # Returns this.
   uncheck: (selector)->
     return @_setCheckbox(selector, false)
 
-  # ### browser.choose(selector, callback) => this
+  # ### browser.choose(selector) => this
   #
   # Selects a radio box option.
   #
@@ -771,26 +771,26 @@ class Browser extends EventEmitter
         return option
     throw new Error("No OPTION '#{value}'")
 
-  # ### browser.select(selector, value, callback) => this
+  # ### browser.select(selector, value) => this
   #
   # Selects an option.
   #
   # selector - CSS selector, field name or text of the field label
   # value - Value (or label) or option to select
   #
-  # Without callback, returns this.
-  select: (selector, value )->
+  # Returns this.
+  select: (selector, value)->
     option = @_findOption(selector, value)
     @selectOption(option)
     return this
 
-  # ### browser.selectOption(option, callback) => this
+  # ### browser.selectOption(option) => this
   #
   # Selects an option.
   #
   # option - option to select
   #
-  # Without callback, returns this.
+  # Returns this.
   selectOption: (selector)->
     option = @query(selector)
     if option && !option.getAttribute("selected")
@@ -800,26 +800,26 @@ class Browser extends EventEmitter
       @fire(select, "change")
     return this
 
-  # ### browser.unselect(selector, value, callback) => this
+  # ### browser.unselect(selector, value) => this
   #
   # Unselects an option.
   #
   # selector - CSS selector, field name or text of the field label
   # value - Value (or label) or option to unselect
   #
-  # Without callback, returns this.
-  unselect: (selector, value )->
+  # Returns this.
+  unselect: (selector, value)->
     option = @_findOption(selector, value)
     @unselectOption(option)
     return this
 
-  # ### browser.unselectOption(option, callback) => this
+  # ### browser.unselectOption(option) => this
   #
   # Unselects an option.
   #
   # selector - selector or option to unselect
   #
-  # Without callback, returns this.
+  # Returns this.
   unselectOption: (selector)->
     option = @query(selector)
     if option && option.getAttribute("selected")
@@ -831,11 +831,11 @@ class Browser extends EventEmitter
       @fire(select, "change")
     return this
 
-  # ### browser.attach(selector, filename, callback) => this
+  # ### browser.attach(selector, filename) => this
   #
   # Attaches a file to the specified input field.  The second argument is the file name.
   #
-  # Without callback, returns this.
+  # Returns this.
   attach: (selector, filename)->
     field = @field(selector)
     unless field && field.tagName == "INPUT" && field.type == "file"
@@ -1221,6 +1221,9 @@ Browser.default =
 
   # Default time to wait (visit, wait, etc).
   waitDuration: "5s"
+
+  # Indicates whether or not to validate and execute JavaScript, default true.
+  runScripts: true
 
 
 

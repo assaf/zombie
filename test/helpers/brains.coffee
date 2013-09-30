@@ -29,7 +29,7 @@ brains.get "/sammy.js", (req, res)->
     res.send data
 
 brains.get "/jquery.js", (req, res)->
-  res.redirect "/jquery-1.7.1.js"
+  res.redirect "/jquery-2.0.3.js"
 brains.get "/jquery-:version.js", (req, res)->
   version = req.params.version
   File.readFile "#{__dirname}/../scripts/jquery-#{version}.js", (err, data)->
