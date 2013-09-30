@@ -40,7 +40,7 @@ describe "Resources", ->
     it "should include loaded page", ->
       assert.equal browser.resources[0].response.url, "http://localhost:3003/resources/resource"
     it "should include loaded JavaScript", ->
-      assert.equal browser.resources[1].response.url, "http://localhost:3003/jquery-1.7.1.js"
+      assert.equal browser.resources[1].response.url, "http://localhost:3003/jquery-2.0.3.js"
 
 
   describe "fail URL", ->
@@ -58,7 +58,7 @@ describe "Resources", ->
 
   describe "delay URL with timeout", ->
     before (done)->
-      browser.resources.delay("http://localhost:3003/resources/resource", 100)
+      browser.resources.delay("http://localhost:3003/resources/resource", 150)
       browser.visit("/resources/resource")
       browser.wait(duration: 90, done)
 
@@ -176,7 +176,7 @@ describe "Resources", ->
     it "should include loaded page", ->
       assert.equal browser.resources[0].response.url, "http://localhost:3003/resources/resource"
     it "should include loaded JavaScript", ->
-      assert.equal browser.resources[1].response.url, "http://localhost:3003/jquery-1.7.1.js"
+      assert.equal browser.resources[1].response.url, "http://localhost:3003/jquery-2.0.3.js"
 
   describe "addHandler", ->
     before (done) ->

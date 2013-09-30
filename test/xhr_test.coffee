@@ -208,6 +208,46 @@ describe "XMLHttpRequest", ->
       assert.equal "string", typeof browser.document.text
       assert.equal "Text", browser.document.text
 
+  describe "xhr onreadystatechange", ->
+    before (done)->
+      brains.get "/xhr/get-onreadystatechange", (req, res)->
+        res.send """
+        <html>
+          <head></head>
+          <body>
+            <script>
+              document.readyStatesReceived = { 1:[], 2:[], 3:[], 4:[] };
+              var xhr = new XMLHttpRequest();
+              xhr.onreadystatechange = function(){
+                document.readyStatesReceived[xhr.readyState].push(Date.now())
+              };
+
+              xhr.open("GET", "/xhr/onreadystatechange", true);
+              xhr.send();
+
+            </script>
+          </body>
+        </html>
+        """
+      brains.get "/xhr/onreadystatechange", (req, res)->
+        res.send("foo")
+
+      brains.ready done
+
+    before (done)->
+      browser.visit("http://localhost:3003/xhr/get-onreadystatechange", done)
+
+    it "should get exactly one readyState of type 1, 2, and 4", ->
+      assert.equal browser.document.readyStatesReceived[1].length, 1
+      assert.equal browser.document.readyStatesReceived[2].length, 1
+      assert.equal browser.document.readyStatesReceived[4].length, 1
+
+    it "should get the readyStateChanges in chronological order", ->
+      assert (browser.document.readyStatesReceived[1][0] <=
+              browser.document.readyStatesReceived[2][0])
+
+      assert (browser.document.readyStatesReceived[2][0] <=
+              browser.document.readyStatesReceived[4][0])
 
   describe.skip "HTML document", ->
     before (done)->

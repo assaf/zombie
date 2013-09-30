@@ -13,23 +13,33 @@ describe "require.js", ->
       res.send """
       <html>
         <head>
+          <script>
+            var require = {
+              paths: {
+                main:   "/requirejs/index",
+                jquery: "/jquery"
+              }
+            };
+          </script>
           <script data-main="/requirejs/index" src="/scripts/require.js"></script>
         </head>
         <body>
+          Hi there.
         </body>
       </html>
       """
     brains.get "/requirejs/index.js", (req, res)->
       res.send """
-        require(["dependency"], function(dependency) {
+        define(["dependency"], function(dependency) {
           dependency()
         })
       """
     brains.get "/requirejs/dependency.js", (req, res)->
       res.send """
-        define(function() {
+        define(["jquery"], function($) {
           return function() {
             document.title = "Dependency loaded";
+            $("body").text("Hello");
           }
         })
       """
@@ -39,6 +49,9 @@ describe "require.js", ->
 
   it "should load dependencies", ->
     browser.assert.text "title", "Dependency loaded"
+
+  it "should run main module", ->
+    browser.assert.text "body", "Hello"
 
   after ->
     browser.destroy()
