@@ -77,15 +77,15 @@ module.exports = class Cookies extends Array
       httpHeader = httpHeader.join(",")
     for cookie in httpHeader.split(/,(?=[^;,]*=)|,$/)
       cookie = Cookie.parse(cookie)
-      continue unless cookie?
-      cookie.domain ||= domain
-      cookie.path   ||= Tough.defaultPath(path)
-      # Delete cookie before setting it, so we only store one cookie (per
-      # domain/path/name)
-      deleteIfExists = @filter((c)-> c.key == cookie.key && c.domain == cookie.domain && c.path == cookie.path)[0]
-      @delete(deleteIfExists)
-      if cookie.TTL() > 0
-        @push(cookie)
+      if cookie
+        cookie.domain ||= domain
+        cookie.path   ||= Tough.defaultPath(path)
+        # Delete cookie before setting it, so we only store one cookie (per
+        # domain/path/name)
+        deleteIfExists = @filter((c)-> c.key == cookie.key && c.domain == cookie.domain && c.path == cookie.path)[0]
+        @delete(deleteIfExists)
+        if cookie.TTL() > 0
+          @push(cookie)
     return
 
 
