@@ -10,14 +10,6 @@ HTML.NETWORK_ERR = 19
 HTML.ABORT_ERR = 20
 
 
-normalizeUrlPort = (url) ->
-  if url.protocol == 'https:' && url.port == '443' ||
-     url.protocol == 'http:' && url.port == '80'
-
-    delete url.port;
-  return url
-
-
 class XMLHttpRequest
   constructor: (window)->
     @_window = window
@@ -84,10 +76,11 @@ class XMLHttpRequest
 
     # Normalize the URL and check security
     url = URL.parse(URL.resolve(@_window.location.href, url))
-    
     # Don't consider port if they are standard for http and https
-    url = normalizeUrlPort(url)
-    
+    if (url.protocol == 'https:' && url.port == '443') ||
+       (url.protocol == 'http:' && url.port == '80')
+      delete url.port
+
     unless /^https?:$/i.test(url.protocol)
       throw new HTML.DOMException(HTML.NOT_SUPPORTED_ERR, "Only HTTP/S protocol supported")
     url.hostname ||= @_window.location.hostname
