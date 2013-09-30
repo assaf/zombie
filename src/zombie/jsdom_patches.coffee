@@ -96,4 +96,27 @@ HTML5.TreeBuilder.prototype.createElement = (name, attributes, namespace)->
 # jsdom seemed to only queue the 'load' event
 HTML.HTMLImageElement.prototype._attrModified = (name, value, oldVal) ->
   if (name == 'src' && value != oldVal)
-    HTML.resourceLoader.load this, value, ->
+    HTML.resourceLoader.load(this, value)
+
+# Implement insertAdjacentHTML
+HTML.HTMLElement.prototype.insertAdjacentHTML = (position, html)->
+  container  = this.ownerDocument.createElementNS("http://www.w3.org/1999/xhtml", "_")
+  parentNode = this.parentNode
+
+  container.innerHTML = html
+
+  switch position.toLowerCase()
+    when "beforebegin"
+      while (node = container.firstChild)
+        parentNode.insertBefore(node, this)
+    when "afterbegin"
+      first_child = this.firstChild;
+      while (node = container.lastChild)
+        first_child = this.insertBefore(node, first_child);
+    when "beforeend"
+      while (node = container.firstChild)
+        this.appendChild(node)
+    when "afterend"
+      next_sibling = this.nextSibling
+      while (node = container.lastChild)
+        next_sibling = parentNode.insertBefore(node, next_sibling)
