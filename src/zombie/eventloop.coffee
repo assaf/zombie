@@ -130,6 +130,8 @@ class EventLoop
 
     return promise
 
+  dump: ()->
+  	[]
 
   # -- Event queue management --
 
