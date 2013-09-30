@@ -77,6 +77,7 @@ module.exports = class Cookies extends Array
       httpHeader = httpHeader.join(",")
     for cookie in httpHeader.split(/,(?=[^;,]*=)|,$/)
       cookie = Cookie.parse(cookie)
+      continue unless cookie?
       cookie.domain ||= domain
       cookie.path   ||= Tough.defaultPath(path)
       # Delete cookie before setting it, so we only store one cookie (per

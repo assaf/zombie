@@ -145,6 +145,10 @@ describe "Cookies", ->
       res.cookie "_dup",      "one",      path: "/"
       res.send "<html></html>"
 
+    brains.get "/cookies/invalid", (req,res)->
+      res.setHeader "Set-Cookie", "invalid"
+      res.send "<html></html>"
+
     brains.get "/cookies/echo", (req,res)->
       cookies = ("#{k}=#{v}" for k,v of req.cookies).join("; ")
       res.send cookies
@@ -182,6 +186,13 @@ describe "Cookies", ->
       it "should access most specific cookie", ->
         browser.assert.cookie "_multiple", "specific"
 
+    describe "invalid cookie", ->
+      before (done)->
+        browser.visit("/cookies/invalid", done)
+
+      it "should not have the cookie", ->
+        console.log(browser.document.cookie)
+        browser.assert.cookie "invalid", null
 
     describe "host in domain", ->
       it "should have access to host cookies", ->
