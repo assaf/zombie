@@ -32,7 +32,7 @@ require("./dom_iframe")
 # Browser options you can set when creating new browser, or on browser instance.
 BROWSER_OPTIONS = ["debug", "features", "headers", "htmlParser", "waitDuration",
                    "proxy", "referer", "silent", "site", "userAgent",
-                   "maxRedirects", "language"]
+                   "maxRedirects", "language", "runScripts"]
 
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 
@@ -1221,6 +1221,9 @@ Browser.default =
 
   # Default time to wait (visit, wait, etc).
   waitDuration: "5s"
+
+  # Indicates whether or not to validate and execute JavaScript, default true.
+  runScripts: true
 
 
 

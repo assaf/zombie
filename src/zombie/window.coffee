@@ -173,6 +173,10 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
 
   # Evaulate in context of window. This can be called with a script (String) or a function.
   window._evaluate = (code, filename)->
+    # Surpress JavaScript validation and execution
+    if !browser.runScript
+      return
+
     try
       # The current window, postMessage and window.close need this
       [originalInScope, browser._windowInScope] = [browser._windowInScope, window]
