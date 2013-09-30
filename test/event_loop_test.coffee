@@ -52,7 +52,7 @@ describe "EventLoop", ->
           , 100
           browser.wait(done)
 
-      it "should not fire any timeout events", ->
+      it "should fire all timeout events", ->
         browser.assert.text "title", "One Two Three"
 
     describe "wait for all", ->
@@ -122,6 +122,37 @@ describe "EventLoop", ->
 
       it "should wait for event to fire", ->
         browser.assert.text "title", "One Two"
+
+
+  describe "setImmediate", ->
+    before ->
+      brains.get "/eventloop/immediate", (req, res)-> res.send """
+        <html>
+          <head><title></title></head>
+          <body></body>
+        </html>
+        """
+
+    describe "with wait", ->
+      before (done)->
+        browser.visit "http://localhost:3003/eventloop/immediate", ->
+          browser.window.setImmediate ->
+            @document.title += "."
+          browser.wait(done)
+
+      it "should not fire the immediate", ->
+        browser.assert.text "title", "."
+
+    describe "clearImmediate", ->
+      before (done)->
+        browser.visit "http://localhost:3003/eventloop/immediate", ->
+          immediate = browser.window.setImmediate ->
+            @document.title += "."
+          browser.window.clearImmediate immediate
+          browser.wait(done)
+
+      it "should not fire any immediates", ->
+        browser.assert.text "title", ""
 
 
   describe "setInterval", ->

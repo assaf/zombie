@@ -1,4 +1,4 @@
-{ brains, Browser } = require("./helpers")
+{ assert, brains, Browser } = require("./helpers")
 
 describe "Document", ->
 
@@ -89,6 +89,42 @@ describe "Document", ->
       it "should change active element", ->
         browser.assert.hasFocus @textarea
 
+  describe "insertAdjacentHTML", ->
+    before ->
+      brains.get "/document/insertAdjacentHTML", (req, res)->
+        res.send "<html><body><div><p id='existing'></p></div></body></html>"
+
+    before (done)->
+      browser.visit("/document/insertAdjacentHTML", done)
+
+    describe "beforebegin", ->
+      before ->
+        @div = browser.query("div")
+        @div.insertAdjacentHTML("beforebegin", "<p id='beforebegin'></p>")
+
+      it "should insert content before target element", ->
+        assert.equal browser.body.firstChild.getAttribute("id"), "beforebegin"
+
+    describe "afterbegin", ->
+      before ->
+        @div.insertAdjacentHTML("afterbegin", "<p id='afterbegin'></p>")
+
+      it "should insert content as the first child within target element", ->
+        assert.equal @div.firstChild.getAttribute("id"), "afterbegin"
+
+    describe "beforeend", ->
+      before ->
+        @div.insertAdjacentHTML("beforeend", "<p id='beforeend'></p>")
+
+      it "should insert content as the last child within target element", ->
+        assert.equal @div.lastChild.getAttribute("id"), "beforeend"
+
+    describe "afterend", ->
+      before ->
+        @div.insertAdjacentHTML("afterend", "<p id='afterend'></p>")
+
+      it "should insert content after the target element", ->
+        assert.equal browser.body.lastChild.getAttribute("id"), "afterend"
 
   after ->
     browser.destroy()

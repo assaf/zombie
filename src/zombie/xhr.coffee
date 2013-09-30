@@ -76,6 +76,11 @@ class XMLHttpRequest
 
     # Normalize the URL and check security
     url = URL.parse(URL.resolve(@_window.location.href, url))
+    # Don't consider port if they are standard for http and https
+    if (url.protocol == 'https:' && url.port == '443') ||
+       (url.protocol == 'http:' && url.port == '80')
+      delete url.port
+
     unless /^https?:$/i.test(url.protocol)
       throw new HTML.DOMException(HTML.NOT_SUPPORTED_ERR, "Only HTTP/S protocol supported")
     url.hostname ||= @_window.location.hostname
@@ -101,7 +106,7 @@ class XMLHttpRequest
       url:      URL.format(url)
       headers:  {}
     @_pending.push(request)
-    @readyState = XMLHttpRequest.OPENED
+    @_stateChanged(XMLHttpRequest.OPENED)
     return
 
   # Sends the request. If the request is asynchronous (which is the default),
@@ -118,24 +123,27 @@ class XMLHttpRequest
     request.body = data
     request.timeout = @timeout
     @_window._eventQueue.http request.method, request.url, request, (error, response)=>
-      listener = @onreadystatechange
       # abort sets request.error
       error ||= request.error
       if error
         error = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
-        @_stateChanged(XMLHttpRequest.DONE, listener)
+        @_stateChanged(XMLHttpRequest.DONE)
         return
 
-      # Since the request was not aborted, we set all the fields here.
+      # Since the request was not aborted, we set all the fields here and change
+      # the state to HEADERS_RECIEVED.
       @status           = response.statusCode
       @statusText       = response.statusText
       @_responseHeaders = response.headers
-      @_stateChanged(XMLHttpRequest.HEADERS_RECEIVED, listener)
+      @_stateChanged(XMLHttpRequest.HEADERS_RECEIVED)
 
-      @responseText = response.body?.toString() || ""
-      @responseXML = null
-      @onload.call(@) if @onload
-      @_stateChanged(XMLHttpRequest.DONE, listener)
+      # Give the onreadystatechange a chance to fire from the previous state
+      # change, then set the response fields and change the state to DONE.
+      @_window._eventQueue.enqueue =>
+        @responseText = response.body?.toString() || ""
+        @responseXML = null
+        @onload.call(@) if @onload
+        @_stateChanged(XMLHttpRequest.DONE)
 
     return
 
@@ -149,16 +157,15 @@ class XMLHttpRequest
     return
 
   # Fire onreadystatechange event
-  _stateChanged: (newState, listener)->
+  _stateChanged: (newState)->
     @readyState = newState
-    if listener
+    if @onreadystatechange
       # Since we want to wait on these events, put them in the event loop.
       @_window._eventQueue.enqueue =>
         try
-          listener.call(this)
+          @onreadystatechange.call(this)
         catch error
           raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
-
 
 
 # Lifecycle states

@@ -548,7 +548,7 @@ Some things you can do with events:
 - Mess with the browser, e.g. modify loaded resources, capture and change DOM
   events
 
-#### console (level, messsage)
+#### console (level, message)
 
 Emitted whenever a message is printed to the console (`console.log`,
 `console.error`, `console.trace`, etc).
