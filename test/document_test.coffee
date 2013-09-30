@@ -1,4 +1,4 @@
-{ brains, Browser } = require("./helpers")
+{ assert, brains, Browser } = require("./helpers")
 
 describe "Document", ->
 
