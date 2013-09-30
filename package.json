@@ -27,7 +27,7 @@
   "dependencies": {
     "eventsource":            "0.0.8",
     "html5":                  "0.3.14",
-    "jsdom":                  "0.8.5",
+    "jsdom":                  "0.8.6",
     "mime":                   "1.2.11",
     "ms":                     "0.6.1",
     "q":                      "0.9.7",
