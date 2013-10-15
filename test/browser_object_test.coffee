@@ -193,7 +193,7 @@ describe "Browser", ->
       it "should set options for the duration of the request", ->
         browser.assert.text "title", "Whatever"
       it "should reset options following the request", ->
-        assert.equal browser.features, "scripts no-css"
+        assert.equal browser.features, "scripts no-css no-img iframe"
 
     describe "global", ->
       newBrowser = null

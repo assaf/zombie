@@ -30,9 +30,14 @@ require("./dom_iframe")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
-BROWSER_OPTIONS = ["debug", "features", "headers", "htmlParser", "waitDuration",
+BROWSER_OPTIONS   = ["debug", "features", "headers", "htmlParser", "waitDuration",
                    "proxy", "referer", "silent", "site", "userAgent",
                    "maxRedirects", "language", "runScripts"]
+
+# Supported browser features.
+BROWSER_FEATURES  = ["scripts", "css", "img", "iframe"]
+# These features are set on/off by default.
+DEFAULT_FEATURES  = "scripts no-css no-img iframe"
 
 MOUSE_EVENT_NAMES = ["mousedown", "mousemove", "mouseup"]
 
@@ -1191,7 +1196,7 @@ Browser.default =
   debug: false
 
   # Which features are enabled.
-  features: "scripts no-css"
+  features: DEFAULT_FEATURES
 
   # Which parser to use (HTML5 by default). For example:
   #   Browser.default.htmlParser = require("html5")       // HTML5, forgiving
