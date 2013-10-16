@@ -71,6 +71,7 @@ class Resources extends Array
       body:       options.body
       time:       Date.now()
       timeout:    options.timeout || 0
+      strictSSL:  @browser.strictSSL
 
     resource =
       request:    request
@@ -474,6 +475,7 @@ Resources.makeHTTPRequest = (request, callback)->
       jar:            false
       followRedirect: false
       encoding:       null
+      strictSSL:      request.strictSSL
       timeout:        request.timeout || 0
       strictSSL:      false
 

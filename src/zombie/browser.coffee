@@ -31,7 +31,7 @@ require("./dom_iframe")
 
 # Browser options you can set when creating new browser, or on browser instance.
 BROWSER_OPTIONS   = ["debug", "features", "headers", "htmlParser", "waitDuration",
-                     "proxy", "referer", "silent", "site", "userAgent",
+                     "proxy", "referer", "silent", "site", "strictSSL", "userAgent",
                      "maxRedirects", "language", "runScripts"]
 
 # Supported browser features.
@@ -1227,6 +1227,9 @@ Browser.default =
 
   # You can use visit with a path, and it will make a request relative to this host/URL.
   site: undefined
+
+  # Check SSL certificates against CA
+  strictSSL: true
 
   # User agent string sent to server.
   userAgent: "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{Browser.VERSION}"
