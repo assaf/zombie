@@ -59,11 +59,11 @@ On Ubuntu try these steps:
     $ sudo apt-get install python-software-properties
     $ sudo add-apt-repository ppa:chris-lea/node.js
     $ sudo apt-get update
-    $ sudo apt-get install nodejs nodejs-dev npm
+    $ sudo apt-get install nodejs
     $ node --version
-    v0.6.2
+    v0.10.21
     $ npm --version
-    1.0.106
+    1.3.11
     $ npm install zombie
 
 On Windows you'll need Cygwin to get access to GCC, Python, etc.  [Read
