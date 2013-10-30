@@ -414,7 +414,7 @@ Resources.decodeBody = (request, response, next)->
         if /^charset=/.test(typeOption)
           charset = typeOption.split("=")[1]
           break
-      response.body = response.body.toString(charset || "utf8")
+      response.body = response.body.toString("utf8")
   next()
   return
 
