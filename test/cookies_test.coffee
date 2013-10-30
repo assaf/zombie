@@ -191,7 +191,6 @@ describe "Cookies", ->
         browser.visit("/cookies/invalid", done)
 
       it "should not have the cookie", ->
-        console.log(browser.document.cookie)
         browser.assert.cookie "invalid", null
 
     describe "host in domain", ->

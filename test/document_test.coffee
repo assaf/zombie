@@ -7,6 +7,23 @@ describe "Document", ->
     browser = Browser.create()
     brains.ready(done)
 
+
+  describe "character encoding", ->
+    before ->
+      brains.get "/document/encoding", (req, res)->
+        res.header("Content-Type", "text/html; charset=greek")
+        res.send """
+        <html>
+          <body>\xc3\xe5\xe9\xdc!</body>
+        </html>
+        """
+    before (done)->
+      browser.visit("/document/encoding", done)
+
+    it "should support greek8", ->
+      browser.assert.text "body", "Γειά!"
+
+
   describe "activeElement", ->
     before ->
       brains.get "/document/activeElement", (req, res)->

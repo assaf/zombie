@@ -25,6 +25,7 @@
     "node":         ">= 0.8.0"
   },
   "dependencies": {
+    "encoding":               "0.1.7",
     "eventsource":            "0.0.8",
     "html5":                  "0.3.14",
     "jsdom":                  "0.8.6",

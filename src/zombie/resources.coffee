@@ -16,15 +16,16 @@
 #   protocols or support new headers
 
 
-File    = require("fs")
-HTML    = require("jsdom").dom.level3.html
-Path    = require("path")
-QS      = require("querystring")
-Request = require("request")
-URL     = require("url")
-HTTP    = require('http')
-Zlib    = require("zlib")
-assert  = require("assert")
+encoding  = require("encoding")
+File      = require("fs")
+HTML      = require("jsdom").dom.level3.html
+Path      = require("path")
+QS        = require("querystring")
+Request   = require("request")
+URL       = require("url")
+HTTP      = require('http')
+Zlib      = require("zlib")
+assert    = require("assert")
 
 
 # Each browser has a resources object that provides the means for retrieving
@@ -407,14 +408,14 @@ Resources.decodeBody = (request, response, next)->
   if response.body && response.headers
     contentType = response.headers["content-type"]
   if contentType
-    [mimeType, typeOptions...] = contentType.split(/;\s+/)
+    [mimeType, typeOptions...] = contentType.split(/;\s*/)
     [type,subtype] = contentType.split(/\//,2);
     unless mimeType == "application/octet-stream" || type == "image"
       for typeOption in typeOptions
         if /^charset=/.test(typeOption)
           charset = typeOption.split("=")[1]
           break
-      response.body = response.body.toString(charset || "utf8")
+      response.body = encoding.convert(response.body.toString(), null, charset || "utf-8").toString()
   next()
   return
 
