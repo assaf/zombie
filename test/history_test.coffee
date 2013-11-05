@@ -191,7 +191,7 @@ describe "History", ->
         browser.assert.url "http://localhost:3003/history/boo/"
 
     describe "open from file system", ->
-      fileURL = "file://#{__dirname}/data/index.html"
+      fileURL = encodeURI("file://#{__dirname}/data/index.html")
 
       before (done)->
         browser.visit(fileURL, done)

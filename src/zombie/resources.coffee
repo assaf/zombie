@@ -443,7 +443,7 @@ Resources.makeHTTPRequest = (request, callback)->
     # file system rather than getting node's http (which handles file://
     # poorly) involved.
     if request.method == "GET"
-      filename = Path.normalize(pathname)
+      filename = Path.normalize(decodeURI(pathname))
       File.exists filename, (exists)=>
         if exists
           File.readFile filename, (error, buffer)=>
