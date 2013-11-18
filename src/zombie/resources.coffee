@@ -413,9 +413,9 @@ Resources.decodeBody = (request, response, next)->
     unless mimeType == "application/octet-stream" || type == "image"
       for typeOption in typeOptions
         if /^charset=/.test(typeOption)
-          charset = typeOption.split("=")[1]
+          charset = typeOption.split("=")[1] || "utf8"
           break
-      response.body = encoding.convert(response.body.toString(), null, charset || "utf-8").toString()
+      response.body = encoding.convert(response.body.toString(), null, charset).toString()
   next()
   return
 
