@@ -1172,5 +1172,26 @@ describe "Forms", ->
         assert.equal browser.query(tagName).id, ""
 
 
+  describe "form.elements", ->
+    form = null
+    before (done) ->
+      browser.visit "/forms/form", ->
+        form = browser.query("form")
+        done()
+
+    it "should be an array-like object", ->
+      assert.ok form.elements
+      assert.ok !isNaN form.elements.length
+
+    it "should allow accessing inputs by index", ->
+      assert.ok form.elements[0]
+
+    it "should allow accessing inputs by name", ->
+      assert.ok form.elements["email"]
+
+    it "should return array when asked for radio inputs", ->
+      assert.ok form.elements["scary"]
+      assert.equal form.elements["scary"].length, 2
+
   after ->
     browser.destroy()
