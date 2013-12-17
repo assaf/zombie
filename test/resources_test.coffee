@@ -178,6 +178,23 @@ describe "Resources", ->
     it "should include loaded JavaScript", ->
       assert.equal browser.resources[1].response.url, "http://localhost:3003/jquery-2.0.3.js"
 
+  describe "301 redirect URL cross server", ->
+    before ->
+      brains.get "/resources/three-oh-one", (req, res)->
+        res.redirect("http://localhost:3005/resources/resource", 301)
+
+    before (done)->
+      browser.resources.length = 0
+      brains.listen 3005, ->
+        browser.visit("/resources/three-oh-one", done)
+
+    it "should have a length", ->
+      assert.equal browser.resources.length, 2
+    it "should include loaded page", ->
+      assert.equal browser.resources[0].response.url, "http://localhost:3005/resources/resource"
+    it "should include loaded JavaScript", ->
+      assert.equal browser.resources[1].response.url, "http://localhost:3005/jquery-2.0.3.js"
+
   describe "addHandler", ->
     before (done) ->
       browser.resources.addHandler (request, done) ->
