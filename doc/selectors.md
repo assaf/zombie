@@ -2,105 +2,125 @@ zombie.js-selectors(7) -- CSS Selectors
 =======================================
 
 
-Zombie.js uses [Sizzle.js](http://sizzlejs.com/) which provides support for most
+Zombie.js uses [jsdom's](https://github.com/tmpvar/jsdom) choice of selector engine, currently [nwmatcher](http://javascript.nwbox.com/NWMatcher/) which provides support for many
 [CSS 3 selectors](http://www.w3.org/TR/css3-selectors/) with a few useful
 extension.
 
-Sizzle.js is the selector engine used in jQuery, so if you're familiar
-with jQuery selectors, you're familiar with Sizzle.js.
+What follows is a list of CSS selectors currently supported in latest NWMatcher version (cloned from [https://github.com/dperini/nwmatcher/wiki/CSS-supported-selectors](https://github.com/dperini/nwmatcher/wiki/CSS-supported-selectors)).
 
-The following list summarizes which selectors are currently
-supported:
+Text and/or character selectors (content) have no meanings for applications, they don't work on element nodes but on text nodes, which do not provide an event interface.
 
-`*` Any element
+### Universal selector
 
-`E` An element of type E
+| Selector | Description |
+|-|-|
+| &#42; (asterisk) | any Element |
 
-`E#myid` An E element with ID equal to "myid"
+### Tag, Id and Class selectors
+| Selector | Description |
+|-|-|
+| E | an Element of type E |
+| E#fooId | an E element with ID equal to "fooId" |
+| E.fooClass | an E element with CLASS equal to "fooClass" |
 
-`E.foo` An E element whose class is "foo"
+### Combinators selectors (child and siblings)
 
-`E[foo]` An E element with a "foo" attribute
+| Selector | Description |
+|-|-|
+| E F | an F element descendant child of an E element |
+| E > F | an F element direct child of an E element |
+| E + F | an F element immediately preceded by an E element |
+| E ~ F | an F element preceded by an E element |
 
-`E[foo="bar"]` An E element whose "foo" attribute value is exactly equal to "bar"
+### Attribute selectors
 
-`E[foo!="bar"]` An E element whose "foo" attribute value does not equal to "bar"
+| Selector | Description |
+|-|-|
+| E[foo] | an E element with a "foo" attribute |
+| E[foo="bar"] | an E element whose "foo" attribute value is exactly equal to "bar" |
+| E[foo^="bar"] | an E element whose "foo" attribute value begins exactly with the string "bar" |
+| E[foo$="bar"] | an E element whose "foo" attribute value ends exactly with the string "bar" |
+| E[foo*="bar"] | an E element whose "foo" attribute value contains the substring "bar" |
+| E[foo~="bar"] | an E element whose "foo" attribute value is a list of whitespace-separated values, one of which is exactly equal to "bar" |
+| E[foo&#124;="en"] | an E element whose "foo" attribute value is a hyphen-separated list of values beginning (from the left) with "en" |
 
-`E[foo~="bar"]` An E element whose "foo" attribute value is a list of whitespace-separated values, one of which is exactly equal to "bar"
+### Structural pseudo-classes selectors
 
-`E[foo^="bar"]` An E element whose "foo" attribute value begins exactly with the string "bar"
+| Selector | Description |
+|-|-|
+| E:root | an E element, root of the document |
+| E:empty | an E element that has no children (including text nodes) |
+| E:nth-child(n) | an E element, the n-th child of its parent |
+| E:nth-of-type(n) | an E element, the n-th sibling of its type |
+| E:nth-last-child(n) | an E element, the n-th child of its parent, counting from the last one |
+| E:nth-last-of-type(n) | an E element, the n-th sibling of its type, counting from the last one |
+| E:first-child | an E element, first child of its parent |
+| E:last-child | an E element, last child of its parent |
+| E:only-child | an E element, only child of its parent |
+| E:first-of-type | an E element, first sibling of its type |
+| E:last-of-type | an E element, last sibling of its type |
+| E:only-of-type | an E element, only sibling of its type |
 
-`E[foo$="bar"]` An E element whose "foo" attribute value ends exactly with the string "bar"
+### Negation pseudo-classes selector
 
-`E[foo*="bar"]` An E element whose "foo" attribute value contains the substring "bar"
+| Selector | Description |
+|-|-|
+| E:not(s) | an E element that does not match simple selector s |
 
-`E[foo|="en"]` An E element whose "foo" attribute has a hyphen-separated list of values beginning (from the left) with "en"
+### Hyper-link, Target and Language pseudo-classes selectors
 
-`E:nth-child(n)`  An E element, the n-th child of its parent
+| Selector | Description |
+|-|-|
+| E:link | an E element being the source anchor of an hyper-link never visited |
+| E:visited | an E element being the source anchor of an hyper-link already visited |
+| E:target | an E element being the target of the referring URI |
+| E:lang(it) | an E element having content in language "it" |
 
-`E:first-child`  An E element, first child of its parent
+### User action pseudo-classes selectors
 
-`E:last-child`  An E element, last child of its parent
+| Selector | Description |
+|-|-|
+| E:active | an E element during certain user actions |
+| E:hover | an E element during a mouse over action |
+| E:focus | an E element being the focus of the document |
 
-`E:only-child`  An E element, only child of its parent
+### UI element state pseudo-classes selectors
 
-`E:empty` An E element that has no children (including text nodes)
+| Selector | Description |
+|-|-|
+| E:enabled | an UI element E whose "disabled" property is set to false |
+| E:disabled | an UI element E whose "disabled" property is set to true |
+| E:checked | an UI element E whose "checked" or "selected" property is set to true ~(radio, checkbox, option)~ |
 
-`E:link` A link
+### WebForms and HTML5 support (optional external add-on)
 
-`E:focus` An E element during certain user actions
+| Selector | Description |
+|-|-|
+| E:indeterminate | an UI element E whose "indeterminate" property is set to true |
+| E:default | an UI element E whose "defaultChecked" or "defaultSelected" properties are set to true |
+| E:optional | an UI element E whose "required" property is set to false |
+| E:required | an UI element E whose "required" property is set to true |
+| E:invalid | an UI element E with constraint validation that do not satisfy its constraints |
+| E:valid | an UI element E with constraint validation that satisfy its constraints |
+| E:in-range | an UI element E with constraint validation not suffering for overflow or underflow |
+| E:out-of-range | an UI element E with constraint validation suffering for overflow or underflow |
+| E:read-only | an UI element E whose "readOnly" property is set to true |
+| E:read-write | an UI element E whose "readOnly" property is set to false |
 
-`E:enabled` A user interface element E which is enabled
+### Legacy support (optional external add-on)
 
-`E:disabled` A user interface element E which is disabled
+| Selector | Description |
+|-|-|
+| E[foo!="bar"] | an E element whose "foo" attribute value is not exactly equal to "bar" |
+| E:selected | an UI element E whose "selected" property is set to true (option) |
+| E:contains() | an E element whose textual contents contain the given substring |
 
-`E:checked` A user interface element E which is checked (for instance a radio-button or checkbox)
+### Content pseudo-element selectors (not supported)
 
-`E:input` An E element that is an input element (includes `textarea`, `select` and `button`)
-
-`E:text` An E element that is an input text field or text area
-
-`E:checkbox` An E element that is an input checkbox
-
-`E:file` An E element that is an input file
-
-`E:password` An E element that is an input password
-
-`E:submit` An E element that is an input or button of type `submit`
-
-`E:image` An E element that is an input of type `image`
-
-`E:button` An E element that is an input or button of type `button`
-
-`E:reset` An E element that is an input or button of type `reset`
-
-`E:header` An header element, one of h1, h2, h3, h4, h5, h6
-
-`E:parent` A parent element, an element that contains another element
-
-`E:not(s)` An E element that does not match the selector `s` (multiple selectors supported)
-
-`E:contains(t)` An E element whose textual contents contains `t` (case sensitive)
-
-`E:first` An E element whose position on the page is first in document order
-
-`E:last` An E element whose position on the page is last in document order
-
-`E:even` An E element whose position on the page is even numbered (counting starts at 0)
-
-`E:odd` An E element whose position on the page is odd numbered (counting starts at 0)
-
-`E:eq(n)/:nth(n)` An E element whose Nth element on the page (e.g `:eq(5)`)
-
-`E:lt(n)` An E element whose position on the page is less than `n`
-
-`E:gt(n)` An E element whose position on the page is less than `n`
-
-`E F` An F element descendant of an E element
-
-`E > F` An F element child of an E element
-
-`E + F` An F element immediately preceded by an E element
-
-`E ~ F` An F element preceded by an E element
-
+| Selector | Description |
+|-|-|
+| E::after | generated content after an E element |
+| E::before | generated content before an E element |
+| E::selection | portion of a document highlighted by the user |
+| E::first-line | the first formatted line of an E element |
+| E::first-letter | the first formatted letter of an E element |
