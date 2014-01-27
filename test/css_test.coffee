@@ -36,6 +36,7 @@ describe "CSS", ->
       style.opacity = 1.0
       style.opacity = undefined
       browser.assert.style "#styled", "opacity", ""
+      style.opacity = 1.0
       style.opacity = null
       browser.assert.style "#styled", "opacity", ""
 

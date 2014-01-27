@@ -48,35 +48,34 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
 # Support for opacity style property.
 Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
   get: ->
-    return @_opacity || ""
-  set: (opacity)->
-    if opacity
-      opacity = parseFloat(opacity)
-      unless isNaN(opacity)
-        @_opacity = opacity.toString()
+    opacity = this.getPropertyValue("opacity")
+    if Number.isFinite(opacity)
+      return opacity.toString()
     else
-      delete @_opacity
+      return ""
+  set: (opacity)->
+    if opacity == null || opacity == undefined || opacity == ""
+      this.removeProperty("opacity")
+    else
+      opacity = parseFloat(opacity)
+      if isFinite(opacity)
+        this.setProperty("opacity", opacity)
 
 
 # Changing style.height/width affects clientHeight/Weight and offsetHeight/Width
 ["height", "width"].forEach (prop)->
-  internal = "_#{prop}"
   client = "client#{prop[0].toUpperCase()}#{prop.slice(1)}"
   offset = "offset#{prop[0].toUpperCase()}#{prop.slice(1)}"
-  Object.defineProperty HTML.CSSStyleDeclaration.prototype, prop,
-    get: ->
-      return this[internal] || ""
-    set: (value)->
-      if /^\d+px$/.test(value)
-        this[internal] = value
-      else if !value
-        delete this[internal]
   Object.defineProperty HTML.HTMLElement.prototype, client,
     get: ->
-      return parseInt(this[internal] || 100)
+      value = parseInt(this.style.getPropertyValue(prop), 10)
+      if Number.isFinite(value)
+        return value
+      else
+        return 100
   Object.defineProperty HTML.HTMLElement.prototype, offset,
     get: ->
-      return parseInt(this[internal] || 100)
+      return 0
 
 
 # For some reason HTML5 uses elementBuilder instead of createElement
