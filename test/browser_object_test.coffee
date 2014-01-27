@@ -112,7 +112,7 @@ describe "Browser", ->
         it "should not indicate success", ->
           assert !@browser.success
         it "should capture response document", ->
-          assert.equal @browser.source, "Cannot GET /browser/missing" # Express output
+          assert.equal @browser.source.trim(), "Cannot GET /browser/missing" # Express output
         it "should return response document with the error", ->
           @browser.assert.text "body", "Cannot GET /browser/missing" # Express output
 

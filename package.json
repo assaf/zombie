@@ -26,23 +26,23 @@
   },
   "dependencies": {
     "encoding":               "0.1.7",
-    "eventsource":            "0.0.8",
+    "eventsource":            "0.0.10",
     "html5":                  "0.3.14",
-    "jsdom":                  "0.8.6",
+    "jsdom":                  "0.8.11",
     "mime":                   "1.2.11",
-    "ms":                     "0.6.1",
-    "q":                      "0.9.7",
-    "request":                "2.27.0",
-    "tough-cookie":           "0.9.15",
+    "ms":                     "0.6.2",
+    "q":                      "1.0.0",
+    "request":                "2.33.0",
+    "tough-cookie":           "0.12.1",
     "ws":                     "0.4.31"
   },
   "devDependencies": {
     "coffee-script":          "1.6.3",
-    "express":                "3.4.0",
+    "express":                "3.4.8",
     "node-syntaxhighlighter": "0.8.1",
-    "mocha":                  "1.13.0",
-    "replay":                 "1.7.0",
-    "requirejs":              "2.1.8",
+    "mocha":                  "1.17.1",
+    "replay":                 "1.9.1",
+    "requirejs":              "2.1.10",
     "robotskirt":             "2.7.1"
   },
   "repository": {
