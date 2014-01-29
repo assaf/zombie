@@ -37,13 +37,15 @@
     "ws":                     "0.4.31"
   },
   "devDependencies": {
+    "co":                     "3.0.2",
     "coffee-script":          "1.6.3",
     "express":                "3.4.8",
     "node-syntaxhighlighter": "0.8.1",
     "mocha":                  "1.17.1",
     "replay":                 "1.9.1",
     "requirejs":              "2.1.10",
-    "robotskirt":             "2.7.1"
+    "robotskirt":             "2.7.1",
+    "traceur":                "0.0.14"
   },
   "repository": {
     "type":   "git",

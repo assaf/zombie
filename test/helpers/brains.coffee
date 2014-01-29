@@ -46,12 +46,17 @@ brains.get "/scripts/*", (req, res)->
 
 active = false
 brains.ready = (callback)->
-  if active
-    process.nextTick callback
+  ready = (callback)->
+    if active
+      process.nextTick callback
+    else
+      brains.listen 3003, ->
+        active = true
+        callback()
+  if callback
+    ready(callback)
   else
-    brains.listen 3003, ->
-      active = true
-      callback()
+    return ready
 
 
 module.exports = brains

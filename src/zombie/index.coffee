@@ -28,8 +28,11 @@ visit = (url, options, callback)->
   if arguments.length == 2
     [options, callback] = [null, options]
   browser = Browser.create(options)
-  browser.visit url, options, (error)->
-    callback(error, browser)
+  if callback
+    browser.visit url, options, (error)->
+      callback(error, browser)
+  else
+    return browser.visit(url, options).then(-> browser);
 
 
 # ### listen port, callback
