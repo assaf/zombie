@@ -245,7 +245,6 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
     # kill event queue, document and window.
     eventQueue.destroy()
     document.close()
-    delete window.document
     window.dispose()
     return
 
@@ -306,7 +305,7 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
       when "_top"    # navigate top window
         submitTo = window.top
       else # open named window
-        submitTo = browser.tabs.open(name: anchor.target)
+        submitTo = browser.tabs.open(name: target)
     submitTo.history._submit(url: url, method: method, encoding: encoding, params: params)
 
   # Load the document associated with this window.
