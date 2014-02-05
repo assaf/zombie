@@ -264,6 +264,38 @@ describe "Forms", ->
       it "should fire blur event on previous field", ->
         assert true
 
+    describe "keep value and switch focus", ->
+      before (done)->
+        browser.visit("/forms/form")
+          .then ->
+            field1 = browser.querySelector("#field-email2")
+            field2 = browser.querySelector("#field-email3")
+            field1.addEventListener "change", ->
+              done(new Error("Should not fire"))
+
+            browser.focus(field1)
+            browser.focus(field2)
+            setImmediate(done)
+
+      it "should fire change event on previous field", ->
+        assert true
+
+    describe "change value and switch focus", ->
+      before (done)->
+        browser.visit("/forms/form")
+          .then ->
+            field1 = browser.querySelector("#field-email2")
+            field2 = browser.querySelector("#field-email3")
+            field1.addEventListener "change", ->
+              done()
+
+            browser.focus(field1)
+            field1.value = "something"
+            browser.focus(field2)
+
+      it "should fire change event on previous field", ->
+        assert true
+
 
   describe "check box", ->
     before (done)->

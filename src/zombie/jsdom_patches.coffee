@@ -78,19 +78,6 @@ Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
       return 0
 
 
-# For some reason HTML5 uses elementBuilder instead of createElement
-HTML5.TreeBuilder.prototype.createElement = (name, attributes, namespace)->
-  el = this.document.createElement(name)
-  el.namespace = namespace
-  if(attributes)
-    if(attributes.item)
-      for i in [0...attributes.length]
-        this.copyAttributeToElement(el, attributes.item(i))
-    else
-      for i in [0...attributes.length]
-        this.copyAttributeToElement(el, attributes[i])
-  return el
-
 # Attempt to load the image, this will trigger a 'load' event when succesful
 # jsdom seemed to only queue the 'load' event
 HTML.HTMLImageElement.prototype._attrModified = (name, value, oldVal) ->

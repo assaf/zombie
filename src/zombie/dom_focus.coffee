@@ -41,11 +41,29 @@ for elementType in [HTML.HTMLInputElement, HTML.HTMLSelectElement, HTML.HTMLText
   elementType.prototype.blur = ->
     setFocus(@ownerDocument, null)
 
-# Capture the autofocus element and use it to change focus
-setAttribute = HTML.HTMLElement.prototype.setAttribute
-HTML.HTMLElement.prototype.setAttribute = (name, value)->
-  setAttribute.call(this, name, value)
-  if name == "autofocus"
-    document = @ownerDocument
-    if ~FOCUS_ELEMENTS.indexOf(@tagName) && !document._inFocus
-      @focus()
+  # Capture the autofocus element and use it to change focus
+  setAttribute = elementType.prototype.setAttribute
+  elementType.prototype.setAttribute = (name, value)->
+    setAttribute.call(this, name, value)
+    if name == "autofocus"
+      document = @ownerDocument
+      if ~FOCUS_ELEMENTS.indexOf(@tagName) && !document._inFocus
+        @focus()
+
+
+# When changing focus onto form control, store the current value.  When changing
+# focus to different control, if the value has changed, trigger a change event.
+for elementType in [HTML.HTMLInputElement, HTML.HTMLTextAreaElement, HTML.HTMLSelectElement]
+  elementType.prototype._eventDefaults.focus = (event)->
+    element = event.target
+    element._focusValue = element.value || ''
+
+  elementType.prototype._eventDefaults.blur = (event)->
+    element = event.target
+    focusValue = element._focusValue
+    delete element._focusValue
+    if focusValue != element.value
+      change = element.ownerDocument.createEvent("HTMLEvents")
+      change.initEvent("change", false, false)
+      element.dispatchEvent(change)
+

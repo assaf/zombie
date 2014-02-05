@@ -3,7 +3,7 @@ const Browser     = require('../src/zombie');
 const { brains }  = require('./helpers');
 
 
-describe("angularjs", function() {
+describe.skip("angularjs", function() {
   let browser;
 
   before(function*() {

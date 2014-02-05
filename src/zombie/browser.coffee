@@ -235,7 +235,7 @@ class Browser extends EventEmitter
     forked.loadCookies @saveCookies()
     forked.loadStorage @saveStorage()
     # forked.loadHistory @saveHistory()
-    forked.location = @location.url
+    forked.location = @location.href
     return forked
 
 
@@ -683,6 +683,18 @@ class Browser extends EventEmitter
         else
           return label.querySelector("input,textarea,select")
     return
+
+
+  # ### browser.focus(selector) : Element
+  #
+  # Turns focus to the selected input field.  Shortcut for calling `field(selector).focus()`.
+  focus: (selector)->
+    field = @field(selector)
+    unless field
+      throw new Error("No form field matching '#{selector}'")
+    field.focus()
+    return this
+
 
   # ### browser.fill(selector, value) => this
   #

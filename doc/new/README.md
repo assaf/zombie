@@ -376,6 +376,10 @@ Fails if no element found.
 ```js
 browser.assert.attribute('form', 'method', 'post);
 browser.assert.attribute('form', 'action', '/customer/new');
+// Disabled with no attribute value, i.e. <button disabled>
+browser.assert.attribute('button', 'disabled', '');
+// No disabled attribute i.e. <button>
+browser.assert.attribute('button', 'disabled', null);
 ```
 
 #### assert.className(selection, className, message)
