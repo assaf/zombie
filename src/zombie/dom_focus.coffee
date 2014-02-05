@@ -61,7 +61,6 @@ for elementType in [HTML.HTMLInputElement, HTML.HTMLTextAreaElement, HTML.HTMLSe
   elementType.prototype._eventDefaults.blur = (event)->
     element = event.target
     focusValue = element._focusValue
-    delete element._focusValue
     if focusValue != element.value
       change = element.ownerDocument.createEvent("HTMLEvents")
       change.initEvent("change", false, false)

@@ -712,15 +712,13 @@ class Browser extends EventEmitter
       throw new Error("This INPUT field is disabled")
     if field.getAttribute("readonly")
       throw new Error("This INPUT field is readonly")
+
+    # Switch focus to field, change value and emit the input event (HTML5)
     field.focus()
-    start_value = field.value
     field.value = value
-    if start_value != value
-      @fire(field, "input")
-      @fire(field, "change")
-      @fire(field, "keydown")
-      @fire(field, "keyup")
-      @fire(field, "keypress")
+    @fire(field, "input")
+    # Switch focus out of field, if value changed, this will emit change event
+    field.blur()
     return this
 
   _setCheckbox: (selector, value)->
