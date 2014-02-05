@@ -477,7 +477,6 @@ Resources.makeHTTPRequest = (request, callback)->
       encoding:       null
       strictSSL:      request.strictSSL
       timeout:        request.timeout || 0
-      strictSSL:      false
 
     Request httpRequest, (error, response)=>
       if error
