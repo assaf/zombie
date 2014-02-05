@@ -376,6 +376,12 @@ describe "Scripts", ->
     it "should run scripts with file url src", ->
       browser.assert.text "title", "file://"
 
+  describe "file:// uri with encoded spaces", ->
+    before (done)->
+      browser.visit("file://#{__dirname}/data/dir%20with%20spaces/file_scheme%20with%20spaces.html", done)
+
+    it "should run scripts with file url src containing encoded spaces", ->
+      browser.assert.text "title", "file://"
 
   describe "javascript: URL", ->
     describe "existing page", ->
