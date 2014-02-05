@@ -373,12 +373,21 @@ Asserts the named attribute of the selected element(s) has the expected value.
 
 Fails if no element found.
 
+```js
+browser.assert.attribute('form', 'method', 'post);
+browser.assert.attribute('form', 'action', '/customer/new');
+```
+
 #### assert.className(selection, className, message)
 
 Asserts that selected element(s) has that and only that class name.  May also be
 space-separated list of class names.
 
 Fails if no element found.
+
+```js
+browser.assert.className('form input[name=email]', 'has-error');
+```
 
 #### assert.cookie(identifier, expected, message)
 
@@ -388,11 +397,21 @@ Asserts that a cookie exists and  has the expected value, or if `expected` is
 The identifier is either the name of a cookie, or an object with the property
 `name` and the optional properties `domain` and `path`.
 
+```js
+browser.assert.cookie('flash', 'Missing email addres');
+```
+
 #### assert.element(selection, message)
 
 Asserts that one element matching selection exists.
 
 Fails if no element or more than one matching element are found.
+
+```js
+browser.assert.elements('form');
+browser.assert.elements('form input[name=email]');
+browser.assert.elements('form input[name=email].has-error');
+```
 
 #### assert.elements(selection, count, message)
 
@@ -405,6 +424,13 @@ properties:
 - `atMost`  - Expecting to find at most that many elements
 - `exactly` - Expecting to find exactly that many elements
 
+```js
+browser.assert.elements('form', 1);
+browser.assert.elements('form input', 3);
+browser.assert.elements('form input.has-error', { atLeast: 1 });
+browser.assert.elements('form input:not(.has-error)', { atMost: 2 });
+```
+
 #### assert.evaluate(expression, expected, message)
 
 Evaluates the JavaScript expression in the context of the currently open window.
@@ -413,6 +439,11 @@ With one argument, asserts that the value is equal to `true`.
 
 With two/three arguments, asserts that the returned value matches the expected
 value.
+
+```js
+browser.assert.evaluate('$("form").data("valid")');
+browser.assert.evaluate('$("form").data("errors").length', 3);
+```
 
 #### assert.global(name, expected, message)
 
@@ -425,6 +456,10 @@ have other class names (unlike `assert.className`).
 
 Fails if no element found.
 
+```js
+browser.assert.hasClass('form input[name=email]', 'has-error');
+```
+
 #### assert.hasFocus(selection, message)
 
 Asserts that selected element has the focus.
@@ -433,12 +468,9 @@ If the first argument is `null`, asserts that no element has the focus.
 
 Otherwise, fails if element not found, or if more than one element found.
 
-#### assert.input(selection, expected, message)
-
-Asserts that selected input field(s) (`input`, `textarea`, `select` etc) have
-the expected value.
-
-Fails if no element found.
+```js
+browser.assert.hasFocus('form input:nth-child(1)');
+```
 
 #### assert.hasNoClass(selection, className, message)
 
@@ -447,9 +479,41 @@ have other class names (unlike `assert.className`).
 
 Fails if no element found.
 
+```js
+browser.assert.hasNoClass('form input', 'has-error');
+```
+
+#### assert.input(selection, expected, message)
+
+Asserts that selected input field(s) (`input`, `textarea`, `select` etc) have
+the expected value.
+
+Fails if no element found.
+
+```js
+browser.assert.input('form input[name=text]', 'Head Eater');
+```
+
+#### assert.link(selection, text, url, message)
+
+Asserts that at least one link exists with the given selector, text and URL.
+The selector can be `a`, but a more specific selector is recommended.  URL can
+be relative to the current document.
+
+Fails if no element is selected that also has the specified text content and
+URL.
+
+```js
+browser.assert.link('footer a', 'Privacy Policy', '/privacy');
+```
+
 #### assert.prompted(messageShown, message)
 
 Asserts the browser prompted with a given message.
+
+```js
+browser.assert.prompted('Are you sure?');
+```
 
 #### assert.redirected(message)
 
@@ -463,26 +527,31 @@ Asserts the current page loaded successfully (status code 2xx or 3xx).
 
 Asserts the current page loaded with the expected status code.
 
+```js
+browser.assert.status(404);
+```
+
 #### assert.style(selection, style, expected, message)
 
 Asserts that selected element(s) have the expected value for the named style
 property.  For example:
 
-```js
-browser.assert.style(".navigation", "opacity", 0.5)
-```
+Fails if no element found, or element style does not match expected value.
 
-Fails if no element found.
+```js
+browser.assert.style('#show-hide.hidden', 'display', 'none');
+browser.assert.style('#show-hide:not(.hidden)', 'display', '');
+```
 
 #### assert.text(selection, expected, message)
 
 Asserts that selected element(s) have the expected text content.  For example:
 
-```js
-browser.assert.text("title", "My Awesome Page")
-```
+Fails if no element found that has that text content.
 
-Fails if no element found.
+```js
+browser.assert.text('title', 'My Awesome Page');
+```
 
 #### assert.url(url, message)
 
@@ -498,9 +567,9 @@ The expected URL can be one of:
 For example:
 
 ```js
-browser.assert.url("http://localhost/foo/bar")
-browser.assert.url({ pathame: "/foo/bar" });
-browser.assert.url({ query: { name: "joedoe" } });
+browser.assert.url('http://localhost/foo/bar');
+browser.assert.url({ pathame: '/foo/bar' });
+browser.assert.url({ query: { name: 'joedoe' } });
 ```
 
 
@@ -524,8 +593,8 @@ Or application specific:
 ```js
 // Asserts which links is highlighted in the navigation bar
 Browser.Assert.navigationOn = function(linkText) {
-  this.assert.element(".navigation-bar");
-  this.assert.text(".navigation-bar a.highlighted", linkText);
+  this.assert.element('.navigation-bar');
+  this.assert.text('.navigation-bar a.highlighted', linkText);
 };
 ```
 

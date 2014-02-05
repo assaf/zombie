@@ -155,6 +155,16 @@ class Assert
     for element in elements
       assertMatch element.value, expected, message
 
+  # Asserts that a link exists with the given text and URL.
+  link: (selector, text, url, message)->
+    url = URL.resolve(@browser.location.href, url)
+    elements = @browser.queryAll(selector)
+    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
+    matching = elements.filter (element)->
+      element.textContent.trim() == text && element.href == url
+    assert matching.length > 0, "Expected at least one link matching the given text and URL"
+
+
   # Assert that text content of selected element(s) matches expected string.
   #
   # You can also call this with a regular expression, or a function.

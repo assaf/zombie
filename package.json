@@ -45,7 +45,7 @@
     "replay":                 "1.9.1",
     "requirejs":              "2.1.10",
     "robotskirt":             "2.7.1",
-    "traceur":                "0.0.14"
+    "traceur":                "0.0.20"
   },
   "repository": {
     "type":   "git",
