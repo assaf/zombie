@@ -320,12 +320,10 @@ loadDocument = ({ document, history, url, method, encoding, params })->
   window._response = { }
 
   # Called on wrap up to update browser with outcome.
-  done = (error, url)->
+  done = (error)->
     if error
       browser.emit("error", error)
     else
-      if url
-        history.updateLocation(window, url)
       browser.emit("loaded", document)
 
   method = (method || "GET").toUpperCase()
@@ -340,14 +338,14 @@ loadDocument = ({ document, history, url, method, encoding, params })->
       document.open()
       document.write("<html><body></body></html>")
       document.close()
-      done()
+      browser.emit("loaded", document)
 
     when "javascript:"
       try
         window._evaluate(pathname, "javascript:")
-        done()
+        browser.emit("loaded", document)
       catch error
-        done(error)
+        browser.emit("error", error)
 
     when "http:", "https:", "file:"
       # Proceeed to load resource ...
@@ -361,7 +359,7 @@ loadDocument = ({ document, history, url, method, encoding, params })->
           document.open()
           document.write("<html><body>#{error.message || error}</body></html>")
           document.close()
-          done(error)
+          browser.emit("error", error)
           return
 
         window._response = response
@@ -385,6 +383,7 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         unless /<html>/.test(body)
           body = "<html><body>#{body || ""}</body></html>"
 
+        history.updateLocation(window, response.url)
         document.open()
         document.write(body)
         document.close()
@@ -392,14 +391,14 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         # Error on any response that's not 2xx, or if we're not smart enough to
         # process the content and generate an HTML DOM tree from it.
         if response.statusCode >= 400
-          done(new Error("Server returned status code #{response.statusCode} from #{url}"))
+          browser.emit("error", new Error("Server returned status code #{response.statusCode} from #{url}"))
         else if document.documentElement
-          done(null, response.url)
+          browser.emit("loaded", document)
         else
-          done(new Error("Could not parse document at #{url}"))
+          browser.emit("error", new Error("Could not parse document at #{url}"))
 
     else # but not any other protocol for now
-      done(new Error("Cannot load resource #{url}, unsupported protocol"))
+      browser.emit("error", new Error("Cannot load resource #{url}, unsupported protocol"))
 
 
 # Wrap dispatchEvent to support _windowInScope and error handling.
