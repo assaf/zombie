@@ -775,7 +775,7 @@ The request object consists of:
 - `headers`     - All request headers
 - `body`        - The request body can be `Buffer` or string; only applies to
   POST and PUT methods
-- `multiparty`  - Used instead of a body to support file upload
+- `multipart`  - Used instead of a body to support file upload
 - `time`        - Timestamp when request was made
 - `timeout`     - Request timeout (0 for no timeout)
 
@@ -815,7 +815,7 @@ In the real world, servers and networks often fail.  You can test to for these
 conditions by asking Zombie to simulate a failure.  For example:
 
 ```js
-browser.resource.fail("http://3rd.party.api/v1/request");
+browser.resources.fail("http://3rd.party.api/v1/request");
 ```
 
 Another issue you'll encounter in real-life applications are network latencies.
