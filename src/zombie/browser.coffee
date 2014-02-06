@@ -689,7 +689,7 @@ class Browser extends EventEmitter
   #
   # Turns focus to the selected input field.  Shortcut for calling `field(selector).focus()`.
   focus: (selector)->
-    field = @field(selector)
+    field = @field(selector) || @query(selector)
     unless field
       throw new Error("No form field matching '#{selector}'")
     field.focus()
