@@ -1228,8 +1228,9 @@ Browser.default =
   # You can use visit with a path, and it will make a request relative to this host/URL.
   site: undefined
 
-  # Check SSL certificates against CA
-  strictSSL: true
+  # Check SSL certificates against CA.  False by default since you're likely
+  # testing with a self-signed certificate.
+  strictSSL: false
 
   # User agent string sent to server.
   userAgent: "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{Browser.VERSION}"
