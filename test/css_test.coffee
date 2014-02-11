@@ -20,7 +20,7 @@ describe "CSS", ->
       """
 
     before (done)->
-      browser.visit("http://localhost:3003/styled", done)
+      browser.visit("/styled", done)
 
     it "should be formatted string", ->
       browser.query("#styled").style.opacity = .55

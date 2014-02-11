@@ -31,7 +31,7 @@ describe "XMLHttpRequest", ->
       brains.ready done
 
     before (done)->
-      browser.visit("http://localhost:3003/xhr/async", done)
+      browser.visit("/xhr/async", done)
 
     it "should load resource asynchronously", ->
       browser.assert.text "title", "OneTwoThree"
@@ -64,7 +64,7 @@ describe "XMLHttpRequest", ->
       brains.ready done
 
     before (done)->
-      browser.visit("http://localhost:3003/xhr/headers", done)
+      browser.visit("/xhr/headers", done)
 
     it "should return all headers as string", ->
       assert ~browser.document.allHeaders.indexOf("header-one: value1\nheader-two: value2\nheader-three: value3")
@@ -96,7 +96,7 @@ describe "XMLHttpRequest", ->
       brains.ready done
 
     before (done)->
-      browser.visit("http://localhost:3003/xhr/cookies", done)
+      browser.visit("/xhr/cookies", done)
 
     it "should send cookies to XHR request", ->
       assert.equal browser.document.received, "send"
@@ -123,7 +123,7 @@ describe "XMLHttpRequest", ->
       brains.ready done
 
     before (done)->
-      browser.visit("http://localhost:3003/xhr/redirect", done)
+      browser.visit("/xhr/redirect", done)
 
     it "should follow redirect", ->
       assert /redirected/.test(browser.window.response)
@@ -149,7 +149,7 @@ describe "XMLHttpRequest", ->
       brains.ready done
 
     before (done)->
-      browser.visit("http://localhost:3003/xhr/post/empty", done)
+      browser.visit("/xhr/post/empty", done)
 
     it "should post with no data", ->
       browser.assert.text "title", "201posted"
@@ -175,7 +175,7 @@ describe "XMLHttpRequest", ->
       brains.ready done
 
     before (done)->
-      browser.visit("http://localhost:3003/xhr/get-empty", done)
+      browser.visit("/xhr/get-empty", done)
 
     it "responseText should be an empty string", ->
       assert.strictEqual "", browser.document.text
@@ -202,7 +202,7 @@ describe "XMLHttpRequest", ->
       brains.ready done
 
     before (done)->
-      browser.visit("http://localhost:3003/xhr/get-utf8-octet-stream", done)
+      browser.visit("/xhr/get-utf8-octet-stream", done)
 
     it "responseText should be a string", ->
       assert.equal "string", typeof browser.document.text
@@ -235,7 +235,7 @@ describe "XMLHttpRequest", ->
       brains.ready done
 
     before (done)->
-      browser.visit("http://localhost:3003/xhr/get-onreadystatechange", done)
+      browser.visit("/xhr/get-onreadystatechange", done)
 
     it "should get exactly one readyState of type 1, 2, and 4", ->
       assert.equal browser.document.readyStatesReceived[1].length, 1
@@ -270,7 +270,7 @@ describe "XMLHttpRequest", ->
       brains.ready done
 
     before (done)->
-      browser.visit("http://localhost:3003/xhr/get-html", done)
+      browser.visit("/xhr/get-html", done)
 
     it "should parse HTML document", ->
       browser.assert.element "foo > bar#bar"

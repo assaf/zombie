@@ -136,9 +136,9 @@ describe "Cookies", ->
       res.cookie "_path2",    "yummy",    path: "/cookies/sub"
       res.cookie "_path3",    "wrong",    path: "/wrong"
       res.cookie "_path4",    "yummy",    path: "/"
-      res.cookie "_domain1",  "here",     domain: ".localhost"
-      res.cookie "_domain2",  "not here", domain: "not.localhost"
-      res.cookie "_domain3",  "wrong",    domain: "notlocalhost"
+      res.cookie "_domain1",  "here",     domain: ".example.com"
+      res.cookie "_domain2",  "not here", domain: "not.example.com"
+      res.cookie "_domain3",  "wrong",    domain: "notexample.com"
       res.cookie "_multiple", "specific", path: "/cookies"
       res.cookie "_multiple", "general",  path: "/"
       res.cookie "_http_only","value",    httpOnly: true
@@ -229,7 +229,7 @@ describe "Cookies", ->
       browser.visit("/cookies", done)
 
     it "should be able to set domain cookies", ->
-      browser.assert.cookie name: "_domain1", domain: "localhost", path: "/cookies", "here"
+      browser.assert.cookie name: "_domain1", domain: "example.com", path: "/cookies", "here"
 
 
   describe "get cookies and redirect", ->
@@ -243,7 +243,7 @@ describe "Cookies", ->
       browser.visit("/cookies/redirect", done)
 
     it "should have access to persistent cookie", ->
-      browser.assert.cookie name: "_expires4", domain: "localhost", path: "/cookies/redirect", "3s"
+      browser.assert.cookie name: "_expires4", domain: "example.com", path: "/cookies/redirect", "3s"
 
 
   describe "duplicates", ->
@@ -272,17 +272,17 @@ describe "Cookies", ->
 
     before (done)->
       browser.deleteCookies()
-      browser.setCookie(domain: "localhost",                            name: "_name",                       value: "value")
-      browser.setCookie(domain: "localhost",                            name: "_expires1",  "max-age": 3000,  value: "3s")
-      browser.setCookie(domain: "localhost",                            name: "_expires2",  "max-age": 0,     value: "0s")
-      browser.setCookie(domain: "localhost",    path: "/cookies",       name: "_path1",                       value: "here")
-      browser.setCookie(domain: "localhost",    path: "/cookies/echo",  name: "_path2",                       value: "here")
-      browser.setCookie(domain: "localhost",    path: "/jars",          name: "_path3",                       value: "there")
-      browser.setCookie(domain: "localhost",    path: "/cookies/fido",  name: "_path4",                       value: "there")
-      browser.setCookie(domain: "localhost",    path: "/",              name:"_path5",                        value: "here")
-      browser.setCookie(domain: ".localhost",                           name: "_domain1",                     value: "here")
-      browser.setCookie(domain: "not.localhost",                        name: "_domain2",                     value: "there")
-      browser.setCookie(domain: "notlocalhost",                         name: "_domain3",                     value: "there")
+      browser.setCookie(domain: "example.com",                            name: "_name",                       value: "value")
+      browser.setCookie(domain: "example.com",                            name: "_expires1",  "max-age": 3000,  value: "3s")
+      browser.setCookie(domain: "example.com",                            name: "_expires2",  "max-age": 0,     value: "0s")
+      browser.setCookie(domain: "example.com",    path: "/cookies",       name: "_path1",                       value: "here")
+      browser.setCookie(domain: "example.com",    path: "/cookies/echo",  name: "_path2",                       value: "here")
+      browser.setCookie(domain: "example.com",    path: "/jars",          name: "_path3",                       value: "there")
+      browser.setCookie(domain: "example.com",    path: "/cookies/fido",  name: "_path4",                       value: "there")
+      browser.setCookie(domain: "example.com",    path: "/",              name:"_path5",                        value: "here")
+      browser.setCookie(domain: ".example.com",                           name: "_domain1",                     value: "here")
+      browser.setCookie(domain: "not.example.com",                        name: "_domain2",                     value: "there")
+      browser.setCookie(domain: "notexample.com",                         name: "_domain3",                     value: "there")
       browser.visit "/cookies/echo", =>
         @cookies = cookiesFromHtml(browser)
         done()
@@ -311,11 +311,11 @@ describe "Cookies", ->
   describe "setting cookies from subdomains", ->
     before ->
       browser.deleteCookies()
-      browser.cookies.update("foo=bar; domain=localhost")
+      browser.cookies.update("foo=bar; domain=example.com")
 
     it "should be accessible", ->
-      browser.assert.cookie domain: "localhost", name: "foo", "bar"
-      browser.assert.cookie domain: "www.localhost", name: "foo", "bar"
+      browser.assert.cookie domain: "example.com", name: "foo", "bar"
+      browser.assert.cookie domain: "www.example.com", name: "foo", "bar"
 
 
   # -- Access from JS --

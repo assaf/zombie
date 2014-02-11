@@ -49,7 +49,7 @@ describe "Selection", ->
       """
 
   before (done)->
-    browser.visit("http://localhost:3003/browser/walking", done)
+    browser.visit("/browser/walking", done)
 
 
   describe "queryAll", ->

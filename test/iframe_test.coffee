@@ -53,13 +53,13 @@ describe "IFrame", ->
     iframeDocument = @iframe.contentWindow.document
     assert.equal "Whatever", iframeDocument.title
     assert /Hello World/.test(iframeDocument.innerHTML)
-    assert.equal iframeDocument.URL, "http://localhost:3003/iframe/static"
+    assert.equal iframeDocument.URL, "http://example.com:3003/iframe/static"
   it "should set frame src attribute", ->
     assert.equal @iframe.src, "/iframe/static"
   it "should reference parent window from iframe", ->
     assert.equal @iframe.contentWindow.parent, browser.window.parent
   it "should not alter the parent", ->
-    browser.assert.url "http://localhost:3003/iframe"
+    browser.assert.url "http://example.com:3003/iframe"
 
   describe "javascript: protocol", ->
     # Seen this in the wild, checking that it doesn't blow up
@@ -106,7 +106,7 @@ describe "IFrame", ->
       browser.visit("/iframe/ping", done)
 
     it "should pass messages back and forth", ->
-      browser.assert.text "title", "pong http://localhost:3003"
+      browser.assert.text "title", "pong http://example.com:3003"
 
 
   describe "link target", ->

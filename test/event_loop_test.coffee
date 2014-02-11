@@ -29,7 +29,7 @@ describe "EventLoop", ->
     describe "no wait", ->
 
       before (done)->
-        browser.visit "http://localhost:3003/eventloop/timeout", ->
+        browser.visit "/eventloop/timeout", ->
           browser.window.setTimeout ->
             document.title += " Two"
           , 100
@@ -41,7 +41,7 @@ describe "EventLoop", ->
     describe "from timeout", ->
 
       before (done)->
-        browser.visit "http://localhost:3003/eventloop/timeout", ->
+        browser.visit "/eventloop/timeout", ->
           browser.window.setTimeout ->
             @setTimeout ->
               @document.title += " Two"
@@ -58,7 +58,7 @@ describe "EventLoop", ->
     describe "wait for all", ->
 
       before (done)->
-        browser.visit "http://localhost:3003/eventloop/timeout", ->
+        browser.visit "/eventloop/timeout", ->
           browser.window.setTimeout ->
             @document.title += " Two"
           , 100
@@ -72,7 +72,7 @@ describe "EventLoop", ->
 
     describe "cancel timeout", ->
       before (done)->
-        browser.visit "http://localhost:3003/eventloop/timeout", ->
+        browser.visit "/eventloop/timeout", ->
           first = browser.window.setTimeout ->
             @document.title += " Two"
           , 100
@@ -95,7 +95,7 @@ describe "EventLoop", ->
     describe "outside wait", ->
 
       before (done)->
-        browser.visit("http://localhost:3003/eventloop/function")
+        browser.visit("/eventloop/function")
           .then ->
             browser.window.setTimeout (-> @document.title += "1"), 100
             browser.window.setTimeout (-> @document.title += "2"), 200
@@ -114,7 +114,7 @@ describe "EventLoop", ->
 
     describe "zero wait", ->
       before (done)->
-        browser.visit "http://localhost:3003/eventloop/timeout", ->
+        browser.visit "/eventloop/timeout", ->
           browser.window.setTimeout ->
             @document.title += " Two"
           , 0
@@ -135,7 +135,7 @@ describe "EventLoop", ->
 
     describe "with wait", ->
       before (done)->
-        browser.visit "http://localhost:3003/eventloop/immediate", ->
+        browser.visit "/eventloop/immediate", ->
           browser.window.setImmediate ->
             @document.title += "."
           browser.wait(done)
@@ -145,7 +145,7 @@ describe "EventLoop", ->
 
     describe "clearImmediate", ->
       before (done)->
-        browser.visit "http://localhost:3003/eventloop/immediate", ->
+        browser.visit "/eventloop/immediate", ->
           immediate = browser.window.setImmediate ->
             @document.title += "."
           browser.window.clearImmediate immediate
@@ -166,7 +166,7 @@ describe "EventLoop", ->
 
     describe "no wait", ->
       before (done)->
-        browser.visit "http://localhost:3003/eventloop/interval", ->
+        browser.visit "/eventloop/interval", ->
           browser.window.setInterval ->
             @document.title += "."
           , 100
@@ -177,7 +177,7 @@ describe "EventLoop", ->
 
     describe "wait once", ->
       before (done)->
-        browser.visit "http://localhost:3003/eventloop/interval", ->
+        browser.visit "/eventloop/interval", ->
           browser.window.setInterval ->
             @document.title += "."
           , 100
@@ -188,7 +188,7 @@ describe "EventLoop", ->
 
     describe "wait long enough", ->
       before (done)->
-        browser.visit("http://localhost:3003/eventloop/interval")
+        browser.visit("/eventloop/interval")
           .then ->
             # Fire every 100 ms
             browser.window.setInterval ->
@@ -206,7 +206,7 @@ describe "EventLoop", ->
     describe "cancel interval", ->
       before (done)->
         interval = null
-        browser.visit("http://localhost:3003/eventloop/interval")
+        browser.visit("/eventloop/interval")
           .then ->
             interval = browser.window.setInterval ->
               @document.title += "."
@@ -228,7 +228,7 @@ describe "EventLoop", ->
 
     describe "outside wait", ->
       before (done)->
-        browser.visit("http://localhost:3003/eventloop/function")
+        browser.visit("/eventloop/function")
           .then ->
             browser.window.setInterval ->
               @document.title += "."
@@ -245,7 +245,7 @@ describe "EventLoop", ->
 
   describe "browser.wait completion", ->
     before (done)->
-      browser.visit("http://localhost:3003/eventloop/function")
+      browser.visit("/eventloop/function")
         .then ->
           browser.window.setInterval ->
             @document.title += "."

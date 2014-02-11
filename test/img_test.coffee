@@ -24,13 +24,13 @@ describe "IMG", ->
         res.send File.readFileSync("#{__dirname}/data/zombie.jpg")
 
     before (done)->
-      browser.visit("http://localhost:3003/image/index.html", done)
+      browser.visit("/image/index.html", done)
 
     it "should have 2 resources", ->
       assert.equal browser.resources.length, 2
 
     it "should be in resources", ->
-      assert.equal browser.resources[1].response.url, "http://localhost:3003/image/zombie.jpg"
+      assert.equal browser.resources[1].response.url, "http://example.com:3003/image/zombie.jpg"
 
     it "should be the same as original file", ->
       assert.deepEqual browser.resources[1].response.body, File.readFileSync("#{__dirname}/data/zombie.jpg")

@@ -60,7 +60,7 @@ describe "XPath", ->
     brains.ready done
 
   before (done)->
-    browser.visit("http://localhost:3003/xpath", done)
+    browser.visit("/xpath", done)
 
 
   describe "evaluate nodes", ->

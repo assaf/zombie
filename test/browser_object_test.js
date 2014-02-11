@@ -49,7 +49,7 @@ describe("Browser", function() {
 
     describe("open page", function() {
       before(function*() {
-        yield browser.visit('http://localhost:3003/browser/scripted');
+        yield browser.visit('/browser/scripted');
       });
 
       it("should create HTML document", function() {
@@ -84,7 +84,7 @@ describe("Browser", function() {
         let callbackBrowser;
 
         before(function*() {
-          callbackBrowser = yield Browser.visit('http://localhost:3003/browser/scripted');
+          callbackBrowser = yield Browser.visit('/browser/scripted');
         });
 
         it("should pass browser to callback", function() {
@@ -109,7 +109,7 @@ describe("Browser", function() {
 
         before(function*() {
           try {
-            yield browser.visit('http://localhost:3003/browser/errored');
+            yield browser.visit('/browser/errored');
             assert(false, "Should have errored");
           } catch (callbackError) {
             error = callbackError;
@@ -133,7 +133,7 @@ describe("Browser", function() {
 
         before(function*() {
           try {
-            yield browser.visit('http://localhost:3003/browser/missing');
+            yield browser.visit('/browser/missing');
             assert(false, "Should have errored");
           } catch (callbackError) {
             error = callbackError;
@@ -166,7 +166,7 @@ describe("Browser", function() {
           });
 
           try {
-            yield browser.visit('http://localhost:3003/browser/500');
+            yield browser.visit('/browser/500');
             assert(false, "Should have errored");
           } catch (callbackError) {
             error = callbackError;
@@ -195,7 +195,7 @@ describe("Browser", function() {
           brains.get('/browser/empty', function(req, res) {
             res.send("");
           });
-          yield browser.visit('http://localhost:3003/browser/empty');
+          yield browser.visit('/browser/empty');
         });
 
         it("should load document", function() {
@@ -217,7 +217,7 @@ describe("Browser", function() {
           browser.once('loaded', function(arg) {
             document = arg;
           });
-          yield browser.visit('http://localhost:3003/browser/scripted');
+          yield browser.visit('/browser/scripted');
           assert(document.addEventListener);
         });
       });
@@ -228,7 +228,7 @@ describe("Browser", function() {
           browser.once('done', function() {
             done = true;
           });
-          browser.location = 'http://localhost:3003/browser/scripted';
+          browser.location = '/browser/scripted';
           yield browser.wait();
           // Event emitted asynchronously
           yield setImmediate;
@@ -242,7 +242,7 @@ describe("Browser", function() {
           browser.once('error', function(arg) {
             error = arg;
           });
-          browser.location = 'http://localhost:3003/browser/errored';
+          browser.location = '/browser/errored';
           try {
             yield browser.wait();
           } catch (error) { }
@@ -261,7 +261,7 @@ describe("Browser", function() {
 
     describe("per call", function() {
       before(function*() {
-        yield browser.visit('http://localhost:3003/browser/scripted', { features: 'no-scripts' });
+        yield browser.visit('/browser/scripted', { features: 'no-scripts' });
       });
 
       it("should set options for the duration of the request", function() {
@@ -298,7 +298,7 @@ describe("Browser", function() {
         brains.get('/browser/useragent', function(req, res) {
           res.send("<html><body>" + req.headers['user-agent'] + "</body></html>");
         });
-        yield browser.visit('http://localhost:3003/browser/useragent');
+        yield browser.visit('/browser/useragent');
       });
 
       it("should send own version to server", function() {
@@ -310,7 +310,7 @@ describe("Browser", function() {
 
       describe("specified", function() {
         before(function*() {
-          yield browser.visit('http://localhost:3003/browser/useragent', { userAgent: 'imposter' });
+          yield browser.visit('/browser/useragent', { userAgent: 'imposter' });
         });
 
         it("should send user agent to server", function() {
@@ -330,7 +330,7 @@ describe("Browser", function() {
         browser.headers = {
           "x-custom-header": "dummy"
         };
-        yield browser.visit('http://localhost:3003/browser/custom_headers');
+        yield browser.visit('/browser/custom_headers');
       });
 
 
@@ -372,12 +372,12 @@ describe("Browser", function() {
         ");
       });
 
-      yield browser.visit('http://localhost:3003/browser/head');
+      yield browser.visit('/browser/head');
       yield browser.clickLink('Smash');
     });
 
     it("should change location", function() {
-      browser.assert.url('http://localhost:3003/browser/headless');
+      browser.assert.url('http://example.com:3003/browser/headless');
     });
     it("should run all events", function() {
       browser.assert.text('title', "The Dead");
@@ -405,12 +405,12 @@ describe("Browser", function() {
         res.redirect('/browser/killed');
       });
 
-      yield browser.visit('http://localhost:3003/browser/killed');
+      yield browser.visit('/browser/killed');
       yield browser.pressButton('Submit');
     });
 
     it("should be at initial location", function() {
-      browser.assert.url('http://localhost:3003/browser/killed');
+      browser.assert.url('http://example.com:3003/browser/killed');
     });
     it("should have followed a redirection", function() {
       browser.assert.redirected();
@@ -432,7 +432,7 @@ describe("Browser", function() {
           <p>And another\
           ");
         });
-        yield browser.visit('http://localhost:3003/browser/soup');
+        yield browser.visit('/browser/soup');
       });
 
       it("should parse to complete HTML", function() {
@@ -451,7 +451,7 @@ describe("Browser", function() {
       brains.get('/browser/comment', function(req, res) {
         res.send("This is <!-- a comment, not --> plain text");
       });
-      yield browser.visit('http://localhost:3003/browser/comment');
+      yield browser.visit('/browser/comment');
 
       browser.assert.text('body', "This is plain text");
     });
@@ -487,13 +487,13 @@ describe("Browser", function() {
 
   describe("multiple visits to same URL", function() {
     it("should load document from server", function*() {
-      yield browser.visit('http://localhost:3003/browser/scripted');
+      yield browser.visit('/browser/scripted');
       browser.assert.text('body h1', "Hello World");
 
-      yield browser.visit('http://localhost:3003/');
+      yield browser.visit('/');
       browser.assert.text('title', "Tap, Tap");
 
-      yield browser.visit('http://localhost:3003/browser/scripted');
+      yield browser.visit('/browser/scripted');
       browser.assert.text('body h1', "Hello World");
     });
   });
@@ -511,7 +511,7 @@ describe("Browser", function() {
           
         browser.tabs.closeAll()
         yield browser.visit('about:blank');
-        window = browser.window.open('http://localhost:3003/browser/popup', 'popup');
+        window = browser.window.open('http://example.com:3003/browser/popup', 'popup');
         yield browser.wait();
       });
 
@@ -540,7 +540,7 @@ describe("Browser", function() {
           assert.equal(named, window);
         });
         it("should not change document location", function() {
-          assert.equal(named.location.href, 'http://localhost:3003/browser/popup');
+          assert.equal(named.location.href, 'http://example.com:3003/browser/popup');
         });
       });
     });
@@ -559,7 +559,7 @@ describe("Browser", function() {
         });
 
         browser.tabs.closeAll();
-        yield browser.visit('http://localhost:3003/browser/pop');
+        yield browser.visit('/browser/pop');
       });
 
       it("should open both windows", function() {
@@ -637,16 +637,16 @@ describe("Browser", function() {
         res.send("<html><script>dead = 'very'</script></html>");
       });
         
-      yield browser.visit('http://localhost:3003/browser/living');
+      yield browser.visit('/browser/living');
       browser.setCookie({ name: 'foo', value: 'bar' });
-      browser.localStorage('www.localhost').setItem('foo', 'bar');
-      browser.sessionStorage('www.localhost').setItem('baz', 'qux');
+      browser.localStorage('www.example.com').setItem('foo', 'bar');
+      browser.sessionStorage('www.example.com').setItem('baz', 'qux');
       forked = browser.fork();
 
-      yield forked.visit('http://localhost:3003/browser/dead');
+      yield forked.visit('/browser/dead');
       forked.setCookie({ name: 'foo', value: 'baz' });
-      forked.localStorage('www.localhost').setItem('foo', 'new');
-      forked.sessionStorage('www.localhost').setItem('baz', 'value');
+      forked.localStorage('www.example.com').setItem('foo', 'new');
+      forked.sessionStorage('www.example.com').setItem('baz', 'value');
     });
 
     it("should have two browser objects", function() {
@@ -667,22 +667,22 @@ describe("Browser", function() {
       assert.equal(browser.name,        forked.name);
     });
     it("should navigate independently", function() {
-      assert.equal(browser.location.href, 'http://localhost:3003/browser/living');
-      assert.equal(forked.location, 'http://localhost:3003/browser/dead');
+      assert.equal(browser.location.href, 'http://example.com:3003/browser/living');
+      assert.equal(forked.location, 'http://example.com:3003/browser/dead');
     });
     it("should manipulate cookies independently", function() {
       assert.equal(browser.getCookie({ name: 'foo' }), 'bar');
       assert.equal(forked.getCookie({ name: 'foo' }), 'baz');
     });
     it("should manipulate storage independently", function() {
-      assert.equal(browser.localStorage('www.localhost').getItem('foo'), 'bar');
-      assert.equal(browser.sessionStorage('www.localhost').getItem('baz'), 'qux');
-      assert.equal(forked.localStorage('www.localhost').getItem('foo'), 'new');
-      assert.equal(forked.sessionStorage('www.localhost').getItem('baz'), 'value');
+      assert.equal(browser.localStorage('www.example.com').getItem('foo'), 'bar');
+      assert.equal(browser.sessionStorage('www.example.com').getItem('baz'), 'qux');
+      assert.equal(forked.localStorage('www.example.com').getItem('foo'), 'new');
+      assert.equal(forked.sessionStorage('www.example.com').getItem('baz'), 'value');
     });
     it("should have independent history", function() {
-      assert.equal('http://localhost:3003/browser/living', browser.location.href);
-      assert.equal('http://localhost:3003/browser/dead', forked.location.href);
+      assert.equal('http://example.com:3003/browser/living', browser.location.href);
+      assert.equal('http://example.com:3003/browser/dead', forked.location.href);
     });
     it("should have independent globals", function() {
       assert.equal(browser.evaluate('window.dead'), "almost");
@@ -691,9 +691,9 @@ describe("Browser", function() {
 
     describe.skip("history", function() {
       it("should clone from source", function() {
-        assert.equal('http://localhost:3003/browser/dead', forked.location.href);
+        assert.equal('http://example.com:3003/browser/dead', forked.location.href);
         forked.window.history.back();
-        assert.equal('http://localhost:3003/browser/living', forked.location.href);
+        assert.equal('http://example.com:3003/browser/living', forked.location.href);
       });
     });
   });

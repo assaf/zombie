@@ -39,7 +39,7 @@ describe("Authentication", function() {
     describe("with invalid credentials", function() {
       it("should return status code 401", function*() {
         try {
-          browser.authenticate('localhost:3003').basic('username', 'wrong');
+          browser.authenticate('example.com:3003').basic('username', 'wrong');
           yield browser.visit("/auth/basic");
           assert(false, "browser.visit should have failed");
         } catch (error) {
@@ -50,7 +50,7 @@ describe("Authentication", function() {
 
     describe("with valid credentials", function() {
       it("should have the authentication header", function*() {
-        browser.authenticate('localhost:3003').basic('username', 'pass123');
+        browser.authenticate('example.com:3003').basic('username', 'pass123');
         yield browser.visit("/auth/basic");
         browser.assert.text('body', 'Basic dXNlcm5hbWU6cGFzczEyMw==');
       });
@@ -87,7 +87,7 @@ describe("Authentication", function() {
     describe("with invalid credentials", function() {
       it("should return status code 401", function*() {
         try {
-          browser.authenticate('localhost:3003').bearer('wrong');
+          browser.authenticate('example.com:3003').bearer('wrong');
           yield browser.visit("/auth/oauth2");
           assert(false, "browser.visit should have failed");
         } catch (error) {
@@ -98,7 +98,7 @@ describe("Authentication", function() {
 
     describe("with valid credentials", function() {
       it("should have the authentication header", function*() {
-        browser.authenticate('localhost:3003').bearer('12345');
+        browser.authenticate('example.com:3003').bearer('12345');
         yield browser.visit("/auth/oauth2");
         browser.assert.text('body', 'Bearer 12345');
       });
@@ -135,7 +135,7 @@ describe("Authentication", function() {
     });
 
     it("should download the script", function*() {
-      browser.authenticate('localhost:3003').basic('username', 'pass123');
+      browser.authenticate('example.com:3003').basic('username', 'pass123');
       yield browser.visit('/auth/script');
       browser.assert.text('title', "ZeroOne");
     });

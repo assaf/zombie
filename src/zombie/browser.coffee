@@ -3,6 +3,7 @@ Assert            = require("./assert")
 createTabs        = require("./tabs")
 Console           = require("./console")
 Cookies           = require("./cookies")
+DNSMask           = require("./dns")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
 { format }        = require("util")
@@ -1249,6 +1250,16 @@ Browser.default =
 # Use this function to create a new Browser instance.
 Browser.create = (options)->
   return new Browser(options)
+
+
+# Allows you to masquerade CNAME, A (IPv4) and AAAA (IPv6) addresses.  For
+# example:
+#   Brower.dns.localhost("example.com")
+#
+# This is a shortcut for:
+#   Brower.dns.map("example.com", "127.0.0.1)
+#   Brower.dns.map("example.com", "::1")
+Browser.dns = new DNSMask()
 
 
 # Represents credentials for a given host.

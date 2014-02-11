@@ -77,19 +77,19 @@ describe("Browser events", function() {
 
     it("should receive resource requests", function() {
       let [request] = events.resource[0];
-      assert.equal(request.url, 'http://localhost:3003/browser-events/resource');
+      assert.equal(request.url, 'http://example.com:3003/browser-events/resource');
     });
 
     it("should receive resource redirects", function() {
       let [request, response] = events.resource[1];
-      assert.equal(request.url, 'http://localhost:3003/browser-events/resource');
+      assert.equal(request.url, 'http://example.com:3003/browser-events/resource');
       assert.equal(response.statusCode, 302);
-      assert.equal(response.url, 'http://localhost:3003/browser-events/redirected');
+      assert.equal(response.url, 'http://example.com:3003/browser-events/redirected');
     });
 
     it("should receive resource responses", function() {
       let [request, response] = events.resource[2];
-      assert.equal(request.url, 'http://localhost:3003/browser-events/resource');
+      assert.equal(request.url, 'http://example.com:3003/browser-events/resource');
       assert.equal(response.statusCode, 200);
       assert.equal(response.redirects, 1);
     });
@@ -158,14 +158,14 @@ describe("Browser events", function() {
 
     it("should receive loading event", function() {
       let [url, readyState, html] = events.loading;
-      assert.equal(url, 'http://localhost:3003/browser-events/document');
+      assert.equal(url, 'http://example.com:3003/browser-events/document');
       assert.equal(readyState, 'loading');
       assert.equal(html, "");
     });
 
     it("should receive loaded event", function() {
       let [url, readyState, html] = events.loaded;
-      assert.equal(url, 'http://localhost:3003/browser-events/document');
+      assert.equal(url, 'http://example.com:3003/browser-events/document');
       assert.equal(readyState, 'complete');
       assert(/Very well then/.test(html));
     });
@@ -326,7 +326,7 @@ describe("Browser events", function() {
     });
 
     it("should receive evaluated event with the filename", function() {
-      assert.equal(events.evaluated.filename, 'http://localhost:3003/browser-events/evaluated:script');
+      assert.equal(events.evaluated.filename, 'http://example.com:3003/browser-events/evaluated:script');
     });
   });
 
@@ -346,7 +346,7 @@ describe("Browser events", function() {
     });
 
     it("should receive link event with the URL", function() {
-      assert.equal(events.link.url, 'http://localhost:3003/browser-events/follow');
+      assert.equal(events.link.url, 'http://example.com:3003/browser-events/follow');
     });
 
     it("should receive link event with the target", function() {
@@ -375,7 +375,7 @@ describe("Browser events", function() {
     });
 
     it("should receive submit event with the URL", function() {
-      assert.equal(events.link.url, 'http://localhost:3003/browser-events/post');
+      assert.equal(events.link.url, 'http://example.com:3003/browser-events/post');
     });
 
     it("should receive submit event with the target", function() {

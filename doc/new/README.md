@@ -996,3 +996,50 @@ Reset any special resource handling from a previous call to `delay`, `fail` or
 `mock`.
 
 
+### DNS masking
+
+You can use DNS masking to test your application with real domain names.  For
+example:
+
+```
+Browser.dns.localhost('*.example.com');
+Browser.defaults.site = 'http://example.com:3000';
+
+browser = new Browser();
+browser.visit('/here', function(error, browser) {
+  browser.assert.url('http://example.com:3000/here');
+});
+```
+
+The DNS masking offered by Zombie only works within the local Node process, and
+will not interfere or affect any other application you run.
+
+Use `Browser.dns.map(domain, type, ip)` to map a domain name, and a particular
+record type (e.g. A, CNAME even MX) to the given IP address.  For example:
+
+```
+Browser.dns.map('*.example.com', 'A', '127.0.0.1');    // IPv4
+Browser.dns.map('*.example.com', 'AAAA', '::1');       // IPv6
+Browser.dns.map('*.example.com', 'CNAME', 'localhost');
+```
+
+Since these are the most common mapping, you can call `map` with two arguments
+and Zombie will infer if the second argumet is an IPv4 address, IPv6 address or
+CNAME.
+
+Of for short, just map the A and AAAA records like this:
+
+```
+Browser.dns.localhost('*.example.com') // IPv4 and IPv6
+```
+
+If you use an asertisk, it will map the domain itself and all sub-domains,
+including 'www.example.com', 'assets.example.com' and 'example.com'.  Don't use
+an asterisk if you only want to map the specific domain.
+
+For MX records:
+
+```
+Browser.dns.map('example.com', 'MX', { exchange: 'localhost', priority: 10 });
+```
+
