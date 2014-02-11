@@ -208,6 +208,75 @@ describe "Window", ->
     it "should fire when document is done loading", ->
       browser.assert.text "body", "1 clicks here"
 
+  describe "refresh", ->
+    WAIT = 1
+    
+    waitInSeconds = -> WAIT
+    waitInMilliseconds = -> WAIT * 1000
+    
+    before ->
+      brains.get "/windows/refresh", (req, res)->
+        refreshed = req.cookies.refreshed || false
+        unless refreshed
+          url = if req.query.url then "; url=#{req.query.url}" else ""
+          res.cookie("refreshed", true)
+          res.send """
+            <html>
+              <head>
+                <title>Refresh</title>
+                <meta http-equiv="refresh" content="#{waitInSeconds()}#{url}">
+              </head>
+              <body>
+                You are being redirected.
+              </body>
+            </html>
+          """
+        else
+          res.send """
+            <html>
+              <head>
+                <title>Done</title>
+              <body>Redirection complete.</body>
+            </html>"
+          """
+
+    afterEach ->
+      browser.deleteCookies()
+
+    it "should follow a 'meta refresh' to a relative URL", (done)->
+      browser.visit "/windows/refresh?url=/windows/refreshed", ->
+        browser.assert.url "http://example.com/windows/refreshed"
+        done()
+
+    it "should follow a 'meta refresh' to an absolute URL", (done)->
+      browser.visit "/windows/refresh?url=http://example.com/", ->
+        browser.assert.url "http://example.com/"
+        done()
+
+    it "should refresh the current page if no URL is given", (done)->
+      browser.visit "/windows/refresh", ->
+        browser.assert.url "http://example.com/windows/refresh"
+        browser.assert.text "title", "Done"
+        done()
+
+    it "should indicated that the last request was redirected", (done)->
+      browser.visit "/windows/refresh", ->
+        browser.assert.redirected()
+        done()
+
+    it "should support testing the refresh page", (done)->
+      complete = ->
+        return browser.query("meta") != null
+      refreshed = ->
+        browser.assert.url "http://example.com/windows/refresh"
+        browser.assert.text "title", "Done"
+        done()
+      browser.visit "/windows/refresh", { function: complete }, ->
+        browser.assert.url "http://example.com/windows/refresh"
+        # Check the refresh page.
+        browser.assert.text "title", "Refresh"
+        # Continue with refresh.
+        browser.wait refreshed
 
   describe "resize", ->
     before ->
