@@ -76,6 +76,12 @@ class DNSMask
         callback(null, domain, Net.isIP(domain))
       return
 
+    # First try to resolve CNAME into another domain name, then resolve that to
+    # A/AAAA record
+    cname = @_find(domain, "CNAME")
+    if cname
+      domain = cname
+
     switch family
       when 4
         @resolve domain, "A", (error, addresses)=>
@@ -124,7 +130,7 @@ class DNSMask
     #   '*.example.test',
     #   '*.test' ]
     parts = domain.split('.')
-    domains = [domain]
+    domains = [domain, "*." + domain]
     for i in [1...parts.length]
       domains.push("*." + parts[i..parts.length].join('.'))
 
