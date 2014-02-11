@@ -376,7 +376,7 @@ Resources.createBody = (request, next)->
 # response.
 Resources.specialURLHandlers = (request, next)->
   for [url, handler] in @resources.urlMatchers
-    if url == request.url
+    if URL.resolve(request.url, url) == request.url
       handler(request, next)
       return
   next()

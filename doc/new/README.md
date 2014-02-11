@@ -815,8 +815,12 @@ In the real world, servers and networks often fail.  You can test to for these
 conditions by asking Zombie to simulate a failure.  For example:
 
 ```js
-browser.resources.fail("http://3rd.party.api/v1/request");
+browser.resources.fail("/form/post");
 ```
+
+Resource URLs can be absolute or relative.  Relative URLs will match any
+request with the same path, so only use relative URLs that are specific to a
+given request.
 
 Another issue you'll encounter in real-life applications are network latencies.
 When running tests, Zombie will request resources in the order in which they

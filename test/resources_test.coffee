@@ -45,7 +45,7 @@ describe "Resources", ->
 
   describe "fail URL", ->
     before (done)->
-      browser.resources.fail("http://localhost:3003/resource/resource", "Fail!")
+      browser.resources.fail("/resource/resource", "Fail!")
       browser.visit "/resource/resource", (@error)=>
         done()
 
@@ -53,12 +53,12 @@ describe "Resources", ->
       assert.equal @error.message, "Fail!"
 
     after ->
-      browser.resources.restore("http://localhost:3003/resources/resource")
+      browser.resources.restore("/resources/resource")
 
 
   describe "delay URL with timeout", ->
     before (done)->
-      browser.resources.delay("http://localhost:3003/resources/resource", 150)
+      browser.resources.delay("/resources/resource", 150)
       browser.visit("/resources/resource")
       browser.wait(duration: 90, done)
 
@@ -73,12 +73,12 @@ describe "Resources", ->
         browser.assert.text "title", "Awesome"
 
     after ->
-      browser.resources.restore("http://localhost:3003/resources/resource")
+      browser.resources.restore("/resources/resource")
 
 
   describe "mock URL", ->
     before (done)->
-      browser.resources.mock("http://localhost:3003/resources/resource", statusCode: 204, body: "empty")
+      browser.resources.mock("/resources/resource", statusCode: 204, body: "empty")
       browser.visit("/resources/resource", done)
 
     it "should return mock result", ->
@@ -87,7 +87,7 @@ describe "Resources", ->
 
     describe "restore", ->
       before (done)->
-        browser.resources.restore("http://localhost:3003/resources/resource")
+        browser.resources.restore("/resources/resource")
         browser.visit("/resources/resource", done)
 
       it "should return actual page", ->
