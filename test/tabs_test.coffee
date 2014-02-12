@@ -103,7 +103,7 @@ describe "Tabs", ->
 
     describe "and different URL", ->
       before (done)->
-        @third = browser.tabs.open(name: "third", url: "http://example.com:3003/tabs")
+        @third = browser.tabs.open(name: "third", url: "http://example.com/tabs")
         browser.wait(done)
 
       it "should reuse open tab", ->
@@ -111,7 +111,7 @@ describe "Tabs", ->
         assert.equal browser.tabs.index, 2
         assert.equal @third, browser.tabs.current
       it "should navigate to new URL", ->
-        browser.assert.url "http://example.com:3003/tabs"
+        browser.assert.url "http://example.com/tabs"
         browser.assert.text "title", "Brains"
 
   describe "closing window by name", ->

@@ -38,9 +38,9 @@ describe "Resources", ->
     it "should have a length", ->
       assert.equal browser.resources.length, 2
     it "should include loaded page", ->
-      assert.equal browser.resources[0].response.url, "http://example.com:3003/resources/resource"
+      assert.equal browser.resources[0].response.url, "http://example.com/resources/resource"
     it "should include loaded JavaScript", ->
-      assert.equal browser.resources[1].response.url, "http://example.com:3003/jquery-2.0.3.js"
+      assert.equal browser.resources[1].response.url, "http://example.com/jquery-2.0.3.js"
 
 
   describe "fail URL", ->
@@ -103,7 +103,7 @@ describe "Resources", ->
           res.send(buffer)
 
     before (done)->
-      browser.resources.get "http://example.com:3003/resources/deflate", (error, @response)=>
+      browser.resources.get "http://example.com/resources/deflate", (error, @response)=>
         done()
 
     it "should uncompress deflated response with transfer-encoding", ->
@@ -120,7 +120,7 @@ describe "Resources", ->
           res.send(buffer)
 
     before (done)->
-      browser.resources.get "http://example.com:3003/resources/deflate", (error, @response)=>
+      browser.resources.get "http://example.com/resources/deflate", (error, @response)=>
         done()
 
     it "should uncompress deflated response with content-encoding", ->
@@ -137,7 +137,7 @@ describe "Resources", ->
           res.send(buffer)
 
     before (done)->
-      browser.resources.get "http://example.com:3003/resources/gzip", (error, @response)=>
+      browser.resources.get "http://example.com/resources/gzip", (error, @response)=>
         done()
 
     it "should uncompress gzipped response with transfer-encoding", ->
@@ -154,7 +154,7 @@ describe "Resources", ->
           res.send(buffer)
 
     before (done)->
-      browser.resources.get "http://example.com:3003/resources/gzip", (error, @response)=>
+      browser.resources.get "http://example.com/resources/gzip", (error, @response)=>
         done()
 
     it "should uncompress gzipped response with content-encoding", ->
@@ -174,9 +174,9 @@ describe "Resources", ->
     it "should have a length", ->
       assert.equal browser.resources.length, 2
     it "should include loaded page", ->
-      assert.equal browser.resources[0].response.url, "http://example.com:3003/resources/resource"
+      assert.equal browser.resources[0].response.url, "http://example.com/resources/resource"
     it "should include loaded JavaScript", ->
-      assert.equal browser.resources[1].response.url, "http://example.com:3003/jquery-2.0.3.js"
+      assert.equal browser.resources[1].response.url, "http://example.com/jquery-2.0.3.js"
 
   describe "301 redirect URL cross server", ->
     before (done)->

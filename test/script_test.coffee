@@ -55,7 +55,7 @@ describe "Scripts", ->
       it "should execute route", ->
         browser.assert.text "title", "The Living"
       it "should change location", ->
-        browser.assert.url "http://example.com:3003/script/living#/"
+        browser.assert.url "http://example.com/script/living#/"
 
       describe "move around", ->
         before (done)->
@@ -67,7 +67,7 @@ describe "Scripts", ->
         it "should execute route", ->
           browser.assert.text "#main", "The Living Dead"
         it "should change location", ->
-          browser.assert.url "http://example.com:3003/script/living#/dead"
+          browser.assert.url "http://example.com/script/living#/dead"
 
 
     describe "live events", ->
@@ -79,7 +79,7 @@ describe "Scripts", ->
             .pressButton("Sign Me Up", done)
 
       it "should change location", ->
-        browser.assert.url "http://example.com:3003/script/living/#/"
+        browser.assert.url "http://example.com/script/living/#/"
       it "should process event", ->
         browser.assert.text "title", "Signed up"
 
@@ -428,7 +428,7 @@ describe "Scripts", ->
         .then(done, done)
 
     it "should prevent default handling by returning false", ->
-      browser.assert.url "http://example.com:3003/script/on-event/string"
+      browser.assert.url "http://example.com/script/on-event/string"
 
     it "should have access to window.event", ->
       browser.assert.text "title", "HTMLEvents"
@@ -457,7 +457,7 @@ describe "Scripts", ->
         .then(done, done)
 
     it "should prevent default handling by returning false", ->
-      browser.assert.url "http://example.com:3003/script/on-event/function"
+      browser.assert.url "http://example.com/script/on-event/function"
 
     it "should have access to window.event", ->
       browser.assert.text "title", "HTMLEvents"

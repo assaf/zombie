@@ -30,7 +30,7 @@ describe "IMG", ->
       assert.equal browser.resources.length, 2
 
     it "should be in resources", ->
-      assert.equal browser.resources[1].response.url, "http://example.com:3003/image/zombie.jpg"
+      assert.equal browser.resources[1].response.url, "http://example.com/image/zombie.jpg"
 
     it "should be the same as original file", ->
       assert.deepEqual browser.resources[1].response.body, File.readFileSync("#{__dirname}/data/zombie.jpg")

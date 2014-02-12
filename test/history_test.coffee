@@ -37,7 +37,7 @@ describe "History", ->
       browser.visit("/", done)
 
     it "should resolve URL", ->
-      browser.assert.url "http://example.com:3003/"
+      browser.assert.url "http://example.com/"
     it "should load page", ->
       browser.assert.text "title", "Tap, Tap"
 
@@ -82,7 +82,7 @@ describe "History", ->
       it "should add state to history", ->
         assert.equal @window.history.length, 3
       it "should change location URL", ->
-        browser.assert.url "http://example.com:3003/end"
+        browser.assert.url "http://example.com/end"
 
       describe "go backwards", ->
         before (done)->
@@ -129,7 +129,7 @@ describe "History", ->
       it "should not add state to history", ->
         assert.equal @window.history.length, 2
       it "should change location URL", ->
-        browser.assert.url "http://example.com:3003/end"
+        browser.assert.url "http://example.com/end"
 
       describe "go backwards", ->
         before (done)->
@@ -139,7 +139,7 @@ describe "History", ->
           browser.wait(done)
 
         it "should change location URL", ->
-          browser.assert.url "http://example.com:3003/"
+          browser.assert.url "http://example.com/"
         it "should fire popstate event", ->
           assert @window.popstate
 
@@ -149,7 +149,7 @@ describe "History", ->
         browser.visit("/history/redirect", done)
 
       it "should redirect to final destination", ->
-        browser.assert.url "http://example.com:3003/history/boo/?redirected=true"
+        browser.assert.url "http://example.com/history/boo/?redirected=true"
       it "should pass query parameter", ->
         browser.assert.text "title", "Redirected"
       it "should not add location in history", ->
@@ -164,7 +164,7 @@ describe "History", ->
           browser.wait(done)
 
       it "should redirect to the previous path", ->
-        browser.assert.url "http://example.com:3003/history/boo/"
+        browser.assert.url "http://example.com/history/boo/"
       it "should pass query parameter", ->
         browser.assert.text "title", /Eeek!/
       it "should not add location in history", ->
@@ -182,13 +182,13 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 1
       it "should change location URL", ->
-        browser.assert.url "http://example.com:3003/history/boo/"
+        browser.assert.url "http://example.com/history/boo/"
       it "should load document", ->
         browser.assert.text "title", /Eeek!/
       it "should set window location", ->
-        browser.assert.url "http://example.com:3003/history/boo/"
+        browser.assert.url "http://example.com/history/boo/"
       it "should set document location", ->
-        browser.assert.url "http://example.com:3003/history/boo/"
+        browser.assert.url "http://example.com/history/boo/"
 
     describe "open from file system", ->
       fileURL = encodeURI("file://#{__dirname}/data/index.html")
@@ -218,7 +218,7 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        browser.assert.url "http://example.com:3003/history/boo/"
+        browser.assert.url "http://example.com/history/boo/"
       it "should load document", ->
         browser.assert.text "title", /Eeek!/
 
@@ -233,7 +233,7 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        browser.assert.url "http://example.com:3003/history/boo/"
+        browser.assert.url "http://example.com/history/boo/"
       it "should load document", ->
         browser.assert.text "title", /Eeek!/
 
@@ -249,14 +249,14 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        browser.assert.url "http://example.com:3003/#boo"
+        browser.assert.url "http://example.com/#boo"
       it "should not reload document", ->
         browser.assert.text "body", /Wolf/
 
     describe "assign", ->
       before (done)->
         browser.visit "/", ->
-          browser.window.location.assign "http://example.com:3003/history/boo"
+          browser.window.location.assign "http://example.com/history/boo"
           browser.once "loaded", ->
             done()
           browser.wait()
@@ -264,14 +264,14 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        browser.assert.url "http://example.com:3003/history/boo/"
+        browser.assert.url "http://example.com/history/boo/"
       it "should load document", ->
         browser.assert.text "title", /Eeek!/
 
     describe "replace", ->
       before (done)->
         browser.visit "/", ->
-          browser.window.location.replace "http://example.com:3003/history/boo"
+          browser.window.location.replace "http://example.com/history/boo"
           browser.once "loaded", ->
             done()
           browser.wait()
@@ -279,7 +279,7 @@ describe "History", ->
       it "should not add page to history", ->
         assert.equal browser.history.length, 1
       it "should change location URL", ->
-        browser.assert.url "http://example.com:3003/history/boo/"
+        browser.assert.url "http://example.com/history/boo/"
       it "should load document", ->
         browser.assert.text "title", /Eeek!/
 
@@ -295,7 +295,7 @@ describe "History", ->
       it "should not add page to history", ->
         assert.equal browser.history.length, 1
       it "should not change location URL", ->
-        browser.assert.url "http://example.com:3003/"
+        browser.assert.url "http://example.com/"
       it "should reload document", ->
         browser.assert.text "title", /Tap, Tap/
 
@@ -310,9 +310,9 @@ describe "History", ->
       it "should include hostname", ->
         assert.equal @location.hostname, "example.com"
       it "should include port", ->
-        assert.equal @location.port, 3003
+        assert.equal @location.port, ""
       it "should include hostname and port", ->
-        assert.equal @location.host, "example.com:3003"
+        assert.equal @location.host, "example.com"
       it "should include pathname", ->
         assert.equal @location.pathname, "/"
       it "should include search", ->
@@ -323,7 +323,7 @@ describe "History", ->
     describe "set window.location", ->
       before (done)->
         browser.visit "/", ->
-          browser.window.location = "http://example.com:3003/history/boo"
+          browser.window.location = "http://example.com/history/boo"
           browser.once "loaded", ->
             done()
           browser.wait()
@@ -331,14 +331,14 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        browser.assert.url "http://example.com:3003/history/boo/"
+        browser.assert.url "http://example.com/history/boo/"
       it "should load document", ->
         browser.assert.text "title", /Eeek!/
 
     describe "set document.location", ->
       before (done)->
         browser.visit "/", ->
-          browser.window.document.location = "http://example.com:3003/history/boo"
+          browser.window.document.location = "http://example.com/history/boo"
           browser.once "loaded", ->
             done()
           browser.wait()
@@ -346,7 +346,7 @@ describe "History", ->
       it "should add page to history", ->
         assert.equal browser.history.length, 2
       it "should change location URL", ->
-        browser.assert.url "http://example.com:3003/history/boo/"
+        browser.assert.url "http://example.com/history/boo/"
       it "should load document", ->
         browser.assert.text "title", /Eeek!/
 

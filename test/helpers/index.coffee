@@ -8,16 +8,15 @@ Browser   = require("../../#{process.env.LIB_PATH}/zombie")
 # Always run in verbose mode on Travis.
 Browser.default.debug = !!(process.env.TRAVIS || process.env.DEBUG)
 Browser.default.silent = !Browser.default.debug
-Browser.default.site = "example.com:3003"
 
-# example.com is localhost
-Browser.dns.localhost("example.com")
+# Tests visit example.com, server is localhost port 3003
+Browser.localhost("*.example.com", 3003)
 
 
 # Redirect all HTTP requests to localhost
 Replay.fixtures = "#{__dirname}/../replay"
 Replay.networkAccess = true
-Replay.localhost "host.localhost", "example.com"
+Replay.localhost "example.com"
 
 
 module.exports =

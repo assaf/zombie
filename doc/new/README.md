@@ -16,8 +16,9 @@ var Browser = require("zombie");
 var assert = require("assert");
 
 // Load the page from localhost
-browser = Browser.create()
-browser.visit("http://localhost:3000/", function (error) {
+browser = Browser.create();
+browser.localhost("example.com", 3000);
+browser.visit("/signup", function (error) {
 
   // Fill email, password and submit form
   browser.
@@ -57,10 +58,10 @@ on the Mac, you should be using Homebrew):
 ```sh
 $ brew install node
 $ node --version
-v0.8.16
+v0.10.25
 $ npm --version
-1.1.69
-$ npm install zombie
+1.3.24
+$ npm install zombie --save-dev
 ```
 
 On Windows you will need to install a recent version of Python and Visual
@@ -103,8 +104,48 @@ window at a time.
 
 See [Tabs](#tabs) for detailed discussion.
 
+#### browser.localhost(hostname, port)
+
+Even though your test server is running on localhost and unprivileged port, this
+method makes it possible to access it as a different domain name and through
+port 80.
+
+It also sets the default site URL, so your tests don't have to specify the
+hostname every time.
+
+Let's say your test server runs on port 3000, and you want to write tests that
+visit `example.com`:
+
+```
+browser.localhost('example.com', 3000);
+```
+
+You can now visit `http://example.com/path` and it will talk to your local
+server on port 3000.  In fact, `example.com` becomes the default domain, so your
+tests can be as simple as:
+
+```
+browser.visit('/path', function() {
+  console.log(browser.location.href);
+});
+=> "http://example.com/path"
+```
+
+If you're testing an application with multiple sub-domains, and you want to be
+able to visit `foo.example.com` and `bar.example.com`, while keeping
+`example.com` as the default, you can do this:
+
+```
+browser.localhost('*.example.com', 3000);
+```
+
+If you need to map multiple domains and/or ports, see [DNS Masking](#dnsmasking)
+and [Port Mapping](#portmapping).
+
+
 #### browser.eventLoop
 #### browser.errors
+
 
 ### Extending The Browser
 
@@ -1034,12 +1075,32 @@ Browser.dns.localhost('*.example.com') // IPv4 and IPv6
 ```
 
 If you use an asertisk, it will map the domain itself and all sub-domains,
-including 'www.example.com', 'assets.example.com' and 'example.com'.  Don't use
+including `www.example.com`, `assets.example.com` and `example.com`.  Don't use
 an asterisk if you only want to map the specific domain.
 
 For MX records:
 
 ```
 Browser.dns.map('example.com', 'MX', { exchange: 'localhost', priority: 10 });
+```
+
+
+### Port Mapping
+
+Your test server is most likely not running on a privileged port, but you can
+tell Zombie to map port 80 to the test server's port for a given domain.
+
+For example, if your test server is running on port 3000, you can tell Zombie to
+map port 80 to port 3000:
+
+```
+Browser.ports.map('localhost', 3000);
+```
+
+If you're testing sub-domains, you can also apply the mapping to all sub-domains
+with an asterisk, for example:
+
+```
+Browser.ports.map('*.example.com', 3000);
 ```
 

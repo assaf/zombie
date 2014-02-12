@@ -21,7 +21,7 @@ describe "Facebook Connect", ->
                 cookie     : true,
                 xfbml      : true,
                 oauth      : true,
-                channelUrl : "http://example.com:3003/facebook/channel"
+                channelUrl : "http://example.com/facebook/channel"
               });
               document.getElementById("connect").addEventListener("click", function(event) {
                 event.preventDefault();

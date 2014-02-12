@@ -774,7 +774,7 @@ describe "Forms", ->
           .then(done, done)
 
       it "should open new page", ->
-        browser.assert.url "http://example.com:3003/forms/submit"
+        browser.assert.url "http://example.com/forms/submit"
         browser.assert.text "title", "Results"
       it "should add location to history", ->
         assert.equal browser.window.history.length, 2
@@ -816,7 +816,7 @@ describe "Forms", ->
           .then(done, done)
 
       it "should open new page", ->
-        browser.assert.url "http://example.com:3003/forms/submit"
+        browser.assert.url "http://example.com/forms/submit"
       it "should add location to history", ->
         assert.equal browser.window.history.length, 2
       it "should send button value to server", ->
@@ -861,7 +861,7 @@ describe "Forms", ->
             .pressButton("#image_submit", done)
 
       it "should open new page", ->
-        browser.assert.url "http://example.com:3003/forms/submit"
+        browser.assert.url "http://example.com/forms/submit"
       it "should add location to history", ->
         assert.equal browser.window.history.length, 2
       it "should send image value to server", ->
@@ -881,7 +881,7 @@ describe "Forms", ->
             .pressButton("Submit", done)
 
       it "should open new page", ->
-        browser.assert.url "http://example.com:3003/forms/submit"
+        browser.assert.url "http://example.com/forms/submit"
       it "should add location to history", ->
         assert.equal browser.window.history.length, 2
       it "should send submit value to server", ->
@@ -917,7 +917,7 @@ describe "Forms", ->
           browser.pressButton("Submit", done)
 
       it "should not change page", ->
-        browser.assert.url "http://example.com:3003/forms/cancel"
+        browser.assert.url "http://example.com/forms/cancel"
 
 
   # File upload

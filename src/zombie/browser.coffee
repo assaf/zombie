@@ -15,6 +15,7 @@ Mime              = require("mime")
 ms                = require("ms")
 Q                 = require("q")
 Path              = require("path")
+PortMap           = require("./port_map")
 Resources         = require("./resources")
 Storages          = require("./storage")
 Tough             = require("tough-cookie")
@@ -1259,7 +1260,45 @@ Browser.create = (options)->
 # This is a shortcut for:
 #   Brower.dns.map("example.com", "127.0.0.1)
 #   Brower.dns.map("example.com", "::1")
+#
+# See also Browser.localhost.
 Browser.dns = new DNSMask()
+
+
+# Allows you to make request against port 80, route them to test server running
+# on less privileged port.
+#
+# For example, if your application is listening on port 3000, you can do:
+#   Browser.ports.map("localhost", "3000")
+#
+# Or in combination with DNS mask:
+#   Brower.dns.map("example.com", "127.0.0.1)
+#   Browser.ports.map("example.com", "3000")
+#
+# See also Browser.localhost.
+Browser.ports = new PortMap()
+
+
+# Allows you to make requests against a named domain and port 80, route them to
+# the test server running on localhost and less privileged port.
+#
+# For example, say your test server is running on port 3000, you can do:
+#   Browser.localhost("example.com", 3000)
+#
+# You can now visit http://example.com and it will be handled by the server
+# running on port 3000.  In fact, you can just write:
+#   browser.visit("/path", function() {
+#     assert(broswer.location.href == "http://example.com/path");
+#   });
+#
+# This is equivalent to DNS masking the hostname as 127.0.0.1 (see
+# Browser.dns), mapping port 80 to the specified port (see Browser.ports) and
+# setting Browser.default.site to the hostname.
+Browser.localhost = (hostname, port)->
+  Browser.dns.localhost(hostname)
+  Browser.ports.map(hostname, port)
+  unless Browser.default.site
+    Browser.default.site = hostname.replace(/^\*\./, "")
 
 
 # Represents credentials for a given host.

@@ -377,7 +377,7 @@ describe("Browser", function() {
     });
 
     it("should change location", function() {
-      browser.assert.url('http://example.com:3003/browser/headless');
+      browser.assert.url('http://example.com/browser/headless');
     });
     it("should run all events", function() {
       browser.assert.text('title', "The Dead");
@@ -410,7 +410,7 @@ describe("Browser", function() {
     });
 
     it("should be at initial location", function() {
-      browser.assert.url('http://example.com:3003/browser/killed');
+      browser.assert.url('http://example.com/browser/killed');
     });
     it("should have followed a redirection", function() {
       browser.assert.redirected();
@@ -511,7 +511,7 @@ describe("Browser", function() {
           
         browser.tabs.closeAll()
         yield browser.visit('about:blank');
-        window = browser.window.open('http://example.com:3003/browser/popup', 'popup');
+        window = browser.window.open('http://example.com/browser/popup', 'popup');
         yield browser.wait();
       });
 
@@ -540,7 +540,7 @@ describe("Browser", function() {
           assert.equal(named, window);
         });
         it("should not change document location", function() {
-          assert.equal(named.location.href, 'http://example.com:3003/browser/popup');
+          assert.equal(named.location.href, 'http://example.com/browser/popup');
         });
       });
     });
@@ -667,8 +667,8 @@ describe("Browser", function() {
       assert.equal(browser.name,        forked.name);
     });
     it("should navigate independently", function() {
-      assert.equal(browser.location.href, 'http://example.com:3003/browser/living');
-      assert.equal(forked.location, 'http://example.com:3003/browser/dead');
+      assert.equal(browser.location.href, 'http://example.com/browser/living');
+      assert.equal(forked.location, 'http://example.com/browser/dead');
     });
     it("should manipulate cookies independently", function() {
       assert.equal(browser.getCookie({ name: 'foo' }), 'bar');
@@ -681,8 +681,8 @@ describe("Browser", function() {
       assert.equal(forked.sessionStorage('www.example.com').getItem('baz'), 'value');
     });
     it("should have independent history", function() {
-      assert.equal('http://example.com:3003/browser/living', browser.location.href);
-      assert.equal('http://example.com:3003/browser/dead', forked.location.href);
+      assert.equal('http://example.com/browser/living', browser.location.href);
+      assert.equal('http://example.com/browser/dead', forked.location.href);
     });
     it("should have independent globals", function() {
       assert.equal(browser.evaluate('window.dead'), "almost");
@@ -691,9 +691,9 @@ describe("Browser", function() {
 
     describe.skip("history", function() {
       it("should clone from source", function() {
-        assert.equal('http://example.com:3003/browser/dead', forked.location.href);
+        assert.equal('http://example.com/browser/dead', forked.location.href);
         forked.window.history.back();
-        assert.equal('http://example.com:3003/browser/living', forked.location.href);
+        assert.equal('http://example.com/browser/living', forked.location.href);
       });
     });
   });
