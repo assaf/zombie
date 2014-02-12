@@ -42,10 +42,10 @@
     "express":                "3.4.8",
     "node-syntaxhighlighter": "0.8.1",
     "mocha":                  "1.17.1",
-    "replay":                 "1.9.1",
+    "replay":                 "1.9.2",
     "requirejs":              "2.1.10",
     "robotskirt":             "2.7.1",
-    "traceur":                "0.0.20"
+    "traceur":                "0.0.22"
   },
   "repository": {
     "type":   "git",
