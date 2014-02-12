@@ -111,7 +111,7 @@ describe "Tabs", ->
         assert.equal browser.tabs.index, 2
         assert.equal @third, browser.tabs.current
       it "should navigate to new URL", ->
-        browser.assert.url "http://example.com/tabs"
+        browser.assert.url "/tabs"
         browser.assert.text "title", "Brains"
 
   describe "closing window by name", ->

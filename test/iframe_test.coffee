@@ -59,7 +59,7 @@ describe "IFrame", ->
   it "should reference parent window from iframe", ->
     assert.equal @iframe.contentWindow.parent, browser.window.parent
   it "should not alter the parent", ->
-    browser.assert.url "http://example.com/iframe"
+    browser.assert.url "/iframe"
 
   describe "javascript: protocol", ->
     # Seen this in the wild, checking that it doesn't blow up

@@ -377,7 +377,7 @@ describe("Browser", function() {
     });
 
     it("should change location", function() {
-      browser.assert.url('http://example.com/browser/headless');
+      browser.assert.url('/browser/headless');
     });
     it("should run all events", function() {
       browser.assert.text('title', "The Dead");
@@ -410,7 +410,7 @@ describe("Browser", function() {
     });
 
     it("should be at initial location", function() {
-      browser.assert.url('http://example.com/browser/killed');
+      browser.assert.url('/browser/killed');
     });
     it("should have followed a redirection", function() {
       browser.assert.redirected();

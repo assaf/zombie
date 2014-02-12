@@ -50,7 +50,10 @@ class Assert
   # object properties are tested against the actual URL (e.g. pathname, host,
   # query).
   url: (expected, message)->
-    if typeof(expected) == "string" || isRegExp(expected) || typeof(expected) == "function"
+    if typeof(expected) == "string"
+      absolute = URL.resolve(@browser.location.href, expected)
+      assertMatch @browser.location.href, absolute, message
+    else if isRegExp(expected) || typeof(expected) == "function"
       assertMatch @browser.location.href, expected, message
     else
       url = URL.parse(@browser.location.href, true)
