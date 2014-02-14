@@ -363,16 +363,35 @@ loadDocument = ({ document, history, url, method, encoding, params })->
           return
 
         window._response = response
+        # Count a meta-refresh in the redirects count.
+        window._response.redirects++ if window._refresh
         # JSDOM fires load event on document but not on window
         windowLoaded = (event)->
           document.removeEventListener("load", windowLoaded)
           window.dispatchEvent(event)
         document.addEventListener("load", windowLoaded)
 
+        handleRefresh = ->
+            refresh = browser.query("meta[http-equiv='refresh']")
+            if (refresh)
+                content = refresh.getAttribute("content")
+                content = content.match /^\s*(\d+)(?:\s*;\s*url\s*=\s*(.*?))?\s*(?:;|$)/i
+                if content
+                    [nothing, refresh_timeout, refresh_url] = content
+                else
+                    return
+                refresh_timeout = parseInt(refresh_timeout, 10)
+                refresh_url ||= url
+                if refresh_timeout >= 0
+                    window._eventQueue.enqueue ->
+                      history.assign refresh_url
+                      history.current.window._refresh = true
+
         # JSDOM fires load event on document but not on window
         contentLoaded = (event)->
           document.removeEventListener("DOMContentLoaded", contentLoaded)
           window.dispatchEvent(event)
+          handleRefresh()
         document.addEventListener("DOMContentLoaded", contentLoaded)
 
         # Give event handler chance to register listeners.
