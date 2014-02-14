@@ -117,7 +117,7 @@ Let's say your test server runs on port 3000, and you want to write tests that
 visit `example.com`:
 
 ```
-browser.localhost('example.com', 3000);
+Browser.localhost('example.com', 3000);
 ```
 
 You can now visit `http://example.com/path` and it will talk to your local
@@ -125,19 +125,20 @@ server on port 3000.  In fact, `example.com` becomes the default domain, so your
 tests can be as simple as:
 
 ```
+// Global setting, applies to all browser instances
+Browser.localhost('*.example.com', 3000);
+
+// Browser instance for this test
+var browser = new Browser();
 browser.visit('/path', function() {
-  console.log(browser.location.href);
+  // It picks example.com as the default host
+  browser.assert.url("http://example.com/path");
 });
-=> "http://example.com/path"
 ```
 
-If you're testing an application with multiple sub-domains, and you want to be
-able to visit `foo.example.com` and `bar.example.com`, while keeping
-`example.com` as the default, you can do this:
-
-```
-browser.localhost('*.example.com', 3000);
-```
+Notice the asterisk in the above example, that tells Zombie to route all
+sub-domains, so you can visit `foo.example.com` and `bar.example.com` in your
+test case.
 
 If you need to map multiple domains and/or ports, see [DNS Masking](#dnsmasking)
 and [Port Mapping](#portmapping).
