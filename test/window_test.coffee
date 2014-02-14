@@ -245,7 +245,7 @@ describe "Window", ->
 
     it "should follow a 'meta refresh' to a relative URL", (done)->
       browser.visit "/windows/refresh?url=/windows/refreshed", ->
-        browser.assert.url "http://example.com/windows/refreshed"
+        browser.assert.url "/windows/refreshed"
         done()
 
     it "should follow a 'meta refresh' to an absolute URL", (done)->
@@ -260,7 +260,7 @@ describe "Window", ->
         done()
 
     it "should indicated that the last request was redirected", (done)->
-      browser.visit "/windows/refresh", ->
+      browser.visit "/windows/refresh?url=/windows/refreshed", ->
         browser.assert.redirected()
         done()
 

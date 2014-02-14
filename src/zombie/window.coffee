@@ -317,7 +317,7 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
 loadDocument = ({ document, history, url, method, encoding, params })->
   window = document.window
   browser = window.browser
-  window._response = { }
+  window._response = {}
 
   # Called on wrap up to update browser with outcome.
   done = (error)->
@@ -363,29 +363,40 @@ loadDocument = ({ document, history, url, method, encoding, params })->
           return
 
         window._response = response
-        # Count a meta-refresh in the redirects count.
-        window._response.redirects++ if window._refresh
         # JSDOM fires load event on document but not on window
         windowLoaded = (event)->
           document.removeEventListener("load", windowLoaded)
           window.dispatchEvent(event)
         document.addEventListener("load", windowLoaded)
 
+        # Handle meta refresh.  Automatically reloads new location and counts
+        # as a redirect.
+        #
+        # If you need to check the page before refresh takes place, use this:
+        #   browser.wait({
+        #     function: function() {
+        #       return browser.query("meta[http-equiv='refresh']");
+        #     }
+        #   });
         handleRefresh = ->
-            refresh = browser.query("meta[http-equiv='refresh']")
-            if (refresh)
-                content = refresh.getAttribute("content")
-                content = content.match /^\s*(\d+)(?:\s*;\s*url\s*=\s*(.*?))?\s*(?:;|$)/i
-                if content
-                    [nothing, refresh_timeout, refresh_url] = content
-                else
-                    return
-                refresh_timeout = parseInt(refresh_timeout, 10)
-                refresh_url ||= url
-                if refresh_timeout >= 0
-                    window._eventQueue.enqueue ->
-                      history.assign refresh_url
-                      history.current.window._refresh = true
+          refresh = document.querySelector("meta[http-equiv='refresh']")
+          if refresh
+            content = refresh.getAttribute("content")
+            match   = content.match(/^\s*(\d+)(?:\s*;\s*url\s*=\s*(.*?))?\s*(?:;|$)/i)
+            if match
+              [nothing, refresh_timeout, refresh_url] = match
+            else
+              return
+            refreshTimeout = parseInt(refresh_timeout, 10)
+            refreshURL     = refresh_url || document.location.href
+            if refreshTimeout >= 0
+              window._eventQueue.enqueue ->
+                # Count a meta-refresh in the redirects count.
+                history.replace(refreshURL)
+                # This results in a new window getting loaded
+                newWindow = history.current.window
+                newWindow.addEventListener "load", ->
+                  newWindow._response.redirects++
 
         # JSDOM fires load event on document but not on window
         contentLoaded = (event)->
