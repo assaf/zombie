@@ -147,6 +147,10 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
   window.resizeBy = (width, height)->
     window.resizeTo(window.outerWidth + width,  window.outerHeight + height)
 
+  # Some libraries (e.g. Backbone) check that this property exists before
+  # deciding to use onhashchange, so we need to set it to null.
+  window.onhashchange = null
+
   # Help iframes talking with each other
   window.postMessage = (data, targetOrigin)->
     document = window.document
