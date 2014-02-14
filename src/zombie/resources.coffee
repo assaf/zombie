@@ -524,9 +524,10 @@ Resources.makeHTTPRequest = (request, callback)->
           url:        response.url
           headers:    redirectHeaders
           redirects:  redirects
+          strictSSL:  request.strictSSL
           time:       request.time
           timeout:    request.timeout
-        @emit("redirect", request, response)
+        @emit("redirect", response, redirectRequest)
         @resources.runPipeline(redirectRequest, callback)
 
       else

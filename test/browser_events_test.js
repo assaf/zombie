@@ -65,8 +65,8 @@ describe("Browser events", function() {
       browser.on('request', function(request) {
         events.resource.push([request]);
       });
-      browser.on('redirect', function(request, response) {
-        events.resource.push([request, response]);
+      browser.on('redirect', function(response, newRequest) {
+        events.resource.push([response, newRequest]);
       });
       browser.on('response', function(request, response) {
         events.resource.push([request, response]);
@@ -81,10 +81,10 @@ describe("Browser events", function() {
     });
 
     it("should receive resource redirects", function() {
-      let [request, response] = events.resource[1];
-      assert.equal(request.url, 'http://example.com/browser-events/resource');
+      let [response, newRequest] = events.resource[1];
       assert.equal(response.statusCode, 302);
       assert.equal(response.url, 'http://example.com/browser-events/redirected');
+      assert.equal(newRequest.url, response.url);
     });
 
     it("should receive resource responses", function() {

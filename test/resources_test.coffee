@@ -194,8 +194,41 @@ describe "Resources", ->
     it "should include loaded JavaScript", ->
       assert.equal browser.resources[1].response.url, "http://example.com:3005/jquery-2.0.3.js"
 
+  describe "request options", ->
+
+    requests = []
+
+    requestListener = (req) ->
+      requests.push(req)
+
+    redirectListener = (res, newReq) ->
+      requests.push(newReq)
+
+    before ->
+      brains.get "/resources/three-oh-one", (req, res)->
+        res.redirect("/resources/resource", 301)
+
+      # Capture all requests that flow through the pipeline.
+      browser.on "request", requestListener
+      browser.on "redirect", redirectListener
+
+    before (done)->
+      browser.visit("/resources/three-oh-one", done)
+
+    after ->
+      browser.removeListener "request", requestListener
+      browser.removeListener "redirect", redirectListener
+
+    it "should include 'strictSSL' in options for all requests", ->
+      # There will be at least the initial request and a second request to
+      # follow the redirect.
+      assert.ok requests.length > 1
+      requests.forEach (req)->
+        assert.strictEqual req.strictSSL, browser.strictSSL
+
   describe "addHandler", ->
     before (done) ->
+      # WARNING: This handler is used for all remaining tests in the suite.
       browser.resources.addHandler (request, done) ->
         done(null, statusCode: 204, body: "empty")
       browser.visit("/resources/resource", done)
