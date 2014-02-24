@@ -32,20 +32,20 @@
     "mime":                   "1.2.11",
     "ms":                     "0.6.2",
     "q":                      "1.0.0",
-    "request":                "2.33.0",
+    "request":                "2.34.0",
     "tough-cookie":           "0.12.1",
     "ws":                     "0.4.31"
   },
   "devDependencies": {
-    "co":                     "3.0.2",
+    "co":                     "3.0.4",
     "coffee-script":          "1.6.3",
     "express":                "3.4.8",
     "node-syntaxhighlighter": "0.8.1",
     "mocha":                  "1.17.1",
     "replay":                 "1.9.2",
-    "requirejs":              "2.1.10",
+    "requirejs":              "2.1.11",
     "robotskirt":             "2.7.1",
-    "traceur":                "0.0.22"
+    "traceur":                "0.0.24"
   },
   "repository": {
     "type":   "git",
