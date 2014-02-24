@@ -44,7 +44,7 @@ On OS X start by installing XCode, or use the [OSX GCC
 installer](https://github.com/kennethreitz/osx-gcc-installer) (less to
 download).
 
-Next, assuming you're using the mighty [Homebrew](http://mxcl.github.com/homebrew/):
+Next, assuming you're using the mighty [Homebrew](http://brew.sh/):
 
     $ brew install node
     $ node --version
