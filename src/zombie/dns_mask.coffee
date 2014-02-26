@@ -95,7 +95,10 @@ class DNSMask
             callback(error, addresses && addresses[0], 4)
           else
             @resolve domain, "AAAA", (error, addresses)=>
-              callback(error, addresses && addresses[0], 6)
+              if addresses
+                callback(error, addresses && addresses[0], 6)
+              else
+                @_lookup domain, family, callback
       else
         throw new Error("Unknown family " + family)
 
