@@ -257,6 +257,109 @@ describe("Browser", function() {
   });
 
 
+  describe("features", function() {
+    let originalFeatures;
+
+    before(function() {
+      originalFeatures = browser.features;
+    });
+
+    beforeEach(function() {
+      browser.features = 'img no-scripts';
+    });
+
+    describe("string property", function() {
+      it("should be read/write", function() {
+        assert.equal(browser.features, 'img no-scripts');
+      });
+    });
+
+    describe("hasFeature", function() {
+      it("should return true if set", function() {
+        assert.equal(browser.hasFeature('img', true), true);
+      });
+
+      it("should return false if not set", function() {
+        assert.equal(browser.hasFeature('scripts', false), false);
+      });
+
+      it("should return default value if unknown feature", function() {
+        assert.equal(browser.hasFeature('argh'), true);
+      });
+
+      it("should return ifMissing argument if unknown feature", function() {
+        assert.equal(browser.hasFeature('blargle', 42), 42);
+      });
+
+      it("should return ifMissing argument if no features", function() {
+        browser.features = null;
+        assert.equal(browser.hasFeature('img', 42), 42);
+      });
+    });
+
+    describe("setFeature", function() {
+      it("should not change a feature that was already set", function() {
+        browser.setFeature('img', true);
+        assert.equal(browser.hasFeature('img'), true);
+        assert.equal(browser.features, 'img no-scripts');
+      });
+
+      it("should unset a feature that was already set", function() {
+        browser.setFeature('img', false);
+        assert.equal(browser.hasFeature('img'), false);
+        assert.equal(browser.features, 'no-img no-scripts');
+      });
+
+      it("should set a feature that was unset", function() {
+        browser.setFeature('scripts', true);
+        assert.equal(browser.hasFeature('scripts'), true);
+        assert.equal(browser.features, 'img scripts');
+      });
+
+      it("should not change a feature that was already unset", function() {
+        browser.setFeature('scripts', false);
+        assert.equal(browser.hasFeature('scripts'), false);
+        assert.equal(browser.features, 'img no-scripts');
+      });
+
+      it("should append newly enabled features", function() {
+        browser.setFeature('argh', true);
+        assert.equal(browser.hasFeature('argh'), true);
+        assert.equal(browser.features, 'img no-scripts argh');
+      })
+
+      it("should append newly disabled features", function() {
+        browser.setFeature('argh', false);
+        assert.equal(browser.hasFeature('argh'), false);
+        assert.equal(browser.features, 'img no-scripts no-argh');
+      })
+
+      it("should set @features if no features", function() {
+        browser.features = null;
+        browser.setFeature('blargle', true);
+        assert.equal(browser.hasFeature('blargle'), true);
+        assert.equal(browser.features, 'blargle');
+      });
+
+      it("should return true for a feature that was set", function() {
+        assert.equal(browser.setFeature('img', false), true);
+      });
+
+      it("should return false for a feature that was not set", function() {
+        assert.equal(browser.setFeature('scripts', false), false);
+      });
+
+      it("should return default value for an unknown feature", function() {
+        assert.equal(browser.setFeature('foo', true), true);
+      });
+    });
+
+    after(function() {
+      browser.features = originalFeatures;
+    });
+  });
+
+
   describe("with options", function() {
 
     describe("per call", function() {

@@ -211,6 +211,21 @@ class Browser extends EventEmitter
         return false
     return ifMissing
 
+  # Enables or disables the given feature, and returns true if it was
+  # previously enabled.
+  setFeature: (name, enabled)->
+    wasEnabled = @hasFeature(name)
+    re = new RegExp("\\b(no-)?#{name}\\b", "i")
+    feature = (if enabled then '' else 'no-') + name
+    if @features
+      if re.test(@features)
+        @features = @features.replace(re, feature)
+      else
+        @features += ' ' + feature
+    else
+      @features = feature
+    return wasEnabled
+
 
   # Changes the browser options, and calls the function with a callback (reset).  When you're done processing, call the
   # reset function to bring options back to their previous values.
