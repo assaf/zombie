@@ -1,5 +1,5 @@
 { "name":           "zombie",
-  "version":        "2.0.0-alpha29",
+  "version":        "2.0.0-alpha30",
   "description":    "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage":       "http://zombie.labnotes.org/",
   "author":         "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
@@ -45,7 +45,7 @@
     "replay":                 "1.9.2",
     "requirejs":              "2.1.11",
     "robotskirt":             "2.7.1",
-    "traceur":                "0.0.24"
+    "traceur":                "0.0.25"
   },
   "repository": {
     "type":   "git",
