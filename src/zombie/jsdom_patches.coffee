@@ -2,8 +2,10 @@
 
 
 HTML  = require("jsdom").dom.level3.html
-HTML5 = require("html5")
 
+
+HTML.HTMLDocument.prototype.__defineGetter__ "scripts",   ->
+  return new HTML.HTMLCollection(this, => @querySelectorAll('script'))
 
 
 HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
