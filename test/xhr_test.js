@@ -1,6 +1,7 @@
 const assert      = require('assert');
 const Browser     = require('../src/zombie');
 const { brains }  = require('./helpers');
+const thirdParty  = require('./helpers/thirdparty');
 
 
 describe("XMLHttpRequest", function() {
@@ -278,6 +279,100 @@ describe("XMLHttpRequest", function() {
     it("should parse HTML document", function() {
       browser.assert.element('foo > bar#bar');
     });
+  });
+
+  
+  describe("CORS", function() {
+
+    before(function() {
+      brains.static('/cors/:path', "\
+        <html>\
+          <body>\
+            <script>\
+              var path = document.location.pathname.split('/')[2];\
+              var xhr = new XMLHttpRequest();\
+              xhr.onerror = function() {\
+                document.title = 'error';\
+              };\
+              xhr.onload = function() {\
+                document.title = xhr.responseText;\
+              };\
+              xhr.open('GET', '//thirdparty.test/' + path);\
+              xhr.send();\
+            </script>\
+          </body>\
+        </html>\
+      ");
+    });
+
+    describe("no access control header", function() {
+      before(function*() {
+        var cors = yield thirdParty();
+        cors.get('/no-access-header', function(req, res) {
+          res.send("No-access-header"); // We'll get error instead
+        });
+      });
+
+      it("should fail", function*() {
+        try {
+          yield browser.visit('/cors/no-access');
+          assert(false, "Error not propagated to window")
+        } catch (error) {
+        }
+        browser.assert.text('title', "error");
+      });
+    });
+
+    describe("access to *", function() {
+      before(function*() {
+        var cors = yield thirdParty();
+        cors.get('/access-star', function(req, res) {
+          res.header('Access-Control-Allow-Origin', '*');
+          res.send("Access *");
+        });
+      });
+
+      it("should allow access", function*() {
+        yield browser.visit('/cors/access-star');
+        browser.assert.text('title', "Access *");
+      });
+    });
+
+    describe("access to origin", function() {
+      before(function*() {
+        var cors = yield thirdParty();
+        cors.get('/access-origin', function(req, res) {
+          assert.equal(req.headers.origin, "http://example.com")
+          res.header('Access-Control-Allow-Origin', 'http://example.com');
+          res.send("Access http://example.com");
+        });
+      });
+
+      it("should allow access", function*() {
+        yield browser.visit('/cors/access-origin');
+        browser.assert.text('title', "Access http://example.com");
+      });
+    });
+
+    describe("access other", function() {
+      before(function*() {
+        var cors = yield thirdParty();
+        cors.get('/access-other', function(req, res) {
+          res.header('Access-Control-Allow-Origin', 'http://other.com');
+          res.send("Access http://other.com");
+        });
+      });
+
+      it("should fail", function*() {
+        try {
+          yield browser.visit('/cors/access-other');
+          assert(false, "Error not propagated to window")
+        } catch (error) {
+        }
+        browser.assert.text('title', "error");
+      });
+    });
+
   });
 
 

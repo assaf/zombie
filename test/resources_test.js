@@ -2,6 +2,7 @@ const assert      = require('assert');
 const Browser     = require('../src/zombie');
 const { brains }  = require('./helpers');
 const File        = require('fs');
+const thirdParty  = require('./helpers/thirdparty');
 const Zlib        = require('zlib');
 
 
@@ -216,20 +217,32 @@ describe("Resources", function() {
 
   describe("301 redirect URL cross server", function() {
     before(function*() {
-      brains.redirect('/resources/3005', 'http://example.com:3005/resources/resource', 301);
+      brains.redirect('/resources/cross-server', 'http://thirdparty.test/resources', 301);
       browser.resources.length = 0;
-      yield (resume)=> brains.listen(3005, resume);
-      yield browser.visit('/resources/3005');
+
+      var other = yield thirdParty();
+      other.get('/resources', function(req, res) {
+        res.send("\
+          <html>\
+            <head>\
+              <script src='//example.com/jquery.js'></script>\
+            </head>\
+            <body></body>\
+          </html>\
+        ");
+      });
+
+      yield browser.visit('/resources/cross-server');
     });
 
     it("should have a length", function() {
       assert.equal(browser.resources.length, 2);
     });
     it("should include loaded page", function() {
-      assert.equal(browser.resources[0].response.url, 'http://example.com:3005/resources/resource');
+      assert.equal(browser.resources[0].response.url, 'http://thirdparty.test/resources');
     });
     it("should include loaded JavaScript", function() {
-      assert.equal(browser.resources[1].response.url, 'http://example.com:3005/jquery-2.0.3.js');
+      assert.equal(browser.resources[1].response.url, 'http://example.com/jquery-2.0.3.js');
     });
   });
 

@@ -1,7 +1,8 @@
 # Implemenets XMLHttpRequest.
 HTML      = require("jsdom").dom.level3.html
+Events    = require("jsdom").dom.level3.events
 URL       = require("url")
-raise      = require("./scripts")
+raise     = require("./scripts")
 
 
 # Additional error codes defines for XHR and not in JSDOM.
@@ -10,7 +11,7 @@ HTML.NETWORK_ERR = 19
 HTML.ABORT_ERR = 20
 
 
-class XMLHttpRequest
+class XMLHttpRequest extends Events.EventTarget
   constructor: (window)->
     @_window = window
     # Pending requests
@@ -23,6 +24,10 @@ class XMLHttpRequest
     @statusText   = null
     @responseText = null
     @responseXML  = null
+
+    # XHR events need the first to dispatch, the second to propagate up to window
+    @_ownerDocument = window.document
+    @_parentNode    = window
 
   # Aborts the request if it has already been sent.
   abort: ->
@@ -74,6 +79,8 @@ class XMLHttpRequest
     unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
       throw new HTML.DOMException(HTML.SYNTAX_ERR, "Unsupported HTTP method")
 
+    headers = {}
+
     # Normalize the URL and check security
     url = URL.parse(URL.resolve(@_window.location.href, url))
     # Don't consider port if they are standard for http and https
@@ -89,8 +96,9 @@ class XMLHttpRequest
       url.host = "#{url.hostname}:#{url.port}"
     else
       url.host = url.hostname
-    unless url.host == @_window.location.host
-      throw new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
+    if url.host != @_window.location.host
+      headers.origin = @_window.location.protocol + "//" + @_window.location.host
+      @_cors = headers.origin
     url.hash = null
     if user
       url.auth = "#{user}:#{password}"
@@ -104,7 +112,7 @@ class XMLHttpRequest
     request =
       method:   method
       url:      URL.format(url)
-      headers:  {}
+      headers:  headers
     @_pending.push(request)
     @_stateChanged(XMLHttpRequest.OPENED)
     return
@@ -126,9 +134,20 @@ class XMLHttpRequest
       # abort sets request.error
       error ||= request.error
       if error
-        error = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
-        @_stateChanged(XMLHttpRequest.DONE)
+        event = new Events.Event('xhr')
+        event.initEvent('error', true, true)
+        event.error = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
+        @dispatchEvent(event)
         return
+
+      if @_cors
+        allowedOrigin = response.headers['access-control-allow-origin']
+        unless (allowedOrigin == '*' || allowedOrigin == @_cors)
+          event = new Events.Event('xhr')
+          event.initEvent('error', true, true)
+          event.error = new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
+          @dispatchEvent(event)
+          return
 
       # Since the request was not aborted, we set all the fields here and change
       # the state to HEADERS_RECIEVED.
@@ -142,7 +161,6 @@ class XMLHttpRequest
       @_window._eventQueue.enqueue =>
         @responseText = response.body?.toString() || ""
         @responseXML = null
-        @onload.call(@) if @onload
         @_stateChanged(XMLHttpRequest.DONE)
 
     return
@@ -159,6 +177,10 @@ class XMLHttpRequest
   # Fire onreadystatechange event
   _stateChanged: (newState)->
     @readyState = newState
+    if newState == XMLHttpRequest.DONE
+      event = new Events.Event('xhr')
+      event.initEvent('load', false, true)
+      @dispatchEvent(event)
     if @onreadystatechange
       # Since we want to wait on these events, put them in the event loop.
       @_window._eventQueue.enqueue =>
