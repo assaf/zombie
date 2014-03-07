@@ -10,22 +10,17 @@ describe.skip("angularjs", function() {
     browser = Browser.create();
     yield (resume)=> brains.ready(resume);
 
-    brains.get("/angular/show.html", function(req, res) {
-      res.send("<h1>{{title}}</h1>");
-    });
+    brains.static('/angular/show.html', "<h1>{{title}}</h1>");
 
-    brains.get("/angular/list.html", function(req, res) {
-      res.send("\
+    brains.static('/angular/list.html', "\
       <ul>\
           <li ng-repeat='item in items'>\
               <a href='#/show'>{{item.text}}</span>\
           </li>\
       </ul>\
-      ");
-    });
+    ");
 
-    brains.get("/angular", function(req, res) {
-      res.send("\
+    brains.static('/angular', "\
       <html ng-app='test'>\
         <head>\
           <title>Angular</title>\
@@ -50,8 +45,7 @@ describe.skip("angularjs", function() {
           </script>\
         </body>\
       </html>\
-      ");
-    });
+    ");
 
     yield browser.visit('/angular');
     browser.clickLink("my link");

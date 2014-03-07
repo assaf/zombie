@@ -12,24 +12,22 @@ describe("Resources", function() {
     browser = Browser.create();
     yield brains.ready();
 
-    brains.get('/resources/resource', function(req, res) {
-      res.send("\
-        <html>\
-          <head>\
-            <title>Whatever</title>\
-            <script src='/jquery.js'></script>\
-          </head>\
-          <body>Hello World</body>\
-          <script>\
-            document.title = 'Nice';\
-            $(function() { $('title').text('Awesome') })\
-          </script>\
-          <script type='text/x-do-not-parse'>\
-            <p>this is not valid JavaScript</p>\
-          </script>\
-        </html>\
-        ");
-    });
+    brains.static('/resources/resource', "\
+      <html>\
+        <head>\
+          <title>Whatever</title>\
+          <script src='/jquery.js'></script>\
+        </head>\
+        <body>Hello World</body>\
+        <script>\
+          document.title = 'Nice';\
+          $(function() { $('title').text('Awesome') })\
+        </script>\
+        <script type='text/x-do-not-parse'>\
+          <p>this is not valid JavaScript</p>\
+        </script>\
+      </html>\
+    ");
   });
 
 
@@ -200,9 +198,7 @@ describe("Resources", function() {
 
   describe("301 redirect URL", function() {
     before(function*() {
-      brains.get('/resources/three-oh-one', function(req, res) {
-        res.redirect('/resources/resource', 301);
-      });
+      brains.redirect('/resources/three-oh-one', '/resources/resource', 301);
       browser.resources.length = 0;
       yield browser.visit('/resources/three-oh-one');
     });
@@ -220,9 +216,7 @@ describe("Resources", function() {
 
   describe("301 redirect URL cross server", function() {
     before(function*() {
-      brains.get('/resources/3005', function(req, res) {
-        res.redirect('http://example.com:3005/resources/resource', 301);
-      });
+      brains.redirect('/resources/3005', 'http://example.com:3005/resources/resource', 301);
       browser.resources.length = 0;
       yield (resume)=> brains.listen(3005, resume);
       yield browser.visit('/resources/3005');
@@ -244,9 +238,7 @@ describe("Resources", function() {
     let requests = [];
 
     before(function*() {
-      brains.get('/resources/three-oh-one', function(req, res) {
-        res.redirect('/resources/resource', 301);
-      });
+      brains.redirect('/resources/three-oh-one', '/resources/resource', 301);
 
       // Capture all requests that flow through the pipeline.
       browser.on('request', function(request) {

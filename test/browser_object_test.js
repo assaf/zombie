@@ -12,8 +12,7 @@ describe("Browser", function() {
     browser = Browser.create();
     yield brains.ready();
 
-    brains.get('/browser/scripted', function(req, res) {
-      res.send("\
+    brains.static('/browser/scripted', "\
       <html>\
         <head>\
           <title>Whatever</title>\
@@ -30,18 +29,15 @@ describe("Browser", function() {
           </script>\
         </body>\
       </html>\
-      ");
-    });
+    ");
 
-    brains.get('/browser/errored', function(req, res) {
-      res.send("\
-        <html>\
-          <head>\
-            <script>this.is.wrong</script>\
-          </head>\
-        </html>\
-      ");
-    });
+    brains.static('/browser/errored', "\
+      <html>\
+        <head>\
+          <script>this.is.wrong</script>\
+        </head>\
+      </html>\
+    ");
   });
 
 
@@ -161,9 +157,7 @@ describe("Browser", function() {
         let error;
 
         before(function*() {
-          brains.get('/browser/500', function(req, res) {
-            res.send("Ooops, something went wrong", 500);
-          });
+          brains.static('/browser/500', "Ooops, something went wrong", 500);
 
           try {
             yield browser.visit('/browser/500');
@@ -192,9 +186,7 @@ describe("Browser", function() {
 
       describe("empty page", function() {
         before(function*() {
-          brains.get('/browser/empty', function(req, res) {
-            res.send("");
-          });
+          brains.static('/browser/empty', "");
           yield browser.visit('/browser/empty');
         });
 
@@ -348,17 +340,14 @@ describe("Browser", function() {
 
   describe("click link", function() {
     before(function*() {
-      brains.get('/browser/head', function(req, res) {
-        res.send("\
+      brains.static('/browser/head', "\
         <html>\
           <body>\
             <a href='/browser/headless'>Smash</a>\
           </body>\
         </html>\
-        ");
-      });
-      brains.get('/browser/headless', function(req, res) {
-        res.send("\
+      ");
+      brains.static('/browser/headless', "\
         <html>\
           <head>\
             <script src='/jquery.js'></script>\
@@ -369,8 +358,7 @@ describe("Browser", function() {
             </script>\
           </body>\
         </html>\
-        ");
-      });
+      ");
 
       yield browser.visit('/browser/head');
       yield browser.clickLink('Smash');
@@ -390,8 +378,7 @@ describe("Browser", function() {
 
   describe("follow redirect", function() {
     before(function*() {
-      brains.get('/browser/killed', function(req, res) {
-        res.send("\
+      brains.static('/browser/killed', "\
         <html>\
           <body>\
             <form action='/browser/alive' method='post'>\
@@ -399,8 +386,7 @@ describe("Browser", function() {
             </form>\
           </body>\
         </html>\
-        ");
-      });
+      ");
       brains.post('/browser/alive', function(req, res) {
         res.redirect('/browser/killed');
       });
@@ -425,13 +411,11 @@ describe("Browser", function() {
   if (Browser.htmlParser == HTML5) {
     describe("tag soup using HTML5 parser", function() {
       before(function*() {
-        brains.get('/browser/soup', function(req, res) {
-          res.send("\
+        brains.static('/browser/soup', "\
           <h1>Tag soup</h1>\
           <p>One paragraph\
           <p>And another\
-          ");
-        });
+        ");
         yield browser.visit('/browser/soup');
       });
 
@@ -448,9 +432,7 @@ describe("Browser", function() {
 
   describe("comments", function() {
     it("should not show up as text node", function*() {
-      brains.get('/browser/comment', function(req, res) {
-        res.send("This is <!-- a comment, not --> plain text");
-      });
+      brains.static('/browser/comment', "This is <!-- a comment, not --> plain text");
       yield browser.visit('/browser/comment');
 
       browser.assert.text('body', "This is plain text");
@@ -505,9 +487,7 @@ describe("Browser", function() {
       let window;
 
       before(function*() {
-        brains.get('/browser/popup', function(req, res) {
-          res.send("<h1>Popup window</h1>");
-        });
+        brains.static('/browser/popup', "<h1>Popup window</h1>");
           
         browser.tabs.closeAll()
         yield browser.visit('about:blank');
@@ -547,16 +527,12 @@ describe("Browser", function() {
 
     describe("open one window from another", function() {
       before(function*() {
-        brains.get('/browser/pop', function(req, res) {
-          res.send("\
-            <script>\
-              document.title = window.open('/browser/popup', 'popup')\
-            </script>\
-          ");
-        });
-        brains.get('/browser/popup', function(req, res) {
-          res.send("<h1>Popup window</h1>");
-        });
+        brains.static('/browser/pop', "\
+          <script>\
+            document.title = window.open('/browser/popup', 'popup')\
+          </script>\
+        ");
+        brains.static('/browser/popup', "<h1>Popup window</h1>");
 
         browser.tabs.closeAll();
         yield browser.visit('/browser/pop');
@@ -630,12 +606,8 @@ describe("Browser", function() {
     let forked;
 
     before(function*() {
-      brains.get('/browser/living', function(req, res) {
-        res.send("<html><script>dead = 'almost'</script></html>");
-      });
-      brains.get('/browser/dead', function(req, res) {
-        res.send("<html><script>dead = 'very'</script></html>");
-      });
+      brains.static('/browser/living', "<html><script>dead = 'almost'</script></html>");
+      brains.static('/browser/dead', "<html><script>dead = 'very'</script></html>");
         
       yield browser.visit('/browser/living');
       browser.setCookie({ name: 'foo', value: 'bar' });

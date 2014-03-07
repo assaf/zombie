@@ -55,12 +55,8 @@ describe("Browser events", function() {
 
   describe("requesting a resource", function() {
     before(function*() {
-      brains.get('/browser-events/resource', function(req, res) {
-        res.redirect('/browser-events/redirected');
-      });
-      brains.get('/browser-events/redirected', function(req, res) {
-        res.send("<html>Very well then</html>");
-      });
+      brains.redirect('/browser-events/resource', '/browser-events/redirected');
+      brains.static('/browser-events/redirected', "<html>Very well then</html>");
 
       browser.on('request', function(request) {
         events.resource.push([request]);
@@ -142,9 +138,7 @@ describe("Browser events", function() {
 
   describe("loading a document", function() {
     before(function*() {
-      brains.get('/browser-events/document', function(req, res) {
-        res.send("<html>Very well then</html>");
-      });
+      brains.static('/browser-events/document', "<html>Very well then</html>");
 
       browser.on('loading', function(document) {
         events.loading = [document.URL, document.readyState, document.outerHTML];
@@ -197,14 +191,12 @@ describe("Browser events", function() {
 
   describe("changing focus", function() {
     before(function*() {
-      brains.get('/browser-events/focus', function(req, res) {
-        res.send("\
+      brains.static('/browser-events/focus', "\
         <html>\
           <input id='input'>\
           <script>document.getElementById('input').focus()</script>\
         </html>\
-        ");
-      });
+      ");
 
       browser.on('focus', function(element) {
         events.focus = element;
@@ -222,13 +214,11 @@ describe("Browser events", function() {
 
   describe("timeout fired", function() {
     before(function*() {
-      brains.get('/browser-events/timeout', function(req, res) {
-        res.send("\
+      brains.static('/browser-events/timeout', "\
         <html>\
           <script>setTimeout(function() { }, 1);</script>\
         </html>\
-        ");
-      });
+      ");
 
       browser.on('timeout', function(fn, delay) {
         events.timeout = { fn, delay };
@@ -249,13 +239,11 @@ describe("Browser events", function() {
 
   describe("interval fired", function() {
     before(function*() {
-      brains.get('/browser-events/interval', function(req, res) {
-        res.send("\
+      brains.static('/browser-events/interval', "\
         <html>\
           <script>setInterval(function() { }, 2);</script>\
         </html>\
-        ");
-      });
+      ");
 
       browser.on('interval', function(fn, interval) {
         events.interval = { fn, interval };
@@ -277,13 +265,11 @@ describe("Browser events", function() {
 
   describe("event loop empty", function() {
     before(function*() {
-      brains.get('/browser-events/done', function(req, res) {
-        res.send("\
+      brains.static('/browser-events/done', "\
         <html>\
           <script>setTimeout(function() { }, 1);</script>\
         </html>\
-        ");
-      });
+      ");
 
       browser.on('done', function() {
         events.done = true;
@@ -302,13 +288,11 @@ describe("Browser events", function() {
 
   describe("evaluated", function() {
     before(function*() {
-      brains.get('/browser-events/evaluated', function(req, res) {
-        res.send("\
+      brains.static('/browser-events/evaluated', "\
         <html>\
           <script>window.foo = true</script>\
         </html>\
-        ");
-      });
+      ");
 
       browser.on('evaluated', function(code, result, filename) {
         events.evaluated = { code, result, filename };
@@ -333,9 +317,7 @@ describe("Browser events", function() {
 
   describe("link", function() {
     before(function*() {
-      brains.get('/browser-events/link', function(req, res) {
-        res.send("<html><a href='follow'></a></html>");
-      });
+      brains.static('/browser-events/link', "<html><a href='follow'></a></html>");
 
       browser.on('link', function(url, target) {
         events.link = { url, target };
@@ -357,13 +339,9 @@ describe("Browser events", function() {
 
   describe("submit", function() {
     before(function*() {
-      brains.get('/browser-events/submit', function(req, res) {
-        res.send("<html><form action='post'></form></html>");
-      });
+      brains.static('/browser-events/submit', "<html><form action='post'></form></html>");
 
-      brains.get('/browser-events/post', function(req, res) {
-        res.send("<html>Got it!</html>");
-      });
+      brains.static('/browser-events/post', "<html>Got it!</html>");
 
       browser.on('submit', function(url, target) {
         events.link = { url, target };

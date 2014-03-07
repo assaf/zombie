@@ -14,45 +14,41 @@ describe("Scripts", function() {
 
   describe("basic", function() {
     before(function() {
-      brains.get('/script/living', function(req, res) {
-        res.send("\
-          <html>\
-            <head>\
-              <script src='/jquery.js'></script>\
-              <script src='/sammy.js'></script>\
-              <script src='/script/living/app.js'></script>\
-            </head>\
-            <body>\
-              <div id='main'>\
-                <a href='/script/dead'>Kill</a>\
-                <form action='#/dead' method='post'>\
-                  <label>Email <input type='text' name='email'></label>\
-                  <label>Password <input type='password' name='password'></label>\
-                  <button>Sign Me Up</button>\
-                </form>\
-              </div>\
-              <div class='now'>Walking Aimlessly</div>\
-            </body>\
-          </html>\
-          ");
-      });
+      brains.static('/script/living', "\
+        <html>\
+          <head>\
+            <script src='/jquery.js'></script>\
+            <script src='/sammy.js'></script>\
+            <script src='/script/living/app.js'></script>\
+          </head>\
+          <body>\
+            <div id='main'>\
+              <a href='/script/dead'>Kill</a>\
+              <form action='#/dead' method='post'>\
+                <label>Email <input type='text' name='email'></label>\
+                <label>Password <input type='password' name='password'></label>\
+                <button>Sign Me Up</button>\
+              </form>\
+            </div>\
+            <div class='now'>Walking Aimlessly</div>\
+          </body>\
+        </html>\
+      ");
 
-      brains.get('/script/living/app.js', function(req, res) {
-        res.send("\
-          Sammy('#main', function(app) {\
-            app.get('#/', function(context) {\
-              document.title = 'The Living';\
-            });\
-            app.get('#/dead', function(context) {\
-              context.swap('The Living Dead');\
-            });\
-            app.post('#/dead', function(context) {\
-              document.title = 'Signed up';\
-            });\
+      brains.static('/script/living/app.js', "\
+        Sammy('#main', function(app) {\
+          app.get('#/', function(context) {\
+            document.title = 'The Living';\
           });\
-          $(function() { Sammy('#main').run('#/') });\
-          ");
-      });
+          app.get('#/dead', function(context) {\
+            context.swap('The Living Dead');\
+          });\
+          app.post('#/dead', function(context) {\
+            document.title = 'Signed up';\
+          });\
+        });\
+        $(function() { Sammy('#main').run('#/') });\
+      ");
     });
 
     describe("run app", function() {
@@ -119,19 +115,17 @@ describe("Scripts", function() {
 
     describe("context", function() {
       before(function*() {
-        brains.get('/script/context', function(req, res) {
-          res.send("\
-            <html>\
-              <script>var foo = 1</script>\
-              <script>window.foo = foo + 1</script>\
-              <script>document.title = this.foo</script>\
-              <script>\
-              setTimeout(function() {\
-                document.title = foo + window.foo\
-              });</script>\
-            </html>\
-            ");
-        });
+        brains.static('/script/context', "\
+          <html>\
+            <script>var foo = 1</script>\
+            <script>window.foo = foo + 1</script>\
+            <script>document.title = this.foo</script>\
+            <script>\
+            setTimeout(function() {\
+              document.title = foo + window.foo\
+            });</script>\
+          </html>\
+        ");
         yield browser.visit('/script/context');
       });
 
@@ -143,18 +137,16 @@ describe("Scripts", function() {
 
     describe("window", function() {
       before(function*() {
-        brains.get('/script/window', function(req, res) {
-          res.send("\
-            <html>\
-              <script>document.title = [window == this,\
-                                        this == window.window,\
-                                        this == top,\
-                                        top == window.top,\
-                                        this == parent,\
-                                        top == parent].join(',')</script>\
-            </html>\
-            ");
-        });
+        brains.static('/script/window', "\
+          <html>\
+            <script>document.title = [window == this,\
+                                      this == window.window,\
+                                      this == top,\
+                                      top == window.top,\
+                                      this == parent,\
+                                      top == parent].join(',')</script>\
+          </html>\
+        ");
         yield browser.visit('/script/window');
       });
 
@@ -166,20 +158,18 @@ describe("Scripts", function() {
 
     describe("global and function", function() {
       before(function*() {
-        brains.get('/script/global_and_fn', function(req, res) {
-          res.send("\
-            <html>\
-              <script>\
-                var foo;\
-                (function() {\
-                  if (!foo)\
-                    foo = 'foo';\
-                })();\
-                document.title = foo;\
-              </script>\
-            </html>\
-            ");
-        });
+        brains.static('/script/global_and_fn', "\
+          <html>\
+            <script>\
+              var foo;\
+              (function() {\
+                if (!foo)\
+                  foo = 'foo';\
+              })();\
+              document.title = foo;\
+            </script>\
+          </html>\
+        ");
         yield browser.visit('/script/global_and_fn');
       });
 
@@ -193,24 +183,20 @@ describe("Scripts", function() {
 
   describe("order", function() {
     before(function*() {
-      brains.get('/script/order', function(req, res) {
-        res.send("\
-          <html>\
-            <head>\
-              <title>Zero</title>\
-              <script src='/script/order.js'></script>\
-            </head>\
-            <body>\
-              <script>\
-                document.title = document.title + 'Two';\
-              </script>\
-            </body>\
-          </html>\
-          ");
-      });
-      brains.get('/script/order.js', function(req, res) {
-        res.send("document.title = document.title + 'One'");
-      });
+      brains.static('/script/order', "\
+        <html>\
+          <head>\
+            <title>Zero</title>\
+            <script src='/script/order.js'></script>\
+          </head>\
+          <body>\
+            <script>\
+              document.title = document.title + 'Two';\
+            </script>\
+          </body>\
+        </html>\
+      ");
+      brains.static('/script/order.js', "document.title = document.title + 'One'");
       yield browser.visit('/script/order');
     });
 
@@ -222,29 +208,27 @@ describe("Scripts", function() {
 
   describe("eval", function() {
     before(function*() {
-      brains.get('/script/eval', function(req, res) {
-        res.send("\
-          <html>\
-            <script>\
-              var foo = 'One';\
-              (function() {\
-                var bar = 'Two'; // standard eval sees this\n\
-                var e = eval; // this 'eval' only sees global scope\n\
-                try {\
-                  var baz = e('bar');\
-                } catch (ex) {\
-                  var baz = 'Three';\
-                };\
-                // In spite of local variable, global scope eval finds global foo\n\
-                var foo = 'NotOne';\
-                var e_foo = e('foo');\
-                var qux = window.eval.call(window, 'foo');\
-                document.title = eval('e_foo + bar + baz + qux');\
-              })();\
-            </script>\
-          </html>\
-          ");
-      });
+      brains.static('/script/eval', "\
+        <html>\
+          <script>\
+            var foo = 'One';\
+            (function() {\
+              var bar = 'Two'; // standard eval sees this\n\
+              var e = eval; // this 'eval' only sees global scope\n\
+              try {\
+                var baz = e('bar');\
+              } catch (ex) {\
+                var baz = 'Three';\
+              };\
+              // In spite of local variable, global scope eval finds global foo\n\
+              var foo = 'NotOne';\
+              var e_foo = e('foo');\
+              var qux = window.eval.call(window, 'foo');\
+              document.title = eval('e_foo + bar + baz + qux');\
+            })();\
+          </script>\
+        </html>\
+      ");
       yield browser.visit('/script/eval');
     });
 
@@ -260,13 +244,11 @@ describe("Scripts", function() {
       let error;
 
       before(function*() {
-        brains.get('/script/incomplete', function(req, res) {
-          res.send("\
-            <html>\
-              <script>1+</script>\
-            </html>\
-            ");
-        });
+        brains.static('/script/incomplete', "\
+          <html>\
+            <script>1+</script>\
+          </html>\
+        ");
         try {
           yield browser.visit('/script/incomplete');
         } catch (err) {
@@ -287,13 +269,11 @@ describe("Scripts", function() {
       let error;
 
       before(function*() {
-        brains.get('/script/error', function(req, res) {
-          res.send("\
-            <html>\
-              <script>(function(foo) { foo.bar })()</script>\
-            </html>\
-            ");
-        });
+        brains.static('/script/error', "\
+          <html>\
+            <script>(function(foo) { foo.bar })()</script>\
+          </html>\
+        ");
         try {
           yield browser.visit('/script/error');
         } catch (err) {
@@ -316,13 +296,11 @@ describe("Scripts", function() {
 
     describe("with entities", function() {
       before(function*() {
-        brains.get('/script/split', function(req, res) {
-          res.send("\
-            <html>\
-              <script>foo = 1 < 2 ? 1 : 2; '&'; document.title = foo</script>\
-            </html>\
-            ");
-        });
+        brains.static('/script/split', "\
+          <html>\
+            <script>foo = 1 < 2 ? 1 : 2; '&'; document.title = foo</script>\
+          </html>\
+        ");
         yield browser.visit('/script/split');
       });
 
@@ -334,13 +312,11 @@ describe("Scripts", function() {
 
     describe.skip("with CDATA", function() {
       before(function*() {
-        brains.get('/script/cdata', function(req, res) {
-          res.send("\
-            <html>\
-              <script><![CDATA[ document.title = 2 ]]></script>\
-            </html>\
-            ");
-        });
+        brains.static('/script/cdata', "\
+          <html>\
+            <script><![CDATA[ document.title = 2 ]]></script>\
+          </html>\
+        ");
         yield browser.visit('/script/cdata');
       });
 
@@ -352,18 +328,16 @@ describe("Scripts", function() {
 
     describe("using document.write", function() {
       before(function*() {
-        brains.get('/script/write', function(req, res) {
-          res.send("\
-            <html>\
-              <body>\
-              <script>document.write(unescape('%3Cscript %3Edocument.title = document.title + \".write\"%3C/script%3E'));</script>\
-              <script>\
-                document.title = document.title + 'document';\
-              </script>\
-              </body>\
-            </html>\
-            ");
-        });
+        brains.static('/script/write', "\
+          <html>\
+            <body>\
+            <script>document.write(unescape('%3Cscript %3Edocument.title = document.title + \".write\"%3C/script%3E'));</script>\
+            <script>\
+              document.title = document.title + 'document';\
+            </script>\
+            </body>\
+          </html>\
+        ");
         yield browser.visit('/script/write');
       });
 
@@ -375,27 +349,23 @@ describe("Scripts", function() {
 
     describe("using appendChild", function() {
       before(function*() {
-        brains.get('/script/append', function(req, res) {
-          res.send("\
-            <html>\
-              <head>\
-                <script>\
-                  var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;\
-                  s.src = '/script/append.js';\
-                  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);\
-                </script>\
-              </head>\
-              <body>\
-                <script>\
-                  document.title = document.title + 'element.';\
-                </script>\
-              </body>\
-            </html>\
-            ");
-        });
-        brains.get('/script/append.js', function(req, res) {
-          res.send("document.title = document.title + \"appendChild\"");
-        });
+        brains.static('/script/append', "\
+          <html>\
+            <head>\
+              <script>\
+                var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;\
+                s.src = '/script/append.js';\
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);\
+              </script>\
+            </head>\
+            <body>\
+              <script>\
+                document.title = document.title + 'element.';\
+              </script>\
+            </body>\
+          </html>\
+        ");
+        brains.static('/script/append.js', "document.title = document.title + \"appendChild\"");
         yield browser.visit('/script/append');
       });
 
@@ -409,23 +379,19 @@ describe("Scripts", function() {
 
   describe("scripts disabled", function() {
     before(function*() {
-      brains.get('/script/no-scripts', function(req, res) {
-        res.send("\
-          <html>\
-            <head>\
-              <title>Zero</title>\
-              <script src='/script/no-scripts.js'></script>\
-            </head>\
-            <body>\
-              <script>\
-              document.title = document.title + 'Two';</script>\
-            </body>\
-          </html>\
-          ");
-      });
-      brains.get('/script/no-scripts.js', function(req, res) {
-        res.send("document.title = document.title + 'One'");
-      });
+      brains.static('/script/no-scripts', "\
+        <html>\
+          <head>\
+            <title>Zero</title>\
+            <script src='/script/no-scripts.js'></script>\
+          </head>\
+          <body>\
+            <script>\
+            document.title = document.title + 'Two';</script>\
+          </body>\
+        </html>\
+      ");
+      brains.static('/script/no-scripts.js', "document.title = document.title + 'One'");
       browser.features = "no-scripts";
       yield browser.visit('/script/order');
     });
@@ -442,18 +408,16 @@ describe("Scripts", function() {
 
   describe("script attributes", function() {
     before(function*() {
-      brains.get('/script/inline', function(req, res) {
-        res.send("\
-          <html>\
-            <head>\
-              <title></title>\
-              <script>var bar = null;</script>\
-            </head>\
-            <body>\
-            </body>\
-          </html>\
-          ");
-      });
+      brains.static('/script/inline', "\
+        <html>\
+          <head>\
+            <title></title>\
+            <script>var bar = null;</script>\
+          </head>\
+          <body>\
+          </body>\
+        </html>\
+      ");
       yield browser.visit('/script/inline');
     });
 
@@ -532,13 +496,11 @@ describe("Scripts", function() {
 
   describe("on- event handler (string)", function() {
     before(function*() {
-      brains.get('/script/on-event/string', function(req, res) {
-        res.send("\
-          <form onsubmit='document.title = event.eventType; return false'>\
-            <button>Submit</button>\
-          </form>\
-          ");
-      });
+      brains.static('/script/on-event/string', "\
+        <form onsubmit='document.title = event.eventType; return false'>\
+          <button>Submit</button>\
+        </form>\
+      ");
       yield browser.visit('/script/on-event/string')
       yield browser.pressButton('Submit');
     });
@@ -555,19 +517,17 @@ describe("Scripts", function() {
 
   describe("on- event handler (function)", function() {
     before(function*() {
-      brains.get('/script/on-event/function', function(req, res) {
-        res.send("\
-          <form>\
-            <button>Submit</button>\
-          </form>\
-          <script>\
-            document.getElementsByTagName('form')[0].onsubmit = function(event) {\
-              document.title = event.eventType;\
-              event.preventDefault();\
-            }\
-          </script>\
-          ");
-      });
+      brains.static('/script/on-event/function', "\
+        <form>\
+          <button>Submit</button>\
+        </form>\
+        <script>\
+          document.getElementsByTagName('form')[0].onsubmit = function(event) {\
+            document.title = event.eventType;\
+            event.preventDefault();\
+          }\
+        </script>\
+      ");
       yield browser.visit('/script/on-event/function');
       yield browser.pressButton('Submit');
     });

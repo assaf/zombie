@@ -31,13 +31,11 @@ describe("Document", function() {
 
   describe("activeElement", function() {
     before(function*() {
-      brains.get('/document/activeElement', function(req, res) {
-        res.send("\
-          <html>\
-            <body></body>\
-          </html>\
-          ");
-      });
+      brains.static('/document/activeElement', "\
+        <html>\
+          <body></body>\
+        </html>\
+      ");
       yield browser.visit('/document/activeElement');
     });
 
@@ -135,9 +133,7 @@ describe("Document", function() {
 
   describe("insertAdjacentHTML", function() {
     before(function() {
-      brains.get('/document/insertAdjacentHTML', function(req, res) {
-        res.send("<html><body><div><p id='existing'></p></div></body></html>");
-      });
+      brains.static('/document/insertAdjacentHTML', "<html><body><div><p id='existing'></p></div></body></html>");
     });
 
     describe("beforebegin", function() {
@@ -202,19 +198,17 @@ describe("Document", function() {
     let scripts;
 
     before(function*() {
-      brains.get('/document/scripts', function(req, res) {
-        res.send("\
-          <html>\
-            <head>\
-              <script src='/jquery.js'></script>\
-            </head>\
-            <body>\
-              <script>eval(1)</script>\
-              <script id='foo' src='/jquery.js?foo'></script>\
-            </body>\
-          </html>\
-          ");
-      });
+      brains.static('/document/scripts', "\
+        <html>\
+          <head>\
+            <script src='/jquery.js'></script>\
+          </head>\
+          <body>\
+            <script>eval(1)</script>\
+            <script id='foo' src='/jquery.js?foo'></script>\
+          </body>\
+        </html>\
+      ");
       yield browser.visit('/document/scripts');
       scripts = browser.document.scripts;
     });
