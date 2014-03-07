@@ -167,7 +167,7 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
     # version of the object returned by getGlobal, they are not the same
     # object ie, _windowInScope.foo == _windowInScope.getGlobal().foo, but
     # _windowInScope != _windowInScope.getGlobal()
-    event.source = browser._windowInScope.getGlobal()
+    event.source = (browser._windowInScope || window).getGlobal()
     origin = event.source.location
     event.origin = URL.format(protocol: origin.protocol, host: origin.host)
     window.dispatchEvent(event)
