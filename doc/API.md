@@ -329,14 +329,14 @@ name (you cannot attach streams).
 
 Returns this so you can chain multiple methods.
 
-### browser.check(field, callback) : this
+### browser.check(field) : this
  
 Checks a checkbox.  The argument can be the field name, label text or a CSS
 selector.
 
 Returns this so you can chain multiple methods.
 
-### browser.choose(field, callback) : this
+### browser.choose(field) : this
 
 Selects a radio box option.  The argument can be the field name, label text or a
 CSS selector.
@@ -350,7 +350,7 @@ selector, field name (its `name` attribute) or the text value of a label
 associated with that field (case sensitive, but ignores leading/trailing
 spaces).
 
-### browser.fill(field, value, callback) : this
+### browser.fill(field, value) : this
 
 Fill in a field: input field or text area.  The first argument can be the field
 name, label text or a CSS selector.  The second argument is the field value.
@@ -382,7 +382,7 @@ For example:
 
 Returns nothing.
 
-### browser.select(field, value, callback) : this
+### browser.select(field, value) : this
  
 Selects an option.  The first argument can be the field name, label text or a
 CSS selector.  The second value is the option to select, by value or label.
@@ -395,7 +395,7 @@ See also `selectOption`.
 
 Returns this so you can chain multiple methods.
 
-### browser.selectOption(option, callback) : this
+### browser.selectOption(option) : this
 
 Selects the option (an `OPTION` element).
 
@@ -408,7 +408,7 @@ selector.
 
 Returns this so you can chain multiple methods.
 
-### browser.unselect(field, value, callback) : this
+### browser.unselect(field, value) : this
  
 Unselects an option.  The first argument can be the field name, label text or a
 CSS selector.  The second value is the option to unselect, by value or label.
@@ -417,7 +417,7 @@ You can use this (or `unselectOption`) when dealing with multiple selection.
 
 Returns this so you can chain multiple methods.
 
-### browser.unselectOption(option, callback) : this
+### browser.unselectOption(option) : this
 
 Unselects the option (an `OPTION` element).
 
