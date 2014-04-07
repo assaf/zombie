@@ -11,8 +11,10 @@ Module._extensions['.js'] = function(module, filename) {
   } else {
     const source = File.readFileSync(filename, 'utf8');
     const compiled = traceur.compile(source, {
-      blockBinding: true,
-      generators:   true,
+      blockBinding:           true,
+      generators:             true,
+      generatorComprehension: true,
+      asyncFunctions:         true,
       validate:     true,
       filename:     filename,
       sourceMap:    true
@@ -26,18 +28,19 @@ Module._extensions['.js'] = function(module, filename) {
 };
 
 
-// ES6 generator support for Mocha.
+// Mocha supporting ES6 generators.
+
 const co    = require('co');
 const mocha = require('mocha');
 
 
 mocha.Runnable.prototype.run = function(fn) {
-  var self = this
-    , ms = this.timeout()
-    , start = new Date
-    , ctx = this.ctx
-    , finished
-    , emitted;
+  var self = this;
+  var ms = this.timeout();
+  var start = new Date();
+  var ctx = this.ctx;
+  var finished;
+  var emitted;
 
   if (ctx) ctx.runnable(this);
 
@@ -63,7 +66,7 @@ mocha.Runnable.prototype.run = function(fn) {
     if (self.timedOut) return;
     if (finished) return multiple(err);
     self.clearTimeout();
-    self.duration = new Date - start;
+    self.duration = new Date() - start;
     finished = true;
     fn(err);
   }
@@ -92,25 +95,25 @@ mocha.Runnable.prototype.run = function(fn) {
   try {
     if (!this.pending) {
       var result = this.fn.call(ctx);
-      if (result && typeof(result.next) == 'function' && typeof(result.throw) == 'function') {
-        if (ms) {
-          this.timer = setTimeout(function(){
-            done(new Error('timeout of ' + ms + 'ms exceeded'));
-            self.timedOut = true;
-          }, ms);
-        }
-        co(result)(function(err) {
-          this.duration = new Date - start;
-          done(err);
-        });
+
+      if (ms) {
+        this.timer = setTimeout(function(){
+          done(new Error('timeout of ' + ms + 'ms exceeded'));
+          self.timedOut = true;
+        }, ms);
+      }
+
+      if (result && typeof(result.then) === 'function') {
+        result.then(function(){ done(); }, done);
+      } else if (result && typeof(result.next) === 'function') {
+        co(result)(done);
       } else {
-        this.duration = new Date - start;
-        fn();
+        done();
       }
     }
   } catch (err) {
     fn(err);
   }
 
-}
+};
 

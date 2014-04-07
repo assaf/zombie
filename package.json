@@ -26,26 +26,26 @@
   },
   "dependencies": {
     "encoding":               "0.1.7",
-    "eventsource":            "0.0.10",
+    "eventsource":            "0.1.0",
     "html5":                  "0.3.14",
     "jsdom":                  "0.8.11",
     "mime":                   "1.2.11",
     "ms":                     "0.6.2",
-    "q":                      "1.0.0",
+    "q":                      "1.0.1",
     "request":                "2.34.0",
     "tough-cookie":           "0.12.1",
     "ws":                     "0.4.31"
   },
   "devDependencies": {
-    "co":                     "3.0.4",
+    "co":                     "3.0.5",
     "coffee-script":          "1.6.3",
-    "express":                "3.4.8",
+    "express":                "3.5.1",
     "node-syntaxhighlighter": "0.8.1",
-    "mocha":                  "1.17.1",
+    "mocha":                  "1.18.2",
     "replay":                 "1.9.2",
     "requirejs":              "2.1.11",
     "robotskirt":             "2.7.1",
-    "traceur":                "0.0.25"
+    "traceur":                "0.0.32"
   },
   "repository": {
     "type":   "git",
