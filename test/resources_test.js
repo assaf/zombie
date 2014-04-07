@@ -9,33 +9,32 @@ const Zlib        = require('zlib');
 describe("Resources", function() {
   let browser;
 
-  before(function*() {
+  before(function() {
     browser = Browser.create();
-    yield brains.ready();
 
-    brains.static('/resources/resource', "\
-      <html>\
-        <head>\
-          <title>Whatever</title>\
-          <script src='/jquery.js'></script>\
-        </head>\
-        <body>Hello World</body>\
-        <script>\
-          document.title = 'Nice';\
-          $(function() { $('title').text('Awesome') })\
-        </script>\
-        <script type='text/x-do-not-parse'>\
-          <p>this is not valid JavaScript</p>\
-        </script>\
-      </html>\
-    ");
+    brains.static('/resources/resource', `
+      <html>
+        <head>
+          <title>Whatever</title>
+          <script src='/jquery.js'></script>
+        </head>
+        <body>Hello World</body>
+        <script>
+          document.title = 'Nice';
+          $(function() { $('title').text('Awesome') })
+        </script>
+        <script type='text/x-do-not-parse'>
+          <p>this is not valid JavaScript</p>
+        </script>
+      </html>`);
+    return brains.ready();
   });
 
 
   describe("as array", function() {
-    before(function*() {
+    before(function() {
       browser.resources.length = 0;
-      yield browser.visit('/resources/resource');
+      return browser.visit('/resources/resource');
     });
 
     it("should have a length", function() {
@@ -61,7 +60,7 @@ describe("Resources", function() {
         assert(false, "Request did not fail");
       } catch (error) {
         assert.equal(error.message, "Fail!");
-      };
+      }
     });
 
     after(function() {
@@ -71,10 +70,10 @@ describe("Resources", function() {
 
 
   describe("delay URL with timeout", function() {
-    before(function*() {
+    before(function() {
       browser.resources.delay('/resources/resource', 150);
       browser.visit('/resources/resource');
-      yield browser.wait({ duration: 90 });
+      return browser.wait({ duration: 90 });
     });
 
     it("should not load page", function() {
@@ -98,9 +97,9 @@ describe("Resources", function() {
 
 
   describe("mock URL", function() {
-    before(function*() {
+    before(function() {
       browser.resources.mock('/resources/resource', { statusCode: 204, body: "empty" });
-      yield browser.visit('/resources/resource');
+      return browser.visit('/resources/resource');
     });
 
     it("should return mock result", function() {
@@ -109,9 +108,9 @@ describe("Resources", function() {
     });
 
     describe("restore", function() {
-      before(function*() {
+      before(function() {
         browser.resources.restore('/resources/resource');
-        yield browser.visit('/resources/resource');
+        return browser.visit('/resources/resource');
       });
 
       it("should return actual page", function() {
@@ -198,10 +197,10 @@ describe("Resources", function() {
 
 
   describe("301 redirect URL", function() {
-    before(function*() {
+    before(function() {
       brains.redirect('/resources/three-oh-one', '/resources/resource', 301);
       browser.resources.length = 0;
-      yield browser.visit('/resources/three-oh-one');
+      return browser.visit('/resources/three-oh-one');
     });
 
     it("should have a length", function() {
@@ -222,14 +221,13 @@ describe("Resources", function() {
 
       var other = yield thirdParty();
       other.get('/resources', function(req, res) {
-        res.send("\
-          <html>\
-            <head>\
-              <script src='//example.com/jquery.js'></script>\
-            </head>\
-            <body></body>\
-          </html>\
-        ");
+        res.send(`
+          <html>
+            <head>
+              <script src='//example.com/jquery.js'></script>
+            </head>
+            <body></body>
+          </html>`);
       });
 
       yield browser.visit('/resources/cross-server');
@@ -250,7 +248,7 @@ describe("Resources", function() {
   describe("request options", function() {
     let requests = [];
 
-    before(function*() {
+    before(function() {
       brains.redirect('/resources/three-oh-one', '/resources/resource', 301);
 
       // Capture all requests that flow through the pipeline.
@@ -260,7 +258,7 @@ describe("Resources", function() {
       browser.on('redirect', function(request, newRequest) {
         requests.push(newRequest);
       });
-      yield browser.visit('/resources/three-oh-one');
+      return browser.visit('/resources/three-oh-one');
     });
 
     it("should include 'strictSSL' in options for all requests", function() {
@@ -274,12 +272,12 @@ describe("Resources", function() {
 
 
   describe("addHandler", function() {
-    before(function*() {
+    before(function() {
       // WARNING: This handler is used for all remaining tests in the suite.
       browser.resources.addHandler(function(request, callback) {
         callback(null, { statusCode: 204, body: "empty" });
       });
-      yield browser.visit('/resources/resource');
+      return browser.visit('/resources/resource');
     });
 
     it("should call the handler and use its response", function() {

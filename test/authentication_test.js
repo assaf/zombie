@@ -6,9 +6,9 @@ const { brains }  = require('./helpers');
 describe("Authentication", function() {
   let browser;
 
-  before(function*() {
+  before(function() {
     browser = Browser.create();
-    yield brains.ready();
+    return brains.ready();
   });
 
   describe("basic", function() {
@@ -17,7 +17,7 @@ describe("Authentication", function() {
         let auth = req.headers.authorization;
         if (auth) {
           if (auth == "Basic dXNlcm5hbWU6cGFzczEyMw==")
-            res.send("<html><body>" + req.headers['authorization'] + "</body></html>");
+            res.send("<html><body>" + req.headers.authorization + "</body></html>");
           else
             res.send("Invalid credentials", 401);
         } else
@@ -26,33 +26,36 @@ describe("Authentication", function() {
     });
 
     describe("without credentials", function() {
-      it("should return status code 401", function*() {
+      it("should return status code 401", async function() {
         try {
-          yield browser.visit("/auth/basic");
+          await browser.visit("/auth/basic");
           assert(false, "browser.visit should have failed");
         } catch (error) {
           browser.assert.status(401);
-        };
+        }
+        return;
       });
     });
 
     describe("with invalid credentials", function() {
-      it("should return status code 401", function*() {
+      it("should return status code 401", async function() {
         try {
           browser.authenticate('example.com').basic('username', 'wrong');
-          yield browser.visit("/auth/basic");
+          await browser.visit("/auth/basic");
           assert(false, "browser.visit should have failed");
         } catch (error) {
           browser.assert.status(401);
-        };
+        }
+        return;
       });
     });
 
     describe("with valid credentials", function() {
-      it("should have the authentication header", function*() {
+      it("should have the authentication header", async function() {
         browser.authenticate('example.com').basic('username', 'pass123');
-        yield browser.visit("/auth/basic");
+        await browser.visit("/auth/basic");
         browser.assert.text('body', 'Basic dXNlcm5hbWU6cGFzczEyMw==');
+        return;
       });
     });
 
@@ -65,7 +68,7 @@ describe("Authentication", function() {
         let auth = req.headers.authorization;
         if (auth) {
           if (auth == 'Bearer 12345')
-            res.send("<html><body>" + req.headers['authorization'] + "</body></html>");
+            res.send("<html><body>" + req.headers.authorization + "</body></html>");
           else
             res.send("Invalid token", 401);
         } else
@@ -74,33 +77,36 @@ describe("Authentication", function() {
     });
 
     describe("without credentials", function() {
-      it("should return status code 401", function*() {
+      it("should return status code 401", async function() {
         try {
-          yield browser.visit("/auth/oauth2");
+          await browser.visit("/auth/oauth2");
           assert(false, "browser.visit should have failed");
         } catch (error) {
           browser.assert.status(401);
-        };
+        }
+        return;
       });
     });
 
     describe("with invalid credentials", function() {
-      it("should return status code 401", function*() {
+      it("should return status code 401", async function() {
         try {
           browser.authenticate('example.com').bearer('wrong');
-          yield browser.visit("/auth/oauth2");
+          await browser.visit("/auth/oauth2");
           assert(false, "browser.visit should have failed");
         } catch (error) {
           browser.assert.status(401);
-        };
+        }
+        return;
       });
     });
 
     describe("with valid credentials", function() {
-      it("should have the authentication header", function*() {
+      it("should have the authentication header", async function() {
         browser.authenticate('example.com').bearer('12345');
-        yield browser.visit("/auth/oauth2");
+        await browser.visit("/auth/oauth2");
         browser.assert.text('body', 'Bearer 12345');
+        return;
       });
     });
 
@@ -112,15 +118,15 @@ describe("Authentication", function() {
       brains.get('/auth/script', function(req, res) {
         let auth = req.headers.authorization;
         if (auth) {
-          res.send("\
-          <html>\
-            <head>\
-              <title>Zero</title>\
-              <script src='/auth/script.js'></script>\
-            </head>\
-            <body></body>\
-          </html>\
-          ");
+          res.send(`
+          <html>
+            <head>
+              <title>Zero</title>
+              <script src='/auth/script.js'></script>
+            </head>
+            <body></body>
+          </html>
+          `);
         } else
           res.send("No Credentials on the html page", 401);
       });
@@ -134,10 +140,11 @@ describe("Authentication", function() {
       });
     });
 
-    it("should download the script", function*() {
+    it("should download the script", async function() {
       browser.authenticate('example.com').basic('username', 'pass123');
-      yield browser.visit('/auth/script');
+      await browser.visit('/auth/script');
       browser.assert.text('title', "ZeroOne");
+      return;
     });
 
   });

@@ -1,17 +1,18 @@
 {
-  "esnext":     true,
   "camelcase":  true,
+  "esnext":     true,
   "freeze":     true,
   "immed":      true,
   "indent":     2,
   "latedef":    "nofunc",
+  "maxdepth":   3,
+  "maxparams":  4,
   "newcap":     true,
+  "node":       true,
   "nonew":      true,
+  "scripturl":  true,
   "undef":      true,
   "unused":     true,
-  "maxparams":  4,
-  "maxdepth":   3,
-  "node":       true,
   "globals": {
     "Promise": false
   },

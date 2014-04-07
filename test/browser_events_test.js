@@ -1,7 +1,6 @@
 const assert      = require('assert');
 const Browser     = require('../src/zombie');
 const { brains }  = require('./helpers');
-const HTML        = require('jsdom').dom.level3.html;
 
 
 describe("Browser events", function() {
@@ -12,9 +11,9 @@ describe("Browser events", function() {
     resource: []
   };
 
-  before(function*() {
+  before(function() {
     browser = Browser.create();
-    yield brains.ready();
+    return brains.ready();
   });
 
   describe("sending output to console", function() {
@@ -39,12 +38,12 @@ describe("Browser events", function() {
 
 
   describe("logging a message", function() {
-    it("should receive log events", function*() {
+    it("should receive log events", function() {
       // Zombie log
       browser.on('log', function(message) {
         events.log.push(message);
       });
-      browser.log("Zombie", "log")
+      browser.log("Zombie", "log");
       browser.log("Zombie", new Error("error"));
 
       assert.equal(events.log[0], "Zombie log");
@@ -54,7 +53,7 @@ describe("Browser events", function() {
 
 
   describe("requesting a resource", function() {
-    before(function*() {
+    before(function() {
       brains.redirect('/browser-events/resource', '/browser-events/redirected');
       brains.static('/browser-events/redirected', "<html>Very well then</html>");
 
@@ -68,7 +67,7 @@ describe("Browser events", function() {
         events.resource.push([request, response]);
       });
 
-      yield browser.visit('/browser-events/resource');
+      return browser.visit('/browser-events/resource');
     });
 
     it("should receive resource requests", function() {
@@ -137,7 +136,7 @@ describe("Browser events", function() {
 
 
   describe("loading a document", function() {
-    before(function*() {
+    before(function() {
       brains.static('/browser-events/document', "<html>Very well then</html>");
 
       browser.on('loading', function(document) {
@@ -147,7 +146,7 @@ describe("Browser events", function() {
         events.loaded = [document.URL, document.readyState, document.outerHTML];
       });
 
-      yield browser.visit('/browser-events/document');
+      return browser.visit('/browser-events/document');
     });
 
     it("should receive loading event", function() {
@@ -167,7 +166,7 @@ describe("Browser events", function() {
 
 
   describe("firing an event", function() {
-    before(function*() {
+    before(function() {
       browser.load("<html><body>Hello</body></html>");
 
       browser.on('event', function(event, target) {
@@ -176,7 +175,7 @@ describe("Browser events", function() {
       });
 
       browser.click('body');
-      yield browser.wait();
+      return browser.wait();
     });
 
     it("should receive DOM event", function() {
@@ -190,19 +189,18 @@ describe("Browser events", function() {
 
 
   describe("changing focus", function() {
-    before(function*() {
-      brains.static('/browser-events/focus', "\
-        <html>\
-          <input id='input'>\
-          <script>document.getElementById('input').focus()</script>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/browser-events/focus', `
+        <html>
+          <input id='input'>
+          <script>document.getElementById('input').focus()</script>
+        </html>`);
 
       browser.on('focus', function(element) {
         events.focus = element;
       });
 
-      yield browser.visit('/browser-events/focus');
+      return browser.visit('/browser-events/focus');
     });
 
     it("should receive focus event", function() {
@@ -213,18 +211,17 @@ describe("Browser events", function() {
 
 
   describe("timeout fired", function() {
-    before(function*() {
-      brains.static('/browser-events/timeout', "\
-        <html>\
-          <script>setTimeout(function() { }, 1);</script>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/browser-events/timeout', `
+        <html>
+          <script>setTimeout(function() { }, 1);</script>
+        </html>`);
 
       browser.on('timeout', function(fn, delay) {
         events.timeout = { fn, delay };
       });
 
-      yield browser.visit('/browser-events/timeout');
+      return browser.visit('/browser-events/timeout');
     });
 
     it("should receive timeout event with the function", function() {
@@ -238,19 +235,19 @@ describe("Browser events", function() {
 
 
   describe("interval fired", function() {
-    before(function*() {
-      brains.static('/browser-events/interval', "\
-        <html>\
-          <script>setInterval(function() { }, 2);</script>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/browser-events/interval', `
+        <html>
+          <script>setInterval(function() { }, 2);</script>
+        </html>
+      `);
 
       browser.on('interval', function(fn, interval) {
         events.interval = { fn, interval };
       });
 
-      browser.visit('/browser-events/interval')
-      yield browser.wait({ duration: 100 });
+      browser.visit('/browser-events/interval');
+      return browser.wait({ duration: 100 });
     });
 
     it("should receive interval event with the function", function() {
@@ -264,12 +261,12 @@ describe("Browser events", function() {
 
 
   describe("event loop empty", function() {
-    before(function*() {
-      brains.static('/browser-events/done', "\
-        <html>\
-          <script>setTimeout(function() { }, 1);</script>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/browser-events/done', `
+        <html>
+          <script>setTimeout(function() { }, 1);</script>
+        </html>
+      `);
 
       browser.on('done', function() {
         events.done = true;
@@ -277,7 +274,7 @@ describe("Browser events", function() {
 
       browser.visit('/browser-events/done');
       events.done = false;
-      yield browser.wait();
+      return browser.wait();
     });
 
     it("should receive done event", function() {
@@ -287,18 +284,18 @@ describe("Browser events", function() {
 
 
   describe("evaluated", function() {
-    before(function*() {
-      brains.static('/browser-events/evaluated', "\
-        <html>\
-          <script>window.foo = true</script>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/browser-events/evaluated', `
+        <html>
+          <script>window.foo = true</script>
+        </html>
+      `);
 
       browser.on('evaluated', function(code, result, filename) {
         events.evaluated = { code, result, filename };
       });
 
-      yield browser.visit('/browser-events/evaluated');
+      return browser.visit('/browser-events/evaluated');
     });
 
     it("should receive evaluated event with the code", function() {

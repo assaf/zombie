@@ -15,7 +15,7 @@ brains.static = function(path, ...output) {
   brains.get(path, function(req, res) {
     res.send(...output);
   });
-}
+};
 
 // Use this for redirect responses.  First argument is the path, the remaining
 // arguments are used with res.redirct, so can be URL and status code.
@@ -23,18 +23,17 @@ brains.redirect = function(path, ...location) {
   brains.get(path, function(req, res) {
     res.redirect(...location);
   });
-}
+};
 
 
-brains.static('/', "\
-  <html>\
-    <head>\
-      <title>Tap, Tap</title>\
-    </head>\
-    <body>\
-    </body>\
-  </html>\
-");
+brains.static('/', `
+  <html>
+    <head>
+      <title>Tap, Tap</title>
+    </head>
+    <body>
+    </body>
+  </html>`);
 
 // Prevent sammy from polluting the output. Comment this if you need its
 // messages for debugging.
@@ -50,7 +49,7 @@ brains.get('/jquery.js', function(req, res) {
   res.redirect('/jquery-2.0.3.js');
 });
 brains.get('/jquery-:version.js', function(req, res) {
-  let version = req.params.version
+  let version = req.params.version;
   File.readFile(__dirname + '/../scripts/jquery-' + version + '.js', function(error, data) {
     res.send(data);
   });
@@ -68,7 +67,7 @@ brains.get('/scripts/*', function(req, res) {
 });
 
 
-var serverPromise = new Promise(function(resolve, reject) {
+var serverPromise = new Promise(function(resolve) {
   brains.listen(3003, function() {
     resolve();
   });
@@ -78,7 +77,7 @@ brains.ready = function(callback) {
     serverPromise.then(callback);
   else
     return serverPromise;
-}
+};
 
 
-module.exports = brains
+module.exports = brains;

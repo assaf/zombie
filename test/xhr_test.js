@@ -7,32 +7,31 @@ const thirdParty  = require('./helpers/thirdparty');
 describe("XMLHttpRequest", function() {
   let browser;
 
-  before(function*() {
+  before(function() {
     browser = Browser.create();
-    yield brains.ready();
+    return brains.ready();
   });
 
 
   describe("asynchronous", function() {
-    before(function*() {
-      brains.static('/xhr/async', "\
-        <html>\
-          <head><script src='/jquery.js'></script></head>\
-          <body>\
-            <script>\
-              document.title = 'One';\
-              window.foo = 'bar';\
-              $.get('/xhr/async/backend', function(response) {\
-                window.foo += window.foo;\
-                document.title += response;\
-              });\
-              document.title += 'Two';\
-            </script>\
-          </body>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/xhr/async', `
+        <html>
+          <head><script src='/jquery.js'></script></head>
+          <body>
+            <script>
+              document.title = 'One';
+              window.foo = 'bar';
+              $.get('/xhr/async/backend', function(response) {
+                window.foo += window.foo;
+                document.title += response;
+              });
+              document.title += 'Two';
+            </script>
+          </body>
+        </html>`);
       brains.static('/xhr/async/backend', "Three");
-      yield browser.visit('/xhr/async');
+      return browser.visit('/xhr/async');
     });
 
     it("should load resource asynchronously", function() {
@@ -45,28 +44,27 @@ describe("XMLHttpRequest", function() {
 
 
   describe("response headers", function() {
-    before(function*() {
-      brains.static('/xhr/headers', "\
-        <html>\
-          <head><script src='/jquery.js'></script></head>\
-          <body>\
-            <script>\
-              $.get('/xhr/headers/backend', function(data, textStatus, jqXHR) {\
-                document.allHeaders = jqXHR.getAllResponseHeaders();\
-                document.headerOne = jqXHR.getResponseHeader('Header-One');\
-                document.headerThree = jqXHR.getResponseHeader('header-three');\
-              });\
-            </script>\
-          </body>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/xhr/headers', `
+        <html>
+          <head><script src='/jquery.js'></script></head>
+          <body>
+            <script>
+              $.get('/xhr/headers/backend', function(data, textStatus, jqXHR) {
+                document.allHeaders = jqXHR.getAllResponseHeaders();
+                document.headerOne = jqXHR.getResponseHeader('Header-One');
+                document.headerThree = jqXHR.getResponseHeader('header-three');
+              });
+            </script>
+          </body>
+        </html>`);
       brains.get('/xhr/headers/backend', function(req, res) {
         res.setHeader('Header-One', 'value1');
         res.setHeader('Header-Two', 'value2');
         res.setHeader('Header-Three', 'value3');
         res.send('');
       });
-      yield browser.visit('/xhr/headers');
+      return browser.visit('/xhr/headers');
     });
 
     it("should return all headers as string", function() {
@@ -80,28 +78,27 @@ describe("XMLHttpRequest", function() {
 
 
   describe("cookies", function() {
-    before(function*() {
+    before(function() {
       brains.get('/xhr/cookies', function(req, res) {
         res.cookie('xhr', 'send', { path: '/xhr' });
-        res.send("\
-          <html>\
-            <head><script src='/jquery.js'></script></head>\
-            <body>\
-              <script>\
-                $.get('/xhr/cookies/backend', function(cookie) {\
-                  document.received = cookie;\
-                });\
-              </script>\
-            </body>\
-          </html>\
-          ");
+        res.send(`
+          <html>
+            <head><script src='/jquery.js'></script></head>
+            <body>
+              <script>
+                $.get('/xhr/cookies/backend', function(cookie) {
+                  document.received = cookie;
+                });
+              </script>
+            </body>
+          </html>`);
       });
       brains.get('/xhr/cookies/backend', function(req, res) {
         let cookie = req.cookies.xhr;
         res.cookie('xhr', 'return', { path: '/xhr' });
         res.send(cookie);
       });
-      yield browser.visit('/xhr/cookies');
+      return browser.visit('/xhr/cookies');
     });
 
     it("should send cookies to XHR request", function() {
@@ -114,22 +111,21 @@ describe("XMLHttpRequest", function() {
 
 
   describe("redirect", function() {
-    before(function*() {
-      brains.static('/xhr/redirect', "\
-        <html>\
-          <head><script src='/jquery.js'></script></head>\
-          <body>\
-            <script>\
-              $.get('/xhr/redirect/backend', function(response) { window.response = response });\
-            </script>\
-          </body>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/xhr/redirect', `
+        <html>
+          <head><script src='/jquery.js'></script></head>
+          <body>
+            <script>
+              $.get('/xhr/redirect/backend', function(response) { window.response = response });
+            </script>
+          </body>
+        </html>`);
       brains.redirect('/xhr/redirect/backend', '/xhr/redirect/target');
       brains.get('/xhr/redirect/target', function(req, res) {
         res.send("redirected " + req.headers['x-requested-with']);
       });
-      yield browser.visit('/xhr/redirect');
+      return browser.visit('/xhr/redirect');
     });
 
     it("should follow redirect", function() {
@@ -142,21 +138,20 @@ describe("XMLHttpRequest", function() {
 
 
   describe("handle POST requests with no data", function() {
-    before(function*() {
-      brains.static('/xhr/post/empty', "\
-        <html>\
-          <head><script src='/jquery.js'></script></head>\
-          <body>\
-            <script>\
-              $.post('/xhr/post/empty', function(response, status, xhr) { document.title = xhr.status + response });\
-            </script>\
-          </body>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/xhr/post/empty', `
+        <html>
+          <head><script src='/jquery.js'></script></head>
+          <body>
+            <script>
+              $.post('/xhr/post/empty', function(response, status, xhr) { document.title = xhr.status + response });
+            </script>
+          </body>
+        </html>`);
       brains.post('/xhr/post/empty', function(req, res) {
         res.send("posted", 201);
       });
-      yield browser.visit('/xhr/post/empty');
+      return browser.visit('/xhr/post/empty');
     });
 
     it("should post with no data", function() {
@@ -166,21 +161,20 @@ describe("XMLHttpRequest", function() {
 
 
   describe("empty response", function() {
-    before(function*() {
-      brains.static('/xhr/get-empty', "\
-        <html>\
-          <head><script src='/jquery.js'></script></head>\
-          <body>\
-            <script>\
-              $.get('/xhr/empty', function(response, status, xhr) {\
-                document.text = xhr.responseText;\
-              });\
-            </script>\
-          </body>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/xhr/get-empty', `
+        <html>
+          <head><script src='/jquery.js'></script></head>
+          <body>
+            <script>
+              $.get('/xhr/empty', function(response, status, xhr) {
+                document.text = xhr.responseText;
+              });
+            </script>
+          </body>
+        </html>`);
       brains.static('/xhr/empty', "");
-      yield browser.visit('/xhr/get-empty');
+      return browser.visit('/xhr/get-empty');
     });
 
     it("responseText should be an empty string", function() {
@@ -190,24 +184,23 @@ describe("XMLHttpRequest", function() {
 
 
   describe("response text", function() {
-    before(function*() {
-      brains.static('/xhr/get-utf8-octet-stream', "\
-        <html>\
-          <head><script src='/jquery.js'></script></head>\
-          <body>\
-            <script>\
-              $.get('/xhr/utf8-octet-stream', function(response, status, xhr) {\
-                document.text = xhr.responseText;\
-              });\
-            </script>\
-          </body>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/xhr/get-utf8-octet-stream', `
+        <html>
+          <head><script src='/jquery.js'></script></head>
+          <body>
+            <script>
+              $.get('/xhr/utf8-octet-stream', function(response, status, xhr) {
+                document.text = xhr.responseText;
+              });
+            </script>
+          </body>
+        </html>`);
       brains.get('/xhr/utf8-octet-stream', function(req, res) {
         res.type('application/octet-stream');
         res.send("Text");
       });
-      yield browser.visit('/xhr/get-utf8-octet-stream');
+      return browser.visit('/xhr/get-utf8-octet-stream');
     });
 
     it("responseText should be a string", function() {
@@ -218,25 +211,24 @@ describe("XMLHttpRequest", function() {
 
 
   describe("xhr onreadystatechange", function() {
-    before(function*() {
-      brains.static('/xhr/get-onreadystatechange', "\
-        <html>\
-          <head></head>\
-          <body>\
-            <script>\
-              document.readyStatesReceived = { 1:[], 2:[], 3:[], 4:[] };\
-              var xhr = new XMLHttpRequest();\
-              xhr.onreadystatechange = function(){\
-                document.readyStatesReceived[xhr.readyState].push(Date.now())\
-              };\
-              xhr.open('GET', '/xhr/onreadystatechange', true);\
-              xhr.send();\
-            </script>\
-          </body>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/xhr/get-onreadystatechange', `
+        <html>
+          <head></head>
+          <body>
+            <script>
+              document.readyStatesReceived = { 1:[], 2:[], 3:[], 4:[] };
+              var xhr = new XMLHttpRequest();
+              xhr.onreadystatechange = function(){
+                document.readyStatesReceived[xhr.readyState].push(Date.now())
+              };
+              xhr.open('GET', '/xhr/onreadystatechange', true);
+              xhr.send();
+            </script>
+          </body>
+        </html>`);
       brains.static('/xhr/onreadystatechange', "foo");
-      yield browser.visit('/xhr/get-onreadystatechange');
+      return browser.visit('/xhr/get-onreadystatechange');
     });
 
     it("should get exactly one readyState of type 1, 2, and 4", function() {
@@ -256,24 +248,23 @@ describe("XMLHttpRequest", function() {
 
 
   describe.skip("HTML document", function() {
-    before(function*() {
-      brains.static('/xhr/get-html', "\
-        <html>\
-          <head><script src='/jquery.js'></script></head>\
-          <body>\
-            <script>\
-              $.get('/xhr/html', function(response, status, xhr) {\
-                document.body.appendChild(xhr.responseXML);\
-              });\
-            </script>\
-          </body>\
-        </html>\
-      ");
+    before(function() {
+      brains.static('/xhr/get-html', `
+        <html>
+          <head><script src='/jquery.js'></script></head>
+          <body>
+            <script>
+              $.get('/xhr/html', function(response, status, xhr) {
+                document.body.appendChild(xhr.responseXML);
+              });
+            </script>
+          </body>
+        </html>`);
       brains.get('/xhr/html', function(req, res) {
         res.type('text/html');
         res.send("<foo><bar id='bar'></foo>");
       });
-      yield browser.visit('/xhr/get-html');
+      return browser.visit('/xhr/get-html');
     });
 
     it("should parse HTML document", function() {
@@ -285,24 +276,23 @@ describe("XMLHttpRequest", function() {
   describe("CORS", function() {
 
     before(function() {
-      brains.static('/cors/:path', "\
-        <html>\
-          <body>\
-            <script>\
-              var path = document.location.pathname.split('/')[2];\
-              var xhr = new XMLHttpRequest();\
-              xhr.onerror = function() {\
-                document.title = 'error';\
-              };\
-              xhr.onload = function() {\
-                document.title = xhr.responseText;\
-              };\
-              xhr.open('GET', '//thirdparty.test/' + path);\
-              xhr.send();\
-            </script>\
-          </body>\
-        </html>\
-      ");
+      brains.static('/cors/:path', `
+        <html>
+          <body>
+            <script>
+              var path = document.location.pathname.split('/')[2];
+              var xhr = new XMLHttpRequest();
+              xhr.onerror = function() {
+                document.title = 'error';
+              };
+              xhr.onload = function() {
+                document.title = xhr.responseText;
+              };
+              xhr.open('GET', '//thirdparty.test/' + path);
+              xhr.send();
+            </script>
+          </body>
+        </html>`);
     });
 
     describe("no access control header", function() {
@@ -316,10 +306,11 @@ describe("XMLHttpRequest", function() {
       it("should fail", function*() {
         try {
           yield browser.visit('/cors/no-access');
-          assert(false, "Error not propagated to window")
         } catch (error) {
+          browser.assert.text('title', "error");
+          return;
         }
-        browser.assert.text('title', "error");
+        assert(false, "Error not propagated to window");
       });
     });
 
@@ -342,7 +333,7 @@ describe("XMLHttpRequest", function() {
       before(function*() {
         var cors = yield thirdParty();
         cors.get('/access-origin', function(req, res) {
-          assert.equal(req.headers.origin, "http://example.com")
+          assert.equal(req.headers.origin, "http://example.com");
           res.header('Access-Control-Allow-Origin', 'http://example.com');
           res.send("Access http://example.com");
         });
@@ -366,10 +357,11 @@ describe("XMLHttpRequest", function() {
       it("should fail", function*() {
         try {
           yield browser.visit('/cors/access-other');
-          assert(false, "Error not propagated to window")
         } catch (error) {
+          browser.assert.text('title', "error");
+          return;
         }
-        browser.assert.text('title', "error");
+        assert(false, "Error not propagated to window");
       });
     });
 

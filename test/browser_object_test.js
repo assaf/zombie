@@ -8,44 +8,45 @@ const HTML5       = require('html5');
 describe("Browser", function() {
   let browser;
 
-  before(function*() {
+  before(function() {
     browser = Browser.create();
-    yield brains.ready();
 
-    brains.static('/browser/scripted', "\
-      <html>\
-        <head>\
-          <title>Whatever</title>\
-          <script src='/jquery.js'></script>\
-        </head>\
-        <body>\
-          <h1>Hello World</h1>\
-          <script>\
-            document.title = 'Nice';\
-            $(function() { $('title').text('Awesome') })\
-          </script>\
-          <script type='text/x-do-not-parse'>\
-            <p>this is not valid JavaScript</p>\
-          </script>\
-        </body>\
-      </html>\
-    ");
+    brains.static('/browser/scripted', `
+      <html>
+        <head>
+          <title>Whatever</title>
+          <script src='/jquery.js'></script>
+        </head>
+        <body>
+          <h1>Hello World</h1>
+          <script>
+            document.title = 'Nice';
+            $(function() { $('title').text('Awesome') })
+          </script>
+          <script type='text/x-do-not-parse'>
+            <p>this is not valid JavaScript</p>
+          </script>
+        </body>
+      </html>
+    `);
 
-    brains.static('/browser/errored', "\
-      <html>\
-        <head>\
-          <script>this.is.wrong</script>\
-        </head>\
-      </html>\
-    ");
+    brains.static('/browser/errored', `
+      <html>
+        <head>
+          <script>this.is.wrong</script>
+        </head>
+      </html>
+    `);
+
+    return brains.ready();
   });
 
 
   describe("browsing", function() {
 
     describe("open page", function() {
-      before(function*() {
-        yield browser.visit('/browser/scripted');
+      before(function() {
+        return browser.visit('/browser/scripted');
       });
 
       it("should create HTML document", function() {
@@ -141,7 +142,7 @@ describe("Browser", function() {
         });
         it("should return status code", function() {
           browser.assert.status(404);
-        })
+        });
         it("should not indicate success", function() {
           assert(!browser.success);
         });
@@ -185,9 +186,9 @@ describe("Browser", function() {
       });
 
       describe("empty page", function() {
-        before(function*() {
+        before(function() {
           brains.static('/browser/empty', "");
-          yield browser.visit('/browser/empty');
+          return browser.visit('/browser/empty');
         });
 
         it("should load document", function() {
@@ -252,8 +253,8 @@ describe("Browser", function() {
   describe("with options", function() {
 
     describe("per call", function() {
-      before(function*() {
-        yield browser.visit('/browser/scripted', { features: 'no-scripts' });
+      before(function() {
+        return browser.visit('/browser/scripted', { features: 'no-scripts' });
       });
 
       it("should set options for the duration of the request", function() {
@@ -268,11 +269,11 @@ describe("Browser", function() {
       let newBrowser;
       let originalFeatures;
 
-      before(function*() {
+      before(function() {
         originalFeatures = Browser.default.features;
         Browser.default.features = 'no-scripts';
         newBrowser = Browser.create();
-        yield newBrowser.visit('/browser/scripted');
+        return newBrowser.visit('/browser/scripted');
       });
 
       it("should set browser options from global options", function() {
@@ -286,11 +287,11 @@ describe("Browser", function() {
     });
 
     describe("user agent", function() {
-      before(function*() {
+      before(function() {
         brains.get('/browser/useragent', function(req, res) {
           res.send("<html><body>" + req.headers['user-agent'] + "</body></html>");
         });
-        yield browser.visit('/browser/useragent');
+        return browser.visit('/browser/useragent');
       });
 
       it("should send own version to server", function() {
@@ -301,8 +302,8 @@ describe("Browser", function() {
       });
 
       describe("specified", function() {
-        before(function*() {
-          yield browser.visit('/browser/useragent', { userAgent: 'imposter' });
+        before(function() {
+          return browser.visit('/browser/useragent', { userAgent: 'imposter' });
         });
 
         it("should send user agent to server", function() {
@@ -315,14 +316,14 @@ describe("Browser", function() {
     });
 
     describe("custom headers", function() {
-      before(function*() {
+      before(function() {
         brains.get('/browser/custom_headers', function(req, res) {
           res.send("<html><body>" + req.headers['x-custom-header'] + "</body></html>");
         });
         browser.headers = {
           "x-custom-header": "dummy"
         };
-        yield browser.visit('/browser/custom_headers');
+        return browser.visit('/browser/custom_headers');
       });
 
 
@@ -332,7 +333,7 @@ describe("Browser", function() {
 
       after(function() {
         delete browser.headers['x-custom-header'];
-      })
+      });
     });
 
   });
@@ -340,25 +341,25 @@ describe("Browser", function() {
 
   describe("click link", function() {
     before(function*() {
-      brains.static('/browser/head', "\
-        <html>\
-          <body>\
-            <a href='/browser/headless'>Smash</a>\
-          </body>\
-        </html>\
-      ");
-      brains.static('/browser/headless', "\
-        <html>\
-          <head>\
-            <script src='/jquery.js'></script>\
-          </head>\
-          <body>\
-            <script>\
-              $(function() { document.title = 'The Dead' });\
-            </script>\
-          </body>\
-        </html>\
-      ");
+      brains.static('/browser/head', `
+        <html>
+          <body>
+            <a href='/browser/headless'>Smash</a>
+          </body>
+        </html>
+      `);
+      brains.static('/browser/headless', `
+        <html>
+          <head>
+            <script src='/jquery.js'></script>
+          </head>
+          <body>
+            <script>
+              $(function() { document.title = 'The Dead' });
+            </script>
+          </body>
+        </html>
+      `);
 
       yield browser.visit('/browser/head');
       yield browser.clickLink('Smash');
@@ -378,15 +379,15 @@ describe("Browser", function() {
 
   describe("follow redirect", function() {
     before(function*() {
-      brains.static('/browser/killed', "\
-        <html>\
-          <body>\
-            <form action='/browser/alive' method='post'>\
-              <input type='submit' name='Submit'>\
-            </form>\
-          </body>\
-        </html>\
-      ");
+      brains.static('/browser/killed', `
+        <html>
+          <body>
+            <form action='/browser/alive' method='post'>
+              <input type='submit' name='Submit'>
+            </form>
+          </body>
+        </html>
+      `);
       brains.post('/browser/alive', function(req, res) {
         res.redirect('/browser/killed');
       });
@@ -410,13 +411,13 @@ describe("Browser", function() {
   // NOTE: htmlparser doesn't handle tag soup.
   if (Browser.htmlParser == HTML5) {
     describe("tag soup using HTML5 parser", function() {
-      before(function*() {
-        brains.static('/browser/soup', "\
-          <h1>Tag soup</h1>\
-          <p>One paragraph\
-          <p>And another\
-        ");
-        yield browser.visit('/browser/soup');
+      before(function() {
+        brains.static('/browser/soup', `
+          <h1>Tag soup</h1>
+          <p>One paragraph
+          <p>And another
+        `);
+        return browser.visit('/browser/soup');
       });
 
       it("should parse to complete HTML", function() {
@@ -441,18 +442,18 @@ describe("Browser", function() {
 
 
   describe("load HTML string", function() {
-    before(function*() {
-      browser.load("\
-        <html>\
-          <head>\
-            <title>Load</title>\
-          </head>\
-          <body>\
-            <div id='main'></div>\
-            <script>document.title = document.title + ' html'</script>\
-          </body>\
-        </html>\
-      ");
+    before(function() {
+      browser.load(`
+        <html>
+          <head>
+            <title>Load</title>
+          </head>
+          <body>
+            <div id='main'></div>
+            <script>document.title = document.title + ' html'</script>
+          </body>
+        </html>
+      `);
     });
 
     it("should use about:blank URL", function() {
@@ -489,7 +490,7 @@ describe("Browser", function() {
       before(function*() {
         brains.static('/browser/popup', "<h1>Popup window</h1>");
           
-        browser.tabs.closeAll()
+        browser.tabs.closeAll();
         yield browser.visit('about:blank');
         window = browser.window.open('http://example.com/browser/popup', 'popup');
         yield browser.wait();
@@ -526,16 +527,16 @@ describe("Browser", function() {
     });
 
     describe("open one window from another", function() {
-      before(function*() {
-        brains.static('/browser/pop', "\
-          <script>\
-            document.title = window.open('/browser/popup', 'popup')\
-          </script>\
-        ");
+      before(function() {
+        brains.static('/browser/pop', `
+          <script>
+            document.title = window.open('/browser/popup', 'popup')
+          </script>
+        `);
         brains.static('/browser/popup', "<h1>Popup window</h1>");
 
         browser.tabs.closeAll();
-        yield browser.visit('/browser/pop');
+        return browser.visit('/browser/pop');
       });
 
       it("should open both windows", function() {

@@ -5,22 +5,21 @@ const { brains }  = require('./helpers');
 describe("Document", function() {
   let browser;
 
-  before(function*() {
+  before(function() {
     browser = Browser.create();
-    yield brains.ready();
+    return brains.ready();
   });
 
   describe("character encoding", function() {
-    before(function*() {
+    before(function() {
       brains.get('/document/encoding', function(req, res) {
         res.header('Content-Type', 'text/html; charset=greek');
-        res.send("\
-          <html>\
-            <body>\xc3\xe5\xe9\xdc!</body>\
-          </html>\
-          ");
+        res.send(`
+          <html>
+            <body>\xc3\xe5\xe9\xdc!</body>
+          </html>`);
       });
-      yield browser.visit('/document/encoding');
+      return browser.visit('/document/encoding');
     });
 
     it("should support greek8", function() {
@@ -30,13 +29,12 @@ describe("Document", function() {
 
 
   describe("activeElement", function() {
-    before(function*() {
-      brains.static('/document/activeElement', "\
-        <html>\
-          <body></body>\
-        </html>\
-      ");
-      yield browser.visit('/document/activeElement');
+    before(function() {
+      brains.static('/document/activeElement', `
+        <html>
+          <body></body>
+        </html>`);
+      return browser.visit('/document/activeElement');
     });
 
     it("should be document body", function() {
@@ -198,17 +196,16 @@ describe("Document", function() {
     let scripts;
 
     before(function*() {
-      brains.static('/document/scripts', "\
-        <html>\
-          <head>\
-            <script src='/jquery.js'></script>\
-          </head>\
-          <body>\
-            <script>eval(1)</script>\
-            <script id='foo' src='/jquery.js?foo'></script>\
-          </body>\
-        </html>\
-      ");
+      brains.static('/document/scripts', `
+        <html>
+          <head>
+            <script src='/jquery.js'></script>
+          </head>
+          <body>
+            <script>eval(1)</script>
+            <script id='foo' src='/jquery.js?foo'></script>
+          </body>
+        </html>`);
       yield browser.visit('/document/scripts');
       scripts = browser.document.scripts;
     });
@@ -216,7 +213,7 @@ describe("Document", function() {
     it("should act link an array", function() {
       assert.equal(scripts.length, 3);
       assert.equal(scripts[0].src, '/jquery.js');
-      assert.equal(scripts['foo'].src, '/jquery.js?foo');
+      assert.equal(scripts.foo.src, '/jquery.js?foo');
     });
 
     it("should be an HTMLCollection", function() {
