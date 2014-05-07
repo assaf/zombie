@@ -19,7 +19,7 @@
     "build":        "coffee --bare --compile --output lib/zombie src/zombie/*.coffee",
     "prepublish":   "coffee --bare --compile --output lib/zombie src/zombie/*.coffee",
     "postpublish":  "rm -rf html man7 lib",
-    "test":         "./node_modules/.bin/mocha"
+    "test":         "mocha"
   },
   "engines": {
     "node":         ">= 0.8.0"
