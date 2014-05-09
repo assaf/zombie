@@ -189,6 +189,9 @@ class XMLHttpRequest extends Events.EventTarget
         catch error
           raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
 
+  # Raise error coming from jsdom
+  raise: (level, message, errObject)->
+    raise(element: @_window.document, from: __filename, scope: "XHR", error: errObject.error)
 
 # Lifecycle states
 XMLHttpRequest.UNSENT = 0
