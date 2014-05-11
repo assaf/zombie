@@ -205,13 +205,20 @@ You can do that by calling `browser.wait`, passing a callback to methods like
 
 Navigate to the previous page in history.
 
+### browser.click(selector, callback)
+
+Clicks on an element.  The first argument is a CSS selector.
+
+This method is similar to `clickLink` except that the selector may correspond to
+an arbitrary element.
+
 ### browser.clickLink(selector, callback)
  
 Clicks on a link.  The first argument is the link text or CSS selector.
 
-Zombie.js fires a `click` event and has a default event handler that will to the
-link's `href` value, just like a browser would.  However, event handlers may
-intercept the event and do other things, just like a real browser.
+Zombie.js fires a `click` event and has a default event handler that will 
+navigate to the link's `href` value, just like a browser would.  However, event
+handlers may intercept the event and do other things, just like a real browser.
 
 For example:
 
@@ -221,6 +228,7 @@ For example:
 
 Just like `wait`, this function either takes a callback or returns a promise,
 and will wait for all events to fire.
+
 
 ### browser.history : History
 
