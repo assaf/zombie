@@ -572,7 +572,7 @@ of event listeners to any of the emitted events.
 Fires a DOM event.  You can use this to simulate a DOM event, e.g. clicking a
 link or clicking the mouse.  These events will bubble up and can be cancelled.
 
-The first argument it the event name (e.g. `click`), the second argument is the
+The first argument is the event name (e.g. `click`). The second argument is the
 target element of the event.
 
 Just like `wait`, this method either takes a callback or returns a promise (and
