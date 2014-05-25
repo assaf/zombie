@@ -40,11 +40,9 @@
     "co":                     "3.0.5",
     "coffee-script":          "1.6.3",
     "express":                "3.5.1",
-    "node-syntaxhighlighter": "0.8.1",
     "mocha":                  "1.18.2",
     "replay":                 "1.9.2",
     "requirejs":              "2.1.11",
-    "robotskirt":             "2.7.1",
     "traceur":                "0.0.32"
   },
   "repository": {
