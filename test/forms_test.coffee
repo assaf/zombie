@@ -296,27 +296,29 @@ describe "Forms", ->
 
 
   describe "check box", ->
+    changed = null
+    clicked = null
+
     before (done)->
       browser.visit "/forms/form", =>
         browser.on "event", (event, target)=>
-          switch event.type
+          switch event._type
             when "change"
-              @changed = target
+              changed = target
             when "click"
-              @clicked = target
+              clicked = target
         done()
 
     describe "checkbox enclosed in label", ->
       before ->
-        @changed = @clicked = null
         browser.check("You bet")
 
       it "should check checkbox", ->
         browser.assert.element "#field-hungry:checked"
       it "should fire change event", ->
-        assert.equal @changed.id, "field-hungry"
+        assert.equal changed.id, "field-hungry"
       it "should fire clicked event", ->
-        assert.equal @clicked.id, "field-hungry"
+        assert.equal clicked.id, "field-hungry"
 
       describe "with callback", ->
         before ->
@@ -328,13 +330,14 @@ describe "Forms", ->
     describe "checkbox referenced from label", ->
       before ->
         browser.uncheck("Brains?")
-        @changed = @clicked = null
+        changed = null
+        clicked = null
         browser.check("Brains?")
 
       it "should check checkbox", ->
         browser.assert.element "#field-brains:checked"
       it "should fire change event", ->
-        assert.equal @changed.id, "field-brains"
+        assert.equal changed.id, "field-brains"
 
       describe "uncheck with callback", ->
         before (done)->
@@ -350,13 +353,14 @@ describe "Forms", ->
     describe "checkbox by name", ->
       before ->
         browser.check("green")
-        @changed = @clicked = null
+        changed = null
+        clicked = null
         browser.uncheck("green")
 
       it "should uncheck checkbox", ->
         browser.assert.elements "#field-green:checked", 0
       it "should fire change event", ->
-        assert.equal @changed.id, "field-green"
+        assert.equal changed.id, "field-green"
 
     describe "check callback", ->
       before ->
