@@ -6,9 +6,9 @@ const { brains }  = require('./helpers');
 describe.skip("angularjs", function() {
   let browser;
 
-  before(function*() {
+  before(async function() {
     browser = Browser.create();
-    yield (resume)=> brains.ready(resume);
+    await brains.ready();
 
     brains.static('/angular/show.html', "<h1>{{title}}</h1>");
 
@@ -47,9 +47,9 @@ describe.skip("angularjs", function() {
       </html>\
     ");
 
-    yield browser.visit('/angular');
+    await browser.visit('/angular');
     browser.clickLink("my link");
-    yield browser.wait({ duration: 100 });
+    await browser.wait({ duration: 100 });
   });
 
   it("should follow the link to the detail", function() {

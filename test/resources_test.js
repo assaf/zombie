@@ -54,9 +54,9 @@ describe("Resources", function() {
       browser.resources.fail('/resource/resource', "Fail!");
     });
 
-    it("should fail the request", function*() {
+    it("should fail the request", async function() {
       try {
-        yield browser.visit('/resource/resource');
+        await browser.visit('/resource/resource');
         assert(false, "Request did not fail");
       } catch (error) {
         assert.equal(error.message, "Fail!");
@@ -81,8 +81,8 @@ describe("Resources", function() {
     });
 
     describe("after delay", function() {
-      before(function*() {
-        yield browser.wait({ duration: 90 });
+      before(function() {
+        return browser.wait({ duration: 90 });
       });
 
       it("should successfully load page", function() {
@@ -131,8 +131,8 @@ describe("Resources", function() {
       });
     });
 
-    it("should uncompress deflated response with transfer-encoding", function*() {
-      var response  = yield (resume)=> browser.resources.get('http://example.com/resources/deflate', resume);
+    it("should uncompress deflated response with transfer-encoding", async function() {
+      var response  = await browser.resources.get('http://example.com/resources/deflate');
       var image     = File.readFileSync(__dirname + '/data/zombie.jpg');
       assert.deepEqual(image, response.body);
     });
@@ -150,8 +150,8 @@ describe("Resources", function() {
       });
     });
 
-    it("should uncompress deflated response with content-encoding", function*() {
-      var response  = yield (resume)=> browser.resources.get('http://example.com/resources/deflate', resume);
+    it("should uncompress deflated response with content-encoding", async function() {
+      var response  = await browser.resources.get('http://example.com/resources/deflate');
       var image     = File.readFileSync(__dirname + '/data/zombie.jpg');
       assert.deepEqual(image, response.body);
     });
@@ -169,8 +169,8 @@ describe("Resources", function() {
       });
     });
 
-    it("should uncompress gzipped response with transfer-encoding", function*() {
-      var response  = yield (resume)=> browser.resources.get('http://example.com/resources/gzip', resume);
+    it("should uncompress gzipped response with transfer-encoding", async function() {
+      var response  = await browser.resources.get('http://example.com/resources/gzip');
       var image     = File.readFileSync(__dirname + '/data/zombie.jpg');
       assert.deepEqual(image, response.body);
     });
@@ -188,8 +188,8 @@ describe("Resources", function() {
       });
     });
 
-    it("should uncompress gzipped response with content-encoding", function*() {
-      var response  = yield (resume)=> browser.resources.get('http://example.com/resources/gzip', resume);
+    it("should uncompress gzipped response with content-encoding", async function() {
+      var response  = await browser.resources.get('http://example.com/resources/gzip');
       var image     = File.readFileSync(__dirname + '/data/zombie.jpg');
       assert.deepEqual(image, response.body);
     });
@@ -215,11 +215,11 @@ describe("Resources", function() {
   });
 
   describe("301 redirect URL cross server", function() {
-    before(function*() {
+    before(async function() {
       brains.redirect('/resources/cross-server', 'http://thirdparty.test/resources', 301);
       browser.resources.length = 0;
 
-      var other = yield thirdParty();
+      var other = await thirdParty();
       other.get('/resources', function(req, res) {
         res.send(`
           <html>
@@ -230,7 +230,7 @@ describe("Resources", function() {
           </html>`);
       });
 
-      yield browser.visit('/resources/cross-server');
+      await browser.visit('/resources/cross-server');
     });
 
     it("should have a length", function() {

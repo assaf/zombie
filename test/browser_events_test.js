@@ -313,14 +313,14 @@ describe("Browser events", function() {
 
 
   describe("link", function() {
-    before(function*() {
+    before(async function() {
       brains.static('/browser-events/link', "<html><a href='follow'></a></html>");
 
       browser.on('link', function(url, target) {
         events.link = { url, target };
       });
 
-      yield browser.visit('/browser-events/link');
+      await browser.visit('/browser-events/link');
       browser.click('a');
     });
 
@@ -335,7 +335,7 @@ describe("Browser events", function() {
 
 
   describe("submit", function() {
-    before(function*() {
+    before(async function() {
       brains.static('/browser-events/submit', "<html><form action='post'></form></html>");
 
       brains.static('/browser-events/post', "<html>Got it!</html>");
@@ -344,9 +344,9 @@ describe("Browser events", function() {
         events.link = { url, target };
       });
 
-      yield browser.visit('/browser-events/submit');
+      await browser.visit('/browser-events/submit');
       browser.query('form').submit();
-      yield browser.wait();
+      await browser.wait();
     });
 
     it("should receive submit event with the URL", function() {

@@ -3,6 +3,7 @@
 
 const Browser     = require('../../src/zombie');
 const Express     = require('express');
+const morgan      = require('morgan');
 const Replay      = require('replay');
 
 
@@ -19,7 +20,8 @@ Replay.localhost(HOSTNAME);
 const server = new Express();
 
 // Even tests need good logs
-server.use(Express.logger());
+if (process.env.DEBUG)
+  server.use(morgan());
 
 // ... and error reporting
 server.use(function(error, req, res, next) {
@@ -40,5 +42,5 @@ const serverPromise = new Promise(function(resolve, reject) {
 
 module.exports = function() {
   return serverPromise;
-}
+};
 

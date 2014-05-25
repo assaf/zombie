@@ -296,16 +296,16 @@ describe("XMLHttpRequest", function() {
     });
 
     describe("no access control header", function() {
-      before(function*() {
-        var cors = yield thirdParty();
+      before(async function() {
+        var cors = await thirdParty();
         cors.get('/no-access-header', function(req, res) {
           res.send("No-access-header"); // We'll get error instead
         });
       });
 
-      it("should fail", function*() {
+      it("should fail", async function() {
         try {
-          yield browser.visit('/cors/no-access');
+          await browser.visit('/cors/no-access');
         } catch (error) {
           browser.assert.text('title', "error");
           return;
@@ -315,23 +315,23 @@ describe("XMLHttpRequest", function() {
     });
 
     describe("access to *", function() {
-      before(function*() {
-        var cors = yield thirdParty();
+      before(async function() {
+        var cors = await thirdParty();
         cors.get('/access-star', function(req, res) {
           res.header('Access-Control-Allow-Origin', '*');
           res.send("Access *");
         });
       });
 
-      it("should allow access", function*() {
-        yield browser.visit('/cors/access-star');
+      it("should allow access", async function() {
+        await browser.visit('/cors/access-star');
         browser.assert.text('title', "Access *");
       });
     });
 
     describe("access to origin", function() {
-      before(function*() {
-        var cors = yield thirdParty();
+      before(async function() {
+        var cors = await thirdParty();
         cors.get('/access-origin', function(req, res) {
           assert.equal(req.headers.origin, "http://example.com");
           res.header('Access-Control-Allow-Origin', 'http://example.com');
@@ -339,24 +339,24 @@ describe("XMLHttpRequest", function() {
         });
       });
 
-      it("should allow access", function*() {
-        yield browser.visit('/cors/access-origin');
+      it("should allow access", async function() {
+        await browser.visit('/cors/access-origin');
         browser.assert.text('title', "Access http://example.com");
       });
     });
 
     describe("access other", function() {
-      before(function*() {
-        var cors = yield thirdParty();
+      before(async function() {
+        var cors = await thirdParty();
         cors.get('/access-other', function(req, res) {
           res.header('Access-Control-Allow-Origin', 'http://other.com');
           res.send("Access http://other.com");
         });
       });
 
-      it("should fail", function*() {
+      it("should fail", async function() {
         try {
-          yield browser.visit('/cors/access-other');
+          await browser.visit('/cors/access-other');
         } catch (error) {
           browser.assert.text('title', "error");
           return;

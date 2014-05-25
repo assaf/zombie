@@ -26,24 +26,28 @@
   },
   "dependencies": {
     "encoding":               "0.1.7",
-    "eventsource":            "0.1.0",
+    "eventsource":            "0.1.1",
     "html5":                  "0.3.14",
     "jsdom":                  "0.8.11",
     "mime":                   "1.2.11",
     "ms":                     "0.6.2",
     "q":                      "1.0.1",
-    "request":                "2.34.0",
+    "request":                "2.36.0",
     "tough-cookie":           "0.12.1",
     "ws":                     "0.4.31"
   },
   "devDependencies": {
-    "co":                     "3.0.5",
+    "body-parser":            "1.2.0",
+    "co":                     "3.0.6",
     "coffee-script":          "1.6.3",
-    "express":                "3.5.1",
-    "mocha":                  "1.18.2",
-    "replay":                 "1.9.2",
+    "cookie-parser":          "1.1.0",
+    "express":                "4.3.1",
+    "mocha":                  "1.19.0",
+    "morgan":                 "1.1.1",
+    "multiparty":             "3.2.6",
+    "replay":                 "1.10.3",
     "requirejs":              "2.1.11",
-    "traceur":                "0.0.32"
+    "traceur":                "0.0.42"
   },
   "repository": {
     "type":   "git",

@@ -17,52 +17,51 @@ describe("DNS mask", function() {
     Browser.dns.map('www.test.com', 'MX', { exchange: 'mail.test.com', priority: 10 });
   });
 
-  it("should match most specific hostname first", function*() {
-    var www = yield (resume)=> DNS.lookup('www.test.com', resume);
+  it("should match most specific hostname first", async function() {
+    var www = await new Promise((resolve)=> DNS.lookup('www.test.com', (error, ...args)=> resolve(args)) );
     assert.deepEqual(www, ['1.1.1.1', 4]);
-    var bar = yield (resume)=> DNS.lookup('bar.test.com', resume);
+    var bar = await new Promise((resolve)=> DNS.lookup('bar.test.com', (error, ...args)=> resolve(args)) );
     assert.deepEqual(bar, ['2.2.2.2', 4]);
-    var root = yield (resume)=> DNS.lookup('test.com', resume);
+    var root = await new Promise((resolve)=> DNS.lookup('test.com', (error, ...args)=> resolve(args)) );
     assert.deepEqual(root, ['2.2.2.2', 4]);
   });
 
-  it("should resolve A/AAAA record to itself", function*() {
-    var a = yield (resume)=> DNS.lookup('3.3.3.3', resume);
+  it("should resolve A/AAAA record to itself", async function() {
+    var a = await new Promise((resolve)=> DNS.lookup('3.3.3.3', (error, ...args)=> resolve(args)) );
     assert.deepEqual(a, ['3.3.3.3', 4]);
-    var aaaa = yield (resume)=> DNS.lookup('::4', resume);
+    var aaaa = await new Promise((resolve)=> DNS.lookup('::4', (error, ...args)=> resolve(args)) );
     assert.deepEqual(aaaa, ['::4', 6]);
   });
 
-  it("should be able to lookup by CNAME", function*() {
-    var cname = yield (resume)=> DNS.lookup('cname.test.com', resume);
-    assert.deepEqual(cname, ['1.1.1.1', 4]);
-    var localhost = yield (resume)=> DNS.lookup('localhost', resume);
+  it("should be able to lookup by CNAME", async function() {
+    var cname = await new Promise((resolve)=> DNS.lookup('cname.test.com', (error, ...args)=> resolve(args)) );
+    var localhost = await new Promise((resolve)=> DNS.lookup('localhost', (error, ...args)=> resolve(args)) );
     assert.deepEqual(localhost, ['127.0.0.1', 4]);
   });
 
-  it("should match based on family", function*() {
-    var ipv4 = yield (resume)=> DNS.lookup('www.test.com', 4, resume);
+  it("should match based on family", async function() {
+    var ipv4 = await new Promise((resolve)=> DNS.lookup('www.test.com', 4, (error, ...args)=> resolve(args)) );
     assert.deepEqual(ipv4, ['1.1.1.1', 4]);
-    var ipv6 = yield (resume)=> DNS.lookup('www.test.com', 6, resume);
+    var ipv6 = await new Promise((resolve)=> DNS.lookup('www.test.com', 6, (error, ...args)=> resolve(args)) );
     assert.deepEqual(ipv6, ['::3', 6]);
   });
 
-  it("should be able to resolve by record type", function*() {
-    var a = yield (resume)=> DNS.resolve('www.test.com', 'A', resume);
+  it("should be able to resolve by record type", async function() {
+    var a = await new Promise((resolve)=> DNS.resolve('www.test.com', 'A', (error, arg)=> resolve(arg)) );
     assert.deepEqual(a, ['1.1.1.1']);
-    var aaaa = yield (resume)=> DNS.resolve('www.test.com', 'AAAA', resume);
+    var aaaa = await new Promise((resolve)=> DNS.resolve('www.test.com', 'AAAA', (error, arg)=> resolve(arg)) );
     assert.deepEqual(aaaa, ['::3']);
-    var cname = yield (resume)=> DNS.resolve('cname.test.com', 'CNAME', resume);
+    var cname = await new Promise((resolve)=> DNS.resolve('cname.test.com', 'CNAME', (error, arg)=> resolve(arg)) );
     assert.deepEqual(cname, ['www.test.com']);
-    var mx = yield (resume)=> DNS.resolve('www.test.com', 'MX', resume);
+    var mx = await new Promise((resolve)=> DNS.resolve('www.test.com', 'MX', (error, arg)=> resolve(arg)) );
     assert.deepEqual(mx, [{ exchange: 'mail.test.com', priority: 10 }]);
     // Default record type is A
-    var noType = yield (resume)=> DNS.resolve('www.test.com', resume);
+    var noType = await new Promise((resolve)=> DNS.resolve('www.test.com', (error, arg)=> resolve(arg)) );
     assert.deepEqual(noType, ['1.1.1.1']);
   });
 
-  it("should be able to resolve MX record", function*() {
-    var mx = yield (resume)=> DNS.resolveMx('www.test.com', resume);
+  it("should be able to resolve MX record", async function() {
+    var mx = await new Promise((resolve)=> DNS.resolveMx('www.test.com', (error, arg)=> resolve(arg)) );
     assert.deepEqual(mx, [{ exchange: 'mail.test.com', priority: 10 }]);
   });
 

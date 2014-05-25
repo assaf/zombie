@@ -940,12 +940,13 @@ describe "Forms", ->
         if req.files
           [text, image] = [req.files.text, req.files.image]
           if text || image
-            data = File.readFileSync((text || image).path)
+            file = (text || image)[0] 
+            data = File.readFileSync(file.path)
             if image
               digest = Crypto.createHash("md5").update(data).digest("hex")
             res.send """
             <html>
-              <head><title>#{(text || image).name}</title></head>
+              <head><title>#{file.originalFilename}</title></head>
               <body>#{digest || data}</body>
             </html>
             """
@@ -999,10 +1000,11 @@ describe "Forms", ->
           </html>
           """
         brains.post "/forms/mixed", (req, res)->
-          data = File.readFileSync(req.files.logfile.path)
+          file = req.files.logfile[0]
+          data = File.readFileSync(file.path)
           res.send """
           <html>
-            <head><title>#{req.files.logfile.name}</title></head>
+            <head><title>#{file.originalFilename}</title></head>
             <body>#{data}</body>
           </html>
           """

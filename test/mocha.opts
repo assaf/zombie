@@ -4,4 +4,3 @@
 --timeout 2s
 --growl
 --check-leaks
---globals a,b,n

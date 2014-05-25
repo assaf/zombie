@@ -31,12 +31,12 @@ describe("EventLoop", function() {
     });
 
     describe("no wait", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/timeout');
+      before(async function() {
+        await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
           this.document.title += " Two";
         }, 100);
-        yield setImmediate;
+        await setImmediate;
       });
 
       it("should not fire any timeout events", function() {
@@ -46,8 +46,8 @@ describe("EventLoop", function() {
 
 
     describe("from timeout", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/timeout');
+      before(async function() {
+        await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
           this.setTimeout(function() {
             this.document.title += " Two";
@@ -56,7 +56,7 @@ describe("EventLoop", function() {
             }, 100);
           }, 100);
         }, 100);
-        yield browser.wait();
+        await browser.wait();
       });
 
       it("should fire all timeout events", function() {
@@ -66,15 +66,15 @@ describe("EventLoop", function() {
 
 
     describe("wait for all", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/timeout');
+      before(async function() {
+        await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
           this.document.title += " Two";
         }, 100);
         browser.window.setTimeout(function() {
           this.document.title += " Three";
         }, 200);
-        yield browser.wait(250);
+        await browser.wait(250);
       });
 
       it("should fire all timeout events", function() {
@@ -84,8 +84,8 @@ describe("EventLoop", function() {
 
 
     describe("cancel timeout", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/timeout');
+      before(async function() {
+        await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
           this.document.title += " Two";
         }, 100);
@@ -95,7 +95,7 @@ describe("EventLoop", function() {
         setTimeout(function() {
           browser.window.clearTimeout(second);
         }, 100);
-        yield browser.wait(300);
+        await browser.wait(300);
       });
 
       it("should fire only uncancelled timeout events", function() {
@@ -111,15 +111,15 @@ describe("EventLoop", function() {
     });
 
     describe("outside wait", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/function');
+      before(async function() {
+        await browser.visit('/eventloop/function');
         browser.window.setTimeout(function() { this.document.title += '1'; }, 100);
         browser.window.setTimeout(function() { this.document.title += '2'; }, 200);
         browser.window.setTimeout(function() { this.document.title += '3'; }, 300);
-        yield browser.wait(120); // wait long enough to fire no. 1
-        yield browser.wait(120); // wait long enough to fire no. 2
+        await browser.wait(120); // wait long enough to fire no. 1
+        await browser.wait(120); // wait long enough to fire no. 2
         // wait long enough to fire no. 3, but no events processed
-        yield (resume)=> setTimeout(resume, 200);
+        await new Promise((resolve)=> setTimeout(resolve, 200));
       });
       it("should not fire", function() {
         browser.assert.text('title', "12");
@@ -128,12 +128,12 @@ describe("EventLoop", function() {
 
 
     describe("zero wait", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/timeout');
+      before(async function() {
+        await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
           this.document.title += " Two";
         });
-        yield browser.wait();
+        await browser.wait();
       });
 
       it("should wait for event to fire", function() {
@@ -156,12 +156,12 @@ describe("EventLoop", function() {
     });
 
     describe("with wait", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/immediate');
+      before(async function() {
+        await browser.visit('/eventloop/immediate');
         browser.window.setImmediate(function() {
           this.document.title += ".";
         });
-        yield browser.wait();
+        await browser.wait();
       });
 
       it("should not fire the immediate", function() {
@@ -170,13 +170,13 @@ describe("EventLoop", function() {
     });
 
     describe("clearImmediate", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/immediate');
+      before(async function() {
+        await browser.visit('/eventloop/immediate');
         let immediate = browser.window.setImmediate(function() {
           this.document.title += ".";
         });
         browser.window.clearImmediate(immediate);
-        yield browser.wait();
+        await browser.wait();
       });
 
       it("should not fire any immediates", function() {
@@ -199,12 +199,12 @@ describe("EventLoop", function() {
     });
 
     describe("no wait", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/interval');
+      before(async function() {
+        await browser.visit('/eventloop/interval');
         browser.window.setInterval(function() {
           this.document.title += ".";
         }, 100);
-        yield setImmediate; 
+        await setImmediate; 
       });
 
       it("should not fire any timeout events", function() {
@@ -213,12 +213,12 @@ describe("EventLoop", function() {
     });
 
     describe("wait once", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/interval');
+      before(async function() {
+        await browser.visit('/eventloop/interval');
         browser.window.setInterval(function() {
           this.document.title += ".";
         }, 100);
-        yield browser.wait(150);
+        await browser.wait(150);
       });
 
       it("should fire interval event once", function() {
@@ -227,13 +227,13 @@ describe("EventLoop", function() {
     });
 
     describe("wait long enough", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/interval');
+      before(async function() {
+        await browser.visit('/eventloop/interval');
         browser.window.setInterval(function() {
           this.document.title += ".";
         }, 100);
         // Only wait for first 3 events
-        yield browser.wait(350);
+        await browser.wait(350);
       });
 
       it("should fire five interval event", function() {
@@ -242,14 +242,14 @@ describe("EventLoop", function() {
     });
 
     describe("cancel interval", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/interval');
+      before(async function() {
+        await browser.visit('/eventloop/interval');
         let interval = browser.window.setInterval(function() {
           this.document.title += ".";
         }, 100);
-        yield browser.wait(250);
+        await browser.wait(250);
         browser.window.clearInterval(interval);
-        yield browser.wait(200);
+        await browser.wait(200);
       });
 
       it("should fire only uncancelled interval events", function() {
@@ -264,15 +264,15 @@ describe("EventLoop", function() {
     });
 
     describe("outside wait", function() {
-      before(function*() {
-        yield browser.visit('/eventloop/interval');
+      before(async function() {
+        await browser.visit('/eventloop/interval');
         browser.window.setInterval(function() {
           this.document.title += ".";
         }, 100);
-        yield browser.wait(120); // wait long enough to fire no. 1
-        yield browser.wait(120); // wait long enough to fire no. 2
+        await browser.wait(120); // wait long enough to fire no. 1
+        await browser.wait(120); // wait long enough to fire no. 2
         // wait long enough to fire no. 3, but no events processed
-        yield (resume)=> setTimeout(resume, 200);
+        await new Promise((resolve)=> setTimeout(resolve, 200));
       });
 
       it("should not fire", function() {
@@ -286,12 +286,12 @@ describe("EventLoop", function() {
       return window.document.title === "....";
     }
 
-    before(function*() {
-      yield browser.visit('/eventloop/function');
+    before(async function() {
+      await browser.visit('/eventloop/function');
       browser.window.setInterval(function() {
         this.document.title += ".";
       }, 100);
-      yield browser.wait({ function: completed });
+      await browser.wait({ function: completed });
     });
 
     it("should not wait longer than specified", function() {

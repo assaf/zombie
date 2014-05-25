@@ -42,8 +42,8 @@ describe("Document", function() {
     });
 
     describe("autofocus on div", function() {
-      before(function*() {
-        yield browser.visit('/document/activeElement');
+      before(async function() {
+        await browser.visit('/document/activeElement');
         var div = browser.document.createElement('div');
         div.setAttribute('autofocus');
         browser.document.body.appendChild(div);
@@ -57,8 +57,8 @@ describe("Document", function() {
     describe("autofocus on input", function() {
       let input;
 
-      before(function*() {
-        yield browser.visit('/document/activeElement');
+      before(async function() {
+        await browser.visit('/document/activeElement');
         input = browser.document.createElement('input');
         input.setAttribute('autofocus');
         browser.document.body.appendChild(input);
@@ -72,8 +72,8 @@ describe("Document", function() {
     describe("autofocus on textarea", function() {
       let textarea;
 
-      before(function*() {
-        yield browser.visit('/document/activeElement');
+      before(async function() {
+        await browser.visit('/document/activeElement');
         textarea = browser.document.createElement('textarea');
         textarea.setAttribute('autofocus');
         browser.document.body.appendChild(textarea);
@@ -85,8 +85,8 @@ describe("Document", function() {
     });
 
     describe("focus on div", function() {
-      before(function*() {
-        yield browser.visit('/document/activeElement');
+      before(async function() {
+        await browser.visit('/document/activeElement');
         var div = browser.document.createElement('div');
         browser.document.body.appendChild(div);
         div.focus();
@@ -100,8 +100,8 @@ describe("Document", function() {
     describe("focus on input", function() {
       let input;
 
-      before(function*() {
-        yield browser.visit('/document/activeElement');
+      before(async function() {
+        await browser.visit('/document/activeElement');
         input = browser.document.createElement('input');
         browser.document.body.appendChild(input);
         input.focus();
@@ -115,8 +115,8 @@ describe("Document", function() {
     describe("focus on textarea", function() {
       let textarea;
 
-      before(function*() {
-        yield browser.visit('/document/activeElement');
+      before(async function() {
+        await browser.visit('/document/activeElement');
         textarea = browser.document.createElement('input');
         browser.document.body.appendChild(textarea);
         textarea.focus();
@@ -137,8 +137,8 @@ describe("Document", function() {
     describe("beforebegin", function() {
       let div;
 
-      before(function*() {
-        yield browser.visit('/document/insertAdjacentHTML');
+      before(async function() {
+        await browser.visit('/document/insertAdjacentHTML');
         div = browser.query('div');
         div.insertAdjacentHTML('beforebegin', "<p id='beforebegin'></p>");
       });
@@ -151,8 +151,8 @@ describe("Document", function() {
     describe("afterbegin", function() {
       let div;
 
-      before(function*() {
-        yield browser.visit('/document/insertAdjacentHTML');
+      before(async function() {
+        await browser.visit('/document/insertAdjacentHTML');
         div = browser.query('div');
         div.insertAdjacentHTML('afterbegin', "<p id='afterbegin'></p>");
       });
@@ -165,8 +165,8 @@ describe("Document", function() {
     describe("beforeend", function() {
       let div;
 
-      before(function*() {
-        yield browser.visit('/document/insertAdjacentHTML');
+      before(async function() {
+        await browser.visit('/document/insertAdjacentHTML');
         div = browser.query('div');
         div.insertAdjacentHTML('beforeend', "<p id='beforeend'></p>");
       });
@@ -179,8 +179,8 @@ describe("Document", function() {
     describe("afterend", function() {
       let div;
 
-      before(function*() {
-        yield browser.visit('/document/insertAdjacentHTML');
+      before(async function() {
+        await browser.visit('/document/insertAdjacentHTML');
         div = browser.query('div');
         div.insertAdjacentHTML('afterend', "<p id='afterend'></p>");
       });
@@ -195,7 +195,7 @@ describe("Document", function() {
   describe("document.scripts", function() {
     let scripts;
 
-    before(function*() {
+    before(async function() {
       brains.static('/document/scripts', `
         <html>
           <head>
@@ -206,7 +206,7 @@ describe("Document", function() {
             <script id='foo' src='/jquery.js?foo'></script>
           </body>
         </html>`);
-      yield browser.visit('/document/scripts');
+      await browser.visit('/document/scripts');
       scripts = browser.document.scripts;
     });
 

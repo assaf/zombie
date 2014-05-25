@@ -83,12 +83,11 @@ describe("Scripts", function() {
 
 
     describe("live events", function() {
-      before(function*() {
-        yield browser.visit('/script/living/');
-        yield browser
-          .fill('Email', "armbiter@zombies")
-          .fill('Password', "br41nz")
-          .pressButton('Sign Me Up');
+      before(async function() {
+        await browser.visit('/script/living/');
+        browser.fill('Email', "armbiter@zombies")
+        browser.fill('Password', "br41nz");
+        await browser.pressButton('Sign Me Up');
       });
 
       it("should change location", function() {
@@ -101,8 +100,8 @@ describe("Scripts", function() {
 
 
     describe("evaluate", function() {
-      it("should evaluate in context and return value", function*() {
-        yield browser.visit('/script/living/');
+      it("should evaluate in context and return value", async function() {
+        await browser.visit('/script/living/');
         var title = browser.evaluate('document.title');
         assert.equal(title, "The Living");
       });
@@ -444,9 +443,9 @@ describe("Scripts", function() {
   describe("javascript: URL", function() {
 
     describe("existing page", function() {
-      before(function*() {
-        yield browser.visit('/script/living');
-        yield browser.visit('javascript:window.message = "hi"');
+      before(async function() {
+        await browser.visit('/script/living');
+        await browser.visit('javascript:window.message = "hi"');
       });
 
       it("should evaluate script in context of window", function() {
@@ -486,14 +485,14 @@ describe("Scripts", function() {
 
 
   describe("on- event handler (string)", function() {
-    before(function*() {
+    before(async function() {
       brains.static('/script/on-event/string', `
         <form onsubmit='document.title = event.eventType; return false'>
           <button>Submit</button>
         </form>
       `);
-      yield browser.visit('/script/on-event/string');
-      yield browser.pressButton('Submit');
+      await browser.visit('/script/on-event/string');
+      await browser.pressButton('Submit');
     });
 
     it("should prevent default handling by returning false", function() {
@@ -507,7 +506,7 @@ describe("Scripts", function() {
 
 
   describe("on- event handler (function)", function() {
-    before(function*() {
+    before(async function() {
       brains.static('/script/on-event/function', `
         <form>
           <button>Submit</button>
@@ -519,8 +518,8 @@ describe("Scripts", function() {
           }
         </script>
       `);
-      yield browser.visit('/script/on-event/function');
-      yield browser.pressButton('Submit');
+      await browser.visit('/script/on-event/function');
+      await browser.pressButton('Submit');
     });
 
     it("should prevent default handling by returning false", function() {

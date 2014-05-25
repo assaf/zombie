@@ -80,8 +80,8 @@ describe("Browser", function() {
       describe("successful", function() {
         let callbackBrowser;
 
-        before(function*() {
-          callbackBrowser = yield Browser.visit('/browser/scripted');
+        before(async function() {
+          callbackBrowser = await Browser.visit('/browser/scripted');
         });
 
         it("should pass browser to callback", function() {
@@ -104,9 +104,9 @@ describe("Browser", function() {
       describe("with error", function() {
         let error;
 
-        before(function*() {
+        before(async function() {
           try {
-            yield browser.visit('/browser/errored');
+            await browser.visit('/browser/errored');
             assert(false, "Should have errored");
           } catch (callbackError) {
             error = callbackError;
@@ -128,9 +128,9 @@ describe("Browser", function() {
       describe("404", function() {
         let error;
 
-        before(function*() {
+        before(async function() {
           try {
-            yield browser.visit('/browser/missing');
+            await browser.visit('/browser/missing');
             assert(false, "Should have errored");
           } catch (callbackError) {
             error = callbackError;
@@ -157,11 +157,11 @@ describe("Browser", function() {
       describe("500", function() {
         let error;
 
-        before(function*() {
+        before(async function() {
           brains.static('/browser/500', "Ooops, something went wrong", 500);
 
           try {
-            yield browser.visit('/browser/500');
+            await browser.visit('/browser/500');
             assert(false, "Should have errored");
           } catch (callbackError) {
             error = callbackError;
@@ -205,39 +205,39 @@ describe("Browser", function() {
     describe("event emitter", function() {
 
       describe("successful", function() {
-        it("should fire load event with document object", function*() {
+        it("should fire load event with document object", async function() {
           var document;
           browser.once('loaded', function(arg) {
             document = arg;
           });
-          yield browser.visit('/browser/scripted');
+          await browser.visit('/browser/scripted');
           assert(document.addEventListener);
         });
       });
 
       describe("wait over", function() {
-        it("should fire done event", function*() {
+        it("should fire done event", async function() {
           var done;
           browser.once('done', function() {
             done = true;
           });
           browser.location = '/browser/scripted';
-          yield browser.wait();
+          await browser.wait();
           // Event emitted asynchronously
-          yield setImmediate;
+          await setImmediate;
           assert(done);
         });
       });
 
       describe("error", function() {
-        it("should fire onerror event with error", function*() {
+        it("should fire onerror event with error", async function() {
           var error;
           browser.once('error', function(arg) {
             error = arg;
           });
           browser.location = '/browser/errored';
           try {
-            yield browser.wait();
+            await browser.wait();
           } catch (error) { }
 
           assert(error.message && error.stack);
@@ -340,7 +340,7 @@ describe("Browser", function() {
 
 
   describe("click link", function() {
-    before(function*() {
+    before(async function() {
       brains.static('/browser/head', `
         <html>
           <body>
@@ -361,8 +361,8 @@ describe("Browser", function() {
         </html>
       `);
 
-      yield browser.visit('/browser/head');
-      yield browser.clickLink('Smash');
+      await browser.visit('/browser/head');
+      await browser.clickLink('Smash');
     });
 
     it("should change location", function() {
@@ -378,7 +378,7 @@ describe("Browser", function() {
 
 
   describe("follow redirect", function() {
-    before(function*() {
+    before(async function() {
       brains.static('/browser/killed', `
         <html>
           <body>
@@ -392,8 +392,8 @@ describe("Browser", function() {
         res.redirect('/browser/killed');
       });
 
-      yield browser.visit('/browser/killed');
-      yield browser.pressButton('Submit');
+      await browser.visit('/browser/killed');
+      await browser.pressButton('Submit');
     });
 
     it("should be at initial location", function() {
@@ -432,9 +432,9 @@ describe("Browser", function() {
 
 
   describe("comments", function() {
-    it("should not show up as text node", function*() {
+    it("should not show up as text node", async function() {
       brains.static('/browser/comment', "This is <!-- a comment, not --> plain text");
-      yield browser.visit('/browser/comment');
+      await browser.visit('/browser/comment');
 
       browser.assert.text('body', "This is plain text");
     });
@@ -469,14 +469,14 @@ describe("Browser", function() {
 
 
   describe("multiple visits to same URL", function() {
-    it("should load document from server", function*() {
-      yield browser.visit('/browser/scripted');
+    it("should load document from server", async function() {
+      await browser.visit('/browser/scripted');
       browser.assert.text('body h1', "Hello World");
 
-      yield browser.visit('/');
+      await browser.visit('/');
       browser.assert.text('title', "Tap, Tap");
 
-      yield browser.visit('/browser/scripted');
+      await browser.visit('/browser/scripted');
       browser.assert.text('body h1', "Hello World");
     });
   });
@@ -487,13 +487,13 @@ describe("Browser", function() {
     describe("open window to page", function() {
       let window;
 
-      before(function*() {
+      before(async function() {
         brains.static('/browser/popup', "<h1>Popup window</h1>");
           
         browser.tabs.closeAll();
-        yield browser.visit('about:blank');
+        await browser.visit('about:blank');
         window = browser.window.open('http://example.com/browser/popup', 'popup');
-        yield browser.wait();
+        await browser.wait();
       });
 
       it("should create new window", function() {
@@ -606,17 +606,17 @@ describe("Browser", function() {
   describe("fork", function() {
     let forked;
 
-    before(function*() {
+    before(async function() {
       brains.static('/browser/living', "<html><script>dead = 'almost'</script></html>");
       brains.static('/browser/dead', "<html><script>dead = 'very'</script></html>");
         
-      yield browser.visit('/browser/living');
+      await browser.visit('/browser/living');
       browser.setCookie({ name: 'foo', value: 'bar' });
       browser.localStorage('www.example.com').setItem('foo', 'bar');
       browser.sessionStorage('www.example.com').setItem('baz', 'qux');
       forked = browser.fork();
 
-      yield forked.visit('/browser/dead');
+      await forked.visit('/browser/dead');
       forked.setCookie({ name: 'foo', value: 'baz' });
       forked.localStorage('www.example.com').setItem('foo', 'new');
       forked.sessionStorage('www.example.com').setItem('baz', 'value');

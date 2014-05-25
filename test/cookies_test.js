@@ -323,7 +323,7 @@ describe("Cookies", function() {
 
   describe("duplicates", function() {
 
-    before(function*() {
+    before(async function() {
       brains.get('/cookies2', function(req, res) {
         res.cookie('_dup', "two", { path: '/' });
         res.send("");
@@ -334,8 +334,8 @@ describe("Cookies", function() {
       });
 
       browser.deleteCookies();
-      yield browser.visit("/cookies2");
-      yield browser.visit("/cookies3");
+      await browser.visit("/cookies2");
+      await browser.visit("/cookies3");
     });
 
     it("should retain last value", function() {
@@ -350,7 +350,7 @@ describe("Cookies", function() {
   describe("send cookies", function() {
     let cookies;
 
-    before(function*() {
+    before(async function() {
       browser.deleteCookies();
       browser.setCookie({ domain: 'example.com',                            name: '_name',                       value: 'value' });
       browser.setCookie({ domain: 'example.com',                            name: '_expires1',  'max-age': 3000, value: '3s' });
@@ -363,7 +363,7 @@ describe("Cookies", function() {
       browser.setCookie({ domain: '.example.com',                           name: '_domain1',                    value: 'here' });
       browser.setCookie({ domain: 'not.example.com',                        name: '_domain2',                    value: 'there' });
       browser.setCookie({ domain: 'notexample.com',                         name: '_domain3',                    value: 'there' });
-      yield browser.visit('/cookies/echo');
+      await browser.visit('/cookies/echo');
       cookies = cookiesFromHtml(browser);
     });
 
@@ -414,8 +414,8 @@ describe("Cookies", function() {
   describe("document.cookie", function() {
 
     describe("setting cookie", function() {
-      before(function*() {
-        yield browser.visit('/cookies');
+      before(async function() {
+        await browser.visit('/cookies');
         browser.document.cookie = 'foo=bar';
       });
 
@@ -435,14 +435,14 @@ describe("Cookies", function() {
       });
 
       describe("different path", function() {
-        before(function*() {
-          yield browser.visit('/cookies');
+        before(async function() {
+          await browser.visit('/cookies');
           browser.document.cookie = 'foo=bar; path=/cookies';
 
-          yield browser.visit('/cookies/invalid');
+          await browser.visit('/cookies/invalid');
           browser.document.cookie = 'foo=qux; path=/cookies/invalid'; // more specific path, not visible to /cookies.echo
 
-          yield browser.visit('/cookies/echo');
+          await browser.visit('/cookies/echo');
         });
 
         it("should not be visible", function() {
@@ -455,8 +455,8 @@ describe("Cookies", function() {
 
 
     describe("setting cookie with quotes", function() {
-      before(function*() {
-        yield browser.visit('/cookies/empty');
+      before(async function() {
+        await browser.visit('/cookies/empty');
         browser.document.cookie = 'foo=bar\"baz';
       });
 
@@ -467,8 +467,8 @@ describe("Cookies", function() {
 
 
     describe("setting cookie with semicolon", function() {
-      before(function*() {
-        yield browser.visit('/cookies/empty');
+      before(async function() {
+        await browser.visit('/cookies/empty');
         browser.document.cookie = 'foo=bar; baz';
       });
 

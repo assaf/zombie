@@ -1,12 +1,33 @@
-const express = require('express');
-const File    = require('fs');
-const Path    = require('path');
+const bodyParser    = require('body-parser');
+const cookieParser  = require('cookie-parser');
+const express       = require('express');
+const File          = require('fs');
+const Multiparty    = require('multiparty')
+const morgan        = require('morgan');
+const Path          = require('path');
 
 
 // An Express server we use to test the browser.
 const brains = express();
-brains.use(express.bodyParser());
-brains.use(express.cookieParser());
+
+brains.use(bodyParser());
+brains.use(cookieParser());
+brains.use(function(req, res, next) {
+  if (req.method === 'POST' && req.headers['content-type'].split(';')[0] === 'multipart/form-data') {
+
+    var form = new Multiparty.Form();
+    form.parse(req, function(error, fields, files) {
+      req.files = files;
+      next(error);
+    });
+
+  } else
+    next();
+});
+
+// Even tests need good logs
+if (process.env.DEBUG)
+  brains.use(morgan());
 
 
 // Use this for static responses.  First argument is the path, the remaining
