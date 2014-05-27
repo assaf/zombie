@@ -524,16 +524,22 @@ was shown, you can also use `prompted` (see below).
 ### browser.onconfirm(fn)
 
 The first form specifies a canned response to return when `window.confirm` is
-called with that question.  The second form will call the function with the
-question and use the respone of the first function to return a value (true or
-false).
+called with that question. The second form will call the function fn with the
+question as first parameter and use the return value (true or false) as the response.
 
-The response to the question can be true or false, so all canned responses are
-converted to either value.  If no response available, returns false.
+The response to the question can only be true or false, so all canned responses are
+converted boolean. If no response can be found, false is used as response to the confirm.
 
 For example:
 
+
     browser.onconfirm("Are you sure?", true)
+    
+    browser.onconfirm(function(question) {
+      if (question === "Are you sure?") {
+        return true;
+      }
+    ]);
 
 ### browser.onprompt(message, response)
 ### browser.onprompt(fn)
