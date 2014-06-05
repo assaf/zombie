@@ -44,6 +44,23 @@ describe("EventLoop", function() {
       });
     });
 
+    describe("timerHandle of first setTimeout", function() {
+      // Use a new browser to make sure no other setTimeout call has
+      // happened yet
+      let localBrowser = Browser.create();
+      let timerHandle;
+
+      before(function*() {
+        yield localBrowser.visit('/eventloop/timeout');
+        timerHandle = localBrowser.window.setTimeout(function() {
+          this.document.title += " Two";
+        }, 100);
+      });
+
+      it("should be greater than 0", function() {
+        assert.equal(timerHandle, 1);
+      });
+    });
 
     describe("from timeout", function() {
       before(function*() {
@@ -195,6 +212,25 @@ describe("EventLoop", function() {
             <body></body>
           </html>
         `);
+      });
+    });
+
+    describe("timerHandle of first setInterval", function() {
+      // Use a new browser to make sure no other setInterval call has
+      // happened yet
+      let localBrowser = Browser.create();
+      let timerHandle;
+
+      before(function*() {
+        yield localBrowser.visit('/eventloop/interval');
+        timerHandle = localBrowser.window.setInterval(function() {
+          this.document.title += " Two";
+        }, 100);
+      });
+
+      it("should be greater than 0", function() {
+        assert.equal(timerHandle, 1);
+        localBrowser.window.clearInterval(timerHandle);
       });
     });
 

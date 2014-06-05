@@ -331,10 +331,13 @@ class EventQueue
       delete @timers[index]
     timer = new Timeout(this, fn, delay, remove)
     @timers[index] = timer
-    return index
+    # The HTML 5 spec says that all timerIds must be > 0, so add
+    # 1 to the timer handle to avoid the 0 index
+    return index+1
 
   # Window.clearTimeout
-  clearTimeout: (index)->
+  clearTimeout: (timerHandle)->
+    index = timerHandle - 1
     timer = @timers[index]
     timer.stop() if timer
     return
@@ -347,10 +350,13 @@ class EventQueue
       delete @timers[index]
     timer = new Interval(this, fn, interval, remove)
     @timers[index] = timer
-    return index
+    # The HTML 5 spec says that all timerIds must be > 0, so add
+    # 1 to the timer handle to avoid the 0 index
+    return index+1
 
   # Window.clearInterval
-  clearInterval: (index)->
+  clearInterval: (timerHandle)->
+    index = timerHandle - 1
     timer = @timers[index]
     timer.stop() if timer
     return
