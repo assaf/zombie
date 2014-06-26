@@ -26,6 +26,7 @@ URL       = require("url")
 HTTP      = require('http')
 Zlib      = require("zlib")
 assert    = require("assert")
+Promise   = require("q").Promise
 
 
 # Each browser has a resources object that provides the means for retrieving
