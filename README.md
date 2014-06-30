@@ -197,10 +197,10 @@ Here are a few examples for checking the contents of a document:
     // Show me the contents of the parts table:
     console.log(browser.html("table.parts"));
 
-CSS selectors are implemented by Sizzle.js.  In addition to CSS 3 selectors you
+CSS selectors are implemented by NWMatcher.  In addition to CSS 3 selectors you
 get additional and quite useful extensions, such as `:not(selector)`,
-`[NAME!=VALUE]`, `:contains(TEXT)`, `:first/:last` and so forth.  Check out the
-[Sizzle.js documentation](http://sizzlejs.com/) for more details.
+`[NAME!=VALUE]`, `:contains(TEXT)` and so forth.  Check out the
+[NWMatcher documentation](https://github.com/dperini/nwmatcher/wiki) for more details.
 
 Read more [on the Browser API](doc/API.md) and [CSS selectors](doc/selectors.md)
 
