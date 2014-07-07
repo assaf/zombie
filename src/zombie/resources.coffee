@@ -75,6 +75,7 @@ class Resources extends Array
       time:       Date.now()
       timeout:    options.timeout || 0
       strictSSL:  @browser.strictSSL
+      localAddress: @browser.localAddress || 0
 
     resource =
       request:    request
@@ -485,6 +486,7 @@ Resources.makeHTTPRequest = (request, callback)->
       followRedirect: false
       encoding:       null
       strictSSL:      request.strictSSL
+      localAddress:   request.localAddress || 0
       timeout:        request.timeout || 0
 
     Request httpRequest, (error, response)=>
