@@ -229,6 +229,98 @@ describe("Document", function() {
     });
   });
 
+  describe("canvas stub", function() {
+    let canvas;
+
+    before(async function() {
+      canvas = browser.document.createElement('canvas');
+    });
+
+    it("should have a getContext feature", function() {
+      assert.equal(typeof canvas.getContext, 'function');
+    });
+
+    describe('context', function() {
+      let context;
+      let i;
+      let functionsFor2dContext = [
+        'imageSmoothingEnabled',
+        'webkitImageSmoothingEnabled',
+        'webkitBackingStorePixelRatio',
+        'currentPath',
+        'lineDashOffset',
+        'shadowBlur',
+        'shadowOffsetY',
+        'shadowOffsetX',
+        'miterLimit',
+        'lineWidth',
+        'globalAlpha',
+        'canvas',
+        'save',
+        'restore',
+        'scale',
+        'rotate',
+        'translate',
+        'transform',
+        'setTransform',
+        'resetTransform',
+        'createLinearGradient',
+        'createRadialGradient',
+        'setLineDash',
+        'getLineDash',
+        'clearRect',
+        'fillRect',
+        'beginPath',
+        'fill',
+        'stroke',
+        'clip',
+        'isPointInPath',
+        'isPointInStroke',
+        'measureText',
+        'setAlpha',
+        'setCompositeOperation',
+        'setLineWidth',
+        'setLineCap',
+        'setLineJoin',
+        'setMiterLimit',
+        'clearShadow',
+        'fillText',
+        'strokeText',
+        'setStrokeColor',
+        'setFillColor',
+        'strokeRect',
+        'drawImage',
+        'drawImageFromRect',
+        'setShadow',
+        'putImageData',
+        'webkitPutImageDataHD',
+        'createPattern',
+        'createImageData',
+        'getImageData',
+        'webkitGetImageDataHD',
+        'getContextAttributes',
+        'closePath',
+        'moveTo',
+        'lineTo',
+        'quadraticCurveTo',
+        'bezierCurveTo',
+        'arcTo',
+        'rect',
+        'arc',
+        'ellipse'];
+
+      beforeEach(function() {
+        context = canvas.getContext('2d');
+      });
+
+      for (i in functionsFor2dContext) {
+        it("should have a " + this + " feature", function() {
+          assert.equal(typeof context[functionsFor2dContext[i]], 'function');
+        });
+      }
+    });
+  });
+
 
   after(function() {
     browser.destroy();
