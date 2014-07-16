@@ -314,7 +314,7 @@ describe("Document", function() {
       });
 
       for (i in functionsFor2dContext) {
-        it("should have a " + this + " feature", function() {
+        it("should have " + functionsFor2dContext[i] + " feature", function() {
           assert.equal(typeof context[functionsFor2dContext[i]], 'function');
         });
       }
