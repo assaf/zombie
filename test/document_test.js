@@ -229,10 +229,23 @@ describe("Document", function() {
     });
   });
 
-  describe("canvas stub", function() {
+  describe("without canvas stub", function() {
     let canvas;
 
     before(async function() {
+      canvas = browser.document.createElement('canvas');
+    });
+
+    it("should not create canvas stub by default", function() {
+      assert.equal(typeof canvas.getContext, 'undefined');
+    });
+  });
+
+  describe("with canvas stub", function() {
+    let canvas;
+
+    before(async function() {
+      browser.installStubCanvas();
       canvas = browser.document.createElement('canvas');
     });
 

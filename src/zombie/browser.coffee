@@ -487,6 +487,8 @@ class Browser extends EventEmitter
       @tabs.closeAll()
       @tabs = null
 
+  installStubCanvas: ->
+    HTML.installStubCanvas()
 
   # Navigation
   # ----------
