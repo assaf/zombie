@@ -34,7 +34,7 @@ require("./dom_iframe")
 # Browser options you can set when creating new browser, or on browser instance.
 BROWSER_OPTIONS   = ["debug", "features", "headers", "htmlParser", "waitDuration",
                      "proxy", "referer", "silent", "site", "strictSSL", "userAgent",
-                     "maxRedirects", "language", "runScripts"]
+                     "maxRedirects", "language", "runScripts", "localAddress"]
 
 # Supported browser features.
 BROWSER_FEATURES  = ["scripts", "css", "img", "iframe"]
@@ -1233,6 +1233,10 @@ Browser.default =
   # Check SSL certificates against CA.  False by default since you're likely
   # testing with a self-signed certificate.
   strictSSL: false
+
+  # Sets the outgoing IP address in case there is more than on available.
+  # Defaults to 0.0.0.0 which should select default interface
+  localAddress: '0.0.0.0'
 
   # User agent string sent to server.
   userAgent: "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{Browser.VERSION}"

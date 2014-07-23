@@ -51,6 +51,8 @@ You can use the following options:
   relative URL.
 - `waitFor` -- Tells `wait` function how long to wait (in milliseconds) while
   timers fire.  Defaults to 0.5 seconds.
+- `localAddress` -- The outgoing IP address to use for requests. The default is the default route. Will fail
+  if an IP address is used which is not bound to a local interface.
 
 The proxy URL specifies the host and port of the proxy.  It also supports HTTP
 Basic authentication, for example:
