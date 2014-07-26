@@ -879,8 +879,10 @@ class Browser extends EventEmitter
     # If the button has already been queried, return itself
     if selector instanceof HTML.Element
       return selector
-    if button = @querySelector(selector)
-      return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
+    try
+      if button = @querySelector(selector)
+        return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
+    catch error
     for button in @querySelectorAll("button")
       return button if button.textContent.trim() == selector
     inputs = @querySelectorAll("input[type=submit],button")
