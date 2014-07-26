@@ -111,7 +111,7 @@ describe "Selection", ->
       assert.equal browser.html("title, #main a"), "<title>The Living</title><a href=\"/browser/dead\">Kill</a>"
 
 
-  describe.only "button", ->
+  describe "button", ->
     describe "when passed a valid HTML element", ->
       it "should return the already queried element", ->
         elem = browser.querySelector("button")
