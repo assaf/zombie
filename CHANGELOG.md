@@ -42,7 +42,7 @@ The `visit` method now passes applicable options to `wait` (`duration`,
 `function`, etc).
 
 The `maxWait` option is now called `waitDuration` and `waitFor` is no longer
-supported.
+supported. waitDuration should be provided in milliseconds (maxWait was provided in seconds)
 
 Introducing assertsions to make your life all the more easier, for example:
 
