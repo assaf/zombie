@@ -44,21 +44,18 @@ describe("EventLoop", function() {
       });
     });
 
-    describe("timerHandle of first setTimeout", function() {
+    describe("handle of first setTimeout", function() {
       // Use a new browser to make sure no other setTimeout call has
       // happened yet
-      let localBrowser = Browser.create();
-      let timerHandle;
+      let handle;
 
-      before(function*() {
-        yield localBrowser.visit('/eventloop/timeout');
-        timerHandle = localBrowser.window.setTimeout(function() {
-          this.document.title += " Two";
-        }, 100);
+      before(async function() {
+        await browser.visit('/eventloop/timeout');
+        handle = browser.window.setTimeout(Function, 100);
       });
 
       it("should be greater than 0", function() {
-        assert.equal(timerHandle, 1);
+        assert.equal(handle, 1);
       });
     });
 
@@ -215,22 +212,19 @@ describe("EventLoop", function() {
       });
     });
 
-    describe("timerHandle of first setInterval", function() {
+    describe("handle of first setInterval", function() {
       // Use a new browser to make sure no other setInterval call has
       // happened yet
-      let localBrowser = Browser.create();
-      let timerHandle;
+      let handle;
 
-      before(function*() {
-        yield localBrowser.visit('/eventloop/interval');
-        timerHandle = localBrowser.window.setInterval(function() {
-          this.document.title += " Two";
-        }, 100);
+      before(async function() {
+        await browser.visit('/eventloop/interval');
+        handle = browser.window.setInterval(Function, 100);
       });
 
       it("should be greater than 0", function() {
-        assert.equal(timerHandle, 1);
-        localBrowser.window.clearInterval(timerHandle);
+        assert.equal(handle, 1);
+        browser.window.clearInterval(handle);
       });
     });
 
