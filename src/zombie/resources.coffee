@@ -26,6 +26,7 @@ URL       = require("url")
 HTTP      = require('http')
 Zlib      = require("zlib")
 assert    = require("assert")
+Promise   = require("q").Promise
 
 
 # Each browser has a resources object that provides the means for retrieving
@@ -46,6 +47,8 @@ class Resources extends Array
   # options   - See below
   # callback  - Called with error, or null and response
   #
+  # Without callback, returns a promise.
+  #
   # Options:
   #   headers   - Name/value pairs of headers to send in request
   #   params    - Parameters to pass in query string or document body
@@ -59,8 +62,8 @@ class Resources extends Array
   #   headers     - Response headers
   #   body        - Response body
   #   redirects   - Number of redirects followed
-  request: (method, url, options, callback)->
-    unless callback
+  request: (method, url, options = {}, callback)->
+    if !callback && typeof(options) == 'function'
       [options, callback] = [{}, options]
 
     request =
@@ -71,6 +74,8 @@ class Resources extends Array
       body:       options.body
       time:       Date.now()
       timeout:    options.timeout || 0
+      strictSSL:  @browser.strictSSL
+      localAddress: @browser.localAddress || 0
 
     resource =
       request:    request
@@ -78,22 +83,30 @@ class Resources extends Array
     @push(resource)
     @browser.emit("request", request)
 
-    @runPipeline request, (error, response)=>
-      if error
-        resource.error = error
-        callback(error)
-      else
-        response.url        ||= request.url
-        response.statusCode ||= 200
-        response.statusText = HTTP.STATUS_CODES[response.statusCode] || "Unknown"
-        response.headers    ||= {}
-        response.redirects  ||= 0
-        response.time       = Date.now()
-        resource.response = response
+    promise = new Promise((resolve, reject)=>
+      @runPipeline request, (error, response)=>
+        if error
+          resource.error = error
+          reject(error)
+        else
+          response.url        ||= request.url
+          response.statusCode ||= 200
+          response.statusText = HTTP.STATUS_CODES[response.statusCode] || "Unknown"
+          response.headers    ||= {}
+          response.redirects  ||= 0
+          response.time       = Date.now()
+          resource.response = response
 
-        @browser.emit("response", request, response)
-        callback(null, resource.response)
-    return
+          @browser.emit("response", request, response)
+          resolve(resource.response)
+    )
+
+    if callback
+      promise.then(
+        (response)-> callback(null, response),
+        callback)
+    else
+      return promise
 
 
 
@@ -103,8 +116,7 @@ class Resources extends Array
   # options   - See request() method
   # callback  - Called with error, or null and response
   get: (url, options, callback)->
-    @request("get", url, options, callback)
-    return
+    return @request("get", url, options, callback)
 
   # HTTP request.
   #
@@ -112,8 +124,7 @@ class Resources extends Array
   # options   - See request() method
   # callback  - Called with error, or null and response
   post: (url, options, callback)->
-    @request("post", url, options, callback)
-    return
+    return @request("post", url, options, callback)
 
 
   # You can use this to make a request to a given URL fail.
@@ -375,7 +386,7 @@ Resources.createBody = (request, next)->
 # response.
 Resources.specialURLHandlers = (request, next)->
   for [url, handler] in @resources.urlMatchers
-    if url == request.url
+    if URL.resolve(request.url, url) == request.url
       handler(request, next)
       return
   next()
@@ -443,7 +454,7 @@ Resources.makeHTTPRequest = (request, callback)->
     # file system rather than getting node's http (which handles file://
     # poorly) involved.
     if request.method == "GET"
-      filename = Path.normalize(pathname)
+      filename = Path.normalize(decodeURI(pathname))
       File.exists filename, (exists)=>
         if exists
           File.readFile filename, (error, buffer)=>
@@ -474,6 +485,8 @@ Resources.makeHTTPRequest = (request, callback)->
       jar:            false
       followRedirect: false
       encoding:       null
+      strictSSL:      request.strictSSL
+      localAddress:   request.localAddress || 0
       timeout:        request.timeout || 0
 
     Request httpRequest, (error, response)=>
@@ -522,9 +535,10 @@ Resources.makeHTTPRequest = (request, callback)->
           url:        response.url
           headers:    redirectHeaders
           redirects:  redirects
+          strictSSL:  request.strictSSL
           time:       request.time
           timeout:    request.timeout
-        @emit("redirect", request, response)
+        @emit("redirect", response, redirectRequest)
         @resources.runPipeline(redirectRequest, callback)
 
       else

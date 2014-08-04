@@ -1,4 +1,6 @@
+--require test/helpers/first.js
 --compilers coffee:coffee-script
---timeout 2s
 --reporter spec
+--timeout 2s
 --growl
+--check-leaks

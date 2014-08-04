@@ -71,7 +71,7 @@ describe "Compatibility with jQuery", ->
 
 
         before (done)->
-          browser.visit("http://localhost:3003/compat/jquery-#{version}", done)
+          browser.visit("/compat/jquery-#{version}", done)
 
 
         describe "selecting an option in a select element", ->
@@ -127,7 +127,7 @@ describe "Compatibility with jQuery", ->
 
           describe "live events", ->
             before (done)->
-              browser.visit "http://localhost:3003/compat/jquery-#{version}", ->
+              browser.visit "/compat/jquery-#{version}", ->
                 browser.window.$(browser.document).on "click", ".skip-me", (event)->
                   done(new Error("unexpected event capture"))
                 browser.window.$(browser.document).on "click", ".some-class", (event)->
@@ -141,7 +141,7 @@ describe "Compatibility with jQuery", ->
 
           describe "live events", ->
             before (done)->
-              browser.visit "http://localhost:3003/compat/jquery-#{version}", ->
+              browser.visit "/compat/jquery-#{version}", ->
                 browser.window.$(browser.document).live "click", ".some-class", (event)->
                   done()
                 browser.pressButton("Click Me")
@@ -153,7 +153,7 @@ describe "Compatibility with jQuery", ->
 
           describe "preventDefault", ->
             before (done)->
-              browser.visit "http://localhost:3003/compat/jquery-#{version}", ->
+              browser.visit "/compat/jquery-#{version}", ->
                 browser.window.$(browser.document).on "click", ".some-class", (event)->
                   event.preventDefault()
                   return

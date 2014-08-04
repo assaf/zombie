@@ -2,8 +2,10 @@
 
 
 HTML  = require("jsdom").dom.level3.html
-HTML5 = require("html5")
 
+
+HTML.HTMLDocument.prototype.__defineGetter__ "scripts",   ->
+  return new HTML.HTMLCollection(this, => @querySelectorAll('script'))
 
 
 HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
@@ -48,49 +50,35 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
 # Support for opacity style property.
 Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
   get: ->
-    return @_opacity || ""
-  set: (opacity)->
-    if opacity
-      opacity = parseFloat(opacity)
-      unless isNaN(opacity)
-        @_opacity = opacity.toString()
+    opacity = this.getPropertyValue("opacity")
+    if Number.isFinite(opacity)
+      return opacity.toString()
     else
-      delete @_opacity
+      return ""
+  set: (opacity)->
+    if opacity == null || opacity == undefined || opacity == ""
+      this.removeProperty("opacity")
+    else
+      opacity = parseFloat(opacity)
+      if isFinite(opacity)
+        this.setProperty("opacity", opacity)
 
 
 # Changing style.height/width affects clientHeight/Weight and offsetHeight/Width
 ["height", "width"].forEach (prop)->
-  internal = "_#{prop}"
   client = "client#{prop[0].toUpperCase()}#{prop.slice(1)}"
   offset = "offset#{prop[0].toUpperCase()}#{prop.slice(1)}"
-  Object.defineProperty HTML.CSSStyleDeclaration.prototype, prop,
-    get: ->
-      return this[internal] || ""
-    set: (value)->
-      if /^\d+px$/.test(value)
-        this[internal] = value
-      else if !value
-        delete this[internal]
   Object.defineProperty HTML.HTMLElement.prototype, client,
     get: ->
-      return parseInt(this[internal] || 100)
+      value = parseInt(this.style.getPropertyValue(prop), 10)
+      if Number.isFinite(value)
+        return value
+      else
+        return 100
   Object.defineProperty HTML.HTMLElement.prototype, offset,
     get: ->
-      return parseInt(this[internal] || 100)
+      return 0
 
-
-# For some reason HTML5 uses elementBuilder instead of createElement
-HTML5.TreeBuilder.prototype.createElement = (name, attributes, namespace)->
-  el = this.document.createElement(name)
-  el.namespace = namespace
-  if(attributes)
-    if(attributes.item)
-      for i in [0...attributes.length]
-        this.copyAttributeToElement(el, attributes.item(i))
-    else
-      for i in [0...attributes.length]
-        this.copyAttributeToElement(el, attributes[i])
-  return el
 
 # Attempt to load the image, this will trigger a 'load' event when succesful
 # jsdom seemed to only queue the 'load' event
@@ -120,3 +108,18 @@ HTML.HTMLElement.prototype.insertAdjacentHTML = (position, html)->
       next_sibling = this.nextSibling
       while (node = container.lastChild)
         next_sibling = parentNode.insertBefore(node, next_sibling)
+
+# Implement documentElement.contains
+# e.g., if(document.body.contains(el)) { ... }
+# See https://developer.mozilla.org/en-US/docs/DOM/Node.contains
+HTML.Node.prototype.contains = (otherNode) ->
+  # DDOPSON-2012-08-16 -- This implementation is stolen from Sizzle's
+  # implementation of 'contains' (around line 1402).
+  # We actually can't call Sizzle.contains directly:
+  # * Because we define Node.contains, Sizzle will configure it's own
+  #   "contains" method to call us. (it thinks we are a native browser
+  #   implementation of "contains")
+  # * Thus, if we called Sizzle.contains, it would form an infinite loop.
+  #   Instead we use Sizzle's fallback implementation of "contains" based on
+  #   "compareDocumentPosition".
+  return !!(this.compareDocumentPosition(otherNode) & 16)

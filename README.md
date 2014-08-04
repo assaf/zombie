@@ -1,6 +1,10 @@
 zombie.js(1) -- Insanely fast, headless full-stack testing using Node.js
 ========================================================================
 
+**Note: This page documents Zombie 1.4, [check here for Zombie 2.0 Alpha
+docs](https://github.com/assaf/zombie/tree/master/doc/new) and help us finish
+the docs.**
+
 
 ## The Bite
 
@@ -52,7 +56,7 @@ Next, assuming you're using the mighty [Homebrew](http://mxcl.github.com/homebre
     $ curl http://npmjs.org/install.sh | sudo sh
     $ npm --version
     1.0.106
-    $ npm install zombie
+    $ npm install zombie --save-dev
 
 On Ubuntu try these steps:
 
@@ -64,7 +68,7 @@ On Ubuntu try these steps:
     v0.10.21
     $ npm --version
     1.3.11
-    $ npm install zombie
+    $ npm install zombie --save-dev
 
 On Windows you'll need Cygwin to get access to GCC, Python, etc.  [Read
 this](https://github.com/joyent/node/wiki/Building-node.js-on-Cygwin-(Windows))

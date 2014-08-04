@@ -21,7 +21,7 @@ describe "Facebook Connect", ->
                 cookie     : true,
                 xfbml      : true,
                 oauth      : true,
-                channelUrl : "http://localhost:3003/facebook/channel"
+                channelUrl : "http://example.com/facebook/channel"
               });
               document.getElementById("connect").addEventListener("click", function(event) {
                 event.preventDefault();
@@ -49,7 +49,7 @@ describe "Facebook Connect", ->
       """
 
   before (done)->
-    browser.visit("http://localhost:3003/facebook")
+    browser.visit("/facebook")
       .then ->
         browser.clickLink "Connect"
       .then(done, done)

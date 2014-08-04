@@ -116,7 +116,7 @@ HTML.HTMLInputElement.prototype._eventDefaults =
     input = event.target
     change = ->
       event = input.ownerDocument.createEvent("HTMLEvents")
-      event.initEvent "change", true, true
+      event.initEvent("change", true, true)
       input.dispatchEvent(event)
     switch input.type
       when "reset"
@@ -142,24 +142,16 @@ HTML.HTMLInputElement.prototype.click = ->
   # First event we fire is click event
   click = =>
     event = @ownerDocument.createEvent("HTMLEvents")
-    event.initEvent "click", true, true
+    event.initEvent("click", true, true)
     cancelled = this.dispatchEvent(event)
     return !cancelled
-
-  # If that works out, we follow with a change event
-  change = =>
-    event = @ownerDocument.createEvent("HTMLEvents")
-    event.initEvent "change", true, true
-    this.dispatchEvent(event)
 
   switch @type
     when "checkbox"
       unless @getAttribute("readonly")
         original = @checked
         @checked = !@checked
-        if click()
-          change()
-        else
+        if !click()
           @checked = original
     when "radio"
       unless @getAttribute("readonly")
@@ -173,9 +165,7 @@ HTML.HTMLInputElement.prototype.click = ->
               checked = radio
               radio.checked = false
           @checked = true
-          if click()
-            change()
-          else
+          if !click()
             @checked = false
             for radio in radios
               radio.checked = (radio == checked)

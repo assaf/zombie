@@ -147,6 +147,10 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
   window.resizeBy = (width, height)->
     window.resizeTo(window.outerWidth + width,  window.outerHeight + height)
 
+  # Some libraries (e.g. Backbone) check that this property exists before
+  # deciding to use onhashchange, so we need to set it to null.
+  window.onhashchange = null
+
   # Help iframes talking with each other
   window.postMessage = (data, targetOrigin)->
     document = window.document
@@ -163,7 +167,7 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
     # version of the object returned by getGlobal, they are not the same
     # object ie, _windowInScope.foo == _windowInScope.getGlobal().foo, but
     # _windowInScope != _windowInScope.getGlobal()
-    event.source = browser._windowInScope.getGlobal()
+    event.source = (browser._windowInScope || window).getGlobal()
     origin = event.source.location
     event.origin = URL.format(protocol: origin.protocol, host: origin.host)
     window.dispatchEvent(event)
@@ -245,7 +249,6 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
     # kill event queue, document and window.
     eventQueue.destroy()
     document.close()
-    delete window.document
     window.dispose()
     return
 
@@ -306,7 +309,7 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
       when "_top"    # navigate top window
         submitTo = window.top
       else # open named window
-        submitTo = browser.tabs.open(name: anchor.target)
+        submitTo = browser.tabs.open(name: target)
     submitTo.history._submit(url: url, method: method, encoding: encoding, params: params)
 
   # Load the document associated with this window.
@@ -318,15 +321,13 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
 loadDocument = ({ document, history, url, method, encoding, params })->
   window = document.window
   browser = window.browser
-  window._response = { }
+  window._response = {}
 
   # Called on wrap up to update browser with outcome.
-  done = (error, url)->
+  done = (error)->
     if error
       browser.emit("error", error)
     else
-      if url
-        history.updateLocation(window, url)
       browser.emit("loaded", document)
 
   method = (method || "GET").toUpperCase()
@@ -341,14 +342,14 @@ loadDocument = ({ document, history, url, method, encoding, params })->
       document.open()
       document.write("<html><body></body></html>")
       document.close()
-      done()
+      browser.emit("loaded", document)
 
     when "javascript:"
       try
         window._evaluate(pathname, "javascript:")
-        done()
+        browser.emit("loaded", document)
       catch error
-        done(error)
+        browser.emit("error", error)
 
     when "http:", "https:", "file:"
       # Proceeed to load resource ...
@@ -362,7 +363,7 @@ loadDocument = ({ document, history, url, method, encoding, params })->
           document.open()
           document.write("<html><body>#{error.message || error}</body></html>")
           document.close()
-          done(error)
+          browser.emit("error", error)
           return
 
         window._response = response
@@ -372,10 +373,40 @@ loadDocument = ({ document, history, url, method, encoding, params })->
           window.dispatchEvent(event)
         document.addEventListener("load", windowLoaded)
 
+        # Handle meta refresh.  Automatically reloads new location and counts
+        # as a redirect.
+        #
+        # If you need to check the page before refresh takes place, use this:
+        #   browser.wait({
+        #     function: function() {
+        #       return browser.query("meta[http-equiv='refresh']");
+        #     }
+        #   });
+        handleRefresh = ->
+          refresh = document.querySelector("meta[http-equiv='refresh']")
+          if refresh
+            content = refresh.getAttribute("content")
+            match   = content.match(/^\s*(\d+)(?:\s*;\s*url\s*=\s*(.*?))?\s*(?:;|$)/i)
+            if match
+              [nothing, refresh_timeout, refresh_url] = match
+            else
+              return
+            refreshTimeout = parseInt(refresh_timeout, 10)
+            refreshURL     = refresh_url || document.location.href
+            if refreshTimeout >= 0
+              window._eventQueue.enqueue ->
+                # Count a meta-refresh in the redirects count.
+                history.replace(refreshURL)
+                # This results in a new window getting loaded
+                newWindow = history.current.window
+                newWindow.addEventListener "load", ->
+                  newWindow._response.redirects++
+
         # JSDOM fires load event on document but not on window
         contentLoaded = (event)->
           document.removeEventListener("DOMContentLoaded", contentLoaded)
           window.dispatchEvent(event)
+          handleRefresh()
         document.addEventListener("DOMContentLoaded", contentLoaded)
 
         # Give event handler chance to register listeners.
@@ -386,6 +417,7 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         unless /<html>/.test(body)
           body = "<html><body>#{body || ""}</body></html>"
 
+        history.updateLocation(window, response.url)
         document.open()
         document.write(body)
         document.close()
@@ -393,14 +425,14 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         # Error on any response that's not 2xx, or if we're not smart enough to
         # process the content and generate an HTML DOM tree from it.
         if response.statusCode >= 400
-          done(new Error("Server returned status code #{response.statusCode} from #{url}"))
+          browser.emit("error", new Error("Server returned status code #{response.statusCode} from #{url}"))
         else if document.documentElement
-          done(null, response.url)
+          browser.emit("loaded", document)
         else
-          done(new Error("Could not parse document at #{url}"))
+          browser.emit("error", new Error("Could not parse document at #{url}"))
 
     else # but not any other protocol for now
-      done(new Error("Cannot load resource #{url}, unsupported protocol"))
+      browser.emit("error", new Error("Cannot load resource #{url}, unsupported protocol"))
 
 
 # Wrap dispatchEvent to support _windowInScope and error handling.

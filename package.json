@@ -1,5 +1,5 @@
 { "name":           "zombie",
-  "version":        "2.0.0-alpha24",
+  "version":        "2.0.0-alpha31",
   "description":    "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage":       "http://zombie.labnotes.org/",
   "author":         "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
@@ -19,31 +19,35 @@
     "build":        "coffee --bare --compile --output lib/zombie src/zombie/*.coffee",
     "prepublish":   "coffee --bare --compile --output lib/zombie src/zombie/*.coffee",
     "postpublish":  "rm -rf html man7 lib",
-    "test":         "./node_modules/.bin/mocha"
+    "test":         "mocha"
   },
   "engines": {
-    "node":         ">= 0.8.0"
+    "node":         ">= 0.10.0"
   },
   "dependencies": {
     "encoding":               "0.1.7",
-    "eventsource":            "0.0.8",
+    "eventsource":            "0.1.1",
     "html5":                  "0.3.14",
-    "jsdom":                  "0.8.6",
+    "jsdom":                  "0.8.11",
     "mime":                   "1.2.11",
-    "ms":                     "0.6.1",
-    "q":                      "0.9.7",
-    "request":                "2.27.0",
-    "tough-cookie":           "0.9.15",
+    "ms":                     "0.6.2",
+    "q":                      "1.0.1",
+    "request":                "2.36.0",
+    "tough-cookie":           "0.12.1",
     "ws":                     "0.4.31"
   },
   "devDependencies": {
+    "body-parser":            "1.2.0",
+    "co":                     "3.0.6",
     "coffee-script":          "1.6.3",
-    "express":                "3.4.0",
-    "node-syntaxhighlighter": "0.8.1",
-    "mocha":                  "1.13.0",
-    "replay":                 "1.7.0",
-    "requirejs":              "2.1.8",
-    "robotskirt":             "2.7.1"
+    "cookie-parser":          "1.1.0",
+    "express":                "4.3.1",
+    "mocha":                  "1.19.0",
+    "morgan":                 "1.1.1",
+    "multiparty":             "3.2.6",
+    "replay":                 "1.10.3",
+    "requirejs":              "2.1.11",
+    "traceur":                "0.0.42"
   },
   "repository": {
     "type":   "git",

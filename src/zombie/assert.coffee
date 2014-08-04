@@ -50,7 +50,10 @@ class Assert
   # object properties are tested against the actual URL (e.g. pathname, host,
   # query).
   url: (expected, message)->
-    if typeof(expected) == "string" || isRegExp(expected) || typeof(expected) == "function"
+    if typeof(expected) == "string"
+      absolute = URL.resolve(@browser.location.href, expected)
+      assertMatch @browser.location.href, absolute, message
+    else if isRegExp(expected) || typeof(expected) == "function"
       assertMatch @browser.location.href, expected, message
     else
       url = URL.parse(@browser.location.href, true)
@@ -154,6 +157,16 @@ class Assert
     assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
     for element in elements
       assertMatch element.value, expected, message
+
+  # Asserts that a link exists with the given text and URL.
+  link: (selector, text, url, message)->
+    url = URL.resolve(@browser.location.href, url)
+    elements = @browser.queryAll(selector)
+    assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
+    matching = elements.filter (element)->
+      element.textContent.trim() == text && element.href == url
+    assert matching.length > 0, "Expected at least one link matching the given text and URL"
+
 
   # Assert that text content of selected element(s) matches expected string.
   #

@@ -45,7 +45,7 @@ describe "require.js", ->
       """
 
   before (done)->
-    browser.visit("http://localhost:3003/requirejs", done)
+    browser.visit("/requirejs", done)
 
   it "should load dependencies", ->
     browser.assert.text "title", "Dependency loaded"

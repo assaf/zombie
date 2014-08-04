@@ -49,7 +49,7 @@ describe "Selection", ->
       """
 
   before (done)->
-    browser.visit("http://localhost:3003/browser/walking", done)
+    browser.visit("/browser/walking", done)
 
 
   describe "queryAll", ->
@@ -116,6 +116,11 @@ describe "Selection", ->
       it "should return the already queried element", ->
         elem = browser.querySelector("button")
         assert.equal browser.button(elem), elem
+
+    describe "when passed a text on button", ->
+      it "should return the button with equally text content", ->
+        elem = browser.querySelector(".now + button")
+        assert.equal browser.button("Do not press!"), elem
 
   describe "link", ->
     describe "when passed a valid HTML element", ->

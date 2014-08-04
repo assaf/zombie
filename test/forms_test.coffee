@@ -154,7 +154,7 @@ describe "Forms", ->
   describe "fill field", ->
     before (done)->
       browser.visit "/forms/form", =>
-        fill_events = ["input", "change", "keydown", "keyup", "keypress"]
+        fill_events = ["input", "change"]
         count = fill_events.length
         browser.on "event", (event, target)=>
           if event.type in fill_events
@@ -162,14 +162,12 @@ describe "Forms", ->
             if count == 0
               @changed = target
               count = fill_events.length
-          else
-            count = fill_events.length
         done()
 
     describe "fill input with same the same value", ->
       before ->
         browser.fill("Name", "")
-      it "should not fire input, change and key events", ->
+      it "should not fire input *and* change events", ->
         assert.equal @change, undefined
 
     describe "text input enclosed in label", ->
@@ -178,7 +176,7 @@ describe "Forms", ->
 
       it "should set text field", ->
         browser.assert.input "#field-name", "ArmBiter"
-      it "should fire input, change and key events", ->
+      it "should fire input and changed event", ->
         assert.equal @changed.id, "field-name"
 
     describe "email input referenced from label", ->
@@ -187,7 +185,7 @@ describe "Forms", ->
 
       it "should set email field", ->
         browser.assert.input "#field-email", "armbiter@example.com"
-      it "should fire input, change and key events", ->
+      it "should fire input and change events", ->
         assert.equal @changed.id, "field-email"
 
     describe "textarea by field name", ->
@@ -196,7 +194,7 @@ describe "Forms", ->
 
       it "should set textarea", ->
         browser.assert.input "#field-likes", "Arm Biting"
-      it "should fire input, change and key events", ->
+      it "should fire input and change events", ->
         assert.equal @changed.id, "field-likes"
 
     describe "password input by selector", ->
@@ -205,7 +203,7 @@ describe "Forms", ->
 
       it "should set password", ->
         browser.assert.input "#field-password", "b100d"
-      it "should fire input, change and key events", ->
+      it "should fire input and change events", ->
         assert.equal @changed.id, "field-password"
 
     describe "input without a valid type", ->
@@ -214,7 +212,7 @@ describe "Forms", ->
 
       it "should set value", ->
         browser.assert.input "#field-invalidtype", "some value"
-      it "should fire input, change and key events", ->
+      it "should fire input and change events", ->
         assert.equal @changed.id, "field-invalidtype"
 
     describe "email2 input by node", ->
@@ -223,7 +221,7 @@ describe "Forms", ->
 
       it "should set email2 field", ->
         browser.assert.input "#field-email2", "headchomper@example.com"
-      it "should fire input, change and key events", ->
+      it "should fire input and change events", ->
         assert.equal @changed.id, "field-email2"
 
     describe "disabled input can not be modified", ->
@@ -264,29 +262,63 @@ describe "Forms", ->
       it "should fire blur event on previous field", ->
         assert true
 
+    describe "keep value and switch focus", ->
+      before (done)->
+        browser.visit("/forms/form")
+          .then ->
+            field1 = browser.querySelector("#field-email2")
+            field2 = browser.querySelector("#field-email3")
+            field1.addEventListener "change", ->
+              done(new Error("Should not fire"))
+
+            browser.focus(field1)
+            browser.focus(field2)
+            setImmediate(done)
+
+      it "should fire change event on previous field", ->
+        assert true
+
+    describe "change value and switch focus", ->
+      before (done)->
+        browser.visit("/forms/form")
+          .then ->
+            field1 = browser.querySelector("#field-email2")
+            field2 = browser.querySelector("#field-email3")
+            field1.addEventListener "change", ->
+              done()
+
+            browser.focus(field1)
+            field1.value = "something"
+            browser.focus(field2)
+
+      it "should fire change event on previous field", ->
+        assert true
+
 
   describe "check box", ->
+    changed = null
+    clicked = null
+
     before (done)->
       browser.visit "/forms/form", =>
         browser.on "event", (event, target)=>
-          switch event.type
+          switch event._type
             when "change"
-              @changed = target
+              changed = target
             when "click"
-              @clicked = target
+              clicked = target
         done()
 
     describe "checkbox enclosed in label", ->
       before ->
-        @changed = @clicked = null
         browser.check("You bet")
 
       it "should check checkbox", ->
         browser.assert.element "#field-hungry:checked"
       it "should fire change event", ->
-        assert.equal @changed.id, "field-hungry"
+        assert.equal changed.id, "field-hungry"
       it "should fire clicked event", ->
-        assert.equal @clicked.id, "field-hungry"
+        assert.equal clicked.id, "field-hungry"
 
       describe "with callback", ->
         before ->
@@ -298,13 +330,14 @@ describe "Forms", ->
     describe "checkbox referenced from label", ->
       before ->
         browser.uncheck("Brains?")
-        @changed = @clicked = null
+        changed = null
+        clicked = null
         browser.check("Brains?")
 
       it "should check checkbox", ->
         browser.assert.element "#field-brains:checked"
       it "should fire change event", ->
-        assert.equal @changed.id, "field-brains"
+        assert.equal changed.id, "field-brains"
 
       describe "uncheck with callback", ->
         before (done)->
@@ -320,13 +353,14 @@ describe "Forms", ->
     describe "checkbox by name", ->
       before ->
         browser.check("green")
-        @changed = @clicked = null
+        changed = null
+        clicked = null
         browser.uncheck("green")
 
       it "should uncheck checkbox", ->
         browser.assert.elements "#field-green:checked", 0
       it "should fire change event", ->
-        assert.equal @changed.id, "field-green"
+        assert.equal changed.id, "field-green"
 
     describe "check callback", ->
       before ->
@@ -744,7 +778,7 @@ describe "Forms", ->
           .then(done, done)
 
       it "should open new page", ->
-        browser.assert.url "http://localhost:3003/forms/submit"
+        browser.assert.url "/forms/submit"
         browser.assert.text "title", "Results"
       it "should add location to history", ->
         assert.equal browser.window.history.length, 2
@@ -786,7 +820,7 @@ describe "Forms", ->
           .then(done, done)
 
       it "should open new page", ->
-        browser.assert.url "http://localhost:3003/forms/submit"
+        browser.assert.url "/forms/submit"
       it "should add location to history", ->
         assert.equal browser.window.history.length, 2
       it "should send button value to server", ->
@@ -831,7 +865,7 @@ describe "Forms", ->
             .pressButton("#image_submit", done)
 
       it "should open new page", ->
-        browser.assert.url "http://localhost:3003/forms/submit"
+        browser.assert.url "/forms/submit"
       it "should add location to history", ->
         assert.equal browser.window.history.length, 2
       it "should send image value to server", ->
@@ -851,7 +885,7 @@ describe "Forms", ->
             .pressButton("Submit", done)
 
       it "should open new page", ->
-        browser.assert.url "http://localhost:3003/forms/submit"
+        browser.assert.url "/forms/submit"
       it "should add location to history", ->
         assert.equal browser.window.history.length, 2
       it "should send submit value to server", ->
@@ -887,7 +921,7 @@ describe "Forms", ->
           browser.pressButton("Submit", done)
 
       it "should not change page", ->
-        browser.assert.url "http://localhost:3003/forms/cancel"
+        browser.assert.url "/forms/cancel"
 
 
   # File upload
@@ -910,12 +944,13 @@ describe "Forms", ->
         if req.files
           [text, image] = [req.files.text, req.files.image]
           if text || image
-            data = File.readFileSync((text || image).path)
+            file = (text || image)[0] 
+            data = File.readFileSync(file.path)
             if image
               digest = Crypto.createHash("md5").update(data).digest("hex")
             res.send """
             <html>
-              <head><title>#{(text || image).name}</title></head>
+              <head><title>#{file.originalFilename}</title></head>
               <body>#{digest || data}</body>
             </html>
             """
@@ -969,10 +1004,11 @@ describe "Forms", ->
           </html>
           """
         brains.post "/forms/mixed", (req, res)->
-          data = File.readFileSync(req.files.logfile.path)
+          file = req.files.logfile[0]
+          data = File.readFileSync(file.path)
           res.send """
           <html>
-            <head><title>#{req.files.logfile.name}</title></head>
+            <head><title>#{file.originalFilename}</title></head>
             <body>#{data}</body>
           </html>
           """

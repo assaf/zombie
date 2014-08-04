@@ -3,6 +3,7 @@ Assert            = require("./assert")
 createTabs        = require("./tabs")
 Console           = require("./console")
 Cookies           = require("./cookies")
+DNSMask           = require("./dns_mask")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
 { format }        = require("util")
@@ -14,6 +15,7 @@ Mime              = require("mime")
 ms                = require("ms")
 Q                 = require("q")
 Path              = require("path")
+PortMap           = require("./port_map")
 Resources         = require("./resources")
 Storages          = require("./storage")
 Tough             = require("tough-cookie")
@@ -31,8 +33,8 @@ require("./dom_iframe")
 
 # Browser options you can set when creating new browser, or on browser instance.
 BROWSER_OPTIONS   = ["debug", "features", "headers", "htmlParser", "waitDuration",
-                   "proxy", "referer", "silent", "site", "userAgent",
-                   "maxRedirects", "language", "runScripts"]
+                     "proxy", "referer", "silent", "site", "strictSSL", "userAgent",
+                     "maxRedirects", "language", "runScripts", "localAddress"]
 
 # Supported browser features.
 BROWSER_FEATURES  = ["scripts", "css", "img", "iframe"]
@@ -235,7 +237,7 @@ class Browser extends EventEmitter
     forked.loadCookies @saveCookies()
     forked.loadStorage @saveStorage()
     # forked.loadHistory @saveHistory()
-    forked.location = @location.url
+    forked.location = @location.href
     return forked
 
 
@@ -684,6 +686,18 @@ class Browser extends EventEmitter
           return label.querySelector("input,textarea,select")
     return
 
+
+  # ### browser.focus(selector) : Element
+  #
+  # Turns focus to the selected input field.  Shortcut for calling `field(selector).focus()`.
+  focus: (selector)->
+    field = @field(selector) || @query(selector)
+    unless field
+      throw new Error("No form field matching '#{selector}'")
+    field.focus()
+    return this
+
+
   # ### browser.fill(selector, value) => this
   #
   # Fill in a field: input field or text area.
@@ -700,15 +714,13 @@ class Browser extends EventEmitter
       throw new Error("This INPUT field is disabled")
     if field.getAttribute("readonly")
       throw new Error("This INPUT field is readonly")
+
+    # Switch focus to field, change value and emit the input event (HTML5)
     field.focus()
-    start_value = field.value
     field.value = value
-    if start_value != value
-      @fire(field, "input")
-      @fire(field, "change")
-      @fire(field, "keydown")
-      @fire(field, "keyup")
-      @fire(field, "keypress")
+    @fire(field, "input")
+    # Switch focus out of field, if value changed, this will emit change event
+    field.blur()
     return this
 
   _setCheckbox: (selector, value)->
@@ -867,8 +879,10 @@ class Browser extends EventEmitter
     # If the button has already been queried, return itself
     if selector instanceof HTML.Element
       return selector
-    if button = @querySelector(selector)
-      return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
+    try
+      if button = @querySelector(selector)
+        return button if button.tagName == "BUTTON" || button.tagName == "INPUT"
+    catch error
     for button in @querySelectorAll("button")
       return button if button.textContent.trim() == selector
     inputs = @querySelectorAll("input[type=submit],button")
@@ -1218,6 +1232,14 @@ Browser.default =
   # You can use visit with a path, and it will make a request relative to this host/URL.
   site: undefined
 
+  # Check SSL certificates against CA.  False by default since you're likely
+  # testing with a self-signed certificate.
+  strictSSL: false
+
+  # Sets the outgoing IP address in case there is more than on available.
+  # Defaults to 0.0.0.0 which should select default interface
+  localAddress: '0.0.0.0'
+
   # User agent string sent to server.
   userAgent: "Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/#{Browser.VERSION}"
 
@@ -1235,6 +1257,54 @@ Browser.default =
 # Use this function to create a new Browser instance.
 Browser.create = (options)->
   return new Browser(options)
+
+
+# Allows you to masquerade CNAME, A (IPv4) and AAAA (IPv6) addresses.  For
+# example:
+#   Brower.dns.localhost("example.com")
+#
+# This is a shortcut for:
+#   Brower.dns.map("example.com", "127.0.0.1)
+#   Brower.dns.map("example.com", "::1")
+#
+# See also Browser.localhost.
+Browser.dns = new DNSMask()
+
+
+# Allows you to make request against port 80, route them to test server running
+# on less privileged port.
+#
+# For example, if your application is listening on port 3000, you can do:
+#   Browser.ports.map("localhost", "3000")
+#
+# Or in combination with DNS mask:
+#   Brower.dns.map("example.com", "127.0.0.1)
+#   Browser.ports.map("example.com", "3000")
+#
+# See also Browser.localhost.
+Browser.ports = new PortMap()
+
+
+# Allows you to make requests against a named domain and port 80, route them to
+# the test server running on localhost and less privileged port.
+#
+# For example, say your test server is running on port 3000, you can do:
+#   Browser.localhost("example.com", 3000)
+#
+# You can now visit http://example.com and it will be handled by the server
+# running on port 3000.  In fact, you can just write:
+#   browser.visit("/path", function() {
+#     assert(broswer.location.href == "http://example.com/path");
+#   });
+#
+# This is equivalent to DNS masking the hostname as 127.0.0.1 (see
+# Browser.dns), mapping port 80 to the specified port (see Browser.ports) and
+# setting Browser.default.site to the hostname.
+Browser.localhost = (hostname, port)->
+  Browser.dns.localhost(hostname)
+  Browser.ports.map(hostname, port)
+  unless Browser.default.site
+    Browser.default.site = hostname.replace(/^\*\./, "")
 
 
 # Represents credentials for a given host.

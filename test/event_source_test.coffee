@@ -36,7 +36,7 @@ describe "EventSource", ->
       , 100
 
   before (done)->
-    browser.visit("http://localhost:3003/streaming")
+    browser.visit("/streaming")
     browser.wait (window)->
       return window.events && window.events.length == 2
     , =>

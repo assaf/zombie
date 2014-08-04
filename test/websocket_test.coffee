@@ -28,7 +28,7 @@ describe "WebSockets", ->
           </body>
           <script>
             $(function() {
-              ws = new WebSocket("ws://localhost:3004");
+              ws = new WebSocket("ws://example.com:3004");
               $('#ws-url').text(ws.url);
               ws.onopen = function() {
                 alert('open');
@@ -56,7 +56,7 @@ describe "WebSockets", ->
           done()
 
     it "should be possible", ->
-      browser.assert.text "#ws-url", "ws://localhost:3004"
+      browser.assert.text "#ws-url", "ws://example.com:3004"
     it "should raise open event after connecting", ->
       assert.equal prompts[0], "open"
     it "should raise message event for each message", ->

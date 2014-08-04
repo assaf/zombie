@@ -16,8 +16,9 @@ var Browser = require("zombie");
 var assert = require("assert");
 
 // Load the page from localhost
-browser = Browser.create()
-browser.visit("http://localhost:3000/", function (error) {
+browser = Browser.create();
+browser.localhost("example.com", 3000);
+browser.visit("/signup", function (error) {
 
   // Fill email, password and submit form
   browser.
@@ -57,10 +58,10 @@ on the Mac, you should be using Homebrew):
 ```sh
 $ brew install node
 $ node --version
-v0.8.16
+v0.10.25
 $ npm --version
-1.1.69
-$ npm install zombie
+1.3.24
+$ npm install zombie --save-dev
 ```
 
 On Windows you will need to install a recent version of Python and Visual
@@ -103,8 +104,49 @@ window at a time.
 
 See [Tabs](#tabs) for detailed discussion.
 
+#### browser.localhost(hostname, port)
+
+Even though your test server is running on localhost and unprivileged port, this
+method makes it possible to access it as a different domain name and through
+port 80.
+
+It also sets the default site URL, so your tests don't have to specify the
+hostname every time.
+
+Let's say your test server runs on port 3000, and you want to write tests that
+visit `example.com`:
+
+```
+Browser.localhost('example.com', 3000);
+```
+
+You can now visit `http://example.com/path` and it will talk to your local
+server on port 3000.  In fact, `example.com` becomes the default domain, so your
+tests can be as simple as:
+
+```
+// Global setting, applies to all browser instances
+Browser.localhost('*.example.com', 3000);
+
+// Browser instance for this test
+var browser = new Browser();
+browser.visit('/path', function() {
+  // It picks example.com as the default host
+  browser.assert.url("http://example.com/path");
+});
+```
+
+Notice the asterisk in the above example, that tells Zombie to route all
+sub-domains, so you can visit `foo.example.com` and `bar.example.com` in your
+test case.
+
+If you need to map multiple domains and/or ports, see [DNS Masking](#dnsmasking)
+and [Port Mapping](#portmapping).
+
+
 #### browser.eventLoop
 #### browser.errors
+
 
 ### Extending The Browser
 
@@ -373,12 +415,25 @@ Asserts the named attribute of the selected element(s) has the expected value.
 
 Fails if no element found.
 
+```js
+browser.assert.attribute('form', 'method', 'post);
+browser.assert.attribute('form', 'action', '/customer/new');
+// Disabled with no attribute value, i.e. <button disabled>
+browser.assert.attribute('button', 'disabled', '');
+// No disabled attribute i.e. <button>
+browser.assert.attribute('button', 'disabled', null);
+```
+
 #### assert.className(selection, className, message)
 
 Asserts that selected element(s) has that and only that class name.  May also be
 space-separated list of class names.
 
 Fails if no element found.
+
+```js
+browser.assert.className('form input[name=email]', 'has-error');
+```
 
 #### assert.cookie(identifier, expected, message)
 
@@ -388,11 +443,21 @@ Asserts that a cookie exists and  has the expected value, or if `expected` is
 The identifier is either the name of a cookie, or an object with the property
 `name` and the optional properties `domain` and `path`.
 
+```js
+browser.assert.cookie('flash', 'Missing email addres');
+```
+
 #### assert.element(selection, message)
 
 Asserts that one element matching selection exists.
 
 Fails if no element or more than one matching element are found.
+
+```js
+browser.assert.elements('form');
+browser.assert.elements('form input[name=email]');
+browser.assert.elements('form input[name=email].has-error');
+```
 
 #### assert.elements(selection, count, message)
 
@@ -405,6 +470,13 @@ properties:
 - `atMost`  - Expecting to find at most that many elements
 - `exactly` - Expecting to find exactly that many elements
 
+```js
+browser.assert.elements('form', 1);
+browser.assert.elements('form input', 3);
+browser.assert.elements('form input.has-error', { atLeast: 1 });
+browser.assert.elements('form input:not(.has-error)', { atMost: 2 });
+```
+
 #### assert.evaluate(expression, expected, message)
 
 Evaluates the JavaScript expression in the context of the currently open window.
@@ -413,6 +485,11 @@ With one argument, asserts that the value is equal to `true`.
 
 With two/three arguments, asserts that the returned value matches the expected
 value.
+
+```js
+browser.assert.evaluate('$("form").data("valid")');
+browser.assert.evaluate('$("form").data("errors").length', 3);
+```
 
 #### assert.global(name, expected, message)
 
@@ -425,6 +502,10 @@ have other class names (unlike `assert.className`).
 
 Fails if no element found.
 
+```js
+browser.assert.hasClass('form input[name=email]', 'has-error');
+```
+
 #### assert.hasFocus(selection, message)
 
 Asserts that selected element has the focus.
@@ -433,12 +514,9 @@ If the first argument is `null`, asserts that no element has the focus.
 
 Otherwise, fails if element not found, or if more than one element found.
 
-#### assert.input(selection, expected, message)
-
-Asserts that selected input field(s) (`input`, `textarea`, `select` etc) have
-the expected value.
-
-Fails if no element found.
+```js
+browser.assert.hasFocus('form input:nth-child(1)');
+```
 
 #### assert.hasNoClass(selection, className, message)
 
@@ -447,9 +525,41 @@ have other class names (unlike `assert.className`).
 
 Fails if no element found.
 
+```js
+browser.assert.hasNoClass('form input', 'has-error');
+```
+
+#### assert.input(selection, expected, message)
+
+Asserts that selected input field(s) (`input`, `textarea`, `select` etc) have
+the expected value.
+
+Fails if no element found.
+
+```js
+browser.assert.input('form input[name=text]', 'Head Eater');
+```
+
+#### assert.link(selection, text, url, message)
+
+Asserts that at least one link exists with the given selector, text and URL.
+The selector can be `a`, but a more specific selector is recommended.  URL can
+be relative to the current document.
+
+Fails if no element is selected that also has the specified text content and
+URL.
+
+```js
+browser.assert.link('footer a', 'Privacy Policy', '/privacy');
+```
+
 #### assert.prompted(messageShown, message)
 
 Asserts the browser prompted with a given message.
+
+```js
+browser.assert.prompted('Are you sure?');
+```
 
 #### assert.redirected(message)
 
@@ -463,26 +573,31 @@ Asserts the current page loaded successfully (status code 2xx or 3xx).
 
 Asserts the current page loaded with the expected status code.
 
+```js
+browser.assert.status(404);
+```
+
 #### assert.style(selection, style, expected, message)
 
 Asserts that selected element(s) have the expected value for the named style
 property.  For example:
 
-```js
-browser.assert.style(".navigation", "opacity", 0.5)
-```
+Fails if no element found, or element style does not match expected value.
 
-Fails if no element found.
+```js
+browser.assert.style('#show-hide.hidden', 'display', 'none');
+browser.assert.style('#show-hide:not(.hidden)', 'display', '');
+```
 
 #### assert.text(selection, expected, message)
 
 Asserts that selected element(s) have the expected text content.  For example:
 
-```js
-browser.assert.text("title", "My Awesome Page")
-```
+Fails if no element found that has that text content.
 
-Fails if no element found.
+```js
+browser.assert.text('title', 'My Awesome Page');
+```
 
 #### assert.url(url, message)
 
@@ -498,9 +613,9 @@ The expected URL can be one of:
 For example:
 
 ```js
-browser.assert.url("http://localhost/foo/bar")
-browser.assert.url({ pathame: "/foo/bar" });
-browser.assert.url({ query: { name: "joedoe" } });
+browser.assert.url('http://localhost/foo/bar');
+browser.assert.url({ pathame: '/foo/bar' });
+browser.assert.url({ query: { name: 'joedoe' } });
 ```
 
 
@@ -524,8 +639,8 @@ Or application specific:
 ```js
 // Asserts which links is highlighted in the navigation bar
 Browser.Assert.navigationOn = function(linkText) {
-  this.assert.element(".navigation-bar");
-  this.assert.text(".navigation-bar a.highlighted", linkText);
+  this.assert.element('.navigation-bar');
+  this.assert.text('.navigation-bar a.highlighted', linkText);
 };
 ```
 
@@ -702,7 +817,7 @@ The request object consists of:
 - `headers`     - All request headers
 - `body`        - The request body can be `Buffer` or string; only applies to
   POST and PUT methods
-- `multiparty`  - Used instead of a body to support file upload
+- `multipart`  - Used instead of a body to support file upload
 - `time`        - Timestamp when request was made
 - `timeout`     - Request timeout (0 for no timeout)
 
@@ -742,8 +857,12 @@ In the real world, servers and networks often fail.  You can test to for these
 conditions by asking Zombie to simulate a failure.  For example:
 
 ```js
-browser.resource.fail("http://3rd.party.api/v1/request");
+browser.resources.fail("/form/post");
 ```
+
+Resource URLs can be absolute or relative.  Relative URLs will match any
+request with the same path, so only use relative URLs that are specific to a
+given request.
 
 Another issue you'll encounter in real-life applications are network latencies.
 When running tests, Zombie will request resources in the order in which they
@@ -918,4 +1037,71 @@ browser.resources.request("DELETE",
 Reset any special resource handling from a previous call to `delay`, `fail` or
 `mock`.
 
+
+### DNS masking
+
+You can use DNS masking to test your application with real domain names.  For
+example:
+
+```
+Browser.dns.localhost('*.example.com');
+Browser.defaults.site = 'http://example.com:3000';
+
+browser = new Browser();
+browser.visit('/here', function(error, browser) {
+  browser.assert.url('http://example.com:3000/here');
+});
+```
+
+The DNS masking offered by Zombie only works within the local Node process, and
+will not interfere or affect any other application you run.
+
+Use `Browser.dns.map(domain, type, ip)` to map a domain name, and a particular
+record type (e.g. A, CNAME even MX) to the given IP address.  For example:
+
+```
+Browser.dns.map('*.example.com', 'A', '127.0.0.1');    // IPv4
+Browser.dns.map('*.example.com', 'AAAA', '::1');       // IPv6
+Browser.dns.map('*.example.com', 'CNAME', 'localhost');
+```
+
+Since these are the most common mapping, you can call `map` with two arguments
+and Zombie will infer if the second argumet is an IPv4 address, IPv6 address or
+CNAME.
+
+Of for short, just map the A and AAAA records like this:
+
+```
+Browser.dns.localhost('*.example.com') // IPv4 and IPv6
+```
+
+If you use an asertisk, it will map the domain itself and all sub-domains,
+including `www.example.com`, `assets.example.com` and `example.com`.  Don't use
+an asterisk if you only want to map the specific domain.
+
+For MX records:
+
+```
+Browser.dns.map('example.com', 'MX', { exchange: 'localhost', priority: 10 });
+```
+
+
+### Port Mapping
+
+Your test server is most likely not running on a privileged port, but you can
+tell Zombie to map port 80 to the test server's port for a given domain.
+
+For example, if your test server is running on port 3000, you can tell Zombie to
+map port 80 to port 3000:
+
+```
+Browser.ports.map('localhost', 3000);
+```
+
+If you're testing sub-domains, you can also apply the mapping to all sub-domains
+with an asterisk, for example:
+
+```
+Browser.ports.map('*.example.com', 3000);
+```
 
