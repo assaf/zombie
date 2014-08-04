@@ -1,6 +1,10 @@
 zombie.js(1) -- Insanely fast, headless full-stack testing using Node.js
 ========================================================================
 
+**Note: This page documents Zombie 1.4, [check here for Zombie 2.0 Alpha
+docs](https://github.com/assaf/zombie/tree/master/doc/new) and help us finish
+the docs.**
+
 
 ## The Bite
 
