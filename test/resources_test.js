@@ -273,16 +273,65 @@ describe("Resources", function() {
 
   describe("addHandler", function() {
     before(function() {
-      // WARNING: This handler is used for all remaining tests in the suite.
       browser.resources.addHandler(function(request, callback) {
         callback(null, { statusCode: 204, body: "empty" });
       });
       return browser.visit('/resources/resource');
     });
 
+    after(function() {
+      // Remove handler.
+      browser.resources.pipeline.pop();
+    });
+
     it("should call the handler and use its response", function() {
       browser.assert.status(204);
       browser.assert.text('body', "empty");
+    });
+  });
+
+  describe("addHandler redirect", function () {
+    before(function() {
+      browser.resources.addHandler(function(request, callback) {
+        var response = {
+          headers : {
+            location : 'http://example.com/resources/resource'
+          },
+          statusCode : 301
+        };
+
+        if (request.url === 'http://example.com/fake') {
+          callback(null, response);
+        }
+        else {
+          callback();
+        }
+      });
+      browser.resources.length = 0;
+      return browser.visit('/fake');
+    });
+
+    after(function() {
+      // Remove handler.
+      browser.resources.pipeline.pop();
+    });
+
+    it("should have a length", function() {
+      assert.equal(browser.resources.length, 2);
+    });
+
+    it("should include loaded page", function() {
+      assert.equal(browser.resources[0].response.url, 'http://example.com/resources/resource');
+    });
+
+    it("should include loaded JavaScript", function() {
+      assert.equal(browser.resources[1].response.url, 'http://example.com/jquery-2.0.3.js');
+    });
+
+    it("should follow the redirect", function() {
+      browser.assert.redirected();
+      browser.assert.status(200);
+      browser.assert.text('title', "Awesome");
     });
   });
 

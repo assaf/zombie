@@ -237,10 +237,12 @@ class Resources extends Array
           callback(error)
 
     # Called to execute the next response handler.
-    nextResponseHandler = (error)=>
+    nextResponseHandler = (error, responseFromHandler)=>
       if error
         callback(error)
       else
+        if responseFromHandler
+          response = responseFromHandler
         handler = responseHandlers.shift()
         if handler
           # Use the next response handler
@@ -392,6 +394,67 @@ Resources.specialURLHandlers = (request, next)->
   next()
 
 
+Resources.handleHTTPResponse = (request, response, callback)->
+  { protocol, hostname, pathname } = URL.parse(request.url)
+  unless protocol == "http:" or protocol == "https:"
+    callback()
+    return
+
+  # Set cookies from response
+  setCookie = response.headers and response.headers["set-cookie"]
+  if setCookie
+    @cookies.update(setCookie, hostname, pathname)
+
+  # Number of redirects so far.
+  redirects = request.redirects || 0
+  redirectUrl = null
+
+  # Determine whether to automatically redirect and which method to use
+  # based on the status code
+  switch response.statusCode
+    when 301, 307
+      # Do not follow POST redirects automatically, only GET/HEAD
+      if request.method == "GET" || request.method == "HEAD"
+        redirectUrl = URL.resolve(request.url, response.headers.location)
+    when 302, 303
+      # Follow redirect using GET (e.g. after form submission)
+      redirectUrl = URL.resolve(request.url, response.headers.location)
+
+  if redirectUrl
+    response.url = redirectUrl
+    # Handle redirection, make sure we're not caught in an infinite loop
+    ++redirects
+    if redirects > @maxRedirects
+      callback(new Error("More than #{@maxRedirects} redirects, giving up"))
+      return
+
+    redirectHeaders = {}
+    for name, value of request.headers
+      redirectHeaders[name] = value
+    # This request is referer for next
+    redirectHeaders.referer = request.url
+    # These headers exist in POST request, do not pass to redirect (GET)
+    delete redirectHeaders["content-type"]
+    delete redirectHeaders["content-length"]
+    delete redirectHeaders["content-transfer-encoding"]
+    # Redirect must follow the entire chain of handlers.
+    redirectRequest =
+      method:     "GET"
+      url:        response.url
+      headers:    redirectHeaders
+      redirects:  redirects
+      strictSSL:  request.strictSSL
+      time:       request.time
+      timeout:    request.timeout
+    @emit("redirect", response, redirectRequest)
+    @resources.runPipeline(redirectRequest, callback)
+
+  else
+    response.redirects = redirects
+    callback()
+  return
+
+
 # Handle deflate and gzip transfer encoding.
 Resources.decompressBody = (request, response, next)->
   if response.body && response.headers
@@ -437,6 +500,7 @@ Resources.pipeline = [
   Resources.mergeHeaders
   Resources.createBody
   Resources.specialURLHandlers
+  Resources.handleHTTPResponse
   Resources.decompressBody
   Resources.decodeBody
 ]
@@ -494,62 +558,13 @@ Resources.makeHTTPRequest = (request, callback)->
         callback(error)
         return
 
-      # Set cookies from response
-      setCookie = response.headers["set-cookie"]
-      if setCookie
-        cookies.update(setCookie, hostname, pathname)
-
-      # Number of redirects so far.
-      redirects = request.redirects || 0
-
-      # Determine whether to automatically redirect and which method to use
-      # based on the status code
-      switch response.statusCode
-        when 301, 307
-          # Do not follow POST redirects automatically, only GET/HEAD
-          if request.method == "GET" || request.method == "HEAD"
-            response.url = URL.resolve(request.url, response.headers.location)
-        when 302, 303
-          # Follow redirect using GET (e.g. after form submission)
-          response.url = URL.resolve(request.url, response.headers.location)
-
-      if response.url
-        # Handle redirection, make sure we're not caught in an infinite loop
-        ++redirects
-        if redirects > @maxRedirects
-          callback(new Error("More than #{@maxRedirects} redirects, giving up"))
-          return
-
-        redirectHeaders = {}
-        for name, value of request.headers
-          redirectHeaders[name] = value
-        # This request is referer for next
-        redirectHeaders.referer = request.url
-        # These headers exist in POST request, do not pass to redirect (GET)
-        delete redirectHeaders["content-type"]
-        delete redirectHeaders["content-length"]
-        delete redirectHeaders["content-transfer-encoding"]
-        # Redirect must follow the entire chain of handlers.
-        redirectRequest =
-          method:     "GET"
-          url:        response.url
-          headers:    redirectHeaders
-          redirects:  redirects
-          strictSSL:  request.strictSSL
-          time:       request.time
-          timeout:    request.timeout
-        @emit("redirect", response, redirectRequest)
-        @resources.runPipeline(redirectRequest, callback)
-
-      else
-
-        response =
-          url:          request.url
-          statusCode:   response.statusCode
-          headers:      response.headers
-          body:         response.body
-          redirects:    redirects
-        callback(null, response)
+      response =
+        url:          request.url
+        statusCode:   response.statusCode
+        headers:      response.headers
+        body:         response.body
+        redirects:    request.redirects || 0
+      callback(null, response)
   return
 
 module.exports = Resources
