@@ -14,10 +14,7 @@ describe("Document", function() {
     before(function() {
       brains.get('/document/encoding', function(req, res) {
         res.header('Content-Type', 'text/html; charset=greek');
-        res.send(`
-          <html>
-            <body>\xc3\xe5\xe9\xdc!</body>
-          </html>`);
+        res.send(new Buffer("<html><body>\xc3\xe5\xe9\xdc!</body></html>"));
       });
       return browser.visit('/document/encoding');
     });
