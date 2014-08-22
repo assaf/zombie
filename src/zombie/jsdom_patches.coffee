@@ -16,6 +16,10 @@ HTML.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
 HTML.HTMLScriptElement.prototype.__defineGetter__ "src", ->
   return @getAttribute('src') || ""
 
+# Meta elements should always respond to a name attribute
+HTML.HTMLMetaElement.prototype.__defineGetter__ "name", ->
+  return @getAttribute('name') || ""
+
 # These properties return empty string when attribute is not set.
 HTML.HTMLElement.prototype.__defineGetter__ "id", ->
   return @getAttribute("id") || ""
