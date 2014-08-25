@@ -150,7 +150,7 @@ class XMLHttpRequest extends Events.EventTarget
           return
 
       # Since the request was not aborted, we set all the fields here and change
-      # the state to HEADERS_RECIEVED.
+      # the state to HEADERS_RECEIVED.
       @status           = response.statusCode
       @statusText       = response.statusText
       @_responseHeaders = response.headers
