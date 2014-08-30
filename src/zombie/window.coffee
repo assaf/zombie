@@ -1,7 +1,5 @@
 # Exports single function for creating a new Window.
 
-
-createDocument  = require("./document")
 EventSource     = require("eventsource")
 History         = require("./history")
 JSDOM           = require("jsdom")
@@ -30,7 +28,32 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
   name  ||= ""
   url   ||= "about:blank"
 
-  window = JSDOM.createWindow(HTML)
+
+  features =
+    MutationEvents:           "2.0"
+    ProcessExternalResources: []
+    FetchExternalResources:   []
+    QuerySelector:            true
+
+  if browser.hasFeature("scripts", true)
+    features.ProcessExternalResources.push("script")
+    features.FetchExternalResources.push("script")
+
+  if browser.hasFeature("css", false)
+    features.FetchExternalResources.push("css")
+    features.FetchExternalResources.push("link")
+  if browser.hasFeature("img", false)
+    features.FetchExternalResources.push("img")
+  if browser.hasFeature("iframe", true)
+    features.FetchExternalResources.push("iframe")
+
+  document = JSDOM.jsdom undefined,
+    url: url
+    referrer: referer || history.url
+ #   parser: browser.htmlParser
+    features: features
+
+  window = document.parentWindow
   global = window.getGlobal()
   # window`s have a closed property defaulting to false
   closed = false
@@ -39,15 +62,6 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
   Object.defineProperty window, "browser",
     value: browser
     enumerable: true
-
-  # -- Document --
-
-  # Each window has its own document
-  document = createDocument(browser, window, referer || history.url)
-  Object.defineProperty window, "document",
-    value: document
-    enumerable: true
-
 
   # -- DOM Window features
 
@@ -61,13 +75,6 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
       enumerable: true
     Object.defineProperty window, "top",
       value: parent.top
-      enumerable: true
-  else
-    Object.defineProperty window, "parent",
-      value: global
-      enumerable: true
-    Object.defineProperty window, "top",
-      value: global
       enumerable: true
 
   # If this was opened from another window
