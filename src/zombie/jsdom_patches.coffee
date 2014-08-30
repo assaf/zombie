@@ -1,7 +1,7 @@
 # Fix things that JSDOM doesn't do quite right.
 
 
-HTML  = require("jsdom").dom.level3.html
+HTML  = require("jsdom").dom.html
 
 
 HTML.HTMLDocument.prototype.__defineGetter__ "scripts",   ->

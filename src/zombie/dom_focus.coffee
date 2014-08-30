@@ -1,7 +1,7 @@
 # Support for element focus.
 
 
-HTML = require("jsdom").dom.level3.html
+HTML = require("jsdom").dom.html
 
 
 FOCUS_ELEMENTS = ["INPUT", "SELECT", "TEXTAREA", "BUTTON", "ANCHOR"]

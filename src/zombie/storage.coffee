@@ -1,6 +1,6 @@
 # See [Web Storage](http://dev.w3.org/html5/webstorage/)
-HTML      = require("jsdom").dom.level3.html
-{ Event } = require("jsdom").dom.level3.events
+HTML      = require("jsdom").dom.html
+{ Event } = require("jsdom/level2/events")
 
 
 # Storage area. The storage area is shared by multiple documents of the same
@@ -68,43 +68,43 @@ class StorageArea
 # Implementation of the Storage interface, used by local and session storage.
 class Storage
   constructor: (@_area)->
-  
+
   # ### storage.length => Number
   #
   # Returns the number of key/value pairs in this storage.
   @prototype.__defineGetter__ "length", ->
     return @_area.length
-  
+
   # ### storage.key(index) => String
   #
   # Returns the key at this position.
   key: (index)->
     return @_area.key(index)
-  
+
   # ### storage.getItem(key) => Object
   #
   # Returns item by key.
   getItem: (key)->
     return @_area.get(key.toString())
-  
+
   # ### storage.setItem(key, Object)
   #
   # Add item or change value of existing item.
   setItem: (key, value)->
     @_area.set this, key.toString(), value
-  
+
   # ### storage.removeItem(key)
   #
   # Remove item.
   removeItem: (key)->
     @_area.remove this, key.toString()
-  
+
   # ### storage.clear()
   #
   # Remove all items.
   clear: ->
     @_area.clear this
-  
+
   # Dump to a string, useful for debugging.
   dump: ->
     return @_area.dump()
@@ -188,7 +188,7 @@ class Storages
         for pair in pairs
           serialized.push "  #{escape pair[0]} = #{escape pair[1]}"
     return serialized.join("\n") + "\n"
-    
+
   # browser.loadStorage uses this
   load: (serialized) ->
     storage = null
