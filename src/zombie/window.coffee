@@ -52,280 +52,277 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
     referrer: referer || history.url
  #   parser: browser.htmlParser
     features: features
+    deferClose: true
+    created: (err, window) ->
+      Object.defineProperty window, "browser",
+        value: browser
+        enumerable: true
 
-  window = document.parentWindow
-  global = window.getGlobal()
-  # window`s have a closed property defaulting to false
-  closed = false
+      global = window.getGlobal()
+      # window`s have a closed property defaulting to false
+      closed = false
 
-  # Access to browser
-  Object.defineProperty window, "browser",
-    value: browser
-    enumerable: true
+      # -- DOM Window features
 
-  # -- DOM Window features
+      Object.defineProperty window, "name",
+        value: name
+        enumerable: true
+      # If this is an iframe within a parent window
+      if parent
+        Object.defineProperty window, "parent",
+          value: parent
+          enumerable: true
+        Object.defineProperty window, "top",
+          value: parent.top
+          enumerable: true
 
-  Object.defineProperty window, "name",
-    value: name
-    enumerable: true
-  # If this is an iframe within a parent window
-  if parent
-    Object.defineProperty window, "parent",
-      value: parent
-      enumerable: true
-    Object.defineProperty window, "top",
-      value: parent.top
-      enumerable: true
+      # If this was opened from another window
+      Object.defineProperty window, "opener",
+        value: opener && opener
+        enumerable: true
 
-  # If this was opened from another window
-  Object.defineProperty window, "opener",
-    value: opener && opener
-    enumerable: true
+      # Window title is same as document title
+      Object.defineProperty window, "title",
+        get: ->
+          return document.title
+        set: (title)->
+          document.title = title
+        enumerable: true
 
-  # Window title is same as document title
-  Object.defineProperty window, "title",
-    get: ->
-      return document.title
-    set: (title)->
-      document.title = title
-    enumerable: true
+      Object.defineProperty window, "console",
+        value: browser.console
+        enumerable: true
 
-  Object.defineProperty window, "console",
-    value: browser.console
-    enumerable: true
+      # javaEnabled, present in browsers, not in spec Used by Google Analytics see
+      # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
+      Object.defineProperties window.navigator,
+        cookieEnabled: { value: true }
+        javaEnabled:   { value: -> false }
+        plugins:       { value: [] }
+        userAgent:     { value: browser.userAgent }
+        language:      { value: browser.language }
+        vendor:        { value: "Zombie Industries" }
 
-  # javaEnabled, present in browsers, not in spec Used by Google Analytics see
-  # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
-  Object.defineProperties window.navigator,
-    cookieEnabled: { value: true }
-    javaEnabled:   { value: -> false }
-    plugins:       { value: [] }
-    userAgent:     { value: browser.userAgent }
-    language:      { value: browser.language }
-    vendor:        { value: "Zombie Industries" }
+      # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
+      Object.defineProperty window, "cookies",
+        get: ->
+          return browser.cookies(@location.hostname, @location.pathname)
+      browser._storages.extend(window)
+      browser._interact.extend(window)
 
-  # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
-  Object.defineProperty window, "cookies",
-    get: ->
-      return browser.cookies(@location.hostname, @location.pathname)
-  browser._storages.extend(window)
-  browser._interact.extend(window)
+      Object.defineProperties window,
+        File:           { value: File }
+        Event:          { value: Events.Event }
+        screen:         { value: new Screen() }
+        MouseEvent:     { value: Events.MouseEvent }
+        MutationEvent:  { value: Events.MutationEvent }
+        UIEvent:        { value: Events.UIEvent }
 
-  Object.defineProperties window,
-    File:           { value: File }
-    Event:          { value: Events.Event }
-    screen:         { value: new Screen() }
-    MouseEvent:     { value: Events.MouseEvent }
-    MutationEvent:  { value: Events.MutationEvent }
-    UIEvent:        { value: Events.UIEvent }
+      # Base-64 encoding/decoding
+      window.atob = (string)->
+        new Buffer(string, "base64").toString("utf8")
+      window.btoa = (string)->
+        new Buffer(string, "utf8").toString("base64")
 
-  # Base-64 encoding/decoding
-  window.atob = (string)->
-    new Buffer(string, "base64").toString("utf8")
-  window.btoa = (string)->
-    new Buffer(string, "utf8").toString("base64")
+      # Constructor for XHLHttpRequest
+      window.XMLHttpRequest = ->
+        return new XMLHttpRequest(window)
 
-  # Constructor for XHLHttpRequest
-  window.XMLHttpRequest = ->
-    return new XMLHttpRequest(window)
+      # Constructor for EventSource, URL is relative to document's.
+      window.EventSource = (url)->
+        url = HTML.resourceLoader.resolve(document, url)
+        window.setInterval((->), 100) # We need this to trigger event loop
+        return new EventSource(url)
 
-  # Constructor for EventSource, URL is relative to document's.
-  window.EventSource = (url)->
-    url = HTML.resourceLoader.resolve(document, url)
-    window.setInterval((->), 100) # We need this to trigger event loop
-    return new EventSource(url)
+      # Web sockets
+      window.WebSocket = (url, protocol)->
+        url = HTML.resourceLoader.resolve(document, url)
+        origin = "#{window.location.protocol}//#{window.location.host}"
+        return new WebSocket(url, origin: origin, protocol: protocol)
 
-  # Web sockets
-  window.WebSocket = (url, protocol)->
-    url = HTML.resourceLoader.resolve(document, url)
-    origin = "#{window.location.protocol}//#{window.location.host}"
-    return new WebSocket(url, origin: origin, protocol: protocol)
+      window.Image = (width, height)->
+        img = new HTML.HTMLImageElement(window.document)
+        img.width = width
+        img.height = height
+        return img
 
-  window.Image = (width, height)->
-    img = new HTML.HTMLImageElement(window.document)
-    img.width = width
-    img.height = height
-    return img
+      window.resizeTo = (width, height)->
+        window.outerWidth = window.innerWidth = width
+        window.outerHeight = window.innerHeight = height
+      window.resizeBy = (width, height)->
+        window.resizeTo(window.outerWidth + width,  window.outerHeight + height)
 
-  window.resizeTo = (width, height)->
-    window.outerWidth = window.innerWidth = width
-    window.outerHeight = window.innerHeight = height
-  window.resizeBy = (width, height)->
-    window.resizeTo(window.outerWidth + width,  window.outerHeight + height)
+      # Some libraries (e.g. Backbone) check that this property exists before
+      # deciding to use onhashchange, so we need to set it to null.
+      window.onhashchange = null
 
-  # Some libraries (e.g. Backbone) check that this property exists before
-  # deciding to use onhashchange, so we need to set it to null.
-  window.onhashchange = null
+      # Help iframes talking with each other
+      window.postMessage = (data, targetOrigin)->
+        document = window.document
+        # Create the event now, but dispatch asynchronously
+        event = document.createEvent("MessageEvent")
+        event.initEvent("message", false, false)
+        event.data = data
+        # Window A (source) calls B.postMessage, to determine A we need the
+        # caller's window.
 
-  # Help iframes talking with each other
-  window.postMessage = (data, targetOrigin)->
-    document = window.document
-    # Create the event now, but dispatch asynchronously
-    event = document.createEvent("MessageEvent")
-    event.initEvent("message", false, false)
-    event.data = data
-    # Window A (source) calls B.postMessage, to determine A we need the
-    # caller's window.
-
-    # DDOPSON-2012-11-09 - _windowInScope.getGlobal() is used here so that for
-    # website code executing inside the sandbox context, event.source ==
-    # window. Even though the _windowInScope object is mapped to the sandboxed
-    # version of the object returned by getGlobal, they are not the same
-    # object ie, _windowInScope.foo == _windowInScope.getGlobal().foo, but
-    # _windowInScope != _windowInScope.getGlobal()
-    event.source = (browser._windowInScope || window).getGlobal()
-    origin = event.source.location
-    event.origin = URL.format(protocol: origin.protocol, host: origin.host)
-    window.dispatchEvent(event)
-
-
-  # -- JavaScript evaluation
-
-  # Evaulate in context of window. This can be called with a script (String) or a function.
-  window._evaluate = (code, filename)->
-    # Surpress JavaScript validation and execution
-    if !browser.runScripts
-      return
-
-    try
-      # The current window, postMessage and window.close need this
-      [originalInScope, browser._windowInScope] = [browser._windowInScope, window]
-      if typeof(code) == "string" || code instanceof String
-        result = global.run(code, filename)
-      else if code
-        result = code.call(global)
-      browser.emit("evaluated", code, result, filename)
-      return result
-    catch error
-      error.filename ||= filename
-      browser.emit("error", error)
-    finally
-      browser._windowInScope = originalInScope
-
-  # Default onerror handler.
-  window.onerror = (event)->
-    error = event.error || new Error("Error loading script")
-    browser.emit("error", error)
+        # DDOPSON-2012-11-09 - _windowInScope.getGlobal() is used here so that for
+        # website code executing inside the sandbox context, event.source ==
+        # window. Even though the _windowInScope object is mapped to the sandboxed
+        # version of the object returned by getGlobal, they are not the same
+        # object ie, _windowInScope.foo == _windowInScope.getGlobal().foo, but
+        # _windowInScope != _windowInScope.getGlobal()
+        event.source = (browser._windowInScope || window).getGlobal()
+        origin = event.source.location
+        event.origin = URL.format(protocol: origin.protocol, host: origin.host)
+        window.dispatchEvent(event)
 
 
-  # -- Event loop --
+      # -- JavaScript evaluation
 
-  eventQueue = browser.eventLoop.createEventQueue(window)
-  Object.defineProperties window,
-    _eventQueue:
-      value: eventQueue
-    setTimeout:
-      value: eventQueue.setTimeout.bind(eventQueue)
-    clearTimeout:
-      value: eventQueue.clearTimeout.bind(eventQueue)
-    setInterval:
-      value: eventQueue.setInterval.bind(eventQueue)
-    clearInterval:
-      value: eventQueue.clearInterval.bind(eventQueue)
-    setImmediate:
-      value: (fn) -> eventQueue.setTimeout(fn, 0)
-    clearImmediate:
-      value: eventQueue.clearTimeout.bind(eventQueue)
+      # Evaulate in context of window. This can be called with a script (String) or a function.
+      window._evaluate = (code, filename)->
+        # Surpress JavaScript validation and execution
+        if !browser.runScripts
+          return
+
+        try
+          # The current window, postMessage and window.close need this
+          [originalInScope, browser._windowInScope] = [browser._windowInScope, window]
+          if typeof(code) == "string" || code instanceof String
+            result = global.run(code, filename)
+          else if code
+            result = code.call(global)
+          browser.emit("evaluated", code, result, filename)
+          return result
+        catch error
+          error.filename ||= filename
+          browser.emit("error", error)
+        finally
+          browser._windowInScope = originalInScope
+
+      # Default onerror handler.
+      window.onerror = (event)->
+        error = event.error || new Error("Error loading script")
+        browser.emit("error", error)
 
 
-  # -- Opening and closing --
+      # -- Event loop --
 
-  # Open one window from another.
-  window.open = (url, name, features)->
-    url = url && HTML.resourceLoader.resolve(document, url)
-    return browser.tabs.open(name: name, url: url, opener: window)
+      eventQueue = browser.eventLoop.createEventQueue(window)
+      Object.defineProperties window,
+        _eventQueue:
+          value: eventQueue
+        setTimeout:
+          value: eventQueue.setTimeout.bind(eventQueue)
+        clearTimeout:
+          value: eventQueue.clearTimeout.bind(eventQueue)
+        setInterval:
+          value: eventQueue.setInterval.bind(eventQueue)
+        clearInterval:
+          value: eventQueue.clearInterval.bind(eventQueue)
+        setImmediate:
+          value: (fn) -> eventQueue.setTimeout(fn, 0)
+        clearImmediate:
+          value: eventQueue.clearTimeout.bind(eventQueue)
 
-  # Indicates if window was closed
-  Object.defineProperty window, "closed",
-    get: -> closed
-    enumerable: true
 
-  # Destroy all the history (and all its windows), frames, and Contextify
-  # global.
-  window._destroy = ->
-    # We call history.destroy which calls destroy on all windows, so need to
-    # avoid infinite loop.
-    if closed
-      return
+      # -- Opening and closing --
 
-    closed = true
-    # Close all frames first
-    for frame in window.frames
-      frame.close()
-    # kill event queue, document and window.
-    eventQueue.destroy()
-    document.close()
-    window.dispose()
-    return
+      # Open one window from another.
+      window.open = (url, name, features)->
+        url = url && HTML.resourceLoader.resolve(document, url)
+        return browser.tabs.open(name: name, url: url, opener: window)
 
-  # window.close actually closes the tab, and disposes of all windows in the history.
-  # Also used to close iframe.
-  window.close = ->
-    if parent || closed
-      return
-    # Only opener window can close window; any code that's not running from
-    # within a window's context can also close window.
-    if browser._windowInScope == opener || browser._windowInScope == null
-      # Only parent window gets the close event
-      browser.emit("closed", window)
-      window._destroy()
-      history.destroy() # do this last to prevent infinite loop
-    else
-      browser.log("Scripts may not close windows that were not opened by script")
-    return
+      # Indicates if window was closed
+      Object.defineProperty window, "closed",
+        get: -> closed
+        enumerable: true
 
-  # -- Navigating --
+      # Destroy all the history (and all its windows), frames, and Contextify
+      # global.
+      window._destroy = ->
+        # We call history.destroy which calls destroy on all windows, so need to
+        # avoid infinite loop.
+        if closed
+          return
 
-  history.updateLocation(window, url)
+        closed = true
+        # Close all frames first
+        for frame in window.frames
+          frame.close()
+        # kill event queue, document and window.
+        eventQueue.destroy()
+        document.close()
+        window.dispose()
+        return
 
-  # Each window maintains its own view of history
-  windowHistory =
-    forward:      history.go.bind(history, 1)
-    back:         history.go.bind(history, -1)
-    go:           history.go.bind(history)
-    pushState:    history.pushState.bind(history)
-    replaceState: history.replaceState.bind(history)
-    _submit:      history.submit.bind(history)
-    dump:         history.dump.bind(history)
-  Object.defineProperties windowHistory,
-    length:
-      get: -> return history.length
-      enumerable: true
-    state:
-      get: -> return history.state
-      enumerable: true
-  Object.defineProperties window,
-    history:
-      value: windowHistory
+      # window.close actually closes the tab, and disposes of all windows in the history.
+      # Also used to close iframe.
+      window.close = ->
+        if parent || closed
+          return
+        # Only opener window can close window; any code that's not running from
+        # within a window's context can also close window.
+        if browser._windowInScope == opener || browser._windowInScope == null
+          # Only parent window gets the close event
+          browser.emit("closed", window)
+          window._destroy()
+          history.destroy() # do this last to prevent infinite loop
+        else
+          browser.log("Scripts may not close windows that were not opened by script")
+        return
 
-  # Window is now open, next load the document.
-  browser.emit("opened", window)
+      # -- Navigating --
 
-  # Form submission uses this
-  window._submit = ({url, method, encoding, params, target })->
-    url = HTML.resourceLoader.resolve(document, url)
-    target ||= "_self"
-    browser.emit("submit", url, target)
-    # Figure out which history is going to handle this
-    switch target
-      when "_self"   # navigate same window
-        submitTo = window
-      when "_parent" # navigate parent window
-        submitTo = window.parent
-      when "_top"    # navigate top window
-        submitTo = window.top
-      else # open named window
-        submitTo = browser.tabs.open(name: target)
-    submitTo.history._submit(url: url, method: method, encoding: encoding, params: params)
+      history.updateLocation(window, url)
+
+      # Each window maintains its own view of history
+      windowHistory =
+        forward:      history.go.bind(history, 1)
+        back:         history.go.bind(history, -1)
+        go:           history.go.bind(history)
+        pushState:    history.pushState.bind(history)
+        replaceState: history.replaceState.bind(history)
+        _submit:      history.submit.bind(history)
+        dump:         history.dump.bind(history)
+      Object.defineProperties windowHistory,
+        length:
+          get: -> return history.length
+          enumerable: true
+        state:
+          get: -> return history.state
+          enumerable: true
+      window.history = windowHistory
+
+      # Window is now open, next load the document.
+      browser.emit("opened", window)
+
+      # Form submission uses this
+      window._submit = ({url, method, encoding, params, target })->
+        url = HTML.resourceLoader.resolve(document, url)
+        target ||= "_self"
+        browser.emit("submit", url, target)
+        # Figure out which history is going to handle this
+        switch target
+          when "_self"   # navigate same window
+            submitTo = window
+          when "_parent" # navigate parent window
+            submitTo = window.parent
+          when "_top"    # navigate top window
+            submitTo = window.top
+          else # open named window
+            submitTo = browser.tabs.open(name: target)
+        submitTo.history._submit(url: url, method: method, encoding: encoding, params: params)
 
   # Load the document associated with this window.
   loadDocument document: document, history: history, url: url, method: method, encoding: encoding, params: params
-  return window
+  return document.parentWindow
 
 
 # Load document. Also used to submit form.
 loadDocument = ({ document, history, url, method, encoding, params })->
-  window = document.window
+  window = document.parentWindow
   browser = window.browser
   window._response = {}
 
@@ -416,7 +413,7 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         document.addEventListener("DOMContentLoaded", contentLoaded)
 
         # Give event handler chance to register listeners.
-        window.browser.emit("loading", document)
+        browser.emit("loading", document)
 
         if response.body
           body = response.body.toString("utf8")
