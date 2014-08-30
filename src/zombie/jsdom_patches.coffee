@@ -29,6 +29,20 @@ for element in [HTML.HTMLInputElement, HTML.HTMLButtonElement, HTML.HTMLParamEle
   element.prototype.__defineGetter__ "value", ->
     return @getAttribute("value") || ""
 
+# Fix the retrieval of radio inputs for a radio group
+# This backports the JsDom fix done in https://github.com/tmpvar/jsdom/pull/870
+HTML.HTMLInputElement.prototype.__defineSetter__ "checked", (checked) ->
+  @_initDefaultChecked();
+  if checked
+    @setAttribute 'checked', 'checked'
+
+    if @type == 'radio'
+      for  element in @_ownerDocument.getElementsByName(@name)
+        if element != this && element.tagName == "INPUT" && element.type == "radio" && element.form == @form
+          element.checked = false
+  else
+    @removeAttribute 'checked'
+
 
 # Default behavior for clicking on links: navigate to new URL if specified.
 HTML.HTMLAnchorElement.prototype._eventDefaults =

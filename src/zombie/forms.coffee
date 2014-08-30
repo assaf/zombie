@@ -158,17 +158,18 @@ HTML.HTMLInputElement.prototype.click = ->
         if @checked
           click()
         else
-          radios = @ownerDocument.querySelectorAll("input[type=radio][name='#{@getAttribute("name")}']", @form)
+          radios = @ownerDocument.querySelectorAll("input[type=radio][name='#{@getAttribute("name")}']")
           checked = null
           for radio in radios
-            if radio.checked
+            if radio.checked and radio.form == @form
               checked = radio
               radio.checked = false
           @checked = true
           if !click()
             @checked = false
             for radio in radios
-              radio.checked = (radio == checked)
+              if radio.form == @form
+                radio.checked = (radio == checked)
     else
       click()
   return

@@ -102,6 +102,7 @@ describe "Forms", ->
 
             <input type="checkbox" id="field-prevent-check">
             <input type="radio" id="field-prevent-radio">
+            <input type="radio" name="radio_reused_name" id="field-radio-first-form" />
           </form>
           <div id="formless_inputs">
             <label>Hunter <input type="text" name="hunter_name" id="hunter-name"></label>
@@ -121,6 +122,9 @@ describe "Forms", ->
             <label>Powerglove <input name="hunter_powerglove" type="radio" value="glove"></label>
             <label>No powerglove <input name="hunter_powerglove" type="radio" value="noglove" checked="checked"></label>
           </div>
+          <form>
+            <input type="radio" name="radio_reused_name" id="field-radio-second-form" checked="checked" />
+          </form>
         </body>
       </html>
       """
@@ -500,6 +504,13 @@ describe "Forms", ->
 
       it "should fire blur event on previous field", ->
         assert true
+
+    describe "same radio name used in different forms", ->
+      before ->
+        browser.choose("#field-radio-first-form")
+
+      it "should not uncheck radio in other forms", ->
+        browser.assert.element "#field-radio-second-form:checked"
 
 
   describe "select option", ->
@@ -944,7 +955,7 @@ describe "Forms", ->
         if req.files
           [text, image] = [req.files.text, req.files.image]
           if text || image
-            file = (text || image)[0] 
+            file = (text || image)[0]
             data = File.readFileSync(file.path)
             if image
               digest = Crypto.createHash("md5").update(data).digest("hex")
