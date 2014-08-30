@@ -2,7 +2,7 @@
 
 
 createHistory = require("./history")
-HTML          = require("jsdom").dom.html
+HTML          = require("jsdom").defaultLevel
 
 
 # Support for iframes that load content when you set the src attribute.

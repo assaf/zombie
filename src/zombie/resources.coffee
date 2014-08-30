@@ -18,7 +18,7 @@
 
 encoding  = require("encoding")
 File      = require("fs")
-HTML      = require("jsdom").dom.html
+HTML      = require("jsdom").defaultLevel
 Path      = require("path")
 QS        = require("querystring")
 Request   = require("request")

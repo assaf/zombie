@@ -9,9 +9,8 @@ WebSocket       = require("ws")
 URL             = require("url")
 XMLHttpRequest  = require("./xhr")
 
-
-Events      = JSDOM.dom.level3.events
-HTML        = JSDOM.dom.level3.html
+Events      = JSDOM.level('2', 'events')
+HTML        = JSDOM.defaultLevel
 
 
 # Create and return a new Window.

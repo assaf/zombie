@@ -1,7 +1,7 @@
 # See [RFC 2109](http://tools.ietf.org/html/rfc2109.html) and
 # [document.cookie](http://developer.mozilla.org/en/document.cookie)
 assert  = require("assert")
-HTML    = require("jsdom").dom.html
+HTML    = require("jsdom").defaultLevel
 Tough   = require("tough-cookie")
 Cookie  = Tough.Cookie
 

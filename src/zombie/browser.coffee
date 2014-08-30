@@ -10,7 +10,7 @@ EventLoop         = require("./eventloop")
 File              = require("fs")
 HTML5             = require("html5")
 Interact          = require("./interact")
-HTML              = require("jsdom").dom.html
+HTML              = require("jsdom").defaultLevel
 Mime              = require("mime")
 ms                = require("ms")
 Q                 = require("q")
@@ -21,7 +21,7 @@ Storages          = require("./storage")
 Tough             = require("tough-cookie")
 Cookie            = Tough.Cookie
 URL               = require("url")
-XPathResult       = require("jsdom").dom.core.XPathResult
+XPathResult       = require("jsdom").level('living', 'core').XPathResult
 
 
 # DOM extensions.
