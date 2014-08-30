@@ -189,7 +189,7 @@ class History
       window._eventQueue.enqueue ->
         window.dispatchEvent(event)
     else
-      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent)
+      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent, referer: @current.window.document.referrer)
       @addEntry(window, url)
     return
 
