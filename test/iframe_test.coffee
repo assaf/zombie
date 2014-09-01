@@ -108,6 +108,28 @@ describe "IFrame", ->
     it "should pass messages back and forth", ->
       browser.assert.text "title", "pong http://example.com"
 
+  describe "referer", ->
+    before (done)->
+      brains.get "/iframe/show-referer", (req, res)->
+        res.send "<html><title>#{req.headers["referer"]}</title></html>"
+
+      brains.get "/iframe/referer", (req, res)->
+        res.send """
+          <html>
+            <head></head>
+            <body>
+              <iframe name="child" src="/iframe/show-referer">
+            </body>
+          </html>
+        """
+      brains.ready =>
+        browser.visit "/iframe/referer", done
+
+    it "should be the parent's URL", ->
+      assert.equal browser.window.frames["child"].title, "http://example.com/iframe/referer"
+
+    after ->
+      browser.close()
 
   describe "link target", ->
     before (done)->
