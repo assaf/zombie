@@ -20,7 +20,7 @@ Let's try to sign up to a page and see what happens:
     var assert = require("assert");
 
     // Load the page from localhost
-    browser = new Browser()
+    browser = new Browser();
     browser.visit("http://localhost:3000/", function () {
 
       // Fill email, password and submit form
@@ -88,7 +88,7 @@ just call the `Browser.visit` function with a URL and callback:
     Browser.visit("http://localhost:3000/", function (e, browser) {
       // The browser argument is an instance of Browser class
       ...
-    })
+    });
 
 The browser will load the document and if the document includes any scripts,
 also load and execute these scripts.  It will then process some events, for
@@ -126,7 +126,7 @@ events, for example:
 
     browser.on("error", function(error) {
       console.error(error);
-    })
+    });
     browser.visit("http://localhost:3000/").
       then(function() {
         assert.equal(browser.text("H1"), "Deferred zombies");
@@ -358,7 +358,7 @@ out of reusable steps.  Like so:
       .then( fillInAddress.bind(browser) )
       .then( fillInCreditCard.bind(browser) )
       .then(function() {
-        browser.pressButton("Buy it!")
+        browser.pressButton("Buy it!");
       })
       .then(done, done);
 
@@ -390,7 +390,7 @@ If your test case expects an error to happen, write it like this:
     browser
       .visit("/promises")
       .then(function() {
-        assert(false, "I fail!")
+        assert(false, "I fail!");
       })
       .fail(function(error) {
         // Error happened, test is done.  Otherwise, done never
@@ -455,7 +455,7 @@ for web applications
 what it's doing. For example:
 
     Browser.debug = true
-    var browser = new Browser()
+    var browser = new Browser();
     browser.visit("http://thedead", function() {
       console.log(status, browser.errors);
       ...
