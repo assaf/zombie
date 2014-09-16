@@ -377,6 +377,34 @@ describe("Browser", function() {
   });
 
 
+  describe("click link text", function() {
+    before(async function() {
+      brains.static('/browser/linktext', `
+        <html>
+          <body>
+            <a href='/browser/linktextlocation'>not valid CSS selector syntax..</a>
+          </body>
+        </html>
+      `);
+      brains.static('/browser/linktextlocation', `
+        <html>
+          <head>
+          </head>
+          <body>
+          </body>
+        </html>
+      `);
+
+      await browser.visit('/browser/linktext');
+      await browser.clickLink('not valid CSS selector syntax..');
+    });
+
+    it("should change location", function() {
+      browser.assert.url('/browser/linktextlocation');
+    });
+  });
+
+
   describe("follow redirect", function() {
     before(async function() {
       brains.static('/browser/killed', `
