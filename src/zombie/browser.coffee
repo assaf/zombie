@@ -581,7 +581,10 @@ class Browser extends EventEmitter
     # If the link has already been queried, return itself
     if selector instanceof HTML.Element
       return selector
-    link = @querySelector(selector)
+    try
+      link = @querySelector(selector)
+    catch error
+      link = null
     if link && link.tagName == "A"
       return link
     for link in @querySelectorAll("body a")
