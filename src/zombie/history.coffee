@@ -30,7 +30,7 @@
 
 
 createWindow  = require("./window")
-HTML          = require("jsdom").dom.level3.html
+HTML          = require("jsdom").defaultLevel
 URL           = require("url")
 
 
@@ -146,6 +146,8 @@ class History
   # Update window location (navigating to new URL, same window, e.g pushState or hash change)
   updateLocation: (window, url)->
     history = this
+    # delete the property created by jsdom to replace them with our implementation
+    delete window.location;
     Object.defineProperty window, "location",
       get: ->
         return createLocation(history, url)
