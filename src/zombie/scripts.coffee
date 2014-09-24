@@ -1,5 +1,5 @@
 # For handling JavaScript, mostly improvements to JSDOM
-HTML  = require("jsdom").dom.level3.html
+HTML  = require("jsdom").dom.living.html
 URL   = require("url")
 
 

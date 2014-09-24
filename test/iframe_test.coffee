@@ -118,7 +118,7 @@ describe "IFrame", ->
           <html>
             <head></head>
             <body>
-              <iframe name="child" src="/iframe/show-referer">
+              <iframe name="child" src="/iframe/show-referer"></iframe>
             </body>
           </html>
         """
@@ -126,7 +126,9 @@ describe "IFrame", ->
         browser.visit "/iframe/referer", done
 
     it "should be the parent's URL", ->
-      assert.equal browser.window.frames["child"].title, "http://example.com/iframe/referer"
+      document = browser.window.frames["child"].document
+      referrer = document.querySelector('title').textContent
+      assert.equal referrer, "http://example.com/iframe/referer"
 
     after ->
       browser.close()

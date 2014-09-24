@@ -1,6 +1,6 @@
 # Implemenets XMLHttpRequest.
-HTML      = require("jsdom").dom.level3.html
-Events    = require("jsdom").dom.level3.events
+HTML      = require("jsdom").dom.living.html
+Events    = require("jsdom").level(3, 'events')
 URL       = require("url")
 raise     = require("./scripts")
 

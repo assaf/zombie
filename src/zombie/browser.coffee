@@ -10,7 +10,7 @@ EventLoop         = require("./eventloop")
 File              = require("fs")
 HTML5             = require("html5")
 Interact          = require("./interact")
-HTML              = require("jsdom").dom.level3.html
+HTML              = require("jsdom").dom.living.html
 Mime              = require("mime")
 ms                = require("ms")
 Q                 = require("q")
@@ -21,7 +21,7 @@ Storages          = require("./storage")
 Tough             = require("tough-cookie")
 Cookie            = Tough.Cookie
 URL               = require("url")
-XPath             = require("jsdom").dom.level3.xpath
+XPathResult       = require("jsdom/lib/jsdom/level3/xpath").XPathResult
 
 
 # DOM extensions.
@@ -455,7 +455,7 @@ class Browser extends EventEmitter
   # Evaluates the XPath expression against the document (or context node) and return the XPath result.  Shortcut for
   # `document.evaluate`.
   xpath: (expression, context)->
-    return @document.evaluate(expression, context || @document.documentElement, null, XPath.XPathResult.ANY_TYPE)
+    return @document.evaluate(expression, context || @document.documentElement, null, XPathResult.ANY_TYPE)
 
   # ### browser.document => Document
   #
@@ -1218,7 +1218,7 @@ Browser.default =
   # Which parser to use (HTML5 by default). For example:
   #   Browser.default.htmlParser = require("html5")       // HTML5, forgiving
   #   Browser.default.htmlParser = require("htmlparser2")  // Faster, stricter
-  htmlParser: HTML5
+  htmlParser: require("htmlparser2") # HTML5
 
   # Tells the browser how many redirects to follow before aborting a request. Defaults to 5
   maxRedirects: 5

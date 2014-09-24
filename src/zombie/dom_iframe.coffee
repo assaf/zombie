@@ -2,13 +2,15 @@
 
 
 createHistory = require("./history")
-HTML          = require("jsdom").dom.level3.html
+HTML          = require("jsdom").dom.living.html
 
 
 # Support for iframes that load content when you set the src attribute.
 frameInit = HTML.HTMLFrameElement._init
 HTML.HTMLFrameElement._init = ->
   frameInit.call(this)
+  @removeEventListener("DOMNodeInsertedIntoDocument", @_initInsertListener)
+
   frame = this
 
   parentWindow = frame.ownerDocument.parentWindow
@@ -32,6 +34,8 @@ HTML.HTMLFrameElement._init = ->
     contentWindow = open(name: frame.name, parent: parentWindow, url: url, referer: parentWindow.location.href)
     return contentWindow
 
+
+
 # This is also necessary to prevent JSDOM from messing with window/document
 HTML.HTMLFrameElement.prototype.setAttribute = (name, value)->
   HTML.HTMLElement.prototype.setAttribute.call(this, name, value)
@@ -42,8 +46,11 @@ HTML.HTMLFrameElement.prototype._attrModified = (name, value, oldValue)->
     @ownerDocument.parentWindow.__defineGetter__ value, =>
       return @contentWindow
   else if name == "src" && value
-    # Point IFrame at new location and wait for it to load
     url = HTML.resourceLoader.resolve(@ownerDocument, value)
+    # Don't load IFrame twice
+    if @contentWindow.location.href == url
+      return
+    # Point IFrame at new location and wait for it to load
     @contentWindow.location = url
     onload = =>
       @contentWindow.removeEventListener("load", onload)

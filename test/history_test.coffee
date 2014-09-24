@@ -1,6 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
-JSDOM = require("jsdom")
-URL   = require("url")
+JSDOM   = require("jsdom")
+Event   = JSDOM.level(3, "events").Event
+URL     = require("url")
 
 
 describe "History", ->
@@ -95,7 +96,7 @@ describe "History", ->
           browser.wait()
 
         it "should fire popstate event", ->
-          assert @event instanceof JSDOM.dom.level3.events.Event
+          assert @event instanceof Event
         it "should include state", ->
           assert.equal @event.state.is, "start"
         it "should not reload page from same host", ->
@@ -114,7 +115,7 @@ describe "History", ->
             browser.history.forward()
 
         it "should fire popstate event", ->
-          assert @event instanceof JSDOM.dom.level3.events.Event
+          assert @event instanceof Event
         it "should include state", ->
           assert.equal @event.state.is, "end"
 

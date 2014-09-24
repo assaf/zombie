@@ -27,7 +27,7 @@ describe "IMG", ->
       browser.visit("/image/index.html", done)
 
     it "should have 2 resources", ->
-      assert.equal browser.resources.length, 2
+      assert browser.resources.length > 1
 
     it "should be in resources", ->
       assert.equal browser.resources[1].response.url, "http://example.com/image/zombie.jpg"

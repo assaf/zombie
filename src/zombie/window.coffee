@@ -10,8 +10,8 @@ URL             = require("url")
 XMLHttpRequest  = require("./xhr")
 
 
-Events      = JSDOM.dom.level3.events
-HTML        = JSDOM.dom.level3.html
+Events      = JSDOM.level(3, 'events')
+HTML        = JSDOM.dom.living.html
 
 
 # Create and return a new Window.

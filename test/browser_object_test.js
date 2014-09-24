@@ -50,7 +50,7 @@ describe("Browser", function() {
       });
 
       it("should create HTML document", function() {
-        assert(browser.document instanceof JSDOM.dom.level3.html.HTMLDocument);
+        assert(browser.document instanceof JSDOM.level(3, 'html').HTMLDocument);
       });
       it("should load document from server", function() {
         browser.assert.text('body h1', "Hello World");

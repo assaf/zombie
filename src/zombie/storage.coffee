@@ -1,6 +1,6 @@
 # See [Web Storage](http://dev.w3.org/html5/webstorage/)
-HTML      = require("jsdom").dom.level3.html
-{ Event } = require("jsdom").dom.level3.events
+HTML      = require("jsdom").dom.living.html
+{ Event } = require("jsdom").level(3, 'events')
 
 
 # Storage area. The storage area is shared by multiple documents of the same
