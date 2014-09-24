@@ -198,7 +198,7 @@ describe("Resources", function() {
 
   describe("301 redirect URL", function() {
     before(function() {
-      brains.redirect('/resources/three-oh-one', '/resources/resource', 301);
+      brains.redirect('/resources/three-oh-one', '/resources/resource', { status: 301 });
       browser.resources.length = 0;
       return browser.visit('/resources/three-oh-one');
     });

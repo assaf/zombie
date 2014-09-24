@@ -19,9 +19,9 @@ describe("Authentication", function() {
           if (auth == "Basic dXNlcm5hbWU6cGFzczEyMw==")
             res.send("<html><body>" + req.headers.authorization + "</body></html>");
           else
-            res.send("Invalid credentials", 401);
+            res.status(401).send("Invalid credentials");
         } else
-          res.send("Missing credentials", 401);
+          res.status(401).send("Missing credentials");
       });
     });
 
@@ -70,9 +70,9 @@ describe("Authentication", function() {
           if (auth == 'Bearer 12345')
             res.send("<html><body>" + req.headers.authorization + "</body></html>");
           else
-            res.send("Invalid token", 401);
+            res.status(401).send("Invalid token");
         } else
-          res.send("Missing token", 401);
+          res.status(401).send("Missing token");
       });
     });
 
@@ -128,7 +128,7 @@ describe("Authentication", function() {
           </html>
           `);
         } else
-          res.send("No Credentials on the html page", 401);
+          res.status(401).send("No Credentials on the html page");
       });
 
       brains.get('/auth/script.js', function(req, res) {
@@ -136,7 +136,7 @@ describe("Authentication", function() {
         if (auth)
           res.send("document.title = document.title + 'One'");
         else
-          res.send("No Credentials on the javascript", 401);
+          res.status(401).send("No Credentials on the javascript");
       });
     });
 

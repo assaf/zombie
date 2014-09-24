@@ -158,7 +158,7 @@ describe("Browser", function() {
         let error;
 
         before(async function() {
-          brains.static('/browser/500', "Ooops, something went wrong", 500);
+          brains.static('/browser/500', "Ooops, something went wrong", { status: 500 });
 
           try {
             await browser.visit('/browser/500');

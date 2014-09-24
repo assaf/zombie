@@ -149,7 +149,7 @@ describe("XMLHttpRequest", function() {
           </body>
         </html>`);
       brains.post('/xhr/post/empty', function(req, res) {
-        res.send("posted", 201);
+        res.status(201).send("posted");
       });
       return browser.visit('/xhr/post/empty');
     });

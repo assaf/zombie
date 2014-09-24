@@ -1,4 +1,6 @@
---compilers coffee:coffee-script,js:./test/helpers/first
+--require coffee-script/register
+--require ./test/helpers/first
+--compilers coffee:coffee-script
 --reporter spec
 --timeout 2s
 --growl
