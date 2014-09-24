@@ -1,5 +1,0 @@
-#!/bin/sh
-brew unlink node08
-brew unlink node
-brew link --overwrite node
-npm install jdsom # contextify
