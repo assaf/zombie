@@ -1,10 +1,11 @@
 // Creates an Express server for testing 3rd party sites against thirdparty.test. 
 // Exports a method that returns a promise that resolves to a live Express server.
 
-const Browser     = require('../../src/zombie');
-const Express     = require('express');
-const morgan      = require('morgan');
-const Replay      = require('replay');
+const Browser = require('../../src/zombie');
+const debug   = require('debug')('server');
+const Express = require('express');
+const morgan  = require('morgan');
+const Replay  = require('replay');
 
 
 // Need sparate port from the test server (see index.js).
@@ -20,8 +21,8 @@ Replay.localhost(HOSTNAME);
 const server = new Express();
 
 // Even tests need good logs
-if (process.env.DEBUG)
-  server.use(morgan());
+if (debug.enabled)
+  server.use(morgan('dev', { stream: { write: debug } }));
 
 // ... and error reporting
 server.use(function(error, req, res, next) {

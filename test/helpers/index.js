@@ -5,7 +5,8 @@ const Browser   = require('../../src/zombie');
 
 
 // Always run in verbose mode on Travis.
-Browser.default.debug = !!(process.env.CI || process.env.DEBUG);
+if (process.env.CI)
+  Browser.debug();
 Browser.default.silent = !Browser.default.debug;
 
 // Tests visit example.com, server is localhost port 3003

@@ -52,8 +52,5 @@ Browser.Assert    = Assert
 Browser.Resources = Resources
 
 
-# Default to debug mode if environment variable `DEBUG` is set.
-Browser.debug = !!process.env.DEBUG
-
 # Export the globals from browser.coffee
 module.exports = Browser

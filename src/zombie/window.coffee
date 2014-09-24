@@ -93,6 +93,7 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
   Object.defineProperties window.navigator,
     cookieEnabled: { value: true }
     javaEnabled:   { value: -> false }
+    platform:      { value: 'node' }
     plugins:       { value: [] }
     userAgent:     { value: browser.userAgent }
     language:      { value: browser.language }

@@ -1,8 +1,9 @@
 const bodyParser    = require('body-parser');
 const cookieParser  = require('cookie-parser');
+const debug         = require('debug')('server');
 const express       = require('express');
 const File          = require('fs');
-const Multiparty    = require('multiparty')
+const Multiparty    = require('multiparty');
 const morgan        = require('morgan');
 const Path          = require('path');
 
@@ -28,8 +29,8 @@ server.use(function(req, res, next) {
 });
 
 // Even tests need good logs
-if (process.env.DEBUG)
-  server.use(morgan());
+if (debug.enabled)
+  server.use(morgan('dev', { stream: { write: debug } }));
 
 
 // Use this for static responses.  First argument is the path, the remaining

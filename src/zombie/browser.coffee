@@ -3,6 +3,7 @@ Assert            = require("./assert")
 createTabs        = require("./tabs")
 Console           = require("./console")
 Cookies           = require("./cookies")
+Debug             = require("debug")
 DNSMask           = require("./dns_mask")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
@@ -31,8 +32,13 @@ require("./dom_focus")
 require("./dom_iframe")
 
 
+# Debug instance.  Create new instance when enabling debugging with Zombie.debug
+debug = Debug("zombie")
+
+
+
 # Browser options you can set when creating new browser, or on browser instance.
-BROWSER_OPTIONS   = ["debug", "features", "headers", "htmlParser", "waitDuration",
+BROWSER_OPTIONS   = ["features", "headers", "htmlParser", "waitDuration",
                      "proxy", "referer", "silent", "site", "strictSSL", "userAgent",
                      "maxRedirects", "language", "runScripts", "localAddress"]
 
@@ -78,15 +84,13 @@ class Browser extends EventEmitter
           when "error"
             process.stderr.write(message + "\n")
           when "debug"
-            if browser.debug
-              process.stdout.write(message + "\n")
+            debug(message)
           else
             process.stdout.write(message + "\n")
 
     # Message written to browser.log.
-    @on "log", (message)->
-      if browser.debug
-        process.stdout.write("Zombie: #{message}\n")
+    @on "log", (args...)->
+      debug(args...)
 
 
     # -- Resources --
@@ -1209,9 +1213,6 @@ Browser.VERSION = JSON.parse(File.readFileSync("#{__dirname}/../../package.json"
 
 # These defaults are used in any new browser instance.
 Browser.default =
-  # True to have Zombie report what it's doing.
-  debug: false
-
   # Which features are enabled.
   features: DEFAULT_FEATURES
 
@@ -1260,6 +1261,13 @@ Browser.default =
 # Use this function to create a new Browser instance.
 Browser.create = (options)->
   return new Browser(options)
+
+
+# Enable debugging.  You can do this in code instead of setting DEBUG environment variable.
+Browser.debug = ->
+  unless Debug.enabled("zombie")
+    Debug.enable("zombie")
+    debug = Debug("zombie")
 
 
 # Allows you to masquerade CNAME, A (IPv4) and AAAA (IPv6) addresses.  For
