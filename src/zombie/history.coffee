@@ -145,13 +145,20 @@ class History
 
   # Update window location (navigating to new URL, same window, e.g pushState or hash change)
   updateLocation: (window, url)->
-    history = this
-    Object.defineProperty window, "location",
-      get: ->
-        return createLocation(history, url)
-      set: (url)->
-        history.assign(url)
-      enumerable: true
+    if /^(about|file|https?|javascript):/.test(url)
+      # Only support protocols get to update page location and run callback
+      history = this
+      Object.defineProperty window, "location",
+        get: ->
+          return createLocation(history, url)
+        set: (url)->
+          history.assign(url)
+        enumerable: true
+
+    else
+      # Asynchronous error so can be handled, does not affect running code or current page
+      throw new Error("Cannot load resource #{url}, unsupported protocol")
+
 
   # Form submission
   submit: (options)->
@@ -234,7 +241,7 @@ class History
     # If moving from one page to another
     if @current && was && @current != was
       window = @current.window
-      this.updateLocation(window, @current.url)
+      @updateLocation(window, @current.url)
       @focus(window)
       if @current.pushState || was.pushState
         # Created with pushState/replaceState, send popstate event if navigating
@@ -262,6 +269,7 @@ class History
       ++length
       entry = entry.next
     return length
+
 
   # This method is available from Location.
   pushState: (state, title, url)->
@@ -308,19 +316,23 @@ hashChange = (entry, url)->
 
 # DOM Location object
 createLocation = (history, url)->
+  browser = history.browser
   location = new Object()
   Object.defineProperties location,
     assign:
       value: (url)->
-        history.assign(url)
+        browser.eventLoop.next ->
+          history.assign(url)
 
     replace:
       value: (url)->
-        history.replace(url)
+        browser.eventLoop.next ->
+          history.replace(url)
 
     reload:
       value: (force)->
-        history.reload()
+        browser.eventLoop.next ->
+          history.reload()
 
     toString:
       value: ->
@@ -336,14 +348,14 @@ createLocation = (history, url)->
           newUrl.host = "#{hostname}:#{newUrl.port}"
         else
           newUrl.host = hostname
-        history.assign(URL.format(newUrl))
+        location.assign(URL.format(newUrl))
       enumerable: true
 
     href:
       get: ->
         return url
       set: (href)->
-        history.assign(URL.format(href))
+        location.assign(URL.format(href))
       enumerable: true
 
   # Setting any of the properties creates a new URL and navigates there
@@ -355,7 +367,7 @@ createLocation = (history, url)->
         set: (value)->
           newUrl = URL.parse(url)
           newUrl[prop] = value
-          history.assign(URL.format(newUrl))
+          location.assign(URL.format(newUrl))
         enumerable: true
 
   return location

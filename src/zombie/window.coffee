@@ -274,11 +274,19 @@ module.exports = createWindow = ({ browser, params, encoding, history, method, n
 
   # Each window maintains its own view of history
   windowHistory =
-    forward:      history.go.bind(history, 1)
-    back:         history.go.bind(history, -1)
-    go:           history.go.bind(history)
-    pushState:    history.pushState.bind(history)
-    replaceState: history.replaceState.bind(history)
+    forward: ->
+      windowHistory.go(1)
+    back: ->
+      windowHistory.go(-1)
+    go: (amount)->
+      browser.eventLoop.next ->
+        history.go(amount)
+    pushState: (args...)->
+      browser.eventLoop.next ->
+        history.pushState(args...)
+    replaceState: (args...)->
+      browser.eventLoop.next ->
+        history.replaceState(args...)
     _submit:      history.submit.bind(history)
     dump:         history.dump.bind(history)
   Object.defineProperties windowHistory,

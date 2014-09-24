@@ -52,16 +52,18 @@ describe "History", ->
       browser.assert.url "about:blank"
 
     describe "go forward", ->
-      before ->
+      before (done)->
         @window.history.forward()
+        browser.wait(done)
 
       it "should have no effect", ->
         assert.equal @window.history.length, 1
         browser.assert.url "about:blank"
 
     describe "go backwards", ->
-      before ->
+      before (done)->
         @window.history.back()
+        browser.wait(done)
 
       it "should have no effect", ->
         assert.equal @window.history.length, 1
