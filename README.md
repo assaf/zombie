@@ -1,6 +1,11 @@
 # Zombie.js
 ### Insanely fast, headless full-stack testing using Node.js
 
+**NOTE:** This documentation is still work in progress.  Please help make it
+better by adding as much as you can and submitting a pull request.
+
+You can also consult [the older 1.4 documentation](http://zombie.labnotes.org).
+
 
 ## The Bite
 
