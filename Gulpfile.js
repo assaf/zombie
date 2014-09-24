@@ -53,6 +53,8 @@ gulp.task('tag', ['changes'], function() {
 
   gutil.log('Tagging this release', tag);
   return gulp.src('.changes')
+    .pipe( exec('git add package.json CHANGELOG.md') )
+    .pipe( exec('git commit --allow-empty -m "Version ' + version + '"') )
     .pipe( exec('git tag ' + tag + ' --file .changes') )
     .pipe( exec('git push origin ' + tag) )
     .pipe( exec('git push origin master') );
