@@ -75,18 +75,11 @@ class Browser extends EventEmitter
 
     # Message written to window.console.  Level is log, info, error, etc.
     #
-    # Errors go to stderr, unless slient mode is on.
-    # Debug go to stdout, if debug mode is on.
-    # All other messages go to stdout, unless silent is on.
+    # All output goes to stdout when debugging enabled (DEBUG=zombie), unless
+    # brower.silent is true.
     @on "console", (level, message)->
       unless browser.silent
-        switch level
-          when "error"
-            process.stderr.write(message + "\n")
-          when "debug"
-            debug(message)
-          else
-            process.stdout.write(message + "\n")
+        debug("console.#{level}: #{message}")
 
     # Message written to browser.log.
     @on "log", (args...)->
