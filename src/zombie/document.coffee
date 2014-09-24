@@ -1,9 +1,12 @@
 # Create an empty document.  Each window gets a new document.
 
-JSDOM           = require("jsdom")
-HTML            = JSDOM.dom.living.html
-Path            = require("path")
-JSDOMSelectors  = require(Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/index"))
+Path                  = require("path")
+JSDOM_PATH            = require.resolve("jsdom")
+
+applyDocumentFeatures = require("#{JSDOM_PATH}/../jsdom/browser/documentfeatures").applyDocumentFeatures
+browserAugmentation   = require("#{JSDOM_PATH}/../jsdom/browser/index").browserAugmentation
+JSDOM                 = require("jsdom")
+JSDOMSelectors        = require("#{JSDOM_PATH}/../jsdom/selectors/index")
 
 
 # Creates an returns a new document attached to the window.
@@ -19,15 +22,14 @@ module.exports = createDocument = (browser, window, referer)->
     QuerySelector:            true
 
   # JSDOM's way of creating a document.
-  jsdomBrowser = JSDOM.browserAugmentation(HTML, parser: browser.htmlParser)
+  jsdomBrowser = browserAugmentation(JSDOM.defaultLevel, parser: browser.htmlParser)
   # HTTP header Referer, but Document property referrer
   document = new jsdomBrowser.HTMLDocument(referrer: referer)
-  JSDOMSelectors.applyQuerySelectorPrototype(HTML)
+  JSDOMSelectors.applyQuerySelectorPrototype(JSDOM.defaultLevel)
 
   if browser.hasFeature("scripts", true)
-    features.ProcessExternalResources.push("script")
     features.FetchExternalResources.push("script")
-
+    features.ProcessExternalResources.push("script")
   if browser.hasFeature("css", false)
     features.FetchExternalResources.push("css")
     features.FetchExternalResources.push("link")
@@ -35,7 +37,7 @@ module.exports = createDocument = (browser, window, referer)->
     features.FetchExternalResources.push("img")
   if browser.hasFeature("iframe", true)
     features.FetchExternalResources.push("iframe")
-  JSDOM.applyDocumentFeatures(document, features)
+  applyDocumentFeatures(document, features)
 
 
   # Tie document and window together

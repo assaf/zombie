@@ -1,5 +1,5 @@
 # Patches to JSDOM for properly handling forms.
-HTML = require("jsdom").dom.living.html
+HTML = require("jsdom").defaultLevel
 Path = require("path")
 File = require("fs")
 Mime = require("mime")

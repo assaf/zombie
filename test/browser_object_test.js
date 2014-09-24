@@ -2,7 +2,6 @@ const assert      = require('assert');
 const Browser     = require('../src/zombie');
 const { brains }  = require('./helpers');
 const JSDOM       = require('jsdom');
-const HTML5       = require('html5');
 
 
 describe("Browser", function() {
@@ -436,27 +435,24 @@ describe("Browser", function() {
   });
 
 
-  // NOTE: htmlparser doesn't handle tag soup.
-  if (Browser.htmlParser == HTML5) {
-    describe("tag soup using HTML5 parser", function() {
-      before(function() {
-        brains.static('/browser/soup', `
-          <h1>Tag soup</h1>
-          <p>One paragraph
-          <p>And another
-        `);
-        return browser.visit('/browser/soup');
-      });
-
-      it("should parse to complete HTML", function() {
-        browser.assert.element('html head');
-        browser.assert.text('html body h1', "Tag soup");
-      });
-      it("should close tags", function() {
-        browser.assert.text('body p', "One paragraph And another");
-      });
+  describe("tag soup using HTML5 parser", function() {
+    before(function() {
+      brains.static('/browser/soup', `
+        <h1>Tag soup</h1>
+        <p>One paragraph
+        <p>And another
+      `);
+      return browser.visit('/browser/soup');
     });
-  }
+
+    it("should parse to complete HTML", function() {
+      browser.assert.element('html head');
+      browser.assert.text('html body h1', "Tag soup");
+    });
+    it("should close tags", function() {
+      browser.assert.text('body p', "One paragraph And another");
+    });
+  });
 
 
   describe("comments", function() {

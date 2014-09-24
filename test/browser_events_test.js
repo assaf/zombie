@@ -71,19 +71,19 @@ describe("Browser events", function() {
     });
 
     it("should receive resource requests", function() {
-      let [request] = events.resource[0];
+      const [request] = events.resource[0];
       assert.equal(request.url, 'http://example.com/browser-events/resource');
     });
 
     it("should receive resource redirects", function() {
-      let [response, newRequest] = events.resource[1];
+      const [response, newRequest] = events.resource[1];
       assert.equal(response.statusCode, 302);
       assert.equal(response.url, 'http://example.com/browser-events/redirected');
       assert.equal(newRequest.url, response.url);
     });
 
     it("should receive resource responses", function() {
-      let [request, response] = events.resource[2];
+      const [request, response] = events.resource[2];
       assert.equal(request.url, 'http://example.com/browser-events/resource');
       assert.equal(response.statusCode, 200);
       assert.equal(response.redirects, 1);
@@ -114,14 +114,13 @@ describe("Browser events", function() {
 
   describe("closing a window", function() {
     before(function() {
-      let window;
       browser.on('closed', function(window) {
         events.close = window;
       });
       browser.on('inactive', function(window) {
         events.inactive = window;
       });
-      window = browser.open({ name: 'close-test' });
+      const window = browser.open({ name: 'close-test' });
       window.close();
     });
 
@@ -140,24 +139,24 @@ describe("Browser events", function() {
       brains.static('/browser-events/document', "<html>Very well then</html>");
 
       browser.on('loading', function(document) {
-        events.loading = [document.URL, document.readyState, document.outerHTML];
+        events.loading = [document.URL, document.readyState];
       });
       browser.on('loaded', function(document) {
-        events.loaded = [document.URL, document.readyState, document.outerHTML];
+        const html = document.documentElement.outerHTML;
+        events.loaded = [document.URL, document.readyState, html];
       });
 
       return browser.visit('/browser-events/document');
     });
 
     it("should receive loading event", function() {
-      let [url, readyState, html] = events.loading;
+      const [url, readyState] = events.loading;
       assert.equal(url, 'http://example.com/browser-events/document');
       assert.equal(readyState, 'loading');
-      assert.equal(html, "");
     });
 
     it("should receive loaded event", function() {
-      let [url, readyState, html] = events.loaded;
+      const [url, readyState, html] = events.loaded;
       assert.equal(url, 'http://example.com/browser-events/document');
       assert.equal(readyState, 'complete');
       assert(/Very well then/.test(html));
@@ -204,7 +203,7 @@ describe("Browser events", function() {
     });
 
     it("should receive focus event", function() {
-      let element = events.focus;
+      const element = events.focus;
       assert.equal(element.id, 'input');
     });
   });

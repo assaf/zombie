@@ -1,6 +1,8 @@
 # Exports single function for creating a new Window.
 
-
+Path            = require("path")
+JSDOM_PATH      = require.resolve("jsdom")
+ 
 createDocument  = require("./document")
 EventSource     = require("eventsource")
 History         = require("./history")
@@ -8,10 +10,11 @@ JSDOM           = require("jsdom")
 WebSocket       = require("ws")
 URL             = require("url")
 XMLHttpRequest  = require("./xhr")
+createWindow    = require("#{JSDOM_PATH}/../jsdom/browser/index").createWindow
 
 
 Events      = JSDOM.level(3, 'events')
-HTML        = JSDOM.dom.living.html
+HTML        = JSDOM.defaultLevel
 
 
 # Create and return a new Window.
@@ -27,11 +30,11 @@ HTML        = JSDOM.dom.living.html
 # parent    - Parent window (for frames)
 # referer   - Use this as referer
 # url       - Set document location to this URL upon opening
-module.exports = createWindow = ({ browser, params, encoding, history, method, name, opener, parent, referer, url })->
+module.exports = ({ browser, params, encoding, history, method, name, opener, parent, referer, url })->
   name  ||= ""
   url   ||= "about:blank"
 
-  window = JSDOM.createWindow(HTML)
+  window = createWindow(HTML)
   global = window.getGlobal()
   # window`s have a closed property defaulting to false
   closed = false

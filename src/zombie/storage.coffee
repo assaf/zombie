@@ -1,5 +1,5 @@
 # See [Web Storage](http://dev.w3.org/html5/webstorage/)
-HTML      = require("jsdom").dom.living.html
+HTML      = require("jsdom").defaultLevel
 { Event } = require("jsdom").level(3, 'events')
 
 

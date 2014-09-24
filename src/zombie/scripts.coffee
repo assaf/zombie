@@ -1,5 +1,5 @@
 # For handling JavaScript, mostly improvements to JSDOM
-HTML  = require("jsdom").dom.living.html
+HTML  = require("jsdom").defaultLevel
 URL   = require("url")
 
 

@@ -30,7 +30,7 @@
 
 
 createWindow  = require("./window")
-HTML          = require("jsdom").dom.living.html
+HTML          = require("jsdom").defaultLevel
 URL           = require("url")
 
 

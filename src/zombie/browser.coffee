@@ -1,3 +1,6 @@
+Path              = require("path")
+JSDOM_PATH        = require.resolve("jsdom")
+
 assert            = require("assert")
 Assert            = require("./assert")
 createTabs        = require("./tabs")
@@ -9,20 +12,18 @@ DNSMask           = require("./dns_mask")
 EventLoop         = require("./eventloop")
 { format }        = require("util")
 File              = require("fs")
-HTML5             = require("html5")
 Interact          = require("./interact")
-HTML              = require("jsdom").dom.living.html
+HTML              = require("jsdom").defaultLevel
 Mime              = require("mime")
 ms                = require("ms")
 Q                 = require("q")
-Path              = require("path")
 PortMap           = require("./port_map")
 Resources         = require("./resources")
 Storages          = require("./storage")
 Tough             = require("tough-cookie")
 Cookie            = Tough.Cookie
 URL               = require("url")
-XPathResult       = require("jsdom/lib/jsdom/level3/xpath").XPathResult
+XPathResult       = require("#{JSDOM_PATH}/../jsdom/level3/xpath").XPathResult
 
 
 # DOM extensions.
@@ -1212,7 +1213,7 @@ Browser.default =
   # Which parser to use (HTML5 by default). For example:
   #   Browser.default.htmlParser = require("html5")       // HTML5, forgiving
   #   Browser.default.htmlParser = require("htmlparser2")  // Faster, stricter
-  htmlParser: require("htmlparser2") # HTML5
+  htmlParser: null
 
   # Tells the browser how many redirects to follow before aborting a request. Defaults to 5
   maxRedirects: 5

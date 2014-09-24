@@ -33,10 +33,12 @@ describe "IFrame", ->
         <head>
           <title>What</title>
         </head>
-        <body>Hello World</body>
-        <script>
-          document.title = document.title + window.name;
-        </script>
+        <body>
+          Hello World
+          <script>
+            document.title = document.title + window.name;
+          </script>
+        </body>
       </html>
       """
 
@@ -52,7 +54,7 @@ describe "IFrame", ->
   it "should load iframe document", ->
     iframeDocument = @iframe.contentWindow.document
     assert.equal "Whatever", iframeDocument.title
-    assert /Hello World/.test(iframeDocument.innerHTML)
+    assert /Hello World/.test(iframeDocument.body.innerHTML)
     assert.equal iframeDocument.URL, "http://example.com/iframe/static"
   it "should set frame src attribute", ->
     assert.equal @iframe.src, "/iframe/static"
