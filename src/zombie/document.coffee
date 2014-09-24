@@ -1,7 +1,7 @@
 # Create an empty document.  Each window gets a new document.
 
 JSDOM           = require("jsdom")
-HTML            = JSDOM.dom.level3.html
+HTML            = JSDOM.defaultLevel
 Path            = require("path")
 JSDOMSelectors  = require(Path.resolve(require.resolve("jsdom"), "../jsdom/selectors/index"))
 
