@@ -1,5 +1,6 @@
 const clean  = require('gulp-clean');
 const coffee = require('gulp-coffee');
+const git    = require('gulp-git');
 const gulp   = require('gulp');
 const gutil  = require('gulp-util');
 const notify = require('gulp-notify');
@@ -40,5 +41,18 @@ gulp.task('clean', function() {
 // gulp watch -> watch for changes and compile
 gulp.task('watch', ['build'], function() {
   return gulp.watch('src/**/*.coffee', ['clean', 'build']);
+});
+
+
+// gulp tag -> Tag this release
+gulp.task('tag', function() {
+  const version = require('./package.json').version;
+  gutil.log('Tagging this release', version);
+
+  const tag     = 'v' + version;
+  const message = 'Version ' + version;
+  git.tag(tag, message, function() {
+    git.push('origin', tag).end();
+  });
 });
 
