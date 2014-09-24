@@ -1,8 +1,7 @@
-zombie.js-changelog(7) -- Changelog
-===================================
+## Version 2.0.0 2014-09-24
 
-
-## Version 2.0.0
+Much much has changed, and the documentation has not caught up.  Here's a
+partial and incomplete list.
 
 `browser.tabs` replaces `browser.windows`. Is now an array so you can access a
 tab directly (e.g. `browser.tabs[0]`), and also switch tabs more easily (e.g.
@@ -59,8 +58,8 @@ allowing you to retrieve resources directory (`resources.get`,
 (`resources.fail`), delay responses (`resources.delay`), even mock responses
 (`resources.mock`).
 
-    566 tests
-    11.1 sec to complete
+    676 tests
+    12 sec to complete
 
 
 ## Version 1.4.1 2012-08-22

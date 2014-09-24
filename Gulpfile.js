@@ -1,6 +1,8 @@
+const assert = require('assert');
 const clean  = require('gulp-clean');
 const coffee = require('gulp-coffee');
-const git    = require('gulp-git');
+const exec   = require('gulp-exec');
+const File   = require('fs');
 const gulp   = require('gulp');
 const gutil  = require('gulp-util');
 const notify = require('gulp-notify');
@@ -45,14 +47,29 @@ gulp.task('watch', ['build'], function() {
 
 
 // gulp tag -> Tag this release
-gulp.task('tag', function() {
+gulp.task('tag', ['changes'], function() {
   const version = require('./package.json').version;
-  gutil.log('Tagging this release', version);
-
   const tag     = 'v' + version;
-  const message = 'Version ' + version;
-  git.tag(tag, message, function() {
-    git.push('origin', tag).end();
-  });
+
+  gutil.log('Tagging this release', tag);
+  return gulp.src('.changes')
+    .pipe( exec('git tag ' + tag + ' --file .changes') )
+    .pipe( exec('git push origin ' + tag) )
+    .pipe( exec('git push origin master') );
+});
+
+// Generate a change log summary for this release
+// git tag uses the generated .changes file
+gulp.task('changes', function() {
+  const version   = require('./package.json').version;
+  const changelog = File.readFileSync('CHANGELOG.md', 'utf-8');
+  const match     = changelog.match(/^## Version (.*) .*\n([\S\s]+?)\n##/m);
+
+  assert(match, 'CHANGELOG.md missing entry: ## Version ' + version);
+  assert.equal(match[1], version, 'CHANGELOG.md missing entry for version ' + version);
+
+  const changes   = match[2].trim();
+  assert(changes, 'CHANGELOG.md empty entry for version ' + version);
+  File.writeFileSync('.changes', changes);
 });
 

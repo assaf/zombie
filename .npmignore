@@ -1,4 +1,8 @@
+.changes
+.jshintrc
+.travis.yml
 npm-debug.log
-node_modules
+Gulpfile
+scripts
 src
 test
