@@ -367,7 +367,7 @@ describe('XMLHttpRequest', function() {
 
   });
 
-  describe("error in response handler", function() {
+  describe('error in response handler', function() {
     before(function() {
       brains.static('/xhr/handler-error', `
         <html>
@@ -375,25 +375,27 @@ describe('XMLHttpRequest', function() {
           <body>
             <script>
               $.get('/xhr/handler-error/backend', function(response) {
-                throw new Error("This is an error");
+                throw new Error('This is an error');
               });
             </script>
           </body>
         </html>`);
-      brains.static('/xhr/handler-error/backend', "Something");
+      brains.static('/xhr/handler-error/backend', 'Something');
     });
 
-    it("should throw the error in the response handler", function(done) {
-      browser.visit('/xhr/handler-error').then(function() {
-        done(new Error("Expected to see error in ajax response handler"));
-      }).fail(function(error) {
-        assert.strictEqual(
-          error.message,
-          "This is an error",
-          "Expected to see error in ajax response handler"
-        );
-        done();
-      });
+    it('should throw the error in the response handler', function(done) {
+      browser.visit('/xhr/handler-error').then(
+        function() {
+          done(new Error('Expected to see error in ajax response handler'));
+        },
+        function(error) {
+          assert.strictEqual(
+            error.message,
+            'This is an error',
+            'Expected to see error in ajax response handler'
+          );
+          done();
+        });
     });
   });
 

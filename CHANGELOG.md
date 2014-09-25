@@ -1,9 +1,11 @@
 ## Version 2.0.3 2014-09-25
 
-FIXED window.cookies fails with error [Closes #610]
+FIXED window.cookies fails with error #610
 
 FIXED HTMLImageElement._attrModified not passing callback to
 HTML.resourceLoader.load #624
+
+FIXED add raise method to xhr to catch errors in handlers #681
 
 
 ## Version 2.0.2 2014-09-25
