@@ -1,3 +1,8 @@
+## Version 2.0.3 2014-09-25
+
+FIXED window.cookies fails with error [Closes #610]
+
+
 ## Version 2.0.2 2014-09-25
 
 ADDED Only decode HTML documents, and support meta tag with charset

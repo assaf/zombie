@@ -105,7 +105,7 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
   # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
   Object.defineProperty window, "cookies",
     get: ->
-      return browser.cookies(@location.hostname, @location.pathname)
+      return browser.cookies.serialize(@location.hostname, @location.pathname)
   browser._storages.extend(window)
   browser._interact.extend(window)
 
