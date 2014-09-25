@@ -16,14 +16,14 @@ Interact          = require("./interact")
 HTML              = require("jsdom").defaultLevel
 Mime              = require("mime")
 ms                = require("ms")
-Q                 = require("q")
+{ Promise }       = require("bluebird")
 PortMap           = require("./port_map")
 Resources         = require("./resources")
 Storages          = require("./storage")
 Tough             = require("tough-cookie")
 Cookie            = Tough.Cookie
 URL               = require("url")
-XPathResult       = require("#{JSDOM_PATH}/../jsdom/level3/xpath").XPathResult
+{ XPathResult }   = require("#{JSDOM_PATH}/../jsdom/level3/xpath")
 
 
 # DOM extensions.
@@ -509,8 +509,7 @@ class Browser extends EventEmitter
       @tabs.close(@window)
     @tabs.open(url: url, referer: @referer)
 
-    promise = @wait(options)
-    promise.finally(resetOptions)
+    promise = @wait(options).finally(resetOptions)
     if callback
       promise.done(callback, callback)
     return promise
@@ -541,9 +540,7 @@ class Browser extends EventEmitter
           callback(first)
         return
       else
-        deferred = Q.defer()
-        deferred.reject(first)
-        return deferred.promise
+        return Promise.reject(first)
     else
       # Otherwise wait for all events to process, wait handles errors
       return @wait(callback)

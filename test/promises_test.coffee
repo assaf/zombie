@@ -82,7 +82,7 @@ describe "Promises", ->
     before (done)->
       browser.visit("/promises/nosuch")
         .then(done)
-        .fail (@error)=>
+        .catch (@error)=>
           done()
 
     it "should reject with an error", ->
@@ -100,7 +100,7 @@ describe "Promises", ->
       browser.visit("/promises")
         .then ->
           browser.assert.text "title", "Ooops", "Assertion haz a fail"
-        .fail (@error)=>
+        .catch (@error)=>
           done()
 
     it "should reject with an error", ->
@@ -122,7 +122,7 @@ describe "Promises", ->
           browser.assert.text "title", "Ooops", "I'm here against all odds"
         .then ->
           browser.assert.text "title", "Ooops", "I'm here against all odds"
-        .fail (@error)=>
+        .catch (@error)=>
           done()
 
     it "should reject with an error", ->

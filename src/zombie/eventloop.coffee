@@ -16,9 +16,9 @@
 # `enqueue`, `http`, `dispatch` and the timeout/interval methods.
 
 
-ms  = require("ms")
-Q   = require("q")
-global.setImmediate ||= process.nextTick
+{ EventEmitter }  = require("events")
+ms                = require("ms")
+{ Promise }       = require("bluebird")
 
 
 # The browser event loop.
@@ -42,19 +42,21 @@ global.setImmediate ||= process.nextTick
 #         until next tick event (in ms, zero for "soon")
 # done  - Emitted when the event queue is empty (may fire more than once)
 # error - Emitted when an error occurs
-class EventLoop
+class EventLoop extends EventEmitter
 
   # Instance variables are:
   # active    - The active window
   # browser   - Reference to the browser
   # expected  - Number of events expected to appear (see `expecting` method)
   # running   - True when inside a run loop
-  # listeners - Array of listeners, used by wait method
+  # waiting   - Counts calls in-progess calls to wait
   constructor: (@browser)->
     @active   = null
     @expected = 0
     @running  = false
-    @listeners  = []
+    @waiting  = 0
+    @on "error", (error)=>
+      @browser.emit("error", error)
 
 
   # -- The wait function --
@@ -73,62 +75,60 @@ class EventLoop
   # event, and returns true to stop waiting, any other value to continue
   # processing events.
   wait: (waitDuration, completionFunction)->
-    deferred = Q.defer()
-    promise = deferred.promise
-
     # Don't wait longer than duration
     waitDuration = ms(waitDuration.toString()) || @browser.waitDuration
     timeout = Date.now() + waitDuration
 
-    timeoutTimer = global.setTimeout(->
-      deferred.resolve()
-    , waitDuration)
+    timeoutTimer  = null
+    eventHandlers = {}
 
-    # Map event type to event handler
-    eventHandlers =
-      tick: (next)=>
+    promise = new Promise((resolve, reject)=>
+      timeoutTimer = global.setTimeout(resolve, waitDuration)
+
+      # Don't wait if browser encounters an error.
+      @browser.once("error", reject)
+      eventHandlers.done  = resolve
+      eventHandlers.error = reject
+
+      eventHandlers.tick = (next)=>
         if next >= timeout
           # Next event too long in the future, or no events in queue
           # (Infinity), no point in waiting
-          deferred.resolve()
+          resolve()
         else if completionFunction && @active.document.documentElement
           try
             waitFor = Math.max(next - Date.now(), 0)
             # Event processed, are we ready to complete?
             completed = completionFunction(@active, waitFor)
             if completed
-              deferred.resolve()
+              resolve()
           catch error
-            deferred.reject(error)
+            reject(error)
         return
-      done:  deferred.resolve
-      error: deferred.reject
 
-    # Receive tick, done and error events
-    listener = (event, argument)->
-      eventHandlers[event](argument)
-    @listeners.push(listener)
+      for event, handler of eventHandlers
+        @on(event, handler)
+    )
 
-    # Don't wait if browser encounters an error.
-    @browser.addListener("error", deferred.reject)
+    promise = promise.finally(=>
+      clearInterval(timeoutTimer)
+      for event, handler of eventHandlers
+        @removeListener(event, handler)
 
-    # Whether resolved or rejected, clear timeouts/listeners
-    removeListener = =>
-      clearTimeout(timeoutTimer)
-      @browser.removeListener("error", deferred.reject)
-      @listeners = @listeners.filter((l)-> l != listener)
-      if @listeners.length == 0
-        @emit("done")
-      return
-    promise.finally(removeListener)
+      @waiting--
+      if @waiting == 0
+        @browser.emit("done")
+    )
 
     # Someone (us) just started paying attention, start processing events
-    if @listeners.length == 1
+    @waiting++
+    if @waiting == 1
       setImmediate =>
         if @active
           @run()
 
     return promise
+
 
   dump: ()->
   	[]
@@ -184,7 +184,7 @@ class EventLoop
     # Are we in the midst of another run loop?
     return if @running
     # Is there anybody out there?
-    return if @listeners.length == 0
+    return if @waiting == 0
     # Are there any open windows?
     unless @active
       @emit("done")
@@ -216,12 +216,6 @@ class EventLoop
       catch error
         @emit("error", error)
     return
-
-  # Send to browser and listeners
-  emit: (event, value)->
-    @browser.emit(event, value)
-    for listener in @listeners
-      listener(event, value)
 
 
 # Each window has an event queue that holds all pending events and manages
