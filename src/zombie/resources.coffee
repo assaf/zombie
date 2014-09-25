@@ -460,19 +460,18 @@ Resources.decompressBody = (request, response, next)->
   if response.body && response.headers
     transferEncoding = response.headers["transfer-encoding"]
     contentEncoding = response.headers["content-encoding"]
-  switch transferEncoding || contentEncoding
-    when "deflate"
-      Zlib.inflate response.body, (error, buffer)->
-        unless error
-          response.body = buffer
-        next(error)
-    when "gzip"
-      Zlib.gunzip response.body, (error, buffer)->
-        unless error
-          response.body = buffer
-        next(error)
-    else
-      next()
+  if ( (contentEncoding == "deflate") || (transferEncoding == "deflate") )
+    Zlib.inflate response.body, (error, buffer)->
+      unless error
+        response.body = buffer
+      next(error)
+  else if ( (contentEncoding == "gzip") || (transferEncoding == "gzip") )
+    Zlib.gunzip response.body, (error, buffer)->
+      unless error
+        response.body = buffer
+      next(error)
+  else
+    next()
   return
 
 
