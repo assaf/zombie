@@ -486,10 +486,10 @@ Resources.decodeBody = (request, response, next)->
     [type,subtype] = contentType.split(/\//,2);
     unless mimeType == "application/octet-stream" || type == "image"
       for typeOption in typeOptions
-        if /^charset=/.test(typeOption)
+        if /^charset=/.test(typeOption.toLowerCase())
           charset = typeOption.split("=")[1]
           break
-      response.body = encoding.convert(response.body.toString(), null, charset || "utf-8").toString()
+      response.body = encoding.convert(response.body, null, charset || "utf-8").toString()
   next()
   return
 
