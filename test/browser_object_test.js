@@ -215,16 +215,12 @@ describe("Browser", function() {
       });
 
       describe("wait over", function() {
-        it("should fire done event", async function() {
+        it("should fire done event", function(done) {
           var done;
-          browser.once('done', function() {
+          browser.once('done', done);
             done = true;
-          });
           browser.location = '/browser/scripted';
-          await browser.wait();
-          // Event emitted asynchronously
-          await setImmediate;
-          assert(done);
+          browser.wait();
         });
       });
 

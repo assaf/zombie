@@ -369,6 +369,8 @@ loadDocument = ({ document, history, url, method, encoding, params })->
       unless headers.referer
         # HTTP header Referer, but Document property referrer
         headers.referer = document.referrer
+      # Tell the browser we're looking for an HTML document
+      headers.accept = "text/html"
 
       window._eventQueue.http method, url, headers: headers, params: params, target: document, (error, response)->
         if error
@@ -424,8 +426,7 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         # Give event handler chance to register listeners.
         window.browser.emit("loading", document)
 
-        if response.body
-          body = response.body.toString("utf8")
+        body = response.body
         unless /<html>/.test(body)
           body = "<html><body>#{body || ""}</body></html>"
 

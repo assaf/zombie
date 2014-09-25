@@ -55,6 +55,7 @@ class EventLoop extends EventEmitter
     @expected = 0
     @running  = false
     @waiting  = 0
+    # Error in event loop propagates to browser
     @on "error", (error)=>
       @browser.emit("error", error)
 
@@ -79,18 +80,22 @@ class EventLoop extends EventEmitter
     waitDuration = ms(waitDuration.toString()) || @browser.waitDuration
     timeout = Date.now() + waitDuration
 
-    timeoutTimer  = null
-    eventHandlers = {}
+    # Someone (us) just started paying attention, start processing events
+    ++@waiting
+    if @waiting == 1
+      setImmediate =>
+        if @active
+          @run()
+
+    timer   = null
+    ontick  = null
+    onerror = null
+    ondone  = null
 
     promise = new Promise((resolve, reject)=>
-      timeoutTimer = global.setTimeout(resolve, waitDuration)
+      timer = global.setTimeout(resolve, waitDuration)
 
-      # Don't wait if browser encounters an error.
-      @browser.once("error", reject)
-      eventHandlers.done  = resolve
-      eventHandlers.error = reject
-
-      eventHandlers.tick = (next)=>
+      ontick = (next)=>
         if next >= timeout
           # Next event too long in the future, or no events in queue
           # (Infinity), no point in waiting
@@ -105,27 +110,30 @@ class EventLoop extends EventEmitter
           catch error
             reject(error)
         return
+      @on("tick", ontick)
 
-      for event, handler of eventHandlers
-        @on(event, handler)
+      ondone  = resolve
+      @once("done", ondone)
+
+
+      # Don't wait if browser encounters an error (event loop errors also
+      # propagate to browser)
+      onerror = reject
+      @browser.once("error", onerror)
     )
 
     promise = promise.finally(=>
-      clearInterval(timeoutTimer)
-      for event, handler of eventHandlers
-        @removeListener(event, handler)
+      clearInterval(timer)
+      @removeListener("tick", ontick)
+      @removeListener("done", ondone)
+      @browser.removeListener("error", onerror)
 
-      @waiting--
+      --@waiting
       if @waiting == 0
-        @browser.emit("done")
+        setImmediate =>
+          @browser.emit("done")
+      return
     )
-
-    # Someone (us) just started paying attention, start processing events
-    @waiting++
-    if @waiting == 1
-      setImmediate =>
-        if @active
-          @run()
 
     return promise
 

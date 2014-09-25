@@ -6,6 +6,9 @@ CHANGED Switched from using encoding to iconv-lite
 
 CHANGED Switched from using Q to Bluebird
 
+    673 tests
+    12 sec to complete
+
 
 ## Version 2.0.1 2014-09-24
 

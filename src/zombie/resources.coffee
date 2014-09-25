@@ -16,17 +16,17 @@
 #   protocols or support new headers
 
 
-encoding  = require("encoding")
-File      = require("fs")
-HTML      = require("jsdom").defaultLevel
-Path      = require("path")
-QS        = require("querystring")
-Request   = require("request")
-URL       = require("url")
-HTTP      = require('http')
-Zlib      = require("zlib")
-assert    = require("assert")
-Promise   = require("bluebird").Promise
+iconv       = require("iconv-lite")
+File        = require("fs")
+HTML        = require("jsdom").defaultLevel
+Path        = require("path")
+QS          = require("querystring")
+Request     = require("request")
+URL         = require("url")
+HTTP        = require('http')
+Zlib        = require("zlib")
+assert      = require("assert")
+{ Promise } = require("bluebird")
 
 
 # Each browser has a resources object that provides the means for retrieving
@@ -102,7 +102,7 @@ class Resources extends Array
     )
 
     if callback
-      promise.then(
+      promise.done(
         (response)-> callback(null, response),
         callback)
     else

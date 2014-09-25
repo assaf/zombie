@@ -151,27 +151,27 @@ class Browser extends EventEmitter
 
     # Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
     # reported while processing resources/JavaScript.
-    @on "error", (error)->
-      browser.errors.push(error)
-      browser.console.error(error.message, error.stack)
+    @on "error", (error)=>
+      @errors.push(error)
+      @log(error.message, error.stack)
 
-    @on "done", (timedOut)->
+    @on "done", (timedOut)=>
       if timedOut
-        browser.log "Event loop timed out"
+        @log "Event loop timed out"
       else
-        browser.log "Event loop is empty"
+        @log "Event loop is empty"
 
-    @on "timeout", (fn, delay)->
-      browser.log "Fired timeout after #{delay}ms delay"
+    @on "timeout", (fn, delay)=>
+      @log "Fired timeout after #{delay}ms delay"
 
-    @on "interval", (fn, interval)->
-      browser.log "Fired interval every #{interval}ms"
+    @on "interval", (fn, interval)=>
+      @log "Fired interval every #{interval}ms"
 
-    @on "link", (url, target)->
-      browser.log "Follow link to #{url}"
+    @on "link", (url, target)=>
+      @log "Follow link to #{url}"
 
-    @on "submit", (url, target)->
-      browser.log "Submit form to #{url}"
+    @on "submit", (url, target)=>
+      @log "Submit form to #{url}"
 
     # Sets the browser options.
     for name in BROWSER_OPTIONS
@@ -222,6 +222,7 @@ class Browser extends EventEmitter
           [restore[k], @[k]] = [@[k], v]
       return =>
         @[k] = v for k,v of restore
+        return
     else
       return ->
 
@@ -312,7 +313,8 @@ class Browser extends EventEmitter
 
     if callback
       promise.done(callback, callback)
-    return promise
+    else
+      return promise
 
 
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking
@@ -512,7 +514,8 @@ class Browser extends EventEmitter
     promise = @wait(options).finally(resetOptions)
     if callback
       promise.done(callback, callback)
-    return promise
+    else
+      return promise
 
 
   # ### browser.load(html, callback)
@@ -532,18 +535,12 @@ class Browser extends EventEmitter
       @emit "error", error
 
     # Find (first of any) errors caught during document.write
-    first = @errors[0]
-    if first
-      # Call callback or resolve promise
-      if callback
-        process.nextTick ->
-          callback(first)
-        return
-      else
-        return Promise.reject(first)
+    error   = @errors[0]
+    promise = if error then Promise.reject(error) else @wait()
+    if callback
+      promise.done(callback, callback)
     else
-      # Otherwise wait for all events to process, wait handles errors
-      return @wait(callback)
+      return promise
 
 
   # ### browser.location => Location
@@ -903,8 +900,7 @@ class Browser extends EventEmitter
     if button.getAttribute("disabled")
       throw new Error("This button is disabled")
     button.focus()
-    @fire(button, "click")
-    return @wait(callback)
+    return @fire(button, "click", callback)
 
 
   # -- Cookies --
