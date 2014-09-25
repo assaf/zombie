@@ -1,3 +1,8 @@
+## Version 2.0.2 2014-09-25
+
+CHANGED switched from using Q to Bluebird
+
+
 ## Version 2.0.1 2014-09-24
 
 FIXED DNS.lookup should use lookup, not resolve

@@ -234,18 +234,20 @@ class EventLoop extends EventEmitter
 class EventQueue
 
   # Instance variables:
-  # browser   - Reference to the browser
-  # window    - Reference to the window
-  # eventLoop - Reference to the browser's event loop
-  # expecting - These are holding back the event loop
-  # queue     - FIFO queue of functions to call
-  # timers    - Sparse array of timers (index is the timer handle)
+  # browser     - Reference to the browser
+  # window      - Reference to the window
+  # eventLoop   - Reference to the browser's event loop
+  # expecting   - These are holding back the event loop
+  # queue       - FIFO queue of functions to call
+  # timers      - Sparse array of timers (index is the timer handle)
+  # nextTimerHandle - Value of next timer handler
   constructor: (@window)->
     @browser = @window.browser
     @eventLoop = @browser.eventLoop
-    @timers = []
     @queue = []
     @expecting = []
+    @timers           = []
+    @nextTimerHandle  = 1
 
   # Cleanup when we dispose of the window
   destroy: ->
@@ -320,39 +322,35 @@ class EventQueue
   # Window.setTimeout
   setTimeout: (fn, delay = 0)->
     return unless fn
-    index = @timers.length
+    handle = @nextTimerHandle
+    ++@nextTimerHandle
     remove = =>
-      delete @timers[index]
-    timer = new Timeout(this, fn, delay, remove)
-    @timers[index] = timer
-    # The HTML 5 spec says that all timerIds must be > 0, so add
-    # 1 to the timer handle to avoid the 0 index
-    return index+1
+      delete @timers[handle]
+    @timers[handle] = new Timeout(this, fn, delay, remove)
+    return handle
 
   # Window.clearTimeout
-  clearTimeout: (timerHandle)->
-    index = timerHandle - 1
-    timer = @timers[index]
-    timer.stop() if timer
+  clearTimeout: (handle)->
+    timer = @timers[handle]
+    if timer
+      timer.stop()
     return
 
   # Window.setInterval
   setInterval: (fn, interval = 0)->
     return unless fn
-    index = @timers.length
+    handle = @nextTimerHandle
+    ++@nextTimerHandle
     remove = =>
-      delete @timers[index]
-    timer = new Interval(this, fn, interval, remove)
-    @timers[index] = timer
-    # The HTML 5 spec says that all timerIds must be > 0, so add
-    # 1 to the timer handle to avoid the 0 index
-    return index+1
+      delete @timers[handle]
+    @timers[handle] = new Interval(this, fn, interval, remove)
+    return handle
 
   # Window.clearInterval
-  clearInterval: (timerHandle)->
-    index = timerHandle - 1
-    timer = @timers[index]
-    timer.stop() if timer
+  clearInterval: (handle)->
+    timer = @timers[handle]
+    if timer
+      timer.stop()
     return
 
   # Returns the timestamp of the next timer event
