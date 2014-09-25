@@ -5,7 +5,12 @@ FIXED window.cookies fails with error #610
 FIXED HTMLImageElement._attrModified not passing callback to
 HTML.resourceLoader.load #624
 
-FIXED add raise method to xhr to catch errors in handlers #681
+FIXED Add raise method to xhr to catch errors in handlers #681
+
+FIXED Chunked and gzipped content is not decompressed #707
+
+    672 tests
+    11 sec to complete
 
 
 ## Version 2.0.2 2014-09-25
