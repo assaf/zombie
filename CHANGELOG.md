@@ -1,3 +1,8 @@
+## Version 2.0.1 2014-09-24
+
+FIXED DNS.lookup should use lookup, not resolve
+
+
 ## Version 2.0.0 2014-09-24
 
 Much much has changed, and the documentation has not caught up.  Here's a

@@ -81,26 +81,19 @@ class DNSMask
     cname = @_find(domain, "CNAME")
     if cname
       domain = cname
-
-    switch family
-      when 4
-        @resolve domain, "A", (error, addresses)=>
-          callback(error, addresses && addresses[0], 4)
-      when 6
-        @resolve domain, "AAAA", (error, addresses)=>
-          callback(error, addresses && addresses[0], 6)
-      when null
-        @resolve domain, "A", (error, addresses)=>
-          if addresses
-            callback(error, addresses && addresses[0], 4)
-          else
-            @resolve domain, "AAAA", (error, addresses)=>
-              if addresses
-                callback(error, addresses && addresses[0], 6)
-              else
-                @_lookup domain, family, callback
-      else
-        throw new Error("Unknown family " + family)
+    if family == 4 || !family
+      ipv4 = @_find(domain, "A")
+      if ipv4
+        setImmediate ->
+          callback(null, ipv4, 4)
+        return
+    if family == 6 || !family
+      ipv6 = @_find(domain, "AAAA")
+      if ipv6
+        setImmediate ->
+          callback(null, ipv6, 6)
+        return
+    @_lookup(domain, family, callback)
 
   # Alternative implementation for Node's DNS.resolve.
   resolve: (domain, type, callback)->
