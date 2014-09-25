@@ -13,14 +13,18 @@ describe("Document", function() {
   describe("character encoding", function() {
     before(function() {
       brains.get('/document/encoding', function(req, res) {
-        res.header('Content-Type', 'text/html; charset=greek');
-        res.send(new Buffer("<html><body>\xc3\xe5\xe9\xdc!</body></html>"));
+        res.header('Content-Type', 'text/html; charset=iso-8859-7');
+        const open  = new Buffer("<html><body>");
+        const text  = new Buffer([0xC3, 0xE5, 0xE9, 0xDC]);
+        const close = new Buffer("</body></html>");
+        const page  = Buffer.concat([open, text, close]);
+        res.send(page);
       });
       return browser.visit('/document/encoding');
     });
 
-    it("should support greek8", function() {
-      browser.assert.text('body', "Γειά!");
+    it("should support greek", function() {
+      browser.assert.text('body', "Γειά");
     });
   });
 

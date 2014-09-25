@@ -476,22 +476,43 @@ Resources.decompressBody = (request, response, next)->
   return
 
 
+# Find the charset= value of the meta tag
+MATCH_CHARSET = /<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"']*([^\s"'\/>]*)/i;
+
 # This handler decodes the response body based on the response content type.
 Resources.decodeBody = (request, response, next)->
-  # Use content type to determine how to decode response
-  if response.body && response.headers
-    contentType = response.headers["content-type"]
-  if contentType
-    [mimeType, typeOptions...] = contentType.split(/;\s*/)
-    [type,subtype] = contentType.split(/\//,2);
-    unless mimeType == "application/octet-stream" || type == "image"
-      for typeOption in typeOptions
-        if /^charset=/.test(typeOption)
-          charset = typeOption.split("=")[1]
-          break
-      response.body = encoding.convert(response.body.toString(), null, charset || "utf-8").toString()
+  # If Content-Type header specifies charset, use that
+  contentType = response.headers && response.headers["content-type"]
+  if contentType && Buffer.isBuffer(response.body)
+    [mimeType, typeOptions...]  = contentType.split(/;\s*/)
+    [type, subtype]             = contentType.split(/\//,2);
+
+  # Images, binary, etc keep response body a buffer
+  if type && type != "text"
+    next()
+    return
+
+  # Pick charset from content type
+  if mimeType
+    for typeOption in typeOptions
+      if /^charset=/i.test(typeOption)
+        charset = typeOption.split("=")[1]
+        break
+
+  isHTML = /html/.test(subtype) || /\bhtml\b/.test(request.headers.accept)
+
+  # Otherwise, HTML documents only, pick charset from meta tag
+  if !charset && isHTML
+    match = response.body.toString().match(MATCH_CHARSET)
+    charset = match && match[1]
+
+  # Otherwise, HTML documents only, default charset in US is windows-1252
+  if !charset && isHTML
+    charset = charset || "windows-1252"
+
+  if charset
+    response.body = iconv.decode(response.body, charset)
   next()
-  return
 
 
 # All browsers start out with this list of handler.

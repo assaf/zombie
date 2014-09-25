@@ -1,6 +1,10 @@
 ## Version 2.0.2 2014-09-25
 
-CHANGED switched from using Q to Bluebird
+ADDED Only decode HTML documents, and support meta tag with charset
+
+CHANGED Switched from using encoding to iconv-lite
+
+CHANGED Switched from using Q to Bluebird
 
 
 ## Version 2.0.1 2014-09-24
