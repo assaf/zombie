@@ -2,6 +2,9 @@
 
 FIXED window.cookies fails with error [Closes #610]
 
+FIXED HTMLImageElement._attrModified not passing callback to
+HTML.resourceLoader.load #624
+
 
 ## Version 2.0.2 2014-09-25
 

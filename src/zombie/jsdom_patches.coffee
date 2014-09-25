@@ -102,7 +102,7 @@ Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
 # jsdom seemed to only queue the 'load' event
 HTML.HTMLImageElement.prototype._attrModified = (name, value, oldVal) ->
   if (name == 'src' && value != oldVal)
-    HTML.resourceLoader.load(this, value)
+    HTML.resourceLoader.load(this, value, ->)
 
 # Implement insertAdjacentHTML
 HTML.HTMLElement.prototype.insertAdjacentHTML = (position, html)->
