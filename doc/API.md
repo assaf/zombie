@@ -207,6 +207,12 @@ You can do that by calling `browser.wait`, passing a callback to methods like
 
 Navigate to the previous page in history.
 
+
+### browser.click(selector, callback)
+
+This method is similar to `clickLink` except that the selector may correspond to
+an arbitrary element.
+
 ### browser.clickLink(selector, callback)
  
 Clicks on a link.  The first argument is the link text or CSS selector.
