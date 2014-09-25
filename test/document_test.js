@@ -2,7 +2,7 @@ const assert      = require('assert');
 const Browser     = require('../src/zombie');
 const { brains }  = require('./helpers');
 
-describe("Document", function() {
+describe('Document', function() {
   let browser;
 
   before(function() {
@@ -10,26 +10,26 @@ describe("Document", function() {
     return brains.ready();
   });
 
-  describe("character encoding", function() {
+  describe('character encoding', function() {
     before(function() {
       brains.get('/document/encoding', function(req, res) {
         res.header('Content-Type', 'text/html; charset=iso-8859-7');
-        const open  = new Buffer("<html><body>");
+        const open  = new Buffer('<html><body>');
         const text  = new Buffer([0xC3, 0xE5, 0xE9, 0xDC]);
-        const close = new Buffer("</body></html>");
+        const close = new Buffer('</body></html>');
         const page  = Buffer.concat([open, text, close]);
         res.send(page);
       });
       return browser.visit('/document/encoding');
     });
 
-    it("should support greek", function() {
-      browser.assert.text('body', "Γειά");
+    it('should support greek', function() {
+      browser.assert.text('body', 'Γειά');
     });
   });
 
 
-  describe("activeElement", function() {
+  describe('activeElement', function() {
     before(function() {
       brains.static('/document/activeElement', `
         <html>
@@ -38,24 +38,24 @@ describe("Document", function() {
       return browser.visit('/document/activeElement');
     });
 
-    it("should be document body", function() {
+    it('should be document body', function() {
       browser.assert.hasFocus(undefined);
     });
 
-    describe("autofocus on div", function() {
+    describe('autofocus on div', function() {
       before(async function() {
         await browser.visit('/document/activeElement');
-        var div = browser.document.createElement('div');
+        const div = browser.document.createElement('div');
         div.setAttribute('autofocus');
         browser.document.body.appendChild(div);
       });
 
-      it("should not change active element", function() {
+      it('should not change active element', function() {
         browser.assert.hasFocus(undefined);
       });
     });
 
-    describe("autofocus on input", function() {
+    describe('autofocus on input', function() {
       let input;
 
       before(async function() {
@@ -65,12 +65,12 @@ describe("Document", function() {
         browser.document.body.appendChild(input);
       });
 
-      it("should change active element", function() {
+      it('should change active element', function() {
         browser.assert.hasFocus(input);
       });
     });
 
-    describe("autofocus on textarea", function() {
+    describe('autofocus on textarea', function() {
       let textarea;
 
       before(async function() {
@@ -80,25 +80,25 @@ describe("Document", function() {
         browser.document.body.appendChild(textarea);
       });
 
-      it("should change active element", function() {
+      it('should change active element', function() {
         browser.assert.hasFocus(textarea);
       });
     });
 
-    describe("focus on div", function() {
+    describe('focus on div', function() {
       before(async function() {
         await browser.visit('/document/activeElement');
-        var div = browser.document.createElement('div');
+        const div = browser.document.createElement('div');
         browser.document.body.appendChild(div);
         div.focus();
       });
 
-      it("should change active element", function() {
+      it('should change active element', function() {
         browser.assert.hasFocus(undefined);
       });
     });
 
-    describe("focus on input", function() {
+    describe('focus on input', function() {
       let input;
 
       before(async function() {
@@ -108,12 +108,12 @@ describe("Document", function() {
         input.focus();
       });
 
-      it("should change active element", function() {
+      it('should change active element', function() {
         browser.assert.hasFocus(input);
       });
     });
 
-    describe("focus on textarea", function() {
+    describe('focus on textarea', function() {
       let textarea;
 
       before(async function() {
@@ -123,77 +123,77 @@ describe("Document", function() {
         textarea.focus();
       });
 
-      it("should change active element", function() {
+      it('should change active element', function() {
         browser.assert.hasFocus(textarea);
       });
     });
   });
 
 
-  describe("insertAdjacentHTML", function() {
+  describe('insertAdjacentHTML', function() {
     before(function() {
-      brains.static('/document/insertAdjacentHTML', "<html><body><div><p id='existing'></p></div></body></html>");
+      brains.static('/document/insertAdjacentHTML', '<html><body><div><p id="existing"></p></div></body></html>');
     });
 
-    describe("beforebegin", function() {
+    describe('beforebegin', function() {
       let div;
 
       before(async function() {
         await browser.visit('/document/insertAdjacentHTML');
         div = browser.query('div');
-        div.insertAdjacentHTML('beforebegin', "<p id='beforebegin'></p>");
+        div.insertAdjacentHTML('beforebegin', '<p id="beforebegin"></p>');
       });
 
-      it("should insert content before target element", function() {
+      it('should insert content before target element', function() {
         assert.equal(browser.body.firstChild.getAttribute('id'), 'beforebegin');
       });
     });
 
-    describe("afterbegin", function() {
+    describe('afterbegin', function() {
       let div;
 
       before(async function() {
         await browser.visit('/document/insertAdjacentHTML');
         div = browser.query('div');
-        div.insertAdjacentHTML('afterbegin', "<p id='afterbegin'></p>");
+        div.insertAdjacentHTML('afterbegin', '<p id="afterbegin"></p>');
       });
 
-      it("should insert content as the first child within target element", function() {
+      it('should insert content as the first child within target element', function() {
         assert.equal(div.firstChild.getAttribute('id'), 'afterbegin');
       });
     });
 
-    describe("beforeend", function() {
+    describe('beforeend', function() {
       let div;
 
       before(async function() {
         await browser.visit('/document/insertAdjacentHTML');
         div = browser.query('div');
-        div.insertAdjacentHTML('beforeend', "<p id='beforeend'></p>");
+        div.insertAdjacentHTML('beforeend', '<p id="beforeend"></p>');
       });
 
-      it("should insert content as the last child within target element", function() {
+      it('should insert content as the last child within target element', function() {
         assert.equal(div.lastChild.getAttribute('id'), 'beforeend');
       });
     });
 
-    describe("afterend", function() {
+    describe('afterend', function() {
       let div;
 
       before(async function() {
         await browser.visit('/document/insertAdjacentHTML');
         div = browser.query('div');
-        div.insertAdjacentHTML('afterend', "<p id='afterend'></p>");
+        div.insertAdjacentHTML('afterend', '<p id="afterend"></p>');
       });
 
-      it("should insert content after the target element", function() {
+      it('should insert content after the target element', function() {
         assert.equal(browser.body.lastChild.getAttribute('id'), 'afterend');
       });
     });
   });
 
 
-  describe("document.scripts", function() {
+  describe('document.scripts', function() {
     let scripts;
 
     before(async function() {
@@ -211,19 +211,19 @@ describe("Document", function() {
       scripts = browser.document.scripts;
     });
 
-    it("should act link an array", function() {
+    it('should act link an array', function() {
       assert.equal(scripts.length, 3);
       assert.equal(scripts[0].src, '/jquery.js');
       assert.equal(scripts.foo.src, '/jquery.js?foo');
     });
 
-    it("should be an HTMLCollection", function() {
+    it('should be an HTMLCollection', function() {
       assert.equal(scripts.length, 3);
       assert.equal(scripts.item(0).src, '/jquery.js');
       assert.equal(scripts.namedItem('foo').src, '/jquery.js?foo');
     });
 
-    it("should find all scripts in document", function() {
+    it('should find all scripts in document', function() {
       assert.equal(scripts[0].src, '/jquery.js');
       assert.equal(scripts[1].src, '');
       assert.equal(scripts[2].src, '/jquery.js?foo');

@@ -1,7 +1,7 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-describe "Facebook Connect", ->
+describe.skip "Facebook Connect", ->
 
   browser = null
   before (done)->
@@ -65,7 +65,7 @@ describe "Facebook Connect", ->
     it "should show permission dialog", ->
       browser.assert.attribute "#platform_dialog_content #grant_clicked input", "value", "Log In with Facebook"
 
-    describe.skip "authorize", ->
+    describe "authorize", ->
       before (done)->
         # all.js sets a callback with a different ID on each run.  Our
         # HTTP/S responses were captured with the callback ID f42febd2c.

@@ -2,7 +2,7 @@ const Browser     = require('../src/zombie');
 const { brains }  = require('./helpers');
 
 
-describe("CSS", function() {
+describe('CSS', function() {
   let browser;
 
   before(function() {
@@ -11,7 +11,7 @@ describe("CSS", function() {
   });
 
 
-  describe("style", function() {
+  describe('style', function() {
     before(function() {
       brains.get('/styled', function(req, res) {
         res.send(`
@@ -25,19 +25,19 @@ describe("CSS", function() {
       return browser.visit('/styled');
     });
 
-    it("should be formatted string", function() {
+    it('should be formatted string', function() {
       browser.query('#styled').style.opacity = 0.55;
       browser.assert.style('#styled', 'opacity', '0.55');
     });
 
-    it("should not accept non-numbers", function() {
+    it('should not accept non-numbers', function() {
       browser.query('#styled').style.opacity = '.46';
       browser.query('#styled').style.opacity = 'four-six';
       browser.assert.style('#styled', 'opacity', '0.46');
     });
 
-    it("should default to empty string", function() {
-      let style = browser.query('#styled').style;
+    it('should default to empty string', function() {
+      const style = browser.query('#styled').style;
       style.opacity = 1.0;
       style.opacity = undefined;
       browser.assert.style('#styled', 'opacity', '');

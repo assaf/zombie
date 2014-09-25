@@ -3,7 +3,7 @@ const Browser     = require('../src/zombie');
 const { brains }  = require('./helpers');
 
 
-describe("EventLoop", function() {
+describe('EventLoop', function() {
   let browser;
 
   before(function() {
@@ -18,7 +18,7 @@ describe("EventLoop", function() {
     return brains.ready();
   });
 
-  describe("setTimeout", function() {
+  describe('setTimeout', function() {
     before(function() {
       brains.get('/eventloop/timeout', function(req, res) {
         res.send(`
@@ -30,21 +30,21 @@ describe("EventLoop", function() {
       });
     });
 
-    describe("no wait", function() {
+    describe('no wait', function() {
       before(async function() {
         await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
-          this.document.title += " Two";
+          this.document.title += ' Two';
         }, 100);
         await setImmediate;
       });
 
-      it("should not fire any timeout events", function() {
-        browser.assert.text('title', "One");
+      it('should not fire any timeout events', function() {
+        browser.assert.text('title', 'One');
       });
     });
 
-    describe("handle of first setTimeout", function() {
+    describe('handle of first setTimeout', function() {
       // Use a new browser to make sure no other setTimeout call has
       // happened yet
       let handle;
@@ -54,57 +54,57 @@ describe("EventLoop", function() {
         handle = browser.window.setTimeout(Function, 100);
       });
 
-      it("should be greater than 0", function() {
+      it('should be greater than 0', function() {
         assert.equal(handle, 1);
       });
     });
 
-    describe("from timeout", function() {
+    describe('from timeout', function() {
       before(async function() {
         await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
           this.setTimeout(function() {
-            this.document.title += " Two";
+            this.document.title += ' Two';
             this.setTimeout(function() {
-              this.document.title += " Three";
+              this.document.title += ' Three';
             }, 100);
           }, 100);
         }, 100);
         await browser.wait();
       });
 
-      it("should fire all timeout events", function() {
-        browser.assert.text('title', "One Two Three");
+      it('should fire all timeout events', function() {
+        browser.assert.text('title', 'One Two Three');
       });
     });
 
 
-    describe("wait for all", function() {
+    describe('wait for all', function() {
       before(async function() {
         await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
-          this.document.title += " Two";
+          this.document.title += ' Two';
         }, 100);
         browser.window.setTimeout(function() {
-          this.document.title += " Three";
+          this.document.title += ' Three';
         }, 200);
         await browser.wait(250);
       });
 
-      it("should fire all timeout events", function() {
-        browser.assert.text('title', "One Two Three");
+      it('should fire all timeout events', function() {
+        browser.assert.text('title', 'One Two Three');
       });
     });
 
 
-    describe("cancel timeout", function() {
+    describe('cancel timeout', function() {
       before(async function() {
         await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
-          this.document.title += " Two";
+          this.document.title += ' Two';
         }, 100);
-        let second = browser.window.setTimeout(function() {
-          this.document.title += " Three";
+        const second = browser.window.setTimeout(function() {
+          this.document.title += ' Three';
         }, 200);
         setTimeout(function() {
           browser.window.clearTimeout(second);
@@ -112,10 +112,10 @@ describe("EventLoop", function() {
         await browser.wait(300);
       });
 
-      it("should fire only uncancelled timeout events", function() {
-        browser.assert.text('title', "One Two");
+      it('should fire only uncancelled timeout events', function() {
+        browser.assert.text('title', 'One Two');
       });
-      it("should not choke on invalid timers", function() {
+      it('should not choke on invalid timers', function() {
         assert.doesNotThrow(function() {
           // clearTimeout should not choke when clearing an invalid timer
           // https://developer.mozilla.org/en/DOM/window.clearTimeout
@@ -124,7 +124,7 @@ describe("EventLoop", function() {
       });
     });
 
-    describe("outside wait", function() {
+    describe('outside wait', function() {
       before(async function() {
         await browser.visit('/eventloop/function');
         browser.window.setTimeout(function() { this.document.title += '1'; }, 100);
@@ -135,29 +135,29 @@ describe("EventLoop", function() {
         // wait long enough to fire no. 3, but no events processed
         await new Promise((resolve)=> setTimeout(resolve, 200));
       });
-      it("should not fire", function() {
-        browser.assert.text('title', "12");
+      it('should not fire', function() {
+        browser.assert.text('title', '12');
       });
     });
 
 
-    describe("zero wait", function() {
+    describe('zero wait', function() {
       before(async function() {
         await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
-          this.document.title += " Two";
+          this.document.title += ' Two';
         });
         await browser.wait();
       });
 
-      it("should wait for event to fire", function() {
-        browser.assert.text('title', "One Two");
+      it('should wait for event to fire', function() {
+        browser.assert.text('title', 'One Two');
       });
     });
   });
 
 
-  describe("setImmediate", function() {
+  describe('setImmediate', function() {
     before(function() {
       brains.get('/eventloop/immediate', function(req, res) {
         res.send(`
@@ -169,38 +169,38 @@ describe("EventLoop", function() {
       });
     });
 
-    describe("with wait", function() {
+    describe('with wait', function() {
       before(async function() {
         await browser.visit('/eventloop/immediate');
         browser.window.setImmediate(function() {
-          this.document.title += ".";
+          this.document.title += '.';
         });
         await browser.wait();
       });
 
-      it("should not fire the immediate", function() {
-        browser.assert.text('title', ".");
+      it('should not fire the immediate', function() {
+        browser.assert.text('title', '.');
       });
     });
 
-    describe("clearImmediate", function() {
+    describe('clearImmediate', function() {
       before(async function() {
         await browser.visit('/eventloop/immediate');
-        let immediate = browser.window.setImmediate(function() {
-          this.document.title += ".";
+        const immediate = browser.window.setImmediate(function() {
+          this.document.title += '.';
         });
         browser.window.clearImmediate(immediate);
         await browser.wait();
       });
 
-      it("should not fire any immediates", function() {
-        browser.assert.text('title', "");
+      it('should not fire any immediates', function() {
+        browser.assert.text('title', '');
       });
     });
   });
 
 
-  describe("setInterval", function() {
+  describe('setInterval', function() {
     before(function() {
       brains.get('/eventloop/interval', function(req, res) {
         res.send(`
@@ -212,7 +212,7 @@ describe("EventLoop", function() {
       });
     });
 
-    describe("handle of first setInterval", function() {
+    describe('handle of first setInterval', function() {
       // Use a new browser to make sure no other setInterval call has
       // happened yet
       let handle;
@@ -222,70 +222,70 @@ describe("EventLoop", function() {
         handle = browser.window.setInterval(Function, 100);
       });
 
-      it("should be greater than 0", function() {
+      it('should be greater than 0', function() {
         assert.equal(handle, 1);
         browser.window.clearInterval(handle);
       });
     });
 
-    describe("no wait", function() {
+    describe('no wait', function() {
       before(async function() {
         await browser.visit('/eventloop/interval');
         browser.window.setInterval(function() {
-          this.document.title += ".";
+          this.document.title += '.';
         }, 100);
         await setImmediate; 
       });
 
-      it("should not fire any timeout events", function() {
-        browser.assert.text('title', "");
+      it('should not fire any timeout events', function() {
+        browser.assert.text('title', '');
       });
     });
 
-    describe("wait once", function() {
+    describe('wait once', function() {
       before(async function() {
         await browser.visit('/eventloop/interval');
         browser.window.setInterval(function() {
-          this.document.title += ".";
+          this.document.title += '.';
         }, 100);
         await browser.wait(150);
       });
 
-      it("should fire interval event once", function() {
-        browser.assert.text('title', ".");
+      it('should fire interval event once', function() {
+        browser.assert.text('title', '.');
       });
     });
 
-    describe("wait long enough", function() {
+    describe('wait long enough', function() {
       before(async function() {
         await browser.visit('/eventloop/interval');
         browser.window.setInterval(function() {
-          this.document.title += ".";
+          this.document.title += '.';
         }, 100);
         // Only wait for first 3 events
         await browser.wait(350);
       });
 
-      it("should fire five interval event", function() {
-        browser.assert.text('title', "...");
+      it('should fire five interval event', function() {
+        browser.assert.text('title', '...');
       });
     });
 
-    describe("cancel interval", function() {
+    describe('cancel interval', function() {
       before(async function() {
         await browser.visit('/eventloop/interval');
-        let interval = browser.window.setInterval(function() {
-          this.document.title += ".";
+        const interval = browser.window.setInterval(function() {
+          this.document.title += '.';
         }, 100);
         await browser.wait(250);
         browser.window.clearInterval(interval);
         await browser.wait(200);
       });
 
-      it("should fire only uncancelled interval events", function() {
-        browser.assert.text('title', "..");
+      it('should fire only uncancelled interval events', function() {
+        browser.assert.text('title', '..');
       });
-      it("should not throw an exception with invalid interval", function() {
+      it('should not throw an exception with invalid interval', function() {
         assert.doesNotThrow(function() {
           // clearInterval should not choke on invalid interval
           browser.window.clearInterval(undefined);
@@ -293,11 +293,11 @@ describe("EventLoop", function() {
       });
     });
 
-    describe("outside wait", function() {
+    describe('outside wait', function() {
       before(async function() {
         await browser.visit('/eventloop/interval');
         browser.window.setInterval(function() {
-          this.document.title += ".";
+          this.document.title += '.';
         }, 100);
         await browser.wait(120); // wait long enough to fire no. 1
         await browser.wait(120); // wait long enough to fire no. 2
@@ -305,32 +305,32 @@ describe("EventLoop", function() {
         await new Promise((resolve)=> setTimeout(resolve, 200));
       });
 
-      it("should not fire", function() {
-        browser.assert.text('title', "..");
+      it('should not fire', function() {
+        browser.assert.text('title', '..');
       });
     });
   });
 
-  describe("browser.wait completion", function() {
+  describe('browser.wait completion', function() {
     function completed(window) {
-      return window.document.title === "....";
+      return window.document.title === '....';
     }
 
     before(async function() {
       await browser.visit('/eventloop/function');
       browser.window.setInterval(function() {
-        this.document.title += ".";
+        this.document.title += '.';
       }, 100);
       await browser.wait({ function: completed });
     });
 
-    it("should not wait longer than specified", function() {
-      browser.assert.text('title', "....");
+    it('should not wait longer than specified', function() {
+      browser.assert.text('title', '....');
     });
   });
 
 
-  describe("page load", function() {
+  describe('page load', function() {
     before(function() {
       brains.get('/eventloop/dcl', function(req, res) {
         res.send(`
@@ -338,11 +338,11 @@ describe("EventLoop", function() {
             <head><title></title></head>
             <script>
             window.documentDCL = 0;
-            document.addEventListener("DOMContentLoaded", function() {
+            document.addEventListener('DOMContentLoaded', function() {
               ++window.documentDCL;
             });
             window.windowDCL = 0;
-            window.addEventListener("DOMContentLoaded", function() {
+            window.addEventListener('DOMContentLoaded', function() {
               ++window.windowDCL;
             });
             </script>
@@ -353,15 +353,15 @@ describe("EventLoop", function() {
       return browser.visit('/eventloop/dcl');
     });
 
-    it("should file DOMContentLoaded event on document", function() {
+    it('should file DOMContentLoaded event on document', function() {
       browser.assert.global('documentDCL', 1);
     });
-    it("should file DOMContentLoaded event on window", function() {
+    it('should file DOMContentLoaded event on window', function() {
       browser.assert.global('windowDCL', 1);
     });
   });
 
-  describe("all resources loaded", function() {
+  describe('all resources loaded', function() {
     before(function() {
       brains.get('/eventloop/onload', function(req, res) {
         res.send(`
@@ -376,11 +376,11 @@ describe("EventLoop", function() {
         setTimeout(function() {
           res.send(`
             window.documentLoad = 0;
-            document.addEventListener("load", function() {
+            document.addEventListener('load', function() {
               ++window.documentLoad;
             });
             window.windowLoad = 0;
-            window.addEventListener("load", function() {
+            window.addEventListener('load', function() {
               ++window.windowLoad;
             });
           `);
@@ -389,10 +389,10 @@ describe("EventLoop", function() {
       return browser.visit('/eventloop/onload');
     });
 
-    it("should file load event on document", function() {
+    it('should file load event on document', function() {
       browser.assert.global('documentLoad', 1);
     });
-    it("should file load event on window", function() {
+    it('should file load event on window', function() {
       browser.assert.global('windowLoad', 1);
     });
 

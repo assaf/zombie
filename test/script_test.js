@@ -3,7 +3,7 @@ const Browser     = require('../src/zombie');
 const { brains }  = require('./helpers');
 
 
-describe("Scripts", function() {
+describe('Scripts', function() {
   let browser;
 
   before(function() {
@@ -12,7 +12,7 @@ describe("Scripts", function() {
   });
 
 
-  describe("basic", function() {
+  describe('basic', function() {
     before(function() {
       brains.static('/script/living', `
         <html>
@@ -50,68 +50,68 @@ describe("Scripts", function() {
       `);
     });
 
-    describe("run app", function() {
+    describe('run app', function() {
       before(function() {
         return browser.visit('/script/living');
       });
 
-      it("should execute route", function() {
-        browser.assert.text('title', "The Living");
+      it('should execute route', function() {
+        browser.assert.text('title', 'The Living');
       });
-      it("should change location", function() {
+      it('should change location', function() {
         browser.assert.url('/script/living#/');
       });
 
 
-      describe("move around", function() {
+      describe('move around', function() {
         before(function() {
           browser.visit('/script/living#/dead');
           function hashChanged() {
-            return browser.text('#main') == "The Living Dead";
+            return browser.text('#main') == 'The Living Dead';
           }
           return browser.wait({ function: hashChanged });
         });
 
-        it("should execute route", function() {
-          browser.assert.text('#main', "The Living Dead");
+        it('should execute route', function() {
+          browser.assert.text('#main', 'The Living Dead');
         });
-        it("should change location", function() {
+        it('should change location', function() {
           browser.assert.url('/script/living#/dead');
         });
       });
     });
 
 
-    describe("live events", function() {
+    describe('live events', function() {
       before(async function() {
         await browser.visit('/script/living/');
-        browser.fill('Email', "armbiter@zombies")
-        browser.fill('Password', "br41nz");
+        browser.fill('Email', 'armbiter@zombies')
+        browser.fill('Password', 'br41nz');
         await browser.pressButton('Sign Me Up');
       });
 
-      it("should change location", function() {
+      it('should change location', function() {
         browser.assert.url('/script/living/#/');
       });
-      it("should process event", function() {
-        browser.assert.text('title', "Signed up");
+      it('should process event', function() {
+        browser.assert.text('title', 'Signed up');
       });
     });
 
 
-    describe("evaluate", function() {
-      it("should evaluate in context and return value", async function() {
+    describe('evaluate', function() {
+      it('should evaluate in context and return value', async function() {
         await browser.visit('/script/living/');
-        var title = browser.evaluate('document.title');
-        assert.equal(title, "The Living");
+        const title = browser.evaluate('document.title');
+        assert.equal(title, 'The Living');
       });
     });
   });
 
 
-  describe("evaluating", function() {
+  describe('evaluating', function() {
 
-    describe("context", function() {
+    describe('context', function() {
       before(function() {
         brains.static('/script/context', `
           <html>
@@ -127,13 +127,13 @@ describe("Scripts", function() {
         return browser.visit('/script/context');
       });
 
-      it("should be shared by all scripts", function() {
-        browser.assert.text('title', "4");
+      it('should be shared by all scripts', function() {
+        browser.assert.text('title', '4');
       });
     });
 
 
-    describe("window", function() {
+    describe('window', function() {
       before(function() {
         brains.static('/script/window', `
           <html>
@@ -148,13 +148,13 @@ describe("Scripts", function() {
         return browser.visit('/script/window');
       });
 
-      it("should be the same as this, top and parent", function() {
-        browser.assert.text('title', "true,true,true,true,true,true");
+      it('should be the same as this, top and parent', function() {
+        browser.assert.text('title', 'true,true,true,true,true,true');
       });
     });
 
 
-    describe("global and function", function() {
+    describe('global and function', function() {
       before(function() {
         brains.static('/script/global_and_fn', `
           <html>
@@ -171,15 +171,15 @@ describe("Scripts", function() {
         return browser.visit('/script/global_and_fn');
       });
 
-      it("should set global variable", function() {
-        browser.assert.text('title', "foo");
+      it('should set global variable', function() {
+        browser.assert.text('title', 'foo');
       });
     });
 
   });
 
 
-  describe("order", function() {
+  describe('order', function() {
     before(function() {
       brains.static('/script/order', `
         <html>
@@ -194,17 +194,17 @@ describe("Scripts", function() {
           </body>
         </html>
       `);
-      brains.static('/script/order.js', "document.title = document.title + 'One'");
+      brains.static('/script/order.js', 'document.title = document.title + "One"');
       return browser.visit('/script/order');
     });
 
-    it("should run scripts in order regardless of source", function() {
-      browser.assert.text('title', "ZeroOneTwo");
+    it('should run scripts in order regardless of source', function() {
+      browser.assert.text('title', 'ZeroOneTwo');
     });
   });
 
 
-  describe("eval", function() {
+  describe('eval', function() {
     before(function() {
       brains.static('/script/eval', `
         <html>
@@ -230,15 +230,15 @@ describe("Scripts", function() {
       return browser.visit('/script/eval');
     });
 
-    it("should evaluate in global scope", function() {
-      browser.assert.text('title', "OneTwoThreeOne");
+    it('should evaluate in global scope', function() {
+      browser.assert.text('title', 'OneTwoThreeOne');
     });
   });
 
 
-  describe("failing", function() {
+  describe('failing', function() {
 
-    describe("incomplete", function() {
+    describe('incomplete', function() {
       let error;
 
       before(function() {
@@ -250,16 +250,16 @@ describe("Scripts", function() {
         return browser.visit('/script/incomplete').catch((err)=> error = err);
       });
 
-      it("should pass error to callback", function() {
-        assert.equal(error.message, "Unexpected end of input");
+      it('should pass error to callback', function() {
+        assert.equal(error.message, 'Unexpected end of input');
       });
 
-      it("should propagate error to window", function() {
-        assert.equal(browser.error.message, "Unexpected end of input");
+      it('should propagate error to window', function() {
+        assert.equal(browser.error.message, 'Unexpected end of input');
       });
     });
 
-    describe("error", function() {
+    describe('error', function() {
       let error;
 
       before(function() {
@@ -271,20 +271,20 @@ describe("Scripts", function() {
         return browser.visit('/script/error').catch((err)=> error = err);
       });
 
-      it("should pass error to callback", function() {
-        assert.equal(error.message, "Cannot read property 'bar' of undefined");
+      it('should pass error to callback', function() {
+        assert.equal(error.message, 'Cannot read property \'bar\' of undefined');
       });
 
-      it("should propagate error to window", function() {
-        assert.equal(browser.error.message, "Cannot read property 'bar' of undefined");
+      it('should propagate error to window', function() {
+        assert.equal(browser.error.message, 'Cannot read property \'bar\' of undefined');
       });
     });
   });
 
 
-  describe("loading", function() {
+  describe('loading', function() {
 
-    describe("with entities", function() {
+    describe('with entities', function() {
       before(function() {
         brains.static('/script/split', `
           <html>
@@ -294,13 +294,13 @@ describe("Scripts", function() {
         return browser.visit('/script/split');
       });
 
-      it("should run full script", function() {
-        browser.assert.text('title', "1");
+      it('should run full script', function() {
+        browser.assert.text('title', '1');
       });
     });
 
 
-    describe.skip("with CDATA", function() {
+    describe.skip('with CDATA', function() {
       before(function() {
         brains.static('/script/cdata', `
           <html>
@@ -310,18 +310,18 @@ describe("Scripts", function() {
         return browser.visit('/script/cdata');
       });
 
-      it("should run full script", function() {
-        assert.equal(browser.text('title'), "2");
+      it('should run full script', function() {
+        assert.equal(browser.text('title'), '2');
       });
     });
 
 
-    describe("using document.write", function() {
+    describe('using document.write', function() {
       before(function() {
         brains.static('/script/write', `
           <html>
             <body>
-            <script>document.write(unescape('%3Cscript %3Edocument.title = document.title + \".write\"%3C/script%3E'));</script>
+            <script>document.write(unescape('%3Cscript %3Edocument.title = document.title + ".write"%3C/script%3E'));</script>
             <script>
               document.title = document.title + 'document';
             </script>
@@ -331,13 +331,13 @@ describe("Scripts", function() {
         return browser.visit('/script/write');
       });
 
-      it("should run script", function() {
-        browser.assert.text('title', "document.write");
+      it('should run script', function() {
+        browser.assert.text('title', 'document.write');
       });
     });
 
 
-    describe("using appendChild", function() {
+    describe('using appendChild', function() {
       before(function() {
         brains.static('/script/append', `
           <html>
@@ -355,19 +355,19 @@ describe("Scripts", function() {
             </body>
           </html>
         `);
-        brains.static('/script/append.js', "document.title = document.title + \"appendChild\"");
+        brains.static('/script/append.js', 'document.title = document.title + "appendChild"');
         return browser.visit('/script/append');
       });
 
-      it("should run script", function() {
-        browser.assert.text('title', "element.appendChild");
+      it('should run script', function() {
+        browser.assert.text('title', 'element.appendChild');
       });
     });
 
   });
 
 
-  describe("scripts disabled", function() {
+  describe('scripts disabled', function() {
     before(function() {
       brains.static('/script/no-scripts', `
         <html>
@@ -381,22 +381,22 @@ describe("Scripts", function() {
           </body>
         </html>
       `);
-      brains.static('/script/no-scripts.js', "document.title = document.title + 'One'");
-      browser.features = "no-scripts";
+      brains.static('/script/no-scripts.js', 'document.title = document.title + "One"');
+      browser.features = 'no-scripts';
       return browser.visit('/script/order');
     });
 
-    it("should not run scripts", function() {
-      browser.assert.text('title', "Zero");
+    it('should not run scripts', function() {
+      browser.assert.text('title', 'Zero');
     });
 
     after(function() {
-      browser.features = "scripts";
+      browser.features = 'scripts';
     });
   });
 
 
-  describe("script attributes", function() {
+  describe('script attributes', function() {
     before(function() {
       brains.static('/script/inline', `
         <html>
@@ -411,80 +411,80 @@ describe("Scripts", function() {
       return browser.visit('/script/inline');
     });
 
-    it("should have a valid src", function() {
-      let nodes = browser.queryAll("script");
-      assert.equal(nodes[0].src, "");
+    it('should have a valid src', function() {
+      const nodes = browser.queryAll('script');
+      assert.equal(nodes[0].src, '');
     });
   });
 
 
-  describe("file:// uri scheme", function() {
+  describe('file:// uri scheme', function() {
     before(function() {
-      return browser.visit('file://' + __dirname + '/data/file_scheme.html');
+      return browser.visit(`file://${__dirname}/data/file_scheme.html`);
     });
 
-    it("should run scripts with file url src", function() {
+    it('should run scripts with file url src', function() {
       browser.assert.text('title', 'file://');
     });
   });
 
 
-  describe("file:// uri with encoded spaces", function() {
+  describe('file:// uri with encoded spaces', function() {
     before(function() {
-      return browser.visit('file://' + __dirname + '/data/dir%20with%20spaces/file_scheme%20with%20spaces.html');
+      return browser.visit(`file://${__dirname}/data/dir%20with%20spaces/file_scheme%20with%20spaces.html`);
     });
 
-    it("should run scripts with file url src containing encoded spaces", function() {
+    it('should run scripts with file url src containing encoded spaces', function() {
       browser.assert.text('title', 'file://');
     });
   });
 
 
-  describe("javascript: URL", function() {
+  describe('javascript: URL', function() {
 
-    describe("existing page", function() {
+    describe('existing page', function() {
       before(async function() {
         await browser.visit('/script/living');
         await browser.visit('javascript:window.message = "hi"');
       });
 
-      it("should evaluate script in context of window", function() {
-        browser.assert.evaluate('message', "hi");
+      it('should evaluate script in context of window', function() {
+        browser.assert.evaluate('message', 'hi');
       });
     });
 
-    describe("blank page", function() {
+    describe('blank page', function() {
       before(function() {
         browser.tabs.close();
         return browser.visit('javascript:window.message = "hi"');
       });
 
-      it("should evaluate script in context of window", function() {
-        browser.assert.evaluate('message', "hi");
+      it('should evaluate script in context of window', function() {
+        browser.assert.evaluate('message', 'hi');
       });
     });
 
   });
 
 
-  describe("new Image", function() {
-    it("should construct an img tag", function() {
+  describe('new Image', function() {
+    it('should construct an img tag', function() {
       browser.assert.evaluate('new Image().tagName', 'IMG');
     });
-    it("should construct an img tag with width and height", function() {
+    it('should construct an img tag with width and height', function() {
       browser.assert.evaluate('new Image(1, 1).height', 1);
     });
   });
 
 
-  describe("Event", function() {
-    it("should be available in global context", function() {
+  describe('Event', function() {
+    it('should be available in global context', function() {
       browser.assert.evaluate('Event');
     });
   });
 
 
-  describe("on- event handler (string)", function() {
+  describe('on- event handler (string)', function() {
     before(async function() {
       brains.static('/script/on-event/string', `
         <form onsubmit='document.title = event.eventType; return false'>
@@ -495,17 +495,17 @@ describe("Scripts", function() {
       await browser.pressButton('Submit');
     });
 
-    it("should prevent default handling by returning false", function() {
+    it('should prevent default handling by returning false', function() {
       browser.assert.url('/script/on-event/string');
     });
 
-    it("should have access to window.event", function() {
+    it('should have access to window.event', function() {
       browser.assert.text('title', 'HTMLEvents');
     });
   });
 
 
-  describe("on- event handler (function)", function() {
+  describe('on- event handler (function)', function() {
     before(async function() {
       brains.static('/script/on-event/function', `
         <form>
@@ -522,18 +522,18 @@ describe("Scripts", function() {
       await browser.pressButton('Submit');
     });
 
-    it("should prevent default handling by returning false", function() {
+    it('should prevent default handling by returning false', function() {
       browser.assert.url('/script/on-event/function');
     });
 
-    it("should have access to window.event", function() {
+    it('should have access to window.event', function() {
       browser.assert.text('title', 'HTMLEvents');
     });
   });
 
 
-  describe("JSON parsing", function() {
-    it("should respect prototypes", function() {
+  describe('JSON parsing', function() {
+    it('should respect prototypes', function() {
       browser.assert.evaluate(`
         Array.prototype.method = function() {};
         JSON.parse('[0, 1]').method;

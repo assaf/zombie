@@ -492,26 +492,27 @@ Resources.decodeBody = (request, response, next)->
     next()
     return
 
-  # Pick charset from content type
-  if mimeType
-    for typeOption in typeOptions
-      if /^charset=/i.test(typeOption)
-        charset = typeOption.split("=")[1]
-        break
+  if Buffer.isBuffer(response.body)
+    # Pick charset from content type
+    if mimeType
+      for typeOption in typeOptions
+        if /^charset=/i.test(typeOption)
+          charset = typeOption.split("=")[1]
+          break
 
-  isHTML = /html/.test(subtype) || /\bhtml\b/.test(request.headers.accept)
+    isHTML = /html/.test(subtype) || /\bhtml\b/.test(request.headers.accept)
 
-  # Otherwise, HTML documents only, pick charset from meta tag
-  if !charset && isHTML
-    match = response.body.toString().match(MATCH_CHARSET)
-    charset = match && match[1]
+    # Otherwise, HTML documents only, pick charset from meta tag
+    if !charset && isHTML
+      match = response.body.toString().match(MATCH_CHARSET)
+      charset = match && match[1]
 
-  # Otherwise, HTML documents only, default charset in US is windows-1252
-  if !charset && isHTML
-    charset = charset || "windows-1252"
+    # Otherwise, HTML documents only, default charset in US is windows-1252
+    if !charset && isHTML
+      charset = charset || "windows-1252"
 
-  if charset
-    response.body = iconv.decode(response.body, charset)
+    if charset
+      response.body = iconv.decode(response.body, charset)
   next()
 
 
