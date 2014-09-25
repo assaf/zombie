@@ -650,7 +650,7 @@ Emitted whenever new page loaded.  This event is emitted before
 ## Debugging
 
 When trouble strikes, refer to these functions and the [troubleshooting
-guide](troubleshoot).
+guide](troubleshoot.md).
 
 ### browser.dump()
 
