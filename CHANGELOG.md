@@ -1,6 +1,10 @@
 ## Version 2.0.4 2014-09-26
 
-FIXED rowser.wait should return a promise when called without open window #755
+FIXED browser will sometimes run code asynchronously outside a wait
+
+FIXED browser.wait should return a promise when called without open window #755
+
+FIXED complain when using event loop of destroyed browser
 
     672 tests
     12 sec to complete

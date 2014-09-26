@@ -16,6 +16,7 @@
 # `enqueue`, `http`, `dispatch` and the timeout/interval methods.
 
 
+{ createDomain }  = require("domain")
 { EventEmitter }  = require("events")
 ms                = require("ms")
 { Promise }       = require("bluebird")
@@ -55,6 +56,9 @@ class EventLoop extends EventEmitter
     @expected = 0
     @running  = false
     @waiting  = 0
+    @domain   = createDomain()
+    @domain.on "error", (error)=>
+      @emit "error", error
     # Error in event loop propagates to browser
     @on "error", (error)=>
       @browser.emit("error", error)
@@ -120,6 +124,7 @@ class EventLoop extends EventEmitter
       # propagate to browser)
       onerror = reject
       @browser.once("error", onerror)
+      return
     )
 
     promise = promise.finally(=>
@@ -209,7 +214,7 @@ class EventLoop extends EventEmitter
       try
         if fn = @active._eventQueue.dequeue()
           # Process queued function, tick, and on to next event
-          fn()
+          @domain.run(fn)
           @emit("tick", 0)
           @run()
         else if @expected > 0
@@ -270,7 +275,9 @@ class EventQueue
 
   # Add a function to the event queue, to be executed in order.
   enqueue: (fn)->
-    if fn && @queue
+    unless @queue
+      throw new Error("This browser has been destroyed")
+    if fn
       @queue.push(fn)
       @eventLoop.run()
     return
@@ -329,6 +336,8 @@ class EventQueue
 
   # Window.setTimeout
   setTimeout: (fn, delay = 0)->
+    unless @timers
+      throw new Error("This browser has been destroyed")
     return unless fn
     handle = @nextTimerHandle
     ++@nextTimerHandle
@@ -339,6 +348,8 @@ class EventQueue
 
   # Window.clearTimeout
   clearTimeout: (handle)->
+    unless @timers
+      throw new Error("This browser has been destroyed")
     timer = @timers[handle]
     if timer
       timer.stop()
@@ -346,6 +357,8 @@ class EventQueue
 
   # Window.setInterval
   setInterval: (fn, interval = 0)->
+    unless @timers
+      throw new Error("This browser has been destroyed")
     return unless fn
     handle = @nextTimerHandle
     ++@nextTimerHandle
@@ -356,6 +369,8 @@ class EventQueue
 
   # Window.clearInterval
   clearInterval: (handle)->
+    unless @timers
+      throw new Error("This browser has been destroyed")
     timer = @timers[handle]
     if timer
       timer.stop()

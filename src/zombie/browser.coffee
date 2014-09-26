@@ -284,8 +284,7 @@ class Browser extends EventEmitter
     if arguments.length == 1 && typeof(options) == "function"
       [callback, options] = [options, null]
 
-    if callback && typeof(callback) != "function"
-      throw new Error("Second argument expected to be a callback function or null")
+    assert !callback || typeof(callback) == "function", "Second argument expected to be a callback function or null"
     # Support all sort of shortcuts for options. Unofficial.
     if typeof(options) == "number"
       waitDuration = options
@@ -321,15 +320,19 @@ class Browser extends EventEmitter
   #
   # name - Even name (e.g `click`)
   # target - Target element (e.g a link)
-  # callback - Called with error or nothing
+  # callback - Called with error or nothing, can be false (see below)
   #
   # Returns a promise
+  #
+  # In some cases you want to fire the event and wait for JS to do its thing
+  # (e.g.  click link), either with callback or promise.  In other cases,
+  # however, you want to fire the event but not wait quite yet (e.g. fill
+  # field).  Not passing callback is not enough, that just implies using
+  # promises.  Instead, pass false as the callback.
   fire: (selector, eventName, callback)->
-    unless @window
-      throw new Error("No window open")
+    assert @window, "No window open"
     target = @query(selector)
-    unless target && target.dispatchEvent
-      throw new Error("No target element (note: call with selector/element, event name and callback)")
+    assert target && target.dispatchEvent, "No target element (note: call with selector/element, event name and callback)"
     if ~MOUSE_EVENT_NAMES.indexOf(eventName)
       eventType = "MouseEvents"
     else
@@ -337,7 +340,9 @@ class Browser extends EventEmitter
     event = @document.createEvent(eventType)
     event.initEvent(eventName, true, true)
     target.dispatchEvent(event)
-    return @wait(callback)
+    # Only run wait if intended to
+    unless callback == false
+      return @wait(callback)
 
   # Click on the element and returns a promise.
   #
@@ -351,8 +356,7 @@ class Browser extends EventEmitter
   # Dispatch asynchronously.  Returns true if preventDefault was set.
   dispatchEvent: (selector, event)->
     target = @query(selector)
-    unless @window
-      throw new Error("No window open")
+    assert @window, "No window open"
     return target.dispatchEvent(event)
 
 
@@ -590,8 +594,8 @@ class Browser extends EventEmitter
   # selector - CSS selector or link text
   # callback - Called with two arguments: error and browser
   clickLink: (selector, callback)->
-    unless link = @link(selector)
-      throw new Error("No link matching '#{selector}'")
+    link = @link(selector)
+    assert link, "No link matching '#{selector}'"
     return @click(link, callback)
 
   # Return the history object.
@@ -685,8 +689,7 @@ class Browser extends EventEmitter
   # Turns focus to the selected input field.  Shortcut for calling `field(selector).focus()`.
   focus: (selector)->
     field = @field(selector) || @query(selector)
-    unless field
-      throw new Error("No form field matching '#{selector}'")
+    assert field, "No form field matching '#{selector}'"
     field.focus()
     return this
 
@@ -701,29 +704,23 @@ class Browser extends EventEmitter
   # Returns this.
   fill: (selector, value)->
     field = @field(selector)
-    unless field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT"))
-      throw new Error("No INPUT matching '#{selector}'")
-    if field.getAttribute("disabled")
-      throw new Error("This INPUT field is disabled")
-    if field.getAttribute("readonly")
-      throw new Error("This INPUT field is readonly")
+    assert field && (field.tagName == "TEXTAREA" || (field.tagName == "INPUT")), "No INPUT matching '#{selector}'"
+    assert !field.getAttribute("disabled"), "This INPUT field is disabled"
+    assert !field.getAttribute("readonly"), "This INPUT field is readonly"
 
     # Switch focus to field, change value and emit the input event (HTML5)
     field.focus()
     field.value = value
-    @fire(field, "input")
+    @fire(field, "input", false)
     # Switch focus out of field, if value changed, this will emit change event
     field.blur()
     return this
 
   _setCheckbox: (selector, value)->
     field = @field(selector)
-    unless field && field.tagName == "INPUT" && field.type == "checkbox"
-      throw new Error("No checkbox INPUT matching '#{selector}'")
-    if field.getAttribute("disabled")
-      throw new Error("This INPUT field is disabled")
-    if field.getAttribute("readonly")
-      throw new Error("This INPUT field is readonly")
+    assert field && field.tagName == "INPUT" && field.type == "checkbox", "No checkbox INPUT matching '#{selector}'"
+    assert !field.getAttribute("disabled"), "This INPUT field is disabled"
+    assert !field.getAttribute("readonly"), "This INPUT field is readonly"
     if field.checked ^ value
       field.click()
     return this
@@ -757,19 +754,15 @@ class Browser extends EventEmitter
   # Returns this.
   choose: (selector)->
     field = @field(selector) || @field("input[type=radio][value=\"#{escape(selector)}\"]")
-    unless field && field.tagName == "INPUT" && field.type == "radio"
-      throw new Error("No radio INPUT matching '#{selector}'")
+    assert field && field.tagName == "INPUT" && field.type == "radio", "No radio INPUT matching '#{selector}'"
     field.click()
     return this
 
   _findOption: (selector, value)->
     field = @field(selector)
-    unless field && field.tagName == "SELECT"
-      throw new Error("No SELECT matching '#{selector}'")
-    if field.getAttribute("disabled")
-      throw new Error("This SELECT field is disabled")
-    if field.getAttribute("readonly")
-      throw new Error("This SELECT field is readonly")
+    assert field && field.tagName == "SELECT", "No SELECT matching '#{selector}'"
+    assert !field.getAttribute("disabled"), "This SELECT field is disabled"
+    assert !field.getAttribute("readonly"), "This SELECT field is readonly"
     for option in field.options
       if option.value == value
         return option
@@ -807,7 +800,7 @@ class Browser extends EventEmitter
       select = @xpath("./ancestor::select", option).iterateNext()
       option.setAttribute("selected", "selected")
       select.focus()
-      @fire(select, "change")
+      @fire(select, "change", false)
     return this
 
   # ### browser.unselect(selector, value) => this
@@ -834,11 +827,10 @@ class Browser extends EventEmitter
     option = @query(selector)
     if option && option.getAttribute("selected")
       select = @xpath("./ancestor::select", option).iterateNext()
-      unless select.multiple
-        throw new Error("Cannot unselect in single select")
+      assert select.multiple, "Cannot unselect in single select"
       option.removeAttribute("selected")
       select.focus()
-      @fire(select, "change")
+      @fire(select, "change", false)
     return this
 
   # ### browser.attach(selector, filename) => this
@@ -848,8 +840,7 @@ class Browser extends EventEmitter
   # Returns this.
   attach: (selector, filename)->
     field = @field(selector)
-    unless field && field.tagName == "INPUT" && field.type == "file"
-      throw new Error("No file INPUT matching '#{selector}'")
+    assert field && field.tagName == "INPUT" && field.type == "file", "No file INPUT matching '#{selector}'"
     if filename
       stat = File.statSync(filename)
       file = new (@window.File)()
@@ -860,7 +851,7 @@ class Browser extends EventEmitter
       field.files.push file
       field.value = filename
     field.focus()
-    @fire(field, "change")
+    @fire(field, "change", false)
     return this
 
   # ### browser.button(selector) : Element
@@ -893,10 +884,8 @@ class Browser extends EventEmitter
   # selector - CSS selector, button name or text of BUTTON element
   # callback - Called with two arguments: null and browser
   pressButton: (selector, callback)->
-    unless button = @button(selector)
-      throw new Error("No BUTTON '#{selector}'")
-    if button.getAttribute("disabled")
-      throw new Error("This button is disabled")
+    assert button = @button(selector), "No BUTTON '#{selector}'"
+    assert !button.getAttribute("disabled"), "This button is disabled"
     button.focus()
     return @fire(button, "click", callback)
 

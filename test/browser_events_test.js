@@ -320,7 +320,8 @@ describe('Browser events', function() {
       });
 
       await browser.visit('/browser-events/link');
-      browser.click('a');
+      // Incidentally test that we're able to ignore a 404
+      await browser.click('a').catch(()=> null);
     });
 
     it('should receive link event with the URL', function() {
