@@ -281,11 +281,6 @@ class Browser extends EventEmitter
   #
   # Without a callback, this method returns a promise.
   wait: (options, callback)->
-    unless @window
-      process.nextTick ->
-        callback new Error("No window open")
-      return
-
     if arguments.length == 1 && typeof(options) == "function"
       [callback, options] = [options, null]
 
@@ -309,7 +304,10 @@ class Browser extends EventEmitter
     else
       waitDuration = @waitDuration
 
-    promise = @eventLoop.wait(waitDuration, completionFunction)
+    if @window
+      promise = @eventLoop.wait(waitDuration, completionFunction)
+    else
+      promise = Promise.reject(new Error("No window open"))
 
     if callback
       promise.done(callback, callback)

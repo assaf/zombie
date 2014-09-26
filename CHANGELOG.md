@@ -1,3 +1,11 @@
+## Version 2.0.4 2014-09-26
+
+FIXED rowser.wait should return a promise when called without open window #755
+
+    672 tests
+    12 sec to complete
+
+
 ## Version 2.0.3 2014-09-25
 
 FIXED window.cookies fails with error #610
