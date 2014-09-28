@@ -50,7 +50,8 @@
     "ms": "^0.6.2",
     "request": "^2.44.0",
     "tough-cookie": "^0.12.1",
-    "ws": "0.4.32"
+    "ws": "0.4.32",
+    "xmldom": "^0.1.19"
   },
   "devDependencies": {
     "body-parser": "^1.8.4",
