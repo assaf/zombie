@@ -22,6 +22,8 @@ HTML.languageProcessors.javascript = (element, code, filename)->
     document = element.ownerDocument
     window = document.window
     try
+      if element.getAttribute("for")
+        code=element.getAttribute("for")+".addEventListener('"+element.getAttribute("event")+"',function(){"+code+"},false)"
       window._evaluate(code, filename)
     catch error
       unless error instanceof Error
