@@ -148,6 +148,13 @@ describe('Window', function() {
       browser.assert.evaluate('screen.pixelDepth',  24);
     });
   });
+  
+  
+  describe('.DOMParser', function() {
+    it('should have a DOMParser object available to parse xml', function() {
+      browser.assert.evaluate('(new DOMParser()).parseFromString("<xml/>", "text/xml").documentElement.tagName', 'xml');
+    });
+  });
 
 
   describe('.navigator', function() {
