@@ -11,7 +11,7 @@ WebSocket       = require("ws")
 URL             = require("url")
 XMLHttpRequest  = require("./xhr")
 createWindow    = require("#{JSDOM_PATH}/../jsdom/browser/index").createWindow
-
+DOMParser       = require('xmldom').DOMParser
 
 Events      = JSDOM.level(3, 'events')
 HTML        = JSDOM.defaultLevel
@@ -126,7 +126,10 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
   # Constructor for XHLHttpRequest
   window.XMLHttpRequest = ->
     return new XMLHttpRequest(window)
-
+    
+  # XML Parser Support
+  window.DOMParser = DOMParser
+  
   # Constructor for EventSource, URL is relative to document's.
   window.EventSource = (url)->
     url = HTML.resourceLoader.resolve(document, url)
