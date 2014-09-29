@@ -206,9 +206,9 @@ describe('Scripts', function() {
       before(function() {
         brains.static('/script/foreventscripttag', `
           <html>
-            <script>window.foo = 1</script>
-            <script for="window" event="onload">document.title = window.foo</script>
-            <script>window.foo = 2</script>
+            <script>document.title = '1'</script>
+            <script for="window" event="onload">document.title = '3'</script>
+            <script>document.title = '2'</script>
           </html>
         `);
         //if it is triggered immediately i expect the result to be 1.
@@ -216,7 +216,7 @@ describe('Scripts', function() {
         return browser.visit('/script/foreventscripttag');
       });
       it('should be be triggered as event and not as script', function() {
-        browser.assert.text('title', '2');
+        browser.assert.text('title', '3');
       });
   });
 
