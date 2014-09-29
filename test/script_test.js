@@ -202,7 +202,7 @@ describe('Scripts', function() {
     });
   });
 
- describe('for event script tag', function() {
+ describe('with for event attributes', function() {
       before(function() {
         brains.static('/script/foreventscripttag', `
           <html>
