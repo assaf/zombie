@@ -201,8 +201,27 @@ describe('Scripts', function() {
       browser.assert.text('title', 'ZeroOneTwo');
     });
   });
+  
+ // check in event definition works in general
+ describe('with event definition inside', function() {
+      before(function() {
+        brains.static('/script/foreventscripttag', `
+          <html>
+            <script>document.title = '1'</script>
+            <script>window.addEventListener('onload',function(){document.title = '3'},false)</script>
+            <script>document.title = '2'</script>
+          </html>
+        `);
+        //if it is triggered immediately i expect the result to be 1.
+        //
+        return browser.visit('/script/foreventscripttag');
+      });
+      it('should be be triggered as events', function() {
+        browser.assert.text('title', '3');
+      });
+  });
 
- describe('with for event attributes', function() {
+ describe('with for and event attributes', function() {
       before(function() {
         brains.static('/script/foreventscripttag', `
           <html>
@@ -219,6 +238,8 @@ describe('Scripts', function() {
         browser.assert.text('title', '3');
       });
   });
+  
+
 
   describe('eval', function() {
     before(function() {
