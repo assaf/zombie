@@ -718,7 +718,7 @@ describe "Forms", ->
       it "should reset radio to original value", ->
         browser.assert.elements "#field-scary:checked", 0
         browser.assert.elements "#field-notscary:checked", 1
-      it "should reset select to original option", ->
+      it.skip "should reset select to original option", ->
         browser.assert.input "#field-state", "alive"
 
     describe "with event handler", ->

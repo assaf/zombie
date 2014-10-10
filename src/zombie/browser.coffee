@@ -97,10 +97,10 @@ class Browser extends EventEmitter
     @on "request", (request)->
 
     @on "response", (request, response)->
-      browser.log "#{request.method} #{request.url} => #{response.statusCode}"
+      browser.log "#{request.method || "GET"} #{response.url} => #{response.statusCode}"
 
-    @on "redirect", (request, response)->
-      browser.log "#{request.method} #{request.url} => #{response.statusCode} #{response.url}"
+    @on "redirect", (request, response, redirectRequest)->
+      browser.log "#{request.method || "GET"} #{request.url} => #{response.statusCode} #{response.url}"
 
     # Document loaded.
     @on "loaded", (document)->
@@ -310,6 +310,7 @@ class Browser extends EventEmitter
 
     if callback
       promise.done(callback, callback)
+      return
     else
       return promise
 
@@ -516,6 +517,7 @@ class Browser extends EventEmitter
     promise = @wait(options).finally(resetOptions)
     if callback
       promise.done(callback, callback)
+      return
     else
       return promise
 
@@ -541,6 +543,7 @@ class Browser extends EventEmitter
     promise = if error then Promise.reject(error) else @wait()
     if callback
       promise.done(callback, callback)
+      return
     else
       return promise
 

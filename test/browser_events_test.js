@@ -60,7 +60,7 @@ describe('Browser events', function() {
       browser.on('request', function(request) {
         events.resource.push([request]);
       });
-      browser.on('redirect', function(response, newRequest) {
+      browser.on('redirect', function(request, response, newRequest) {
         events.resource.push([response, newRequest]);
       });
       browser.on('response', function(request, response) {

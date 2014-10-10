@@ -739,12 +739,13 @@ This event is emitted when the document is still empty, before parsing any HTML.
 
 Emitted when a new window is opened.
 
-#### redirect (request, response)
+#### redirect (request, response, redirectRequest)
 
 Emitted when following a redirect.
 
 The first argument is the request, the second argument is the response that
-caused the redirect.  See [Resources](#resources) for more details.
+caused the redirect, and the third argument is the new request to follow the
+redirect.  See [Resources](#resources) for more details.
 
 The URL of the new resource to retrieve is given by `response.url`.
 

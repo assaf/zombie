@@ -255,7 +255,7 @@ describe('Resources', function() {
       browser.on('request', function(request) {
         requests.push(request);
       });
-      browser.on('redirect', function(request, newRequest) {
+      browser.on('redirect', function(request, response, newRequest) {
         requests.push(newRequest);
       });
       return browser.visit('/resources/three-oh-one');

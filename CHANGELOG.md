@@ -1,3 +1,16 @@
+## Version 2.0.5 2014-10-10
+
+**NOTE** This version introduces a bug from JSDOM, whereby resetting a form will
+not reset `<select>` elements correctly
+
+UPDATED to latest JSDOM
+
+Minor other bug fixes
+
+    671 passing
+    10 sec to complete
+
+
 ## Version 2.0.4 2014-09-26
 
 FIXED browser will sometimes run code asynchronously outside a wait

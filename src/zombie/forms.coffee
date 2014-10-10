@@ -23,6 +23,7 @@ UploadedFile = (filename) ->
     return File.readFileSync(filename)
   return file
 
+
 # Implement form.submit such that it actually submits a request to the server.
 # This method takes the submitting button so we can send the button name/value.
 HTML.HTMLFormElement.prototype.submit = (button)->
@@ -81,30 +82,19 @@ HTML.HTMLFormElement.prototype.submit = (button)->
   process 0
 
 
-# Implement form.reset to reset all form fields.
-HTML.HTMLFormElement.prototype.reset = ->
-  for field in @elements
-    if field.nodeName == "SELECT"
-      for option in field.options
-        option.selected = option._defaultSelected
-    else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
-      field.checked = !!field._defaultChecked
-    else if field.nodeName == "INPUT" || field.nodeName == "TEXTAREA"
-      field.value = field._defaultValue
-
 
 # Replace dispatchEvent so we can send the button along the event.
 HTML.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "submit", true, true
   event._button = button
-  this.dispatchEvent(event)
+  return this.dispatchEvent(event)
 
 
 # Default behavior for submit events is to call the form's submit method, but we
 # also pass the submitting button.
 HTML.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
-  event.target.submit event._button
+  event.target.submit(event._button)
 
 
 # Buttons
@@ -133,6 +123,7 @@ HTML.HTMLInputElement.prototype._eventDefaults =
           change()
 
 
+
 # Current INPUT behavior on click is to capture sumbit and handle it, but
 # ignore all other clicks. We need those other clicks to occur, so we're going
 # to dispatch them all.
@@ -143,8 +134,7 @@ HTML.HTMLInputElement.prototype.click = ->
   click = =>
     event = @ownerDocument.createEvent("HTMLEvents")
     event.initEvent("click", true, true)
-    cancelled = this.dispatchEvent(event)
-    return !cancelled
+    return this.dispatchEvent(event)
 
   switch @type
     when "checkbox"
@@ -193,3 +183,17 @@ HTML.Document.prototype._elementBuilders["button"] = (doc, s)->
   button = new HTML.HTMLButtonElement(doc, s)
   button.type ||= "submit"
   return button
+
+
+HTML.HTMLFormElement.prototype.reset = ->
+  for field in @elements
+    if field.nodeName == "SELECT"
+      ### defaultSelected currently broken in JSDOM
+      for option in field.options
+        option.selected = option.defaultSelected
+      ###
+    else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
+      field.checked = !!field.defaultChecked
+    else if field.nodeName == "INPUT" || field.nodeName == "TEXTAREA"
+      field.value = field.defaultValue
+

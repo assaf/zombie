@@ -24,25 +24,6 @@ HTML.HTMLMetaElement.prototype.__defineGetter__ "name", ->
 HTML.HTMLElement.prototype.__defineGetter__ "id", ->
   return @getAttribute("id") || ""
 
-# These elements have a value property that must return empty string
-for element in [HTML.HTMLInputElement, HTML.HTMLButtonElement, HTML.HTMLParamElement]
-  element.prototype.__defineGetter__ "value", ->
-    return @getAttribute("value") || ""
-
-# Fix the retrieval of radio inputs for a radio group
-# This backports the JsDom fix done in https://github.com/tmpvar/jsdom/pull/870
-HTML.HTMLInputElement.prototype.__defineSetter__ "checked", (checked) ->
-  @_initDefaultChecked();
-  if checked
-    @setAttribute 'checked', 'checked'
-
-    if @type == 'radio'
-      for  element in @_ownerDocument.getElementsByName(@name)
-        if element != this && element.tagName == "INPUT" && element.type == "radio" && element.form == @form
-          element.checked = false
-  else
-    @removeAttribute 'checked'
-
 
 # Default behavior for clicking on links: navigate to new URL if specified.
 HTML.HTMLAnchorElement.prototype._eventDefaults =
@@ -64,22 +45,6 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
         browser.tabs.open(name: anchor.target, url: anchor.href)
     browser.emit("link", anchor.href, anchor.target || "_self")
 
-
-# Support for opacity style property.
-Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
-  get: ->
-    opacity = this.getPropertyValue("opacity")
-    if Number.isFinite(opacity)
-      return opacity.toString()
-    else
-      return ""
-  set: (opacity)->
-    if opacity == null || opacity == undefined || opacity == ""
-      this.removeProperty("opacity")
-    else
-      opacity = parseFloat(opacity)
-      if isFinite(opacity)
-        this.setProperty("opacity", opacity)
 
 
 # Changing style.height/width affects clientHeight/Weight and offsetHeight/Width
@@ -104,6 +69,7 @@ HTML.HTMLImageElement.prototype._attrModified = (name, value, oldVal) ->
   if (name == 'src' && value != oldVal)
     HTML.resourceLoader.load(this, value, ->)
 
+
 # Implement insertAdjacentHTML
 HTML.HTMLElement.prototype.insertAdjacentHTML = (position, html)->
   container  = this.ownerDocument.createElementNS("http://www.w3.org/1999/xhtml", "_")
@@ -127,6 +93,7 @@ HTML.HTMLElement.prototype.insertAdjacentHTML = (position, html)->
       while (node = container.lastChild)
         next_sibling = parentNode.insertBefore(node, next_sibling)
 
+
 # Implement documentElement.contains
 # e.g., if(document.body.contains(el)) { ... }
 # See https://developer.mozilla.org/en-US/docs/DOM/Node.contains
@@ -141,3 +108,20 @@ HTML.Node.prototype.contains = (otherNode) ->
   #   Instead we use Sizzle's fallback implementation of "contains" based on
   #   "compareDocumentPosition".
   return !!(this.compareDocumentPosition(otherNode) & 16)
+
+
+# Support for opacity style property.
+Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
+  get: ->
+    opacity = this.getPropertyValue("opacity")
+    if Number.isFinite(opacity)
+      return opacity.toString()
+    else
+      return ""
+  set: (opacity)->
+    if opacity == null || opacity == undefined || opacity == ""
+      this.removeProperty("opacity")
+    else
+      opacity = parseFloat(opacity)
+      if isFinite(opacity)
+        this._setProperty("opacity", opacity)
