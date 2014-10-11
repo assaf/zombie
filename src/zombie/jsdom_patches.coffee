@@ -12,19 +12,6 @@ HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
 HTML.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
 
 
-# Script elements should always respond to a src attribute with something
-HTML.HTMLScriptElement.prototype.__defineGetter__ "src", ->
-  return @getAttribute('src') || ""
-
-# Meta elements should always respond to a name attribute
-HTML.HTMLMetaElement.prototype.__defineGetter__ "name", ->
-  return @getAttribute('name') || ""
-
-# These properties return empty string when attribute is not set.
-HTML.HTMLElement.prototype.__defineGetter__ "id", ->
-  return @getAttribute("id") || ""
-
-
 # Default behavior for clicking on links: navigate to new URL if specified.
 HTML.HTMLAnchorElement.prototype._eventDefaults =
   click: (event)->
@@ -44,7 +31,6 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
       else # open named window
         browser.tabs.open(name: anchor.target, url: anchor.href)
     browser.emit("link", anchor.href, anchor.target || "_self")
-
 
 
 # Changing style.height/width affects clientHeight/Weight and offsetHeight/Width
