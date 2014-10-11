@@ -5,6 +5,8 @@ not reset `<select>` elements correctly
 
 UPDATED to latest JSDOM
 
+FIXED Exceptions are being swallowed #761
+
 Minor other bug fixes
 
     671 passing

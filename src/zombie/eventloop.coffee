@@ -16,7 +16,7 @@
 # `enqueue`, `http`, `dispatch` and the timeout/interval methods.
 
 
-{ createDomain }  = require("domain")
+Domain            = require("domain")
 { EventEmitter }  = require("events")
 ms                = require("ms")
 { Promise }       = require("bluebird")
@@ -56,9 +56,6 @@ class EventLoop extends EventEmitter
     @expected = 0
     @running  = false
     @waiting  = 0
-    @domain   = createDomain()
-    @domain.on "error", (error)=>
-      @emit "error", error
     # Error in event loop propagates to browser
     @on "error", (error)=>
       @browser.emit("error", error)
@@ -128,6 +125,7 @@ class EventLoop extends EventEmitter
     )
 
     promise = promise.finally(=>
+      
       clearInterval(timer)
       @removeListener("tick", ontick)
       @removeListener("done", ondone)
@@ -135,8 +133,7 @@ class EventLoop extends EventEmitter
 
       --@waiting
       if @waiting == 0
-        setImmediate =>
-          @browser.emit("done")
+        @browser.emit("done")
       return
     )
 
@@ -214,9 +211,12 @@ class EventLoop extends EventEmitter
       try
         if fn = @active._eventQueue.dequeue()
           # Process queued function, tick, and on to next event
-          @domain.run(fn)
-          @emit("tick", 0)
-          @run()
+          try
+            fn()
+            @emit("tick", 0)
+            @run()
+          catch error
+            @emit("error", error)
         else if @expected > 0
           # We're waiting for some events to come along, don't know when,
           # but they'll call run for us
