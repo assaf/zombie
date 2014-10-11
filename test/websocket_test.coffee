@@ -21,7 +21,7 @@ describe "WebSockets", ->
         res.send """
         <html>
           <head>
-            <script src="/jquery.js"></script>
+            <script src="/scripts/jquery.js"></script>
           </head>
           <body>
             <span id="ws-url"></span>

@@ -14,7 +14,7 @@ describe('Browser', function() {
       <html>
         <head>
           <title>Whatever</title>
-          <script src='/jquery.js'></script>
+          <script src='/scripts/jquery.js'></script>
         </head>
         <body>
           <h1>Hello World</h1>
@@ -346,7 +346,7 @@ describe('Browser', function() {
       brains.static('/browser/headless', `
         <html>
           <head>
-            <script src='/jquery.js'></script>
+            <script src='/scripts/jquery.js'></script>
           </head>
           <body>
             <script>

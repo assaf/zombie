@@ -6,6 +6,7 @@ const File          = require('fs');
 const Multiparty    = require('multiparty');
 const morgan        = require('morgan');
 const Path          = require('path');
+const Promise       = require('bluebird');
 
 
 // An Express server we use to test the browser.
@@ -61,46 +62,30 @@ server.static('/', `
     </body>
   </html>`);
 
-// Prevent sammy from polluting the output. Comment this if you need its
-// messages for debugging.
-server.get('/sammy.js', function(req, res) {
-  File.readFile(__dirname + '/../scripts/sammy.js', function(error, data) {
-    //    unless process.env.DEBUG
-    //  data = data + ";window.Sammy.log = function() {}"
-    res.send(data);
-  });
+server.get('/scripts/jquery.js', function(req, res) {
+  res.redirect('/scripts/jquery-2.0.3.js');
 });
 
-server.get('/jquery.js', function(req, res) {
-  res.redirect('/jquery-2.0.3.js');
-});
-server.get('/jquery-:version.js', function(req, res) {
-  const version = req.params.version;
-  File.readFile(__dirname + '/../scripts/jquery-' + version + '.js', function(error, data) {
-    res.send(data);
-  });
-});
 server.get('/scripts/require.js', function(req, res) {
-  const file = Path.resolve(require.resolve('requirejs'), '../../require.js');
-  File.readFile(file, function(error, data) {
-    res.send(data);
-  });
+  const file    = Path.resolve(require.resolve('requirejs'), '../../require.js');
+  const script  = File.readFileSync(file);
+  res.send(script);
 });
+
 server.get('/scripts/*', function(req, res) {
-  File.readFile(__dirname + '/../scripts/' + req.params, function(error, data) {
-    res.send(data);
-  });
+  const script = File.readFileSync(__dirname + '/../scripts/' + req.params[0]);
+  res.send(script);
 });
 
 
-const serverPromise = new Promise(function(resolve) {
-  server.listen(3003, function() {
-    resolve();
-  });
+const serverPromise = new Promise(function(resolve, reject) {
+  server.listen(3003, resolve);
+  server.on('error', reject);
 });
+
 server.ready = function(callback) {
   if (callback)
-    serverPromise.then(callback);
+    serverPromise.done(callback);
   else
     return serverPromise;
 };

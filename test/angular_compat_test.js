@@ -24,7 +24,7 @@ describe.skip('angularjs', function() {
       <html ng-app='test'>
         <head>
           <title>Angular</title>
-          <script src='/scripts/angular-1.0.6.js'></script>
+          <script src='/scripts/angular-1.3.0.js'></script>
         </head>
         <body>
           <div ng-view></div>

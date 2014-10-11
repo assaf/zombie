@@ -17,8 +17,8 @@ describe('Scripts', function() {
       brains.static('/script/living', `
         <html>
           <head>
-            <script src='/jquery.js'></script>
-            <script src='/sammy.js'></script>
+            <script src='/scripts/jquery.js'></script>
+            <script src='/scripts/sammy.js'></script>
             <script src='/script/living/app.js'></script>
           </head>
           <body>

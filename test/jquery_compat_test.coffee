@@ -21,7 +21,7 @@ describe "Compatibility with jQuery", ->
             <html>
               <head>
                 <title>jQuery #{version}</title>
-                <script src="/jquery-#{version}.js"></script>
+                <script src="/scripts/jquery-#{version}.js"></script>
               </head>
               <body>
                 <form action="/zombie/dead-end">

@@ -17,7 +17,7 @@ describe('XMLHttpRequest', function() {
     before(function() {
       brains.static('/xhr/async', `
         <html>
-          <head><script src='/jquery.js'></script></head>
+          <head><script src='/scripts/jquery.js'></script></head>
           <body>
             <script>
               document.title = 'One';
@@ -47,7 +47,7 @@ describe('XMLHttpRequest', function() {
     before(function() {
       brains.static('/xhr/headers', `
         <html>
-          <head><script src='/jquery.js'></script></head>
+          <head><script src='/scripts/jquery.js'></script></head>
           <body>
             <script>
               $.get('/xhr/headers/backend', function(data, textStatus, jqXHR) {
@@ -83,7 +83,7 @@ describe('XMLHttpRequest', function() {
         res.cookie('xhr', 'send', { path: '/xhr' });
         res.send(`
           <html>
-            <head><script src='/jquery.js'></script></head>
+            <head><script src='/scripts/jquery.js'></script></head>
             <body>
               <script>
                 $.get('/xhr/cookies/backend', function(cookie) {
@@ -114,7 +114,7 @@ describe('XMLHttpRequest', function() {
     before(function() {
       brains.static('/xhr/redirect', `
         <html>
-          <head><script src='/jquery.js'></script></head>
+          <head><script src='/scripts/jquery.js'></script></head>
           <body>
             <script>
               $.get('/xhr/redirect/backend', function(response) { window.response = response });
@@ -141,7 +141,7 @@ describe('XMLHttpRequest', function() {
     before(function() {
       brains.static('/xhr/post/empty', `
         <html>
-          <head><script src='/jquery.js'></script></head>
+          <head><script src='/scripts/jquery.js'></script></head>
           <body>
             <script>
               $.post('/xhr/post/empty', function(response, status, xhr) { document.title = xhr.status + response });
@@ -164,7 +164,7 @@ describe('XMLHttpRequest', function() {
     before(function() {
       brains.static('/xhr/get-empty', `
         <html>
-          <head><script src='/jquery.js'></script></head>
+          <head><script src='/scripts/jquery.js'></script></head>
           <body>
             <script>
               $.get('/xhr/empty', function(response, status, xhr) {
@@ -187,7 +187,7 @@ describe('XMLHttpRequest', function() {
     before(function() {
       brains.static('/xhr/get-utf8-octet-stream', `
         <html>
-          <head><script src='/jquery.js'></script></head>
+          <head><script src='/scripts/jquery.js'></script></head>
           <body>
             <script>
               $.get('/xhr/utf8-octet-stream', function(response, status, xhr) {
@@ -251,7 +251,7 @@ describe('XMLHttpRequest', function() {
     before(function() {
       brains.static('/xhr/get-html', `
         <html>
-          <head><script src='/jquery.js'></script></head>
+          <head><script src='/scripts/jquery.js'></script></head>
           <body>
             <script>
               $.get('/xhr/html', function(response, status, xhr) {
@@ -371,7 +371,7 @@ describe('XMLHttpRequest', function() {
     before(function() {
       brains.static('/xhr/handler-error', `
         <html>
-          <head><script src='/jquery.js'></script></head>
+          <head><script src='/scripts/jquery.js'></script></head>
           <body>
             <script>
               $.get('/xhr/handler-error/backend', function(response) {

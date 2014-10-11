@@ -13,8 +13,8 @@ describe "Selection", ->
       res.send """
       <html>
         <head>
-          <script src="/jquery.js"></script>
-          <script src="/sammy.js"></script>
+          <script src="/scripts/jquery.js"></script>
+          <script src="/scripts/sammy.js"></script>
           <script src="/browser/app.js"></script>
         </head>
         <body>

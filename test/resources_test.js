@@ -16,7 +16,7 @@ describe('Resources', function() {
       <html>
         <head>
           <title>Whatever</title>
-          <script src='/jquery.js'></script>
+          <script src='/scripts/jquery.js'></script>
         </head>
         <body>Hello World</body>
         <script>
@@ -44,7 +44,7 @@ describe('Resources', function() {
       assert.equal(browser.resources[0].response.url, 'http://example.com/resources/resource');
     });
     it('should include loaded JavaScript', function() {
-      assert.equal(browser.resources[1].response.url, 'http://example.com/jquery-2.0.3.js');
+      assert.equal(browser.resources[1].response.url, 'http://example.com/scripts/jquery-2.0.3.js');
     });
   });
 
@@ -210,7 +210,7 @@ describe('Resources', function() {
       assert.equal(browser.resources[0].response.url, 'http://example.com/resources/resource');
     });
     it('should include loaded JavaScript', function() {
-      assert.equal(browser.resources[1].response.url, 'http://example.com/jquery-2.0.3.js');
+      assert.equal(browser.resources[1].response.url, 'http://example.com/scripts/jquery-2.0.3.js');
     });
   });
 
@@ -224,7 +224,7 @@ describe('Resources', function() {
         res.send(`
           <html>
             <head>
-              <script src='//example.com/jquery.js'></script>
+              <script src='//example.com/scripts/jquery.js'></script>
             </head>
             <body></body>
           </html>`);
@@ -240,7 +240,7 @@ describe('Resources', function() {
       assert.equal(browser.resources[0].response.url, 'http://thirdparty.test/resources');
     });
     it('should include loaded JavaScript', function() {
-      assert.equal(browser.resources[1].response.url, 'http://example.com/jquery-2.0.3.js');
+      assert.equal(browser.resources[1].response.url, 'http://example.com/scripts/jquery-2.0.3.js');
     });
   });
 
@@ -325,7 +325,7 @@ describe('Resources', function() {
     });
 
     it('should include loaded JavaScript', function() {
-      assert.equal(browser.resources[1].response.url, 'http://example.com/jquery-2.0.3.js');
+      assert.equal(browser.resources[1].response.url, 'http://example.com/scripts/jquery-2.0.3.js');
     });
 
     it('should follow the redirect', function() {

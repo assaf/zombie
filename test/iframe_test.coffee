@@ -13,7 +13,7 @@ describe "IFrame", ->
       res.send """
       <html>
         <head>
-          <script src="/jquery.js"></script>
+          <script src="/scripts/jquery.js"></script>
         </head>
         <body>
           <iframe name="ever"></iframe>

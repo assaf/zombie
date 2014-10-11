@@ -911,7 +911,7 @@ describe "Forms", ->
           res.send """
           <html>
             <head>
-              <script src="/jquery.js"></script>
+              <script src="/scripts/jquery.js"></script>
               <script>
                 $(function() {
                   $("form").submit(function() {

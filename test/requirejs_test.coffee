@@ -17,7 +17,7 @@ describe "require.js", ->
             var require = {
               paths: {
                 main:   "/requirejs/index",
-                jquery: "/jquery"
+                jquery: "/scripts/jquery"
               }
             };
           </script>
