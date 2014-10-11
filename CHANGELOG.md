@@ -1,3 +1,11 @@
+## Version 2.0.6 2014-10-11
+
+CHANGED Output from console.log() and friends goes to console unless
+`browser.silent = true`.  You can also set it globally with
+`Browser.default.silent = true`.  Console output always visible when debugging
+(`DEBUG=zombie`).
+
+
 ## Version 2.0.5 2014-10-10
 
 **NOTE** This version introduces a bug from JSDOM, whereby resetting a form will

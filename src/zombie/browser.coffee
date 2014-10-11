@@ -76,11 +76,13 @@ class Browser extends EventEmitter
 
     # Message written to window.console.  Level is log, info, error, etc.
     #
-    # All output goes to stdout when debugging enabled (DEBUG=zombie), unless
-    # brower.silent is true.
+    # All output goes to stdout, except when browser.silent = true and output
+    # only shown when debugging (DEBUG=zombie).
     @on "console", (level, message)->
-      unless browser.silent
-        debug("console.#{level}: #{message}")
+      if browser.silent
+        debug(">> #{message}")
+      else
+        console[level](message)
 
     # Message written to browser.log.
     @on "log", (args...)->
@@ -1207,7 +1209,7 @@ Browser.default =
   #   Browser.default.proxy = "http://myproxy:8080"
   proxy: null
 
-  # If true, supress `console.log` output from scripts.
+  # If true, supress `console.log` output from scripts (ignored when DEBUG=zombie)
   silent: false
 
   # You can use visit with a path, and it will make a request relative to this host/URL.
