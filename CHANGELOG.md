@@ -10,7 +10,7 @@ FIXED Exceptions are being swallowed #761
 Minor other bug fixes
 
     671 passing
-    10 sec to complete
+    11 sec to complete
 
 
 ## Version 2.0.4 2014-09-26
