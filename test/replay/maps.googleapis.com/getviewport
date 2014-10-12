@@ -1,4 +1,4 @@
-GET /maps/api/js/ViewportInfoService.GetViewportInfo?1m6&1m2&1dNaN&2dNaN&2m2&1dNaN&2dNaN&2u8&4sen-US&5e0&6sm%40176000000&7b0&8e0&9b0&callback=_xdc_._648kj3&token=121888
+GET /maps/api/js/ViewportInfoService.GetViewportInfo?1m6&1m2&1d-34.397&2d150.644&2m2&1d-34.396999&2d150.644&2u8&4sen-US&5e0&6sm%40176000000&7b0&8e0&9b0&callback=_xdc_._rmhe9e&token=121136
 host: maps.googleapis.com
 
 200 HTTP/1.1

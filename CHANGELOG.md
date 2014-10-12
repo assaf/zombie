@@ -5,6 +5,9 @@ CHANGED Output from console.log() and friends goes to console unless
 `Browser.default.silent = true`.  Console output always visible when debugging
 (`DEBUG=zombie`).
 
+    671 passing
+    11 sec to complete
+
 
 ## Version 2.0.5 2014-10-10
 
