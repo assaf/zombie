@@ -69,14 +69,14 @@ Well, that was easy.
 
 ## Table of Contents
 
-* [Installing][#installing]
+* [Installing](#installing)
 * [Browser](#browser)
 * [Cookies](#cookies)
 * [Tabs](#tabs)
 * [Assertions](#assertions)
 * [Events](#events)
 * [Resources](#resources)
-* [Debugging](#debuggin)
+* [Debugging](#debugging)
 
 
 
