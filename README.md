@@ -67,6 +67,20 @@ browser.visit('/signup')
 Well, that was easy.
 
 
+## Table of Contents
+
+* [Installing][#installing]
+* [Browser](#browser)
+* [Cookies](#cookies)
+* [Tabs](#tabs)
+* [Assertions](#assertions)
+* [Events](#events)
+* [Resources](#resources)
+* [Debugging](#debuggin)
+
+
+
+
 ## Installing
 
 To install Zombie.js you will need [Node.js](http://nodejs.org/) 0.8 or later,
