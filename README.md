@@ -18,27 +18,50 @@ a simulated environment.  No browser required.
 Let's try to sign up to a page and see what happens:
 
 ```js
-var Browser = require("zombie");
-var assert = require("assert");
+var Browser = require('zombie');
+var assert  = require('assert');
 
 // Load the page from localhost
-browser = Browser.create();
-browser.localhost("example.com", 3000);
-browser.visit("/signup", function (error) {
+var browser = Browser.create();
+browser.localhost('example.com', 3000);
+browser.visit('/signup', function (error) {
 
   // Fill email, password and submit form
   browser.
-    fill("email", "zombie@underworld.dead").
-    fill("password", "eat-the-living").
-    pressButton("Sign Me Up!", function() {
+    fill('email', 'zombie@underworld.dead').
+    fill('password', 'eat-the-living').
+    pressButton('Sign Me Up!', function() {
 
       // Form submitted, new page loaded.
       browser.assert.success();
-      browser.assert.text("title", "Welcome To Brains Depot");
+      browser.assert.text('title', 'Welcome To Brains Depot');
 
     });
 
 });
+```
+
+If you prefer using promises:
+
+```js
+var Browser = require('zombie');
+var assert  = require('assert');
+
+// Load the page from localhost
+var browser = Browser.create();
+browser.localhost('example.com', 3000);
+browser.visit('/signup')
+  .then(function() {
+    // Fill email, password and submit form
+    browser.fill('email', 'zombie@underworld.dead');
+    browser.fill('password', 'eat-the-living');
+    return browser.pressButton('Sign Me Up!');
+  })
+  .done(function() {
+    // Form submitted, new page loaded.
+    browser.assert.success();
+    browser.assert.text('title', 'Welcome To Brains Depot');
+  });
 ```
 
 Well, that was easy.
@@ -83,7 +106,7 @@ instructions](https://github.com/TooTallNate/node-gyp) and
 #### browser.assert
 
 Methods for making assertions against the browser, such as
-`browser.assert.element(".foo")`.
+`browser.assert.element('.foo')`.
 
 See [Assertions](#assertions) for detailed discussion.
 
@@ -138,7 +161,7 @@ Browser.localhost('*.example.com', 3000);
 var browser = new Browser();
 browser.visit('/path', function() {
   // It picks example.com as the default host
-  browser.assert.url("http://example.com/path");
+  browser.assert.url('http://example.com/path');
 });
 ```
 
@@ -158,10 +181,10 @@ and [Port Mapping](#portmapping).
 
 ```js
 Browser.extend(function(browser) {
-  browser.on("console", function(level, message) {
+  browser.on('console', function(level, message) {
     logger.log(message);
   });
-  browser.on("log", function(level, message) {
+  browser.on('log', function(level, message) {
     logger.log(message);
   });
 });
@@ -180,10 +203,10 @@ domain.
 Consider this code:
 
 ```js
-browser.setCookie(name: "session", domain: "example.com", value: "delicious");
-browser.visit("http://example.com", function() {
-  var value = browser.getCookie("session");
-  console.log("Cookie", value);
+browser.setCookie(name: 'session', domain: 'example.com', value: 'delicious');
+browser.visit('http://example.com', function() {
+  var value = browser.getCookie('session');
+  console.log('Cookie', value);
 });
 ```
 
@@ -214,8 +237,8 @@ be more specific, the first argument can be an object with the properties
 The following are equivalent:
 
 ```js
-browser.getCookie("session");
-browser.getCookie({ name: "session",
+browser.getCookie('session');
+browser.getCookie({ name: 'session',
                     domain: browser.location.hostname,
                     path: browser.location.pathname });
 ```
@@ -304,9 +327,9 @@ names may conflict with reserved properties/methods, you may need to use
 
 The value of a tab is the currently active window.  That window changes when you
 navigate forwards and backwards in history.  For example, if you visited the URL
-"/foo" and then the URL "/bar", the first tab (`browser.tabs[0]`) would be a
-window with the document from "/bar".  If you then navigate back in history, the
-first tab would be the window with the document "/foo".
+'/foo' and then the URL '/bar', the first tab (`browser.tabs[0]`) would be a
+window with the document from '/bar'.  If you then navigate back in history, the
+first tab would be the window with the document '/foo'.
 
 The following operations are used for managing tabs:
 
@@ -355,7 +378,7 @@ Returns the index of the currently active tab.
 
 Returns the number of currently opened tabs.
 
-#### browser.open(url: "http://example.com")
+#### browser.open(url: 'http://example.com')
 
 Opens and returns a new tab.  Supported options are:
 - `name` - Window name.
@@ -376,8 +399,8 @@ loaded successfuly:
 
 ```js
 browser.assert.success();
-browser.assert.text("title", "My Awesome Site");
-browser.assert.element("#main");
+browser.assert.text('title', 'My Awesome Site');
+browser.assert.element('#main');
 ```
 
 These assertions are available from the `browser` object since they operate on a
@@ -493,8 +516,8 @@ With two/three arguments, asserts that the returned value matches the expected
 value.
 
 ```js
-browser.assert.evaluate('$("form").data("valid")');
-browser.assert.evaluate('$("form").data("errors").length', 3);
+browser.assert.evaluate('$('form').data('valid')');
+browser.assert.evaluate('$('form').data('errors').length', 3);
 ```
 
 #### assert.global(name, expected, message)
@@ -853,10 +876,10 @@ failing and delaying responses.
 For example, to mock a response:
 
 ```js
-browser.resources.mock("http://3rd.party.api/v1/request", {
+browser.resources.mock('http://3rd.party.api/v1/request', {
   statusCode: 200,
-  headers:    { "ContentType": "application/json" },
-  body:       JSON.stringify({ "count": 5 })
+  headers:    { 'ContentType': 'application/json' },
+  body:       JSON.stringify({ 'count': 5 })
 })
 ```
 
@@ -864,7 +887,7 @@ In the real world, servers and networks often fail.  You can test to for these
 conditions by asking Zombie to simulate a failure.  For example:
 
 ```js
-browser.resources.fail("/form/post");
+browser.resources.fail('/form/post');
 ```
 
 Resource URLs can be absolute or relative.  Relative URLs will match any
@@ -881,7 +904,7 @@ order, for example, to check what happens when script A loads after script B.
 You can introduce a delay into any response as simple as:
 
 ```js
-browser.resources.delay("http://3d.party.api/v1/request", 50);
+browser.resources.delay('http://3d.party.api/v1/request', 50);
 ```
 
 
@@ -927,7 +950,7 @@ handlers are automatically added to every new `browser.resources` instance.
 ```js
 Browser.Resources.addHandler(function(request, response, next) {
   // Log the response body
-  console.log("Response body: " + response.body);
+  console.log('Response body: ' + response.body);
   next();
 });
 ```
@@ -975,7 +998,7 @@ Retrieves a resource with the given URL and passes response to the callback.
 For example:
 
 ```js
-browser.resources.get("http://some.service", function(error, response) {
+browser.resources.get('http://some.service', function(error, response) {
   console.log(response.statusText);
   console.log(response.body);
 });
@@ -1001,16 +1024,16 @@ Supported options are:
 For example:
 
 ```js
-var params  = { "count": 5 };
-browser.resources.post("http://some.service",
+var params  = { 'count': 5 };
+browser.resources.post('http://some.service',
                        { params: params },
                        function(error, response) {
   . . .
 });
 
-var headers = { "Content-Type": "application/x-www-form-urlencoded" };
-browser.resources.post("http://some.service",
-                       { headers: headers, body: "count=5" },
+var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+browser.resources.post('http://some.service',
+                       { headers: headers, body: 'count=5' },
                        function(error, response) {
    . . .
 });
@@ -1032,8 +1055,8 @@ Supported options are:
 For example:
 
 ```js
-browser.resources.request("DELETE",
-                          "http://some.service",
+browser.resources.request('DELETE',
+                          'http://some.service',
                           function(error) {
   . . .
 });
@@ -1111,4 +1134,22 @@ with an asterisk, for example:
 ```
 Browser.ports.map('*.example.com', 3000);
 ```
+
+
+## Debugging
+
+To see what your code is doing, you can use `console.log` and friends from both
+client-side scripts and your test code.
+
+If you want to disable console output from scripts, set `browser.silent = true`
+or once for all browser instances with `Browser.default.silent = true`.
+
+For more details about what Zombie is doing (windows opened, requests made,
+event loop, etc), run with the environment variable `DEBUG=zombie`.  Zombie uses
+the [debug](https://github.com/visionmedia/debug) module, so if your code also
+uses it, you can selectively control which modules should output debug
+information.
+
+Some objects, like the browser, history, resources, tabs and windows also
+include `dump` method that will dump the current state to the console.
 
