@@ -1,3 +1,11 @@
+## Version 2.0.7 2014-10-13
+
+FIXED csstyle bug: Cannot find module './properties'
+
+    671 passing
+    11 sec to complete
+
+
 ## Version 2.0.6 2014-10-11
 
 CHANGED Output from console.log() and friends goes to console unless
