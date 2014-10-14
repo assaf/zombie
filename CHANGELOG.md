@@ -1,5 +1,14 @@
 ## Version 2.0.7 2014-10-13
 
+FIXED bump to JSDOM 1.0.3 to fix cssstyle-browserify dependency
+
+FIXED console.debug fails when brower.silent = false
+
+
+
+
+## Version 2.0.7 2014-10-13
+
 FIXED csstyle bug: Cannot find module './properties'
 
     671 passing

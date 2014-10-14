@@ -82,7 +82,7 @@ class Browser extends EventEmitter
       if browser.silent
         debug(">> #{message}")
       else
-        console[level](message)
+        console.log(message)
 
     # Message written to browser.log.
     @on "log", (args...)->
