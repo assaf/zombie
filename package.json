@@ -69,7 +69,7 @@
     "multiparty": "^3.3.2",
     "replay": "^1.10.3",
     "requirejs": "^2.1.15",
-    "traceur": "^0.0.66"
+    "traceur": "^0.0.67"
   },
   "repository": {
     "type": "git",
