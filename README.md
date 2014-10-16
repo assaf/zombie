@@ -21,9 +21,11 @@ Let's try to sign up to a page and see what happens:
 var Browser = require('zombie');
 var assert  = require('assert');
 
+// We call our test example.com
+Browser.localhost('example.com', 3000);
+
 // Load the page from localhost
 var browser = Browser.create();
-Browser.localhost('example.com', 3000);
 browser.visit('/signup', function (error) {
 
   // Fill email, password and submit form
@@ -47,9 +49,11 @@ If you prefer using promises:
 var Browser = require('zombie');
 var assert  = require('assert');
 
+// We call our test example.com
+Browser.localhost('example.com', 3000);
+
 // Load the page from localhost
 var browser = Browser.create();
-Browser.localhost('example.com', 3000);
 browser.visit('/signup')
   .then(function() {
     // Fill email, password and submit form
@@ -172,7 +176,7 @@ tests can be as simple as:
 Browser.localhost('*.example.com', 3000);
 
 // Browser instance for this test
-var browser = new Browser();
+var browser = Browser.create();
 browser.visit('/path', function() {
   // It picks example.com as the default host
   browser.assert.url('http://example.com/path');
@@ -185,6 +189,16 @@ test case.
 
 If you need to map multiple domains and/or ports, see [DNS Masking](#dnsmasking)
 and [Port Mapping](#portmapping).
+
+If you need more flexibility, consider that `Browser.localhost` is just a
+shortcut for making these three changes:
+
+- `Browser.dns.localhost(hostname)` will make any DNS lookup of hostname resolve
+  to 127.0.0.1 (see [DNS Masking](#dnsmasking))
+- `Browser.ports.map(hostname, port)` will redirect any HTTP request to hostname
+  from port 80 to the desginated port (see [Port Mapping](#portmapping))
+- `Browser.default.size = hostname` will add the hostname to any relative URL
+  (e.g. when using `browser.visit`)
 
 
 #### browser.eventLoop
@@ -1091,7 +1105,7 @@ example:
 Browser.dns.localhost('*.example.com');
 Browser.defaults.site = 'http://example.com:3000';
 
-browser = new Browser();
+browser = Browser.create();
 browser.visit('/here', function(error, browser) {
   browser.assert.url('http://example.com:3000/here');
 });
