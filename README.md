@@ -23,7 +23,7 @@ var assert  = require('assert');
 
 // Load the page from localhost
 var browser = Browser.create();
-browser.localhost('example.com', 3000);
+Browser.localhost('example.com', 3000);
 browser.visit('/signup', function (error) {
 
   // Fill email, password and submit form
@@ -49,7 +49,7 @@ var assert  = require('assert');
 
 // Load the page from localhost
 var browser = Browser.create();
-browser.localhost('example.com', 3000);
+Browser.localhost('example.com', 3000);
 browser.visit('/signup')
   .then(function() {
     // Fill email, password and submit form
@@ -147,7 +147,7 @@ window at a time.
 
 See [Tabs](#tabs) for detailed discussion.
 
-#### browser.localhost(hostname, port)
+#### Browser.localhost(hostname, port)
 
 Even though your test server is running on localhost and unprivileged port, this
 method makes it possible to access it as a different domain name and through
