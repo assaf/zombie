@@ -390,7 +390,7 @@ Closes all tabs.
 
 This is a read/write property.  It returns the currently active tab.
 
-Can also be used to change the currently active tabe.  You can set it to a
+Can also be used to change the currently active tab.  You can set it to a
 window (e.g. as currently returned from `browser.current`), a window name or the
 tab index number.
 
