@@ -27,12 +27,14 @@ Browser.localhost('example.com', 3000);
 // Load the page from localhost
 var browser = Browser.create();
 browser.visit('/signup', function (error) {
+  assert.ifError(error);
 
   // Fill email, password and submit form
   browser.
     fill('email', 'zombie@underworld.dead').
     fill('password', 'eat-the-living').
-    pressButton('Sign Me Up!', function() {
+    pressButton('Sign Me Up!', function(error) {
+      assert.ifError(error);
 
       // Form submitted, new page loaded.
       browser.assert.success();
@@ -47,7 +49,6 @@ If you prefer using promises:
 
 ```js
 var Browser = require('zombie');
-var assert  = require('assert');
 
 // We call our test example.com
 Browser.localhost('example.com', 3000);

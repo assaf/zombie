@@ -17,8 +17,8 @@
     "Promise": false
   },
   "overrides": {
-    "test/*": {
-      "mocha": true
+    "test/**": {
+      "mocha": true,
     }
   }
 }
