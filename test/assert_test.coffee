@@ -1,14 +1,14 @@
 { assert, brains, Browser } = require("./helpers")
 
 
-describe "browser.assert", ->
+describe "Browser assert", ->
  
   browser = null
   before (done) ->
     browser = Browser.create()
     brains.ready(done)
 
-  describe.only ".link", ->
+  describe "link", ->
     before ->
       brains.get "/assert/link", (req, res) ->
         res.send """
@@ -45,4 +45,5 @@ describe "browser.assert", ->
     it "should find the link using an id selector", ->
       browser.assert.link("#link-id", "Link Text", "/assert/link/link-to-some-id-12345")
 
-    it "should find the link when given a RegExp for the url"
+    it "should find the link when given a RegExp for the url", ->
+      browser.assert.link("#link-id", "Link Text", /\/assert\/link\/link\-to\-some\-id\-\d*$/)

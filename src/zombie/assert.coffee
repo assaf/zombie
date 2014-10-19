@@ -161,11 +161,17 @@ class Assert
   # Asserts that a link exists with the given text and URL.
   link: (selector, text, url, message)->
     self = this
+    regexUrl = isRegExp(url)
     elements = @browser.queryAll(selector)
     assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
     matching = elements.filter (element)->
-      url = URL.resolve(self.browser.location.href, url)
-      element.textContent.trim() == text && element.href == url
+      urlmatch = false
+      if regexUrl
+        urlmatch = url.test(element.href)
+      else
+        url = URL.resolve(self.browser.location.href, url)
+        urlmatch = (element.href == url)
+      element.textContent.trim() == text && urlmatch
     assert matching.length > 0, "Expected at least one link matching the given text and URL"
 
 
