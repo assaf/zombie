@@ -14,6 +14,14 @@ assertMatch = (actual, expected, message)->
   else
     assert.deepEqual actual, expected, message
 
+elementMatch = (elements, text, url) ->
+    matching = elements.filter (element)->
+      element.textContent.trim() == text && (element.href == url)
+
+
+elementRegExMatch = (elements, text, url) ->
+    matching = elements.filter (element)->
+      element.textContent.trim() == text && url.test(element.href)
 
 class Assert
   constructor: (@browser)->
@@ -164,14 +172,10 @@ class Assert
     regexUrl = isRegExp(url)
     elements = @browser.queryAll(selector)
     assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
-    matching = elements.filter (element)->
-      urlmatch = false
-      if regexUrl
-        urlmatch = url.test(element.href)
-      else
-        url = URL.resolve(self.browser.location.href, url)
-        urlmatch = (element.href == url)
-      element.textContent.trim() == text && urlmatch
+    if regexUrl
+      matching = elementRegExMatch(elements, text, url)
+    else
+      matching = elementMatch(elements, text, URL.resolve(@browser.location.href, url))
     assert matching.length > 0, "Expected at least one link matching the given text and URL"
 
 

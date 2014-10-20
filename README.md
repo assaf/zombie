@@ -604,6 +604,8 @@ Asserts that at least one link exists with the given selector, text and URL.
 The selector can be `a`, but a more specific selector is recommended.  URL can
 be relative to the current document.
 
+`url` can be a RegEx to match
+
 Fails if no element is selected that also has the specified text content and
 URL.
 
