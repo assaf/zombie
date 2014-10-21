@@ -1,3 +1,8 @@
+## Version 2.0.9 2014-10-21
+
+ADDED browser.assert.link can use regular expression to match link URL
+
+
 ## Version 2.0.8 2014-10-14
 
 FIXED bump to JSDOM 1.0.3 to fix cssstyle-browserify dependency

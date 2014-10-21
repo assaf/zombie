@@ -2,7 +2,7 @@
 
 
 describe "Browser assert", ->
- 
+
   browser = null
   before (done) ->
     browser = Browser.create()

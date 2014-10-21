@@ -601,10 +601,9 @@ browser.assert.input('form input[name=text]', 'Head Eater');
 #### assert.link(selection, text, url, message)
 
 Asserts that at least one link exists with the given selector, text and URL.
-The selector can be `a`, but a more specific selector is recommended.  URL can
-be relative to the current document.
+The selector can be `a`, but a more specific selector is recommended.
 
-`url` can be a RegEx to match
+URL can be relative to the current document, or a regular expression.
 
 Fails if no element is selected that also has the specified text content and
 URL.
