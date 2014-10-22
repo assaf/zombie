@@ -11,6 +11,7 @@ WebSocket       = require("ws")
 URL             = require("url")
 XMLHttpRequest  = require("./xhr")
 createWindow    = require("#{JSDOM_PATH}/../jsdom/browser/index").createWindow
+XPath           = require("#{JSDOM_PATH}/../jsdom/level3/xpath")
 
 
 Events      = JSDOM.level(3, 'events')
@@ -144,6 +145,11 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
     img.width = width
     img.height = height
     return img
+
+  window.XPathException   = XPath.XPathException
+  window.XPathExpression  = XPath.XPathExpression
+  window.XPathEvaluator   = XPath.XPathEvaluator
+  window.XPathResult      = XPath.XPathResult
 
   window.resizeTo = (width, height)->
     window.outerWidth = window.innerWidth = width

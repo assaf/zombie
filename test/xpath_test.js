@@ -155,6 +155,25 @@ describe('XPath', function() {
   });
 
 
+  describe('window', function() {
+    it('should have XPathException', function() {
+      assert(browser.window.XPathException);
+    });
+
+    it('should have XPathExpression', function() {
+      assert(browser.window.XPathExpression);
+    });
+
+    it('should have XPathEvaluation', function() {
+      assert(browser.window.XPathEvaluator);
+    });
+
+    it('should have XPathResult', function() {
+      assert(browser.window.XPathResult);
+    });
+  });
+
+
   after(function() {
     return browser.destroy();
   });
