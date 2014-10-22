@@ -52,8 +52,10 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
 # Attempt to load the image, this will trigger a 'load' event when succesful
 # jsdom seemed to only queue the 'load' event
 HTML.HTMLImageElement.prototype._attrModified = (name, value, oldVal) ->
-  if (name == 'src' && value != oldVal)
-    HTML.resourceLoader.load(this, value, ->)
+  if (name == 'src')
+    src = HTML.resourceLoader.resolve(this._ownerDocument, value)
+    if this.src != src
+      HTML.resourceLoader.load(this, value, ->)
 
 
 # Implement insertAdjacentHTML

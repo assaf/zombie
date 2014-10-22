@@ -1,6 +1,8 @@
 ## Version 2.0.9 2014-10-21
 
-ADDED browser.assert.link can use regular expression to match link URL
+ADDED browser.assert.link can use regular expression to match link URL #770
+
+FIXED images seem to load twice #780
 
 
 ## Version 2.0.8 2014-10-14
