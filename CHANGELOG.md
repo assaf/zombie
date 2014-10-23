@@ -2,6 +2,9 @@
 
 FIXED pushState/replaceState should change history immediately #781
 
+    682 passing
+    10 sec to complete
+
 
 ## Version 2.1.0 2014-10-22
 
