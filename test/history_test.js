@@ -102,9 +102,8 @@ describe('History', function() {
 
       before(async function() {
         await browser.visit('/');
-        browser.history.pushState({ is: 'start' }, null, '/start');
-        browser.history.pushState({ is: 'end' },   null, '/end');
-        await browser.wait();
+        browser.history.pushState({ is: 'first' }, null, '/first');
+        browser.history.pushState({ is: 'second' },   null, '/second');
         window = browser.window
       });
 
@@ -112,7 +111,12 @@ describe('History', function() {
         assert.equal(window.history.length, 3);
       });
       it('should change location URL', function() {
-        browser.assert.url('/end');
+        browser.assert.url('/second');
+      });
+
+      it('should make state changes immediately', function() {
+        browser.history.pushState({ is: 'third' }, null, '/third');
+        browser.assert.url('/third');
       });
 
       describe('go backwards', function() {
@@ -132,7 +136,8 @@ describe('History', function() {
           assert(lastEvent instanceof Event);
         });
         it('should include state', function() {
-          assert.equal(lastEvent.state.is, 'start');
+          // Go one state back from third to second
+          assert.equal(lastEvent.state.is, 'second');
         });
         it('should not reload page from same host', function() {
           // Get access to the *current* document
@@ -146,8 +151,8 @@ describe('History', function() {
 
         before(async function(done) {
           await browser.visit('/');
-          browser.history.pushState({ is: 'start' }, null, '/start');
-          browser.history.pushState({ is: 'end' },   null, '/end');
+          browser.history.pushState({ is: 'first' }, null, '/first');
+          browser.history.pushState({ is: 'second' },   null, '/second');
           browser.back();
           browser.window.addEventListener('popstate', function(event) {
             lastEvent = event;
@@ -160,21 +165,10 @@ describe('History', function() {
           assert(lastEvent instanceof Event);
         });
         it('should include state', function() {
-          assert.equal(lastEvent.state.is, 'end');
+          assert.equal(lastEvent.state.is, 'second');
         });
       });
 
-      describe('synchronously', function() {
-        before(async function(done) {
-          await browser.visit('/');
-          done();
-        });
-
-        it('should make state changes available to the next line of code', function() {
-          browser.history.pushState({ is: 'start' }, null, '/start');
-          browser.assert.url('/start');
-        });
-      });
     });
 
     describe('replaceState', function() {
@@ -182,9 +176,8 @@ describe('History', function() {
 
       before(async function() {
         await browser.visit('/');
-        browser.history.pushState({ is: 'start' },  null, '/start');
-        browser.history.replaceState({ is: 'end' }, null, '/end');
-        await browser.wait();
+        browser.history.pushState({ is: 'first' },  null, '/first');
+        browser.history.replaceState({ is: 'second' }, null, '/second');
         window = browser.window;
       });
 
@@ -192,7 +185,12 @@ describe('History', function() {
         assert.equal(window.history.length, 2);
       });
       it('should change location URL', function() {
-        browser.assert.url('/end');
+        browser.assert.url('/second');
+      });
+
+      it('should make state changes immediately', function() {
+        browser.history.replaceState({ is: 'first' }, null, '/third');
+        browser.assert.url('/third');
       });
 
       describe('go backwards', function() {
@@ -213,17 +211,6 @@ describe('History', function() {
         });
       });
 
-      describe('synchronously', function() {
-        before(async function(done) {
-          await browser.visit('/');
-          done();
-        });
-
-        it('should make state changes available to the next line of code', function() {
-          browser.history.replaceState({ is: 'start' }, null, '/start');
-          browser.assert.url('/start');
-        });
-      });
     });
 
 
