@@ -163,6 +163,18 @@ describe('History', function() {
           assert.equal(lastEvent.state.is, 'end');
         });
       });
+
+      describe('synchronously', function() {
+        before(async function(done) {
+          await browser.visit('/');
+          done();
+        });
+
+        it('should make state changes available to the next line of code', function() {
+          browser.history.pushState({ is: 'start' }, null, '/start');
+          browser.assert.url('/start');
+        });
+      });
     });
 
     describe('replaceState', function() {
@@ -198,6 +210,18 @@ describe('History', function() {
         });
         it('should fire popstate event', function() {
           assert(window.popstate);
+        });
+      });
+
+      describe('synchronously', function() {
+        before(async function(done) {
+          await browser.visit('/');
+          done();
+        });
+
+        it('should make state changes available to the next line of code', function() {
+          browser.history.replaceState({ is: 'start' }, null, '/start');
+          browser.assert.url('/start');
         });
       });
     });
@@ -517,4 +541,3 @@ describe('History', function() {
     browser.destroy();
   });
 });
-
