@@ -1,3 +1,8 @@
+## Version 2.1.1 2014-10-23
+
+FIXED pushState/replaceState should change history immediately #781
+
+
 ## Version 2.1.0 2014-10-22
 
 ADDED browser.assert.link can use regular expression to match link URL #770

@@ -292,11 +292,9 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
       browser.eventLoop.next ->
         history.go(amount)
     pushState: (args...)->
-      browser.eventLoop.next ->
-        history.pushState(args...)
+      history.pushState(args...)
     replaceState: (args...)->
-      browser.eventLoop.next ->
-        history.replaceState(args...)
+      history.replaceState(args...)
     _submit:      history.submit.bind(history)
     dump:         history.dump.bind(history)
   Object.defineProperties windowHistory,
