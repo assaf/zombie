@@ -45,6 +45,7 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
       else
         return 100
   Object.defineProperty HTML.HTMLElement.prototype, offset,
+    configurable: true
     get: ->
       return 0
 
