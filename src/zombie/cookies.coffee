@@ -74,8 +74,8 @@ module.exports = class Cookies extends Array
   update: (httpHeader, domain, path)->
     # Handle case where we get array of headers.
     if httpHeader.constructor == Array
-      httpHeader = httpHeader.join(",")
-    for cookie in httpHeader.split(/,(?=[^;,]*=)|,$/)
+      httpHeader = httpHeader.join("\n")
+    for cookie in httpHeader.split(/,(?=[^;]*=)$/)
       cookie = Cookie.parse(cookie)
       if cookie
         cookie.domain ||= domain
