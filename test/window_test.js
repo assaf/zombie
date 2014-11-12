@@ -188,6 +188,13 @@ describe('Window', function() {
     });
   });
 
+  describe('DataView', function () {
+    it('should create a DataView', function () {
+      const window = browser.open();
+      assert.equal(window.DataView, DataView);
+      browser.assert.evaluate('new DataView(new ArrayBuffer(8)).byteLength', '8');
+    });
+  });
 
   describe('onload', function() {
     before(async function() {

@@ -146,6 +146,9 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
     img.height = height
     return img
 
+  # DataView: get from globals
+  window.DataView = DataView
+
   window.XPathException   = XPath.XPathException
   window.XPathExpression  = XPath.XPathExpression
   window.XPathEvaluator   = XPath.XPathEvaluator
