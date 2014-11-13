@@ -673,7 +673,7 @@ For example:
 
 ```js
 browser.assert.url('http://localhost/foo/bar');
-browser.assert.url(new RegExp('http://localhost/foo/\\w+'));
+browser.assert.url(new RegExp('^http://localhost/foo/\\w+$'));
 browser.assert.url({ pathame: '/foo/bar' });
 browser.assert.url({ query: { name: 'joedoe' } });
 ```
