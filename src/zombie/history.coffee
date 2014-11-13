@@ -358,6 +358,10 @@ createLocation = (history, url)->
         location.assign(URL.format(href))
       enumerable: true
 
+    origin:
+      get: ->
+        return "#{@protocol}//#{@host}"
+
   # Setting any of the properties creates a new URL and navigates there
   for prop in ["hash", "host", "pathname", "port", "protocol", "search"]
     do (prop)=>

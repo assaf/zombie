@@ -447,6 +447,9 @@ describe('History', function() {
       it('should include hash', function() {
         assert.equal(browser.location.hash, '');
       });
+      it('should include origin', function() {
+        assert.equal(browser.location.origin, 'http://example.com');
+      });
     });
 
     describe('set window.location', function() {

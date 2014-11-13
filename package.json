@@ -1,6 +1,6 @@
 {
   "name": "zombie",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "http://zombie.labnotes.org/",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
@@ -81,7 +81,7 @@
   "licenses": [
     {
       "type": "MIT",
-      "url": "http://github.com/assaf/zombie/blob/master/MIT-LICENSE"
+      "url": "https://github.com/assaf/zombie/blob/master/MIT-LICENSE"
     }
   ]
 }

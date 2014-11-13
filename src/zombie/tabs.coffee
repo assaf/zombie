@@ -74,7 +74,7 @@ createTabs = (browser)->
           options.url = url
           window = open(options)
           @push(window)
-          if name && (Object.propertyIsEnumerable(name) || !this[name])
+          if name && (this.propertyIsEnumerable(name) || !this[name])
             this[name] = window
           active = window
           # Select this as the currenly open tab

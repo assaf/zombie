@@ -1,3 +1,8 @@
+## Version 2.1.2 2014-11-13
+
+ADDED window.location.origin #796
+
+
 ## Version 2.1.1 2014-10-23
 
 FIXED pushState/replaceState should change history immediately #781
