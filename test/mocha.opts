@@ -5,3 +5,4 @@
 --timeout 2s
 --growl
 --check-leaks
+--globals _key

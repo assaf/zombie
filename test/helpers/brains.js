@@ -17,7 +17,7 @@ server.use(bodyParser.json());
 server.use(bodyParser.text());
 server.use(cookieParser());
 server.use(function(req, res, next) {
-  if (req.method === 'POST' && req.headers['content-type'].split(';')[0] === 'multipart/form-data') {
+  if (req.method === 'POST' && req.headers['content-type'].search('multipart/') === 0) {
 
     const form = new Multiparty.Form();
     form.parse(req, function(error, fields, files) {
@@ -67,7 +67,7 @@ server.get('/scripts/jquery.js', function(req, res) {
 });
 
 server.get('/scripts/require.js', function(req, res) {
-  const file    = Path.resolve(require.resolve('requirejs'), '../../require.js');
+  const file    = Path.resolve('node_modules/requirejs/require.js');
   const script  = File.readFileSync(file);
   res.send(script);
 });

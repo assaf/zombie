@@ -2,6 +2,11 @@
 
 ADDED window.location.origin #796
 
+FIXED updated to JSDOM 1.2.1
+
+    682 passing
+    10 sec to complete
+
 
 ## Version 2.1.1 2014-10-23
 
