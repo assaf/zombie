@@ -667,12 +667,13 @@ The expected URL can be one of:
 - The full URL as a string
 - A regular expression
 - A function, called with the URL and returns true if the assertion is true
-- An object, in which case individual properties are matched against the URL
+- An [object](http://nodejs.org/api/url.html#url_url_parse_urlstr_parsequerystring_slashesdenotehost), in which case individual properties are matched against the URL
 
 For example:
 
 ```js
 browser.assert.url('http://localhost/foo/bar');
+browser.assert.url(new RegExp('^http://localhost/foo/\\w+$'));
 browser.assert.url({ pathame: '/foo/bar' });
 browser.assert.url({ query: { name: 'joedoe' } });
 ```
