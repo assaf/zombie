@@ -172,6 +172,9 @@ describe('Window', function() {
     it('.language should be set to en-US', function() {
       browser.assert.evaluate('navigator.language', 'en-US');
     });
+    it('.plugins should be empty array', function() {
+      browser.assert.evaluate('navigator.plugins', []);
+    });
   });
 
   describe('atob', function() {
