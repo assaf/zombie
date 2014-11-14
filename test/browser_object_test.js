@@ -198,6 +198,56 @@ describe('Browser', function() {
         });
       });
 
+      describe('missing resource', function() {
+        let browser;
+
+        before(async function() {
+          browser = Browser.create();
+          browser.features = 'img';
+          brains.static('/browser/missing-resource', `
+            <html>
+              <body>
+                <img>
+                <script>
+                  var img = document.querySelector('img');
+                  img.addEventListener('load', function() {
+                    document.body.loaded = true;
+                  });
+                  img.addEventListener('error', function() {
+                    document.body.error = true;
+                  });
+                  img.src = '/no-such.png';
+                </script>
+              </body>
+            </html>
+          `);
+
+          try {
+            await browser.visit('/browser/missing-resource');
+            assert(false, 'Should have errored');
+          } catch (callbackError) {
+          }
+        });
+
+        it('should load document', function() {
+          assert(browser.body);
+        });
+        it('should indicate successful loading', function() {
+          browser.assert.success();
+        });
+        it('should indicate resource failed to load', function() {
+          const resource = browser.resources[1];
+          assert.equal(resource.response.statusCode, 404);
+        });
+        it('should fire error event on resource', function() {
+          browser.assert.evaluate('document.body.loaded', undefined);
+          browser.assert.evaluate('document.body.error', true);
+        });
+
+        after(function() {
+          browser.destroy();
+        });
+      });
     });
 
 

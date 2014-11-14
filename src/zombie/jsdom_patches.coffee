@@ -56,7 +56,7 @@ HTML.HTMLImageElement.prototype._attrModified = (name, value, oldVal) ->
   if (name == 'src')
     src = HTML.resourceLoader.resolve(this._ownerDocument, value)
     if this.src != src
-      HTML.resourceLoader.load(this, value, ->)
+      HTML.resourceLoader.load(this, value)
 
 
 # Implement insertAdjacentHTML

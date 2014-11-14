@@ -1,4 +1,4 @@
-## Version 2.1.2 2014-11-13
+## Version 2.2.0 2014-11-14
 
 ADDED window.location.origin #796
 
@@ -10,8 +10,10 @@ FIXED changing location.hash should be synchronous #781
 
 FIXED DNS.lookup(null) should resolve to null IP #783
 
-    681 passing
-    10 sec to complete
+FIXED Browser should show errors for resources that fail to load #794
+
+    687 passing
+    11 sec to complete
 
 
 ## Version 2.1.1 2014-10-23
