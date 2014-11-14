@@ -321,13 +321,19 @@ createLocation = (history, url)->
   Object.defineProperties location,
     assign:
       value: (url)->
-        browser.eventLoop.next ->
+        if hashChange(history.current, url)
           history.assign(url)
+        else
+          browser.eventLoop.next ->
+            history.assign(url)
 
     replace:
       value: (url)->
-        browser.eventLoop.next ->
+        if hashChange(history.current, url)
           history.replace(url)
+        else
+          browser.eventLoop.next ->
+            history.replace(url)
 
     reload:
       value: (force)->

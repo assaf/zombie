@@ -6,6 +6,8 @@ FIXED updated to JSDOM 1.2.1
 
 FIXED browser.evaluate({throws error}) should throw an error #790
 
+FIXED changing location.hash should be synchronous #781
+
     681 passing
     10 sec to complete
 
