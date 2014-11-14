@@ -70,6 +70,12 @@ class DNSMask
     if arguments.length == 2
       [family, callback] = [null, family]
 
+    # If domain is missing, lookup returns null IP
+    unless domain
+      setImmediate ->
+        callback(null, null, 4)
+      return
+
     # If lookup called with IP address, resolve that address.
     if Net.isIP(domain)
       setImmediate ->

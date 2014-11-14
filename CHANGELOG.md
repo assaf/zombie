@@ -8,6 +8,8 @@ FIXED browser.evaluate({throws error}) should throw an error #790
 
 FIXED changing location.hash should be synchronous #781
 
+FIXED DNS.lookup(null) should resolve to null IP #783
+
     681 passing
     10 sec to complete
 
