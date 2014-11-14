@@ -325,6 +325,7 @@ class EventQueue
   onerror: (error)->
     @window.console.error(error)
     @browser.emit("error", error)
+
     event = @window.document.createEvent("Event")
     event.initEvent("error", false, false)
     event.message = error.message
@@ -406,7 +407,10 @@ class Timeout
     fire = =>
       @queue.enqueue =>
         @queue.browser.emit("timeout", @fn, @delay)
-        @queue.window._evaluate(@fn)
+        try
+          @queue.window._evaluate(@fn)
+        catch error
+          @queue.browser.emit("error", error)
       @remove()
     @handle = global.setTimeout(fire, @delay)
     @next = Date.now() + @delay
@@ -441,7 +445,10 @@ class Interval
       @queue.enqueue =>
         pendingEvent = false
         @queue.browser.emit("interval", @fn, @interval)
-        @queue.window._evaluate(@fn)
+        try
+          @queue.window._evaluate(@fn)
+        catch error
+          @queue.browser.emit("error", error)
     @handle = global.setInterval(fire, @interval)
     @next = Date.now() + @interval
 

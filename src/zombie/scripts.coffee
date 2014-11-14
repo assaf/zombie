@@ -17,6 +17,12 @@ catch ex
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
 # fires on the Window.  We also want better stack traces.
 HTML.languageProcessors.javascript = (element, code, filename)->
+  # Surpress JavaScript validation and execution
+  window  = element.ownerDocument.window
+  browser = window && window.top.browser
+  if browser && !browser.runScripts
+    return
+
   # This may be called without code, e.g. script element that has no body yet
   if code
     document = element.ownerDocument
@@ -24,8 +30,8 @@ HTML.languageProcessors.javascript = (element, code, filename)->
     try
       window._evaluate(code, filename)
     catch error
-      unless error instanceof Error
-        cast = new Error(error.message)
+      unless error.hasOwnProperty("stack")
+        cast = new Error(error.message || error.toString())
         cast.stack = error.stack
         error = cast
       raise element: element, location: filename, from: __filename, error: error

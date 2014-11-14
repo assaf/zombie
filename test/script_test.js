@@ -105,6 +105,13 @@ describe('Scripts', function() {
         const title = browser.evaluate('document.title');
         assert.equal(title, 'The Living');
       });
+
+      it('should show an error when the script throws', async function() {
+        await browser.visit('/script/living/');
+        assert.throws(function() {
+          browser.evaluate('throw new Error("");');
+        });
+      })
     });
   });
 

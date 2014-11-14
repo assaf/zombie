@@ -4,7 +4,9 @@ ADDED window.location.origin #796
 
 FIXED updated to JSDOM 1.2.1
 
-    682 passing
+FIXED browser.evaluate({throws error}) should throw an error #790
+
+    681 passing
     10 sec to complete
 
 

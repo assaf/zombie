@@ -190,10 +190,6 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
 
   # Evaulate in context of window. This can be called with a script (String) or a function.
   window._evaluate = (code, filename)->
-    # Surpress JavaScript validation and execution
-    if !browser.runScripts
-      return
-
     try
       # The current window, postMessage and window.close need this
       [originalInScope, browser._windowInScope] = [browser._windowInScope, window]
@@ -205,14 +201,9 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
       return result
     catch error
       error.filename ||= filename
-      browser.emit("error", error)
+      throw error
     finally
       browser._windowInScope = originalInScope
-
-  # Default onerror handler.
-  window.onerror = (event)->
-    error = event.error || new Error("Error loading script")
-    browser.emit("error", error)
 
 
   # -- Event loop --

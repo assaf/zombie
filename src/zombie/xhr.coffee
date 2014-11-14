@@ -134,19 +134,23 @@ class XMLHttpRequest extends Events.EventTarget
       # abort sets request.error
       error ||= request.error
       if error
+        error = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
         event = new Events.Event('xhr')
         event.initEvent('error', true, true)
-        event.error = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
+        event.error = error
         @dispatchEvent(event)
+        raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
         return
 
       if @_cors
         allowedOrigin = response.headers['access-control-allow-origin']
         unless (allowedOrigin == '*' || allowedOrigin == @_cors)
+          error = new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
           event = new Events.Event('xhr')
           event.initEvent('error', true, true)
-          event.error = new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
+          event.error = error
           @dispatchEvent(event)
+          raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
           return
 
       # Since the request was not aborted, we set all the fields here and change
