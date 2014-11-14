@@ -12,6 +12,8 @@ FIXED DNS.lookup(null) should resolve to null IP #783
 
 FIXED Browser should show errors for resources that fail to load #794
 
+REMOVED no longer support cookie folding with comma #792
+
     687 passing
     11 sec to complete
 

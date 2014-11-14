@@ -1,9 +1,10 @@
 # See [RFC 2109](http://tools.ietf.org/html/rfc2109.html) and
 # [document.cookie](http://developer.mozilla.org/en/document.cookie)
-assert  = require("assert")
-HTML    = require("jsdom").defaultLevel
-Tough   = require("tough-cookie")
-Cookie  = Tough.Cookie
+assert      = require("assert")
+HTML        = require("jsdom").defaultLevel
+{ isArray } = require("util")
+Tough       = require("tough-cookie")
+Cookie      = Tough.Cookie
 
 
 # Lists all available cookies.
@@ -72,10 +73,9 @@ module.exports = class Cookies extends Array
   # domain     - Set from hostname
   # path       - Set from pathname
   update: (httpHeader, domain, path)->
-    # Handle case where we get array of headers.
-    if httpHeader.constructor == Array
-      httpHeader = httpHeader.join(",")
-    for cookie in httpHeader.split(/,(?=[^;,]*=)|,$/)
+    # One Set-Cookie is a string, multiple is an array 
+    cookies = if isArray(httpHeader) then httpHeader else [httpHeader]
+    for cookie in cookies
       cookie = Cookie.parse(cookie)
       if cookie
         cookie.domain ||= domain
