@@ -1,3 +1,11 @@
+## Version 2.2.1 2014-11-14
+
+FIXED request 2.48.0 leaks globals, reverting to 2.47.0
+
+    686 passing
+    11 sec to complete
+
+
 ## Version 2.2.0 2014-11-14
 
 ADDED window.location.origin #796

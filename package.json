@@ -1,7 +1,7 @@
 {
   "name": "zombie",
-  "version": "2.2.0",
-  "description": "Insanely fast, full-stack, headless browser testing using Node.js",
+  "version": "2.2.1",
+"description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "http://zombie.labnotes.org/",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
   "contributors": [
@@ -48,9 +48,9 @@
     "jsdom": "1.2.1",
     "mime": "^1.2.11",
     "ms": "^0.6.2",
-    "request": "^2.48.0",
+    "request": "2.47.0",
     "tough-cookie": "^0.12.1",
-    "ws": "0.4.32"
+    "ws": "^0.4.32"
   },
   "devDependencies": {
     "body-parser": "^1.9.2",
