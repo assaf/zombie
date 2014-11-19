@@ -178,7 +178,7 @@ describe('EventLoop', function() {
         await browser.wait();
       });
 
-      it('should not fire the immediate', function() {
+      it('should fire the immediate', function() {
         browser.assert.text('title', '.');
       });
     });
