@@ -145,7 +145,7 @@ class Assert
     elements = @browser.queryAll(selector)
     assert elements.length > 0, "Expected selector '#{selector}' to return one or more elements"
     for element in elements
-      actual = element.style[style]
+      actual = element.style.getPropertyValue(style)
       assertMatch actual, expected,
         message || "Expected element '#{selector}' to have style #{style} value of #{expected}, found #{actual}"
 
