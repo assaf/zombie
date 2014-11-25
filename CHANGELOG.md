@@ -1,5 +1,13 @@
 ## Version 2.2.1 2014-11-14
 
+UPDATED to JSDOM 1.3.1
+
+    687 passing
+    16 sec to complete
+
+
+## Version 2.2.1 2014-11-14
+
 FIXED request 2.48.0 leaks globals, reverting to 2.47.0
 
     686 passing
