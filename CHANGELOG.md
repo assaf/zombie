@@ -1,4 +1,4 @@
-## Version 2.2.1 2014-11-14
+## Version 2.3.0 2014-11-25
 
 ADDED requestAnimationFrame
 
