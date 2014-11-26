@@ -202,6 +202,13 @@ shortcut for making these three changes:
   (e.g. when using `browser.visit`)
 
 
+#### browser.proxy
+
+The `proxy` option takes a URL so you can tell Zombie what protocol, host and port to use. Also supports Basic authentication, e.g.:
+
+    browser.proxy = "http://me:secret@myproxy:8080"
+
+
 #### browser.eventLoop
 #### browser.errors
 
