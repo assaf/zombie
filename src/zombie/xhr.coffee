@@ -20,8 +20,6 @@ class XMLHttpRequest extends Events.EventTarget
     @_pending     = null
     # Response headers
     @_responseHeaders = null
-    # The send() flag
-    @_sent        = false
     @readyState   = XMLHttpRequest.UNSENT
 
     @onreadystatechange = null
@@ -38,20 +36,15 @@ class XMLHttpRequest extends Events.EventTarget
 
   # Aborts the request if it has already been sent.
   abort: ->
-    if @readyState == XMLHttpRequest.UNSENT || @readyState == XMLHttpRequest.OPENED
-      @readyState = XMLHttpRequest.UNSENT
-      return
-    if @responseXML == XMLHttpRequest.OPENED && !@_sent
-      @readyState = XMLHttpRequest.UNSENT
-      return
-
-    @_sent = false
-
     # Tell any pending request it has been aborted.
     request = @_pending
-    if request
-      request.error ||= new HTML.DOMException(HTML.ABORT_ERR, "Request aborted")
-      request.aborted = true
+    if @readyState == XMLHttpRequest.UNSENT || (@readyState == XMLHttpRequest.OPENED && !request.sent)
+      @readyState = XMLHttpRequest.UNSENT
+      return
+
+    # Tell any pending request it has been aborted.
+    request.error ||= new HTML.DOMException(HTML.ABORT_ERR, "Request aborted")
+    request.aborted = true
 
     @_stateChanged(XMLHttpRequest.DONE)
     @_fire("progress")
@@ -162,7 +155,12 @@ class XMLHttpRequest extends Events.EventTarget
       if @_pending == request
         @_pending = null
 
+      # Request aborted, we already fired all events
+      if request.aborted
+        return
+
       if error
+        @responseText = ""
         wrappedError = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
         @_fire("error", wrappedError)
         return
@@ -184,17 +182,16 @@ class XMLHttpRequest extends Events.EventTarget
       @_responseHeaders = response.headers
       @_stateChanged(XMLHttpRequest.HEADERS_RECEIVED)
 
+      @_stateChanged(XMLHttpRequest.LOADING)
       # Give the onreadystatechange a chance to fire from the previous state
       # change, then set the response fields and change the state to DONE.
-      @_window._eventQueue.enqueue =>
-        @responseText = response.body?.toString() || ""
-        @responseXML = null
-        @_stateChanged(XMLHttpRequest.DONE)
+      @responseText = response.body?.toString() || ""
+      @responseXML = null
+      @_stateChanged(XMLHttpRequest.DONE)
+      @_fire("load")
+      @_fire("loadend")
 
-        @_fire("load")
-        @_fire("loadend")
-
-    @_sent = true
+    request.sent = true
     return
 
 

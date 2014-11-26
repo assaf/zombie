@@ -231,9 +231,10 @@ describe('XMLHttpRequest', function() {
       return browser.visit('/xhr/get-onreadystatechange');
     });
 
-    it('should get exactly one readyState of type 1, 2, and 4', function() {
+    it('should get exactly one readyState of type 1, 2, 3 and 4', function() {
       assert.equal(browser.document.readyStatesReceived[1].length, 1);
       assert.equal(browser.document.readyStatesReceived[2].length, 1);
+      assert.equal(browser.document.readyStatesReceived[3].length, 1);
       assert.equal(browser.document.readyStatesReceived[4].length, 1);
     });
 
@@ -397,6 +398,43 @@ describe('XMLHttpRequest', function() {
           done();
         });
     });
+  });
+
+
+  describe('abort onreadystatechange', function() {
+    before(function() {
+      brains.static('/xhr/abort-onreadystatechange', `
+        <html>
+          <head></head>
+          <body>
+            <script>
+              document.readyStatesReceived = { 1:[], 2:[], 3:[], 4:[] };
+              var xhr = new XMLHttpRequest();
+              xhr.onreadystatechange = function(){
+                document.readyStatesReceived[xhr.readyState].push(Date.now())
+              };
+              xhr.open('GET', '/xhr/onreadystatechange', true);
+              xhr.send();
+              xhr.abort();
+            </script>
+          </body>
+        </html>`);
+      brains.static('/xhr/onreadystatechange', 'foo');
+      return browser.visit('/xhr/abort-onreadystatechange');
+    });
+
+    it('should get exactly one readyState of type 1, and 4', function() {
+      assert.equal(browser.document.readyStatesReceived[1].length, 1);
+      assert.equal(browser.document.readyStatesReceived[2].length, 0);
+      assert.equal(browser.document.readyStatesReceived[3].length, 0);
+      assert.equal(browser.document.readyStatesReceived[4].length, 1);
+    });
+
+    it('should get the readyStateChanges in chronological order', function() {
+      assert(browser.document.readyStatesReceived[1][0] <=
+             browser.document.readyStatesReceived[4][0]);
+    });
+
   });
 
 
