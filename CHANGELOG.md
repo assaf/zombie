@@ -1,9 +1,17 @@
+## Version 2.3.2 2014-11-26
+
+FIXED ReferenceError: id is not defined
+
+    691 passing
+    11 sec to complete
+
+
 ## Version 2.3.1 2014-11-26
 
 ADDED XHR now supports progress events
 
-    688 passing
-    12 sec to complete
+    691 passing
+    11 sec to complete
 
 
 ## Version 2.3.0 2014-11-25

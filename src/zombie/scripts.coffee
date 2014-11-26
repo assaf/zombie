@@ -51,7 +51,7 @@ HTML.HTMLScriptElement._init = ->
       HTML.resourceLoader.load(this, @src, @_eval)
     else
       if @id
-        filename = "#{@ownerDocument.URL}:##{id}"
+        filename = "#{@ownerDocument.URL}:##{@id}"
       else
         filename = "#{@ownerDocument.URL}:script"
       # Execute inline script
