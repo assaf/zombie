@@ -160,9 +160,11 @@ class XMLHttpRequest extends Events.EventTarget
         return
 
       if error
+        @status = 0
         @responseText = ""
         wrappedError = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
         @_fire("error", wrappedError)
+        @_stateChanged(XMLHttpRequest.DONE)
         return
 
       if @_cors
