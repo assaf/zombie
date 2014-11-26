@@ -246,6 +246,55 @@ describe('XMLHttpRequest', function() {
 
   });
 
+  describe('xhr onreadystatechange errors', function() {
+    before(function() {
+      brains.static('/xhr/get-onreadystatechange-error', `
+        <html>
+          <head></head>
+          <body>
+            <script>
+              document.readyStatesReceived = { 1:[], 2:[], 3:[], 4:[] };
+              document.onloadTime = null;
+              var xhr = new XMLHttpRequest();
+              xhr.onreadystatechange = function(){
+                document.readyStatesReceived[xhr.readyState].push(Date.now())
+              };
+              xhr.onload = function() {
+                  document.onloadTime = Date.now()
+              }
+              xhr.open('GET', '/xhr/onreadystatechange-error', true);
+              xhr.send();
+            </script>
+          </body>
+        </html>`);
+      browser.resources.fail('/xhr/onreadystatechange-error');
+      return browser.visit('/xhr/get-onreadystatechange-error')
+        .catch(function(error) {
+          assert.equal(error.message, 'This request was intended to fail');
+        })
+        .then(function () {
+          return browser.wait();
+        });
+    });
+
+    it('should not trigger onload to be called', function() {
+      assert.equal(browser.document.onloadTime, null);
+    });
+
+    it('should get exactly one readyState of type 1 and 4', function() {
+      assert.equal(browser.document.readyStatesReceived[1].length, 1, 'state 1');
+      assert.equal(browser.document.readyStatesReceived[2].length, 0, 'state 2');
+      assert.equal(browser.document.readyStatesReceived[3].length, 0, 'state 3');
+      assert.equal(browser.document.readyStatesReceived[4].length, 1, 'state 4');
+    });
+
+    it('should get the readyStateChanges in chronological order', function() {
+      assert(browser.document.readyStatesReceived[1][0] <=
+             browser.document.readyStatesReceived[4][0]);
+    });
+
+  });
+
 
   describe.skip('HTML document', function() {
     before(function() {
