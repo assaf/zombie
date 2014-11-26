@@ -68,6 +68,25 @@ describe('Resources', function() {
     });
   });
 
+  describe("fail URL regex", function() {
+    before(function() {
+      browser.resources.fail(/\/resource\/resourceRegex/, "Fail!");
+    });
+
+    it("should fail the request", async function() {
+      try {
+        await browser.visit('/resource/resourceRegex');
+        assert(false, "Request did not fail");
+      } catch (error) {
+        assert.equal(error.message, "Fail!");
+      }
+    });
+
+    after(function() {
+      browser.resources.restore('/resources/resourceRegex');
+    });
+  });
+
 
   describe('delay URL with timeout', function() {
     before(function() {
