@@ -33,7 +33,7 @@ class XMLHttpRequest extends Events.EventTarget
 
     # XHR events need the first to dispatch, the second to propagate up to window
     @_ownerDocument = window.document
-    @_parentNode    = window
+    #@_parentNode    = window
 
 
   # Aborts the request if it has already been sent.

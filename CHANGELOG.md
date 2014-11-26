@@ -2,6 +2,9 @@
 
 ADDED XHR now supports progress events
 
+    688 passing
+    12 sec to complete
+
 
 ## Version 2.3.0 2014-11-25
 

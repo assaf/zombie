@@ -34,7 +34,7 @@ HTML.languageProcessors.javascript = (element, code, filename)->
         cast = new Error(error.message || error.toString())
         cast.stack = error.stack
         error = cast
-      raise element: element, location: filename, from: __filename, error: error
+      document.raise("error", error.message, { exception: error })
 
 
 # HTML5 parser doesn't play well with JSDOM so we need this trickey to sort of
@@ -88,28 +88,3 @@ HTML.resourceLoader.load = (element, href, callback)->
     url = HTML.resourceLoader.resolve(document, href)
     window._eventQueue.http "GET", url, { target: element }, @enqueue(element, loaded, url)
 
-
-# Triggers an error event on the specified element.  Accepts:
-# element  - Element/document associated with this error
-# location - Location of this error
-# scope    - Execution scope, e.g. "XHR", "Timeout"
-# error    - Actual Error object
-module.exports = raise = ({ element, location, scope, error })->
-  document = element.ownerDocument || element
-  window = document.parentWindow
-  message = if scope then "#{scope}: #{error.message}" else error.message
-  location ||= document.location.href
-  # Deconstruct the stack trace and strip the Zombie part of it
-  # (anything leading to this file).  Add the document location at
-  # the end.
-  partial = []
-  # "RangeError: Maximum call stack size exceeded" doesn't have a stack trace
-  if error.stack
-    for line in error.stack.split("\n")
-      break if ~line.indexOf("contextify/lib/contextify.js")
-      partial.push line
-  partial.push "    in #{location}"
-  error.stack = partial.join("\n")
-
-  window._eventQueue.onerror(error)
-  return

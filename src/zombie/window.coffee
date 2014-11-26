@@ -453,20 +453,21 @@ loadDocument = ({ document, history, url, method, encoding, params })->
 
 # Wrap dispatchEvent to support _windowInScope and error handling.
 jsdomDispatchEvent = Events.EventTarget.prototype.dispatchEvent
-HTML.Node.prototype.dispatchEvent = (event)->
-  self = this
+Events.EventTarget.prototype.dispatchEvent = (event)->
   # Could be node, window or document
-  document = self.ownerDocument || self.document || self
+  document = @_ownerDocument || @document || this
   window = document.parentWindow
+  # Fail miserably on objects that don't have ownerDocument: nodes and XHR
+  # request have those
   browser = window.browser
-  browser.emit("event", event, self)
+  browser.emit("event", event, this)
 
   try
     # The current window, postMessage and window.close need this
     [originalInScope, browser._windowInScope] = [browser._windowInScope, window]
     # Inline event handlers rely on window.event
     window.event = event
-    return jsdomDispatchEvent.call(self, event)
+    return jsdomDispatchEvent.call(this, event)
   finally
     delete window.event
     browser._windowInScope = originalInScope
