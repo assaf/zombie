@@ -138,6 +138,9 @@ class XMLHttpRequest extends Events.EventTarget
         @_pending = null
 
       if error
+        @status = 0
+        @responseText = ""
+        @_stateChanged(XMLHttpRequest.DONE)
         error = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
         event = new Events.Event('xhr')
         event.initEvent('error', true, true)
@@ -186,7 +189,7 @@ class XMLHttpRequest extends Events.EventTarget
   # Fire onreadystatechange event
   _stateChanged: (newState)->
     @readyState = newState
-    if newState == XMLHttpRequest.DONE
+    if newState == XMLHttpRequest.DONE and @status isnt 0
       event = new Events.Event('xhr')
       event.initEvent('load', false, true)
       @dispatchEvent(event)
