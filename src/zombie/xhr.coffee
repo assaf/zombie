@@ -14,8 +14,8 @@ HTML.ABORT_ERR = 20
 class XMLHttpRequest extends Events.EventTarget
   constructor: (window)->
     @_window = window
-    # Pending requests
-    @_pending = []
+    # Pending request
+    @_pending     = null
     # Response headers
     @_responseHeaders = null
     @onreadystatechange = null
@@ -32,11 +32,14 @@ class XMLHttpRequest extends Events.EventTarget
   # Aborts the request if it has already been sent.
   abort: ->
     # Tell any pending request it has been aborted.
-    for request in @_pending
+    request = @_pending
+    if request
       request.error ||= new HTML.DOMException(HTML.ABORT_ERR, "Request aborted")
+      request.aborted = true
     # Change ready state, but do not call listener, this will happen when
     # pending request completes.
     @readyState = XMLHttpRequest.UNSENT
+
 
   # Returns all the response headers as a string, or null if no response has
   # been received. Note: For multipart requests, this returns the headers from
@@ -113,7 +116,7 @@ class XMLHttpRequest extends Events.EventTarget
       method:   method
       url:      URL.format(url)
       headers:  headers
-    @_pending.push(request)
+    @_pending = request
     @_stateChanged(XMLHttpRequest.OPENED)
     return
 
@@ -125,21 +128,21 @@ class XMLHttpRequest extends Events.EventTarget
     unless @readyState == XMLHttpRequest.OPENED
       throw new HTML.DOMException(HTML.INVALID_STATE_ERR,  "Invalid state")
 
-    request = @_pending[@_pending.length - 1]
+    request = @_pending
     request.headers["content-type"] ||= "text/plain"
     # Make the actual request
     request.body = data
     request.timeout = @timeout
     @_window._eventQueue.http request.method, request.url, request, (error, response)=>
-      # abort sets request.error
-      error ||= request.error
+      if @_pending == request
+        @_pending = null
+
       if error
         error = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
         event = new Events.Event('xhr')
         event.initEvent('error', true, true)
         event.error = error
         @dispatchEvent(event)
-        raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
         return
 
       if @_cors
@@ -150,6 +153,8 @@ class XMLHttpRequest extends Events.EventTarget
           event.initEvent('error', true, true)
           event.error = error
           @dispatchEvent(event)
+          # Also make sure this error reaches the window (other error take
+          # care of by eventQueue.http)
           raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
           return
 
@@ -174,7 +179,7 @@ class XMLHttpRequest extends Events.EventTarget
   setRequestHeader: (header, value)->
     unless @readyState == XMLHttpRequest.OPENED
       throw new HTML.DOMException(HTML.INVALID_STATE_ERR,  "Invalid state")
-    request = @_pending[@_pending.length - 1]
+    request = @_pending
     request.headers[header.toString().toLowerCase()] = value.toString()
     return
 

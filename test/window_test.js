@@ -26,7 +26,7 @@ describe('Window', function() {
       browser.onalert(function(message) {
         browser.window.promptedWith = message;
       });
-      browser.visit('/window/alert');
+      await browser.visit('/window/alert');
     });
 
     it('should record last alert show to user', function() {

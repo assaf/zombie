@@ -312,6 +312,14 @@ class EventQueue
     done = @eventLoop.expecting()
     @expecting.push(done)
     @browser.resources.request method, url, options, (error, response)=>
+      if @expecting
+        @expecting.splice(@expecting.indexOf(done), 1)
+        done()
+
+      # XHR request aborted, do not pass to callback
+      if options.aborted
+        return
+
       # Since this is used by resourceLoader that doesn't check the response,
       # we're responsible to turn anything other than 2xx/3xx into an error
       if response && response.statusCode >= 400
@@ -326,8 +334,6 @@ class EventQueue
           # with the callback error
           if error
             @browser.emit("error", error)
-        @expecting.splice(@expecting.indexOf(done), 1)
-        done()
     return
 
   # Fire an error event.

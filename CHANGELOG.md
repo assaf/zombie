@@ -1,9 +1,11 @@
 ## Version 2.2.1 2014-11-14
 
+FIXED don't process responses to aborted XHR requests
+
 UPDATED to JSDOM 1.3.1
 
     687 passing
-    16 sec to complete
+    11 sec to complete
 
 
 ## Version 2.2.1 2014-11-14
