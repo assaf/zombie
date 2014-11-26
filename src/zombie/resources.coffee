@@ -388,7 +388,12 @@ Resources.createBody = (request, next)->
 # response.
 Resources.specialURLHandlers = (request, next)->
   for [url, handler] in @resources.urlMatchers
-    if URL.resolve(request.url, url) == request.url
+    if url instanceof RegExp
+      if url.test request.url
+        handler(request, next)
+        return
+      
+    else if URL.resolve(request.url, url) == request.url
       handler(request, next)
       return
   next()

@@ -928,9 +928,11 @@ conditions by asking Zombie to simulate a failure.  For example:
 browser.resources.fail('/form/post');
 ```
 
-Resource URLs can be absolute or relative.  Relative URLs will match any
-request with the same path, so only use relative URLs that are specific to a
-given request.
+Resource URLs can be absolute or relative strings or regular expressions.
+Relative URLs will match any request with the same path, so only use relative
+URLs that are specific to a given request.  If the resource URL is a regular
+expression, it will be tested against the requested URL and the handler used
+if there is a match.
 
 Another issue you'll encounter in real-life applications are network latencies.
 When running tests, Zombie will request resources in the order in which they
