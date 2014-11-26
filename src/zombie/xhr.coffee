@@ -139,6 +139,7 @@ class XMLHttpRequest extends Events.EventTarget
 
       if error
         @status = 0
+        @responseText = ""
         @_stateChanged(XMLHttpRequest.DONE)
         error = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
         event = new Events.Event('xhr')

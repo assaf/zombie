@@ -255,9 +255,11 @@ describe('XMLHttpRequest', function() {
             <script>
               document.readyStatesReceived = { 1:[], 2:[], 3:[], 4:[] };
               document.onloadTime = null;
+              document.responseText = { 1:null, 4:null};
               var xhr = new XMLHttpRequest();
               xhr.onreadystatechange = function(){
                 document.readyStatesReceived[xhr.readyState].push(Date.now())
+                document.responseText[xhr.readyState] = xhr.responseText;
               };
               xhr.onload = function() {
                   document.onloadTime = Date.now()
@@ -279,6 +281,10 @@ describe('XMLHttpRequest', function() {
 
     it('should not trigger onload to be called', function() {
       assert.equal(browser.document.onloadTime, null);
+    });
+
+    it('responseText should be empty on error', function() {
+        assert.equal(browser.document.responseText[4], "");
     });
 
     it('should get exactly one readyState of type 1 and 4', function() {
