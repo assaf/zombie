@@ -311,6 +311,35 @@ describe('EventLoop', function() {
     });
   });
 
+
+  describe('requestAnimationFrame', function() {
+    before(function() {
+      brains.get('/eventloop/requestAnimationFrame', function(req, res) {
+        res.send(`
+          <html>
+            <head><title></title></head>
+            <body></body>
+          </html>
+        `);
+      });
+    });
+
+    describe('with wait', function() {
+      before(async function() {
+        await browser.visit('/eventloop/requestAnimationFrame');
+        browser.window.requestAnimationFrame(function() {
+          this.document.title += '.';
+        });
+        await browser.wait();
+      });
+
+      it('should fire the immediate', function() {
+        browser.assert.text('title', '.');
+      });
+    });
+  });
+
+
   describe('browser.wait completion', function() {
     function completed(window) {
       return window.document.title === '....';

@@ -1,10 +1,12 @@
 ## Version 2.2.1 2014-11-14
 
+ADDED requestAnimationFrame
+
 FIXED don't process responses to aborted XHR requests
 
 UPDATED to JSDOM 1.3.1
 
-    687 passing
+    688 passing
     11 sec to complete
 
 

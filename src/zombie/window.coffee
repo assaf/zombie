@@ -92,6 +92,9 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
     value: browser.console
     enumerable: true
 
+  Object.defineProperty window, "requestAnimationFrame",
+    get: -> window.setImmediate
+
   # javaEnabled, present in browsers, not in spec Used by Google Analytics see
   # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
   Object.defineProperties window.navigator,
