@@ -2,6 +2,8 @@
 
 FIXED XHR status and response text in case of error #811
 
+FIXED XHR events for abort and timeout
+
 FIXED ReferenceError: id is not defined
 
     695 passing

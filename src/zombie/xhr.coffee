@@ -7,12 +7,6 @@ URL       = require("url")
 raise     = require("./scripts")
 
 
-# Additional error codes defines for XHR and not in JSDOM.
-HTML.SECURITY_ERR = 18
-HTML.NETWORK_ERR = 19
-HTML.ABORT_ERR = 20
-
-
 class XMLHttpRequest extends Events.EventTarget
   constructor: (window)->
     @_window      = window
@@ -43,13 +37,7 @@ class XMLHttpRequest extends Events.EventTarget
       return
 
     # Tell any pending request it has been aborted.
-    request.error ||= new HTML.DOMException(HTML.ABORT_ERR, "Request aborted")
     request.aborted = true
-
-    @_stateChanged(XMLHttpRequest.DONE)
-    @_fire("progress")
-    @_fire("abort")
-    @_fire("onload")
 
 
   # Returns all the response headers as a string, or null if no response has
@@ -149,31 +137,44 @@ class XMLHttpRequest extends Events.EventTarget
     request.body = data
     request.timeout = @timeout
 
-    @_fire("progress")
-
     @_window._eventQueue.http request.method, request.url, request, (error, response)=>
       if @_pending == request
         @_pending = null
 
-      # Request aborted, we already fired all events
+      # If aborting or error
+      @status       = 0
+      @responseText = ""
+
+      # Request aborted
       if request.aborted
+        @_stateChanged(XMLHttpRequest.DONE)
+        @_fire("progress")
+        error = new HTML.DOMException(HTML.ABORT_ERR, "Request aborted")
+        @_fire("abort", error)
         return
 
       if error
-        @status = 0
-        @responseText = ""
-        wrappedError = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
-        @_fire("error", wrappedError)
         @_stateChanged(XMLHttpRequest.DONE)
+        @_fire("progress")
+
+        if error.code == "ETIMEDOUT"
+          error = new HTML.DOMException(HTML.TIMEOUT_ERR, "The request timed out")
+          @_fire("timeout", wrappedError)
+        else
+          wrappedError = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
+          @_fire("error", wrappedError)
+        @_fire("loadend")
         return
 
+      # CORS request, check origin, may lead to new error
       if @_cors
         allowedOrigin = response.headers['access-control-allow-origin']
         unless (allowedOrigin == '*' || allowedOrigin == @_cors)
           error = new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
+          @_stateChanged(XMLHttpRequest.DONE)
+          @_fire("progress")
           @_fire("error", error)
-          # Also make sure this error reaches the window (other error take
-          # care of by eventQueue.http)
+          @_fire("loadend")
           @raise("error", error.message, { exception: error })
           return
 
@@ -184,12 +185,13 @@ class XMLHttpRequest extends Events.EventTarget
       @_responseHeaders = response.headers
       @_stateChanged(XMLHttpRequest.HEADERS_RECEIVED)
 
-      @_stateChanged(XMLHttpRequest.LOADING)
-      # Give the onreadystatechange a chance to fire from the previous state
-      # change, then set the response fields and change the state to DONE.
       @responseText = response.body?.toString() || ""
+      @_stateChanged(XMLHttpRequest.LOADING)
+
       @responseXML = null
       @_stateChanged(XMLHttpRequest.DONE)
+
+      @_fire("progress")
       @_fire("load")
       @_fire("loadend")
 
@@ -232,6 +234,13 @@ XMLHttpRequest.OPENED = 1
 XMLHttpRequest.HEADERS_RECEIVED = 2
 XMLHttpRequest.LOADING = 3
 XMLHttpRequest.DONE = 4
+
+
+# Additional error codes defines for XHR and not in JSDOM.
+HTML.SECURITY_ERR = 18
+HTML.NETWORK_ERR = 19
+HTML.ABORT_ERR = 20
+HTML.TIMEOUT_ERR = 23
 
 
 module.exports = XMLHttpRequest
