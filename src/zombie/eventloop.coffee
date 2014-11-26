@@ -225,6 +225,7 @@ class EventLoop extends EventEmitter
           # All that's left are timers
           time = @active._eventQueue.next()
           @emit("tick", time)
+          #setTimeout @run.bind(this), time - Date.now()
           @run()
       catch error
         @emit("error", error)

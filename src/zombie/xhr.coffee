@@ -1,4 +1,6 @@
 # Implemenets XMLHttpRequest.
+# See http://www.w3.org/TR/XMLHttpRequest/#the-abort()-method
+
 HTML      = require("jsdom").defaultLevel
 Events    = require("jsdom").level(3, 'events')
 URL       = require("url")
@@ -13,11 +15,15 @@ HTML.ABORT_ERR = 20
 
 class XMLHttpRequest extends Events.EventTarget
   constructor: (window)->
-    @_window = window
+    @_window      = window
     # Pending request
     @_pending     = null
     # Response headers
     @_responseHeaders = null
+    # The send() flag
+    @_sent        = false
+    @readyState   = XMLHttpRequest.UNSENT
+
     @onreadystatechange = null
     @timeout      = 0
     @status       = null
@@ -29,16 +35,28 @@ class XMLHttpRequest extends Events.EventTarget
     @_ownerDocument = window.document
     @_parentNode    = window
 
+
   # Aborts the request if it has already been sent.
   abort: ->
+    if @readyState == XMLHttpRequest.UNSENT || @readyState == XMLHttpRequest.OPENED
+      @readyState = XMLHttpRequest.UNSENT
+      return
+    if @responseXML == XMLHttpRequest.OPENED && !@_sent
+      @readyState = XMLHttpRequest.UNSENT
+      return
+
+    @_sent = false
+
     # Tell any pending request it has been aborted.
     request = @_pending
     if request
       request.error ||= new HTML.DOMException(HTML.ABORT_ERR, "Request aborted")
       request.aborted = true
-    # Change ready state, but do not call listener, this will happen when
-    # pending request completes.
-    @readyState = XMLHttpRequest.UNSENT
+
+    @_stateChanged(XMLHttpRequest.DONE)
+    @_fire("progress")
+    @_fire("abort")
+    @_fire("onload")
 
 
   # Returns all the response headers as a string, or null if no response has
@@ -55,6 +73,7 @@ class XMLHttpRequest extends Events.EventTarget
     else
       return null
 
+
   # Returns the string containing the text of the specified header, or null if
   # either the response has not yet been received or the header doesn't exist in
   # the response.
@@ -63,6 +82,7 @@ class XMLHttpRequest extends Events.EventTarget
       return @_responseHeaders[header.toLowerCase()]
     else
       return null
+
 
   # Initializes a request.
   #
@@ -128,34 +148,33 @@ class XMLHttpRequest extends Events.EventTarget
     unless @readyState == XMLHttpRequest.OPENED
       throw new HTML.DOMException(HTML.INVALID_STATE_ERR,  "Invalid state")
 
+    @_fire("loadstart")
+
     request = @_pending
     request.headers["content-type"] ||= "text/plain"
     # Make the actual request
     request.body = data
     request.timeout = @timeout
+
+    @_fire("progress")
+
     @_window._eventQueue.http request.method, request.url, request, (error, response)=>
       if @_pending == request
         @_pending = null
 
       if error
-        error = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
-        event = new Events.Event('xhr')
-        event.initEvent('error', true, true)
-        event.error = error
-        @dispatchEvent(event)
+        wrappedError = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
+        @_fire("error", wrappedError)
         return
 
       if @_cors
         allowedOrigin = response.headers['access-control-allow-origin']
         unless (allowedOrigin == '*' || allowedOrigin == @_cors)
           error = new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
-          event = new Events.Event('xhr')
-          event.initEvent('error', true, true)
-          event.error = error
-          @dispatchEvent(event)
+          @_fire("error", error)
           # Also make sure this error reaches the window (other error take
           # care of by eventQueue.http)
-          raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
+          @raise("error", error.message, { exception: error })
           return
 
       # Since the request was not aborted, we set all the fields here and change
@@ -172,7 +191,12 @@ class XMLHttpRequest extends Events.EventTarget
         @responseXML = null
         @_stateChanged(XMLHttpRequest.DONE)
 
+        @_fire("load")
+        @_fire("loadend")
+
+    @_sent = true
     return
+
 
   # Sets the value of an HTTP request header.You must call setRequestHeader()
   # after open(), but before send().
@@ -183,24 +207,25 @@ class XMLHttpRequest extends Events.EventTarget
     request.headers[header.toString().toLowerCase()] = value.toString()
     return
 
+
   # Fire onreadystatechange event
   _stateChanged: (newState)->
     @readyState = newState
-    if newState == XMLHttpRequest.DONE
-      event = new Events.Event('xhr')
-      event.initEvent('load', false, true)
-      @dispatchEvent(event)
-    if @onreadystatechange
-      # Since we want to wait on these events, put them in the event loop.
-      @_window._eventQueue.enqueue =>
-        try
-          @onreadystatechange.call(this)
-        catch error
-          raise(element: @_window.document, from: __filename, scope: "XHR", error: error)
+    @_fire("readystatechange")
+
+
+  # Fire the named event on this object
+  _fire: (eventName, error)->
+    event = new Events.Event('xhr')
+    event.initEvent(eventName, true, true)
+    event.error = error
+    @dispatchEvent(event)
+
 
   # Raise error coming from jsdom
-  raise: (level, message, errObject)->
-    raise(element: @_window.document, from: __filename, scope: "XHR", error: errObject.error)
+  raise: (type, message, data)->
+    @_ownerDocument.raise(type, message, data)
+
 
 # Lifecycle states
 XMLHttpRequest.UNSENT = 0

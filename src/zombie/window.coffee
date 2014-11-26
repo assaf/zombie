@@ -452,7 +452,7 @@ loadDocument = ({ document, history, url, method, encoding, params })->
 
 
 # Wrap dispatchEvent to support _windowInScope and error handling.
-jsdomDispatchElement = HTML.Element.prototype.dispatchEvent
+jsdomDispatchEvent = Events.EventTarget.prototype.dispatchEvent
 HTML.Node.prototype.dispatchEvent = (event)->
   self = this
   # Could be node, window or document
@@ -466,12 +466,35 @@ HTML.Node.prototype.dispatchEvent = (event)->
     [originalInScope, browser._windowInScope] = [browser._windowInScope, window]
     # Inline event handlers rely on window.event
     window.event = event
-    return jsdomDispatchElement.call(self, event)
-  catch error
-    browser.emit("error", error)
+    return jsdomDispatchEvent.call(self, event)
   finally
     delete window.event
     browser._windowInScope = originalInScope
+
+
+# Wrap raise to catch and propagate all errors to window
+jsdomRaise = HTML.Document.prototype.raise
+HTML.Document.prototype.raise = (type, message, data)->
+  jsdomRaise.call(this, type, message, data)
+
+  error = data && (data.exception || data.error)
+  if error
+    document = this
+    window = document.parentWindow
+    # Deconstruct the stack trace and strip the Zombie part of it
+    # (anything leading to this file).  Add the document location at
+    # the end.
+    partial = []
+    # "RangeError: Maximum call stack size exceeded" doesn't have a stack trace
+    if error.stack
+      for line in error.stack.split("\n")
+        break if ~line.indexOf("contextify/lib/contextify.js")
+        partial.push line
+    partial.push "    in #{document.location.href}"
+    error.stack = partial.join("\n")
+
+    window._eventQueue.onerror(error)
+  return
 
 
 # Screen object provides access to screen dimensions

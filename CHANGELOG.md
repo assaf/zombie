@@ -1,3 +1,8 @@
+## Version 2.3.1 2014-11-26
+
+ADDED XHR now supports progress events
+
+
 ## Version 2.3.0 2014-11-25
 
 ADDED requestAnimationFrame
