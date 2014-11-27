@@ -1204,8 +1204,8 @@ include `dump` method that will dump the current state to the console.
 
 ## FAQ
 
-**Q:** How do I get Zombie working with http://google.com (or any other public
-web site)?
+**Q:** *How do I get Zombie working with http://google.com (or any other public
+web site)?*
 
 **A:** Zombie is intended for **functional testing of Web applications**.
 
@@ -1213,13 +1213,13 @@ Zombie is not intended for scraping web sites.  You can use Zombie however you
 want to, just be advised it might not work and will never get fixed.
 
 
-**Q:** How do I report a bug?
+**Q:** *How do I report a bug?*
 
 **A:** [Open an issue on Github](https://github.com/assaf/zombie/issues).  But
 first, read the answer to the next question.
 
 
-**Q:** How do I get someone to look at my bug?
+**Q:** *How do I get someone to look at my bug?*
 
 **A:** By **isolating, testing and pull requesting**:
 
@@ -1234,8 +1234,8 @@ first, read the answer to the next question.
     solution.
 
 
-**Q:** I found a bug in Zombie, here's a stack trace line showing where
-Contextify/JSDOM/CSSOM/htmlparser/whatever is crashing.
+**Q:** *I found a bug in Zombie, here's a stack trace line showing where
+Contextify/JSDOM/CSSOM/htmlparser/whatever is crashing.*
 
 **A:** You found a bug that happens when you call some method on Zombie.
 There's a chance it's a bug in Zombie, and there's a chance it's an issue with
@@ -1247,7 +1247,7 @@ Contextify/JSDOM/CSSOM/htmlparser/whatever are not monitoring the Zombie issues
 list.
 
 
-**Q:** But how can I find what component is repsonsible for that bug?
+**Q:** *But how can I find what component is repsonsible for that bug?*
 
 **A:** There is no Zombie developer team with privileged access.
 
@@ -1257,7 +1257,7 @@ here](https://github.com/assaf/zombie/blob/master/package.json).  Everything,
 even the Node and V8 runtimes are open source.
 
 
-**Q:** Zombie not working for me, can you fix it?
+**Q:** *Zombie not working for me, can you fix it?*
 
 **A:** Zombie is an open source project.  It's free as in "do whatever you want
 with it!"
