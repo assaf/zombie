@@ -1,6 +1,11 @@
-## Version 2.3.3 2014-11-27
+## Version 2.4.0 2014-11-27
 
 FIXED eliminated endless spinning of the event loop
+
+NOTE this may break your tests suite if you added an asynchronous event listener
+in your Node code but forgot to wait() for the event to fire.  For example:
+
+https://github.com/assaf/zombie/commit/d83c901a07bd09cb9c583a57a0b4cd431bf71f8f#diff-cb54bacfa1b84057366b12e8b5c961d3L350
 
     695 passing (10s)
     8 pending
