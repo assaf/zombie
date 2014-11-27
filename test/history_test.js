@@ -347,10 +347,13 @@ describe('History', function() {
 
     describe('change hash', function() {
       before(()=> browser.visit('/'));
+
       before(function(done) {
         browser.document.body.innerHTML = '<html><body>Wolf</body></html>';
         browser.window.addEventListener('hashchange', ()=> done());
         browser.window.location.hash = 'boo';
+        // Get the event loop running
+        browser.wait();
       });
 
       it('should add page to history', function() {

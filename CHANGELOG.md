@@ -1,3 +1,11 @@
+## Version 2.3.3 2014-11-27
+
+FIXED eliminated endless spinning of the event loop
+
+    695 passing (10s)
+    8 pending
+
+
 ## Version 2.3.2 2014-11-26
 
 FIXED XHR status and response text in case of error #811

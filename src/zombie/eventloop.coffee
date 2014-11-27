@@ -79,7 +79,7 @@ class EventLoop extends EventEmitter
   wait: (waitDuration, completionFunction)->
     # Don't wait longer than duration
     waitDuration = ms(waitDuration.toString()) || @browser.waitDuration
-    timeout = Date.now() + waitDuration
+    timeoutOn = Date.now() + waitDuration
 
     # Someone (us) just started paying attention, start processing events
     ++@waiting
@@ -97,7 +97,7 @@ class EventLoop extends EventEmitter
       timer = global.setTimeout(resolve, waitDuration)
 
       ontick = (next)=>
-        if next >= timeout
+        if next >= timeoutOn
           # Next event too long in the future, or no events in queue
           # (Infinity), no point in waiting
           resolve()
@@ -223,10 +223,8 @@ class EventLoop extends EventEmitter
           @emit("tick", 0)
         else
           # All that's left are timers
-          time = @active._eventQueue.next()
-          @emit("tick", time)
-          #setTimeout @run.bind(this), time - Date.now()
-          @run()
+          nextTick = @active._eventQueue.next()
+          @emit("tick", nextTick)
       catch error
         @emit("error", error)
     return
