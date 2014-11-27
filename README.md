@@ -72,6 +72,8 @@ browser.visit('/signup')
 Well, that was easy.
 
 
+
+
 ## Table of Contents
 
 * [Installing](#installing)
@@ -82,6 +84,7 @@ Well, that was easy.
 * [Events](#events)
 * [Resources](#resources)
 * [Debugging](#debugging)
+* [FAQ](#faq)
 
 
 
@@ -1176,6 +1179,9 @@ Browser.ports.map('*.example.com', 3000);
 ```
 
 
+
+
+
 ## Debugging
 
 To see what your code is doing, you can use `console.log` and friends from both
@@ -1192,4 +1198,70 @@ information.
 
 Some objects, like the browser, history, resources, tabs and windows also
 include `dump` method that will dump the current state to the console.
+
+
+
+
+## FAQ
+
+**Q:** How do I get Zombie working with http://google.com (or any other public
+web site)?
+
+**A:** Zombie is intended for **functional testing of Web applications**.
+
+Zombie is not intended for scraping web sites.  You can use Zombie however you
+want to, just be advised it might not work and will never get fixed.
+
+
+**Q:** How do I report a bug?
+
+**A:** [Open an issue on Github](https://github.com/assaf/zombie/issues).  But
+first, read the answer to the next question.
+
+
+**Q:** How do I get someone to look at my bug?
+
+**A:** By **isolating, testing and pull requesting**:
+
+1.  Isolate to the minimum HTML/JS/etc that's necessary to prove the bug.
+    That means code that works directly with the DOM.  No one else is going to
+    do the work of isolating the test case from thousands of lines of
+    Angular/Backbone/jQuery/etc.
+2.  Write a test case that will go green when that bug is fixed.
+    The [Zombie test suite](https://github.com/assaf/zombie/tree/master/test)
+    has over 680 test cases, you can easily find one to copy and adapt.
+3.  Submit a pull request with the test case, and if you have any, the suggested
+    solution.
+
+
+**Q:** I found a bug in Zombie, here's a stack trace line showing where
+Contextify/JSDOM/CSSOM/htmlparser/whatever is crashing.
+
+**A:** You found a bug that happens when you call some method on Zombie.
+There's a chance it's a bug in Zombie, and there's a chance it's an issue with
+one of the many dependencies, as shows in the stack trace.
+
+If you're looking for the quickest solution, try to find the responsible
+component and report the issue there.  The developers of
+Contextify/JSDOM/CSSOM/htmlparser/whatever are not monitoring the Zombie issues
+list.
+
+
+**Q:** But how can I find what component is repsonsible for that bug?
+
+**A:** There is no Zombie developer team with privileged access.
+
+The [full source code](https://github.com/assaf/zombie) for Zombie is available
+here.  The dependencies are [listed
+here](https://github.com/assaf/zombie/blob/master/package.json).  Everything,
+even the Node and V8 runtimes are open source.
+
+
+**Q:** Zombie not working for me, can you fix it?
+
+**A:** Zombie is an open source project.  It's free as in "do whatever you want
+with it!"
+
+Zombie is not free as in "open bar".  You get as much out of it as you put into
+it, plus everyone else's contributions.
 
