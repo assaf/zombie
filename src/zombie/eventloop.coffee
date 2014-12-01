@@ -259,7 +259,9 @@ class EventQueue
     @queue = []
     @expecting = []
     @timers           = []
+    @eventSources = []
     @nextTimerHandle  = 1
+    @nextEventSourceHandle  = 0
 
   # Cleanup when we dispose of the window
   destroy: ->
@@ -267,7 +269,12 @@ class EventQueue
       timer.stop() if timer
     for expecting in @expecting
       expecting()
-    @timers = @queue = @expecting = null
+    for eventSource in @eventSources
+      if eventSource
+        eventSource.eventSource.close()
+        for event, count of eventSource.events
+          eventSource.eventSource.removeAllListeners(event) if count
+    @timers = @queue = @expecting = @eventSources = null
 
 
   # -- Events --
@@ -344,6 +351,42 @@ class EventQueue
     event.error = error
     @window.dispatchEvent(event)
 
+
+  # -- EventSource --
+  addEventSource: (eventSource)->
+    unless @eventSources
+      throw new Error("This browser has been destroyed")
+    handle =  @nextEventSourceHandle
+    ++@nextEventSourceHandle
+    done = @eventLoop.expecting()
+    @expecting.push(done)
+    @eventSources[handle] =
+      eventSource: eventSource
+      events:
+        newListener: 1
+        removeListener: 1
+
+    report = (type)=>
+      @enqueue =>
+
+    newListener = (event, listener)=>
+      return if listener is report
+      return if event in ['error', 'newListener', 'removeListener']
+      unless @eventSources[handle].events[event]?
+        @eventSources[handle].events[event] = 0
+        eventSource.on(event, report)
+      @eventSources[handle].events[event]++
+
+    removeListener = (event, listener)=>
+      return if listener is report
+      return if event in ['error', 'newListener', 'removeListener']
+      unless @eventSources[handle].events[event]
+        @eventSources[handle].events[event]--
+      unless @eventSources[handle].events[event]
+        eventSource.removeEventListener(event, report)
+
+    eventSource.on('newListener', newListener)
+    eventSource.on('removeListener', removeListener)
 
   # -- Timers --
 
