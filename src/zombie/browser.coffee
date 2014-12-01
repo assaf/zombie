@@ -302,8 +302,6 @@ class Browser extends EventEmitter
           return !!window.document.querySelector(options.element)
       else
         completionFunction = options.function
-    else
-      waitDuration = @waitDuration
 
     if @window
       promise = @eventLoop.wait(waitDuration, completionFunction)

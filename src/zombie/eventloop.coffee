@@ -56,6 +56,7 @@ class EventLoop extends EventEmitter
     @expected = 0
     @running  = false
     @waiting  = 0
+    @complex  = 0
     # Error in event loop propagates to browser
     @on "error", (error)=>
       @browser.emit("error", error)
@@ -77,8 +78,13 @@ class EventLoop extends EventEmitter
   # event, and returns true to stop waiting, any other value to continue
   # processing events.
   wait: (waitDuration, completionFunction)->
+    if waitDuration? or completionFunction?
+      complex = true
+      ++@complex
+
     # Don't wait longer than duration
-    waitDuration = ms(waitDuration.toString()) || @browser.waitDuration
+    waitDuration ||= @browser.waitDuration
+    waitDuration = ms(waitDuration.toString())
     timeoutOn = Date.now() + waitDuration
 
     # Someone (us) just started paying attention, start processing events
@@ -134,6 +140,8 @@ class EventLoop extends EventEmitter
       --@waiting
       if @waiting == 0
         @browser.emit("done")
+      if complex
+        --@complex
       return
     )
 
@@ -220,6 +228,10 @@ class EventLoop extends EventEmitter
         else if @expected > 0
           # We're waiting for some events to come along, don't know when,
           # but they'll call run for us
+          @emit("tick", 0)
+        else if @complex > 0 and @active._eventQueue.eventSources.length > 0
+          # We're waiting for some events to come along,
+          # and there are event sources on the page
           @emit("tick", 0)
         else
           # All that's left are timers
@@ -356,9 +368,6 @@ class EventQueue
       throw new Error("This browser has been destroyed")
 
     @eventSources.push(eventSource)
-
-    done = @eventLoop.expecting()
-    @expecting.push(done)
 
     emit = eventSource.emit
     eventSource.emit = ()=>
