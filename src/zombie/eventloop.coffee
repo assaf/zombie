@@ -259,6 +259,7 @@ class EventQueue
     @queue = []
     @expecting = []
     @timers           = []
+    @eventSources = []
     @nextTimerHandle  = 1
 
   # Cleanup when we dispose of the window
@@ -267,7 +268,10 @@ class EventQueue
       timer.stop() if timer
     for expecting in @expecting
       expecting()
-    @timers = @queue = @expecting = null
+    for eventSource in @eventSources
+      if eventSource
+        eventSource.close()
+    @timers = @queue = @expecting = @eventSources = null
 
 
   # -- Events --
@@ -343,6 +347,24 @@ class EventQueue
     event.message = error.message
     event.error = error
     @window.dispatchEvent(event)
+
+
+  # -- EventSource --
+
+  addEventSource: (eventSource)->
+    unless @eventSources
+      throw new Error("This browser has been destroyed")
+
+    @eventSources.push(eventSource)
+
+    done = @eventLoop.expecting()
+    @expecting.push(done)
+
+    emit = eventSource.emit
+    eventSource.emit = ()=>
+      args = arguments
+      @enqueue ->
+        emit.apply(eventSource, args)
 
 
   # -- Timers --
