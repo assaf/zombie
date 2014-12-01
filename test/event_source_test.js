@@ -23,6 +23,9 @@ describe('EventSource', function() {
             });
           </script>
         </head>
+        <body>
+          <button>1</button>
+        </body>
       </html>
     `);
 
@@ -55,6 +58,17 @@ describe('EventSource', function() {
 
   it('should stream to browser', function() {
     assert.deepEqual(this.events, ['first', 'second']);
+  });
+
+  describe('when present', function() {
+    before(async function() {
+      await browser.visit('/streaming');
+      await browser.pressButton('1');
+    });
+
+    it('pressButton should not timeout', function() {
+      assert(true);
+    });
   });
 
   after(function() {
