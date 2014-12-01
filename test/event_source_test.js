@@ -58,8 +58,7 @@ describe('EventSource', function() {
   });
 
   after(function() {
-    // NOTE this blows up
-    // browser.destroy();
+    browser.destroy();
   });
 });
 

@@ -131,12 +131,6 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
   window.XMLHttpRequest = ->
     return new XMLHttpRequest(window)
 
-  # Constructor for EventSource, URL is relative to document's.
-  window.EventSource = (url)->
-    url = HTML.resourceLoader.resolve(document, url)
-    window.setInterval((->), 100) # We need this to trigger event loop
-    return new EventSource(url)
-
   # Web sockets
   window.WebSocket = (url, protocol)->
     url = HTML.resourceLoader.resolve(document, url)
@@ -228,6 +222,13 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
     clearImmediate:
       value: eventQueue.clearTimeout.bind(eventQueue)
 
+
+  # Constructor for EventSource, URL is relative to document's.
+  window.EventSource = (url)->
+    url = HTML.resourceLoader.resolve(document, url)
+    eventSource = new EventSource(url)
+    eventQueue.addEventSource(eventSource)
+    return eventSource
 
   # -- Opening and closing --
 
