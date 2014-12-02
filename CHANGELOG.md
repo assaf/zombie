@@ -1,3 +1,23 @@
+## Version 2.5.0 2014-12-01
+
+CHANGED wait() returns a lazy promise
+
+Prior to this change, calling `wait()` without a callback would return a
+promise, which will resolve by running the event loop for completion, even if
+you don't provide any callbacks.
+
+This is not specifically a problem with `wait`, but with methods that end by
+calling `wait`, like `clickLink` and `pressButton`.
+
+After this change, `wait()` will do nothing, unless you either supply a
+callback, or use the promise by means of calling `then/catch/done` on it.
+
+You can achieve the old behavior by calling `browser.wait().done()`.
+
+    699 passing (12s)
+    8 pending
+
+
 ## Version 2.4.0 2014-11-27
 
 FIXED eliminated endless spinning of the event loop
