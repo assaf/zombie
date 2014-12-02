@@ -30,7 +30,7 @@ describe('EventLoop', function() {
       });
     });
 
-    describe('no wait', function() {
+    describe('not waiting', function() {
       before(async function() {
         await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
@@ -59,7 +59,7 @@ describe('EventLoop', function() {
       });
     });
 
-    describe('from timeout', function() {
+    describe('from within timeout', function() {
       before(async function() {
         await browser.visit('/eventloop/timeout');
         browser.window.setTimeout(function() {
@@ -124,7 +124,8 @@ describe('EventLoop', function() {
       });
     });
 
-    describe('outside wait', function() {
+
+    describe('outside of wait', function() {
       before(async function() {
         await browser.visit('/eventloop/function');
         browser.window.setTimeout(function() { this.document.title += '1'; }, 100);
@@ -314,14 +315,12 @@ describe('EventLoop', function() {
 
   describe('requestAnimationFrame', function() {
     before(function() {
-      brains.get('/eventloop/requestAnimationFrame', function(req, res) {
-        res.send(`
-          <html>
-            <head><title></title></head>
-            <body></body>
-          </html>
-        `);
-      });
+      brains.static('/eventloop/requestAnimationFrame', `
+        <html>
+          <head><title></title></head>
+          <body></body>
+        </html>
+      `);
     });
 
     describe('with wait', function() {
@@ -356,6 +355,99 @@ describe('EventLoop', function() {
     it('should not wait longer than specified', function() {
       browser.assert.text('title', '....');
     });
+  });
+
+
+  // No callback -> event loop not runninga
+  //
+  // Test that when you call wait() with no callback, and don't attach anything
+  // to the promise, event loop pauses.
+  describe('wait', function() {
+    before(function() {
+      brains.static('/eventloop/wait', `
+        <html>
+          <title>
+          </title>
+        </html>
+      `);
+    });
+
+    // This function is run in the context of the window (browser.evaluate), so
+    // has access to the current document and event loop setTimeout.
+    //
+    // Asynchronously it will update the document title to say 'Bang'.
+    function runAsynchronously() {
+      const { document } = this;
+      this.setTimeout(function() {
+        document.title = 'Bang';
+      }, 100);
+    }
+
+    describe('with Node callback', function() {
+      before(function() {
+        return browser.visit('/eventloop/wait');
+      });
+
+      before(function(done) {
+        browser.evaluate(runAsynchronously);
+        browser.wait(done);
+      });
+
+      it('should run asynchronous code', function() {
+        browser.assert.text('title', 'Bang');
+      });
+    });
+
+    describe('with promise callback', function() {
+      before(function() {
+        return browser.visit('/eventloop/wait');
+      });
+
+      before(function(done) {
+        browser.evaluate(runAsynchronously);
+        browser.wait().then(done, done);
+      });
+
+      it('should run asynchronous code', function() {
+        browser.assert.text('title', 'Bang');
+      });
+    });
+
+    describe('with no callback/then', function() {
+      before(function() {
+        return browser.visit('/eventloop/wait');
+      });
+
+      before(function(done) {
+        browser.evaluate(runAsynchronously);
+        browser.wait();
+        setTimeout(done, 100);
+      });
+
+      it('should not run asynchronous code', function() {
+        browser.assert.text('title', '');
+      });
+    });
+
+    describe('composed promise', function() {
+      before(function() {
+        return browser.visit('/eventloop/wait');
+      });
+
+      before(function() {
+        browser.evaluate(runAsynchronously);
+        const resolved = Promise.resolve();
+        const composed = resolved.then(function() {
+          return browser.wait();
+        });
+        return composed;
+      });
+
+      it('should run asynchronous code', function() {
+        browser.assert.text('title', 'Bang');
+      });
+    });
+
   });
 
 

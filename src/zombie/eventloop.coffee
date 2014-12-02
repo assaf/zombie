@@ -22,6 +22,27 @@ ms                = require("ms")
 { Promise }       = require("bluebird")
 
 
+# Returns a Bluebird promise that evaluates only when registering a callback
+# (via then, catch, done, etc).
+#
+# Takes the same resolver as new Promise()
+lazyPromise = (resolver)->
+  deferred = new Promise.defer()
+  resolved = false
+  promise  = deferred.promise
+  promise._setProxyHandlers = (args...)->
+    Promise.prototype._setProxyHandlers.apply(promise, args)
+    if !resolved
+      resolved = true
+      resolver(deferred.resolve.bind(deferred), deferred.reject.bind(deferred))
+  promise._addCallbacks = (args...)->
+    Promise.prototype._addCallbacks.apply(promise, args)
+    if !resolved
+      resolved = true
+      resolver(deferred.resolve.bind(deferred), deferred.reject.bind(deferred))
+  return promise
+
+
 # The browser event loop.
 #
 # All asynchronous events are processed by this one. The event loop monitors one
@@ -81,63 +102,67 @@ class EventLoop extends EventEmitter
     waitDuration = ms(waitDuration.toString()) || @browser.waitDuration
     timeoutOn = Date.now() + waitDuration
 
-    # Someone (us) just started paying attention, start processing events
-    ++@waiting
-    if @waiting == 1
-      setImmediate =>
-        if @active
-          @run()
+    lazy = lazyPromise((resolve, reject)=>
 
-    timer   = null
-    ontick  = null
-    onerror = null
-    ondone  = null
+      # Someone (us) just started paying attention, start processing events
+      ++@waiting
+      if @waiting == 1
+        setImmediate =>
+          if @active
+            @run()
 
-    promise = new Promise((resolve, reject)=>
-      timer = global.setTimeout(resolve, waitDuration)
+      timer   = null
+      ontick  = null
+      onerror = null
+      ondone  = null
 
-      ontick = (next)=>
-        if next >= timeoutOn
-          # Next event too long in the future, or no events in queue
-          # (Infinity), no point in waiting
-          resolve()
-        else if completionFunction && @active.document.documentElement
-          try
-            waitFor = Math.max(next - Date.now(), 0)
-            # Event processed, are we ready to complete?
-            completed = completionFunction(@active, waitFor)
-            if completed
-              resolve()
-          catch error
-            reject(error)
+      work = new Promise((resolve, reject)=>
+        timer = global.setTimeout(resolve, waitDuration)
+
+        ontick = (next)=>
+          if next >= timeoutOn
+            # Next event too long in the future, or no events in queue
+            # (Infinity), no point in waiting
+            resolve()
+          else if completionFunction && @active.document.documentElement
+            try
+              waitFor = Math.max(next - Date.now(), 0)
+              # Event processed, are we ready to complete?
+              completed = completionFunction(@active, waitFor)
+              if completed
+                resolve()
+            catch error
+              reject(error)
+          return
+        @on("tick", ontick)
+
+        ondone  = resolve
+        @once("done", ondone)
+
+
+        # Don't wait if browser encounters an error (event loop errors also
+        # propagate to browser)
+        onerror = reject
+        @browser.once("error", onerror)
         return
-      @on("tick", ontick)
+      )
 
-      ondone  = resolve
-      @once("done", ondone)
+      finalized = work.finally(=>
+        
+        clearInterval(timer)
+        @removeListener("tick", ontick)
+        @removeListener("done", ondone)
+        @browser.removeListener("error", onerror)
 
+        --@waiting
+        if @waiting == 0
+          @browser.emit("done")
+        return
+      )
 
-      # Don't wait if browser encounters an error (event loop errors also
-      # propagate to browser)
-      onerror = reject
-      @browser.once("error", onerror)
-      return
+      resolve(finalized)
     )
-
-    promise = promise.finally(=>
-      
-      clearInterval(timer)
-      @removeListener("tick", ontick)
-      @removeListener("done", ondone)
-      @browser.removeListener("error", onerror)
-
-      --@waiting
-      if @waiting == 0
-        @browser.emit("done")
-      return
-    )
-
-    return promise
+    return lazy
 
 
   dump: ()->

@@ -270,7 +270,7 @@ describe('Browser', function() {
           browser.once('done', done);
             done = true;
           browser.location = '/browser/scripted';
-          browser.wait();
+          browser.wait().done();
         });
       });
 

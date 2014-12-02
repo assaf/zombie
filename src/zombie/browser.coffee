@@ -507,7 +507,9 @@ class Browser extends EventEmitter
     if typeof options == "function" && !callback
       [callback, options] = [options, null]
 
-    resetOptions = @withOptions(options)
+    if options
+      resetOptions = @withOptions(options)
+
     if site = @site
       site = "http://#{site}" unless /^(https?:|file:)/i.test(site)
       url = URL.resolve(site, URL.parse(URL.format(url)))
@@ -516,7 +518,10 @@ class Browser extends EventEmitter
       @tabs.close(@window)
     @tabs.open(url: url, referer: @referer)
 
-    promise = @wait(options).finally(resetOptions)
+    if options
+      promise = @wait(options).finally(resetOptions)
+    else
+      promise = @wait(options)
     if callback
       promise.done(callback, callback)
       return
