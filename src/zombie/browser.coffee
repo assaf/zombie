@@ -212,11 +212,9 @@ class Browser extends EventEmitter
     return ifMissing
 
 
-  # Changes the browser options, and calls the function with a callback (reset).  When you're done processing, call the
-  # reset function to bring options back to their previous values.
-  #
-  # See `visit` if you want to see this method in action.
+  # Deprecated
   withOptions: (options, fn)->
+    console.log "visit with options is deprecated and will be removed soon"
     if options
       restore = {}
       for k,v of options
@@ -497,12 +495,8 @@ class Browser extends EventEmitter
   # ----------
 
   # ### browser.visit(url, callback?)
-  # ### browser.visit(url, options, callback)
   #
-  # Loads document from the specified URL, processes events and calls the callback.  If the second argument are options,
-  # uses these options for the duration of the request and resets the options afterwards.
-  #
-  # The callback is called with error, the browser and status code.
+  # Loads document from the specified URL, processes events and calls the callback, or returns a promise.
   visit: (url, options, callback)->
     if typeof options == "function" && !callback
       [callback, options] = [options, null]

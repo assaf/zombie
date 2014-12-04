@@ -1,5 +1,9 @@
 ## Version 2.5.0 2014-12-01
 
+REMOVED Passing an options object to browser.visit is deprecated and will be
+removed soon.  Passing an options object to Browser.visit is still supported.
+
+
 CHANGED wait() returns a lazy promise
 
 Prior to this change, calling `wait()` without a callback would return a
@@ -14,8 +18,8 @@ callback, or use the promise by means of calling `then/catch/done` on it.
 
 You can achieve the old behavior by calling `browser.wait().done()`.
 
-    699 passing (12s)
-    8 pending
+  696 passing (12s)
+  8 pending
 
 
 ## Version 2.4.0 2014-11-27

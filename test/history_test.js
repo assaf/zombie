@@ -506,8 +506,10 @@ describe('History', function() {
   });
 
   describe('referer set', function() {
-    before(function() {
-      return browser.visit('/history/referer', { referer: 'http://braindepot' });
+    before(async function() {
+      browser.referer = 'http://braindepot';
+      await browser.visit('/history/referer');
+      delete browser.referer;
     });
 
     it('should be set from browser', function() {

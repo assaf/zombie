@@ -77,43 +77,37 @@ describe('Browser', function() {
     describe('visit', function() {
 
       describe('successful', function() {
-        let callbackBrowser;
+        let browser;
 
         before(async function() {
-          callbackBrowser = await Browser.visit('/browser/scripted');
+          browser = await Browser.visit('/browser/scripted');
         });
 
-        it('should pass browser to callback', function() {
-          assert(callbackBrowser instanceof Browser);
-        });
-        it('should pass status code to callback', function() {
-          callbackBrowser.assert.success();
+        it('should resolve to browser object', function() {
+          assert(browser.visit && browser.wait);
         });
         it('should indicate success', function() {
-          assert(callbackBrowser.success);
+          browser.assert.success();
         });
         it('should reset browser errors', function() {
-          assert.equal(callbackBrowser.errors.length, 0);
-        });
-        it('should have a resources object', function() {
-          assert(callbackBrowser.resources);
+          assert.equal(browser.errors.length, 0);
         });
       });
 
       describe('with error', function() {
         let error;
+        let browser;
 
-        before(async function() {
-          try {
-            await browser.visit('/browser/errored');
-            assert(false, 'Should have errored');
-          } catch (callbackError) {
-            error = callbackError;
-          }
+        before(function(done) {
+          Browser.visit('/browser/errored', function() {
+            error   = arguments[0];
+            browser = arguments[1];
+            done();
+          });
         });
 
         it('should call callback with error', function() {
-          assert.equal(error.constructor.name, 'TypeError');
+          assert(error.message && error.stack);
         });
         it('should indicate success', function() {
           browser.assert.success();
