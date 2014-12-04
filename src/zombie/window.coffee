@@ -97,13 +97,17 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
 
   # javaEnabled, present in browsers, not in spec Used by Google Analytics see
   # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
+  plugins = []
+  plugins.item = ->
+  plugins.namedItem = ->
   Object.defineProperties window.navigator,
     cookieEnabled: { value: true }
     javaEnabled:   { value: -> false }
-    platform:      { value: 'node' }
-    plugins:       { value: [] }
-    userAgent:     { value: browser.userAgent }
     language:      { value: browser.language }
+    mimeTypes:     { value: plugins }
+    platform:      { value: 'node' }
+    plugins:       { value: plugins }
+    userAgent:     { value: browser.userAgent }
     vendor:        { value: "Zombie Industries" }
 
   # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc

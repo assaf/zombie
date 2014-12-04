@@ -1,3 +1,12 @@
+## Version 2.4.1 2014-12-03
+
+ADDED support for navigator.mimeTypes
+
+    698 passing (12s)
+    8 pending
+
+
+
 ## Version 2.4.0 2014-11-27
 
 FIXED eliminated endless spinning of the event loop

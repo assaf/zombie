@@ -166,14 +166,25 @@ describe('Window', function() {
     it('should exist', function() {
       browser.assert.evaluate('navigator');
     });
-    it('.javaEnabled should be false', function() {
+    it('javaEnabled should be false', function() {
       browser.assert.evaluate('navigator.javaEnabled()', false);
     });
-    it('.language should be set to en-US', function() {
+    it('language should be set to en-US', function() {
       browser.assert.evaluate('navigator.language', 'en-US');
     });
-    it('.plugins should be empty array', function() {
-      browser.assert.evaluate('navigator.plugins', []);
+    it('plugins should be empty array', function() {
+      browser.assert.evaluate('navigator.plugins.length', 0);
+    });
+    it('plugins should have no items', function() {
+      browser.assert.evaluate('navigator.plugins.item(0)', undefined);
+      browser.assert.evaluate('navigator.plugins.namedItem("Flash")', undefined);
+    });
+    it('mimeTypes should be empty array', function() {
+      browser.assert.evaluate('navigator.mimeTypes.length', 0);
+    });
+    it('mimeTypes should have no items', function() {
+      browser.assert.evaluate('navigator.mimeTypes.item(0)', undefined);
+      browser.assert.evaluate('navigator.mimeTypes.namedItem("Flash")', undefined);
     });
   });
 
