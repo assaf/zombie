@@ -22,25 +22,35 @@ ms                = require("ms")
 { Promise }       = require("bluebird")
 
 
-# Returns a Bluebird promise that evaluates only when registering a callback
-# (via then, catch, done, etc).
-#
-# Takes the same resolver as new Promise()
-lazyPromise = (resolver)->
-  deferred = new Promise.defer()
-  resolved = false
-  promise  = deferred.promise
-  promise._setProxyHandlers = (args...)->
-    Promise.prototype._setProxyHandlers.apply(promise, args)
-    if !resolved
-      resolved = true
-      resolver(deferred.resolve.bind(deferred), deferred.reject.bind(deferred))
-  promise._addCallbacks = (args...)->
-    Promise.prototype._addCallbacks.apply(promise, args)
-    if !resolved
-      resolved = true
-      resolver(deferred.resolve.bind(deferred), deferred.reject.bind(deferred))
-  return promise
+class LazyPromise
+  constructor: (@_resolver)->
+    @_resolved = false
+    @_promise = new Promise(=>
+      @_resolve = arguments[0]
+      @_reject  = arguments[1]
+    )
+
+  then: (args...)->
+    @_lazyResolve()
+    return @_promise.then(args...)
+
+  catch: (args...)->
+    @_lazyResolve()
+    return @_promise.catch(args...)
+
+  finally: (args...)->
+    @_lazyResolve()
+    return @_promise.finally(args...)
+
+  done: (args...)->
+    @_lazyResolve()
+    return @_promise.done(args...)
+
+  _lazyResolve: ->
+    unless @_resolved
+      @_resolved = true
+      @_resolver(@_resolve, @_reject)
+
 
 
 # The browser event loop.
@@ -102,7 +112,7 @@ class EventLoop extends EventEmitter
     waitDuration = ms(waitDuration.toString()) || @browser.waitDuration
     timeoutOn = Date.now() + waitDuration
 
-    lazy = lazyPromise((resolve, reject)=>
+    lazy = new LazyPromise((resolve, reject)=>
 
       # Someone (us) just started paying attention, start processing events
       ++@waiting
@@ -148,7 +158,7 @@ class EventLoop extends EventEmitter
       )
 
       finalized = work.finally(=>
-        
+
         clearInterval(timer)
         @removeListener("tick", ontick)
         @removeListener("done", ondone)
