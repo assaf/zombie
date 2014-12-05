@@ -303,11 +303,13 @@ describe('Window', function() {
     });
 
     it('should support testing the refresh page', async function() {
+      browser.visit('/windows/refresh');
+
       function complete() {
         return browser.query('meta');
       }
 
-      await browser.visit('/windows/refresh', { function: complete });
+      await browser.wait({ function: complete });
       browser.assert.url('http://example.com/windows/refresh');
       // Check the refresh page.
       browser.assert.text('title', 'Refresh');

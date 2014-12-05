@@ -20,6 +20,7 @@ Domain            = require("domain")
 { EventEmitter }  = require("events")
 ms                = require("ms")
 { Promise }       = require("bluebird")
+Lazybird          = require("lazybird")
 
 
 # The browser event loop.
@@ -81,63 +82,67 @@ class EventLoop extends EventEmitter
     waitDuration = ms(waitDuration.toString()) || @browser.waitDuration
     timeoutOn = Date.now() + waitDuration
 
-    # Someone (us) just started paying attention, start processing events
-    ++@waiting
-    if @waiting == 1
-      setImmediate =>
-        if @active
-          @run()
+    lazy = new Lazybird((resolve, reject)=>
 
-    timer   = null
-    ontick  = null
-    onerror = null
-    ondone  = null
+      # Someone (us) just started paying attention, start processing events
+      ++@waiting
+      if @waiting == 1
+        setImmediate =>
+          if @active
+            @run()
 
-    promise = new Promise((resolve, reject)=>
-      timer = global.setTimeout(resolve, waitDuration)
+      timer   = null
+      ontick  = null
+      onerror = null
+      ondone  = null
 
-      ontick = (next)=>
-        if next >= timeoutOn
-          # Next event too long in the future, or no events in queue
-          # (Infinity), no point in waiting
-          resolve()
-        else if completionFunction && @active.document.documentElement
-          try
-            waitFor = Math.max(next - Date.now(), 0)
-            # Event processed, are we ready to complete?
-            completed = completionFunction(@active, waitFor)
-            if completed
-              resolve()
-          catch error
-            reject(error)
+      work = new Promise((resolve, reject)=>
+        timer = global.setTimeout(resolve, waitDuration)
+
+        ontick = (next)=>
+          if next >= timeoutOn
+            # Next event too long in the future, or no events in queue
+            # (Infinity), no point in waiting
+            resolve()
+          else if completionFunction && @active.document.documentElement
+            try
+              waitFor = Math.max(next - Date.now(), 0)
+              # Event processed, are we ready to complete?
+              completed = completionFunction(@active, waitFor)
+              if completed
+                resolve()
+            catch error
+              reject(error)
+          return
+        @on("tick", ontick)
+
+        ondone  = resolve
+        @once("done", ondone)
+
+
+        # Don't wait if browser encounters an error (event loop errors also
+        # propagate to browser)
+        onerror = reject
+        @browser.once("error", onerror)
         return
-      @on("tick", ontick)
+      )
 
-      ondone  = resolve
-      @once("done", ondone)
+      finalized = work.finally(=>
 
+        clearInterval(timer)
+        @removeListener("tick", ontick)
+        @removeListener("done", ondone)
+        @browser.removeListener("error", onerror)
 
-      # Don't wait if browser encounters an error (event loop errors also
-      # propagate to browser)
-      onerror = reject
-      @browser.once("error", onerror)
-      return
+        --@waiting
+        if @waiting == 0
+          @browser.emit("done")
+        return
+      )
+
+      resolve(finalized)
     )
-
-    promise = promise.finally(=>
-      
-      clearInterval(timer)
-      @removeListener("tick", ontick)
-      @removeListener("done", ondone)
-      @browser.removeListener("error", onerror)
-
-      --@waiting
-      if @waiting == 0
-        @browser.emit("done")
-      return
-    )
-
-    return promise
+    return lazy
 
 
   dump: ()->

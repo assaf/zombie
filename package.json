@@ -46,6 +46,7 @@
     "eventsource": "^0.1.4",
     "iconv-lite": "^0.4.0",
     "jsdom": "1.3.2",
+    "lazybird": "^1.0.0",
     "mime": "^1.2.11",
     "ms": "^0.7.0",
     "request": "^2.48.0",

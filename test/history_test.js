@@ -129,7 +129,7 @@ describe('History', function() {
             done();
           });
           window.history.back();
-          browser.wait();
+          browser.wait().done();
         });
 
         it('should fire popstate event', function() {
@@ -159,6 +159,7 @@ describe('History', function() {
             done();
           });
           browser.history.forward();
+          browser.wait().done();
         });
 
         it('should fire popstate event', function() {
@@ -200,7 +201,7 @@ describe('History', function() {
             done();
           });
           window.history.back();
-          browser.wait();
+          browser.wait().done();
         });
 
         it('should change location URL', function() {
@@ -312,7 +313,7 @@ describe('History', function() {
       before(function(done) {
         browser.window.location.pathname = '/history/boo';
         browser.once('loaded', ()=> done());
-        browser.wait();
+        browser.wait().done();
       });
 
       it('should add page to history', function() {
@@ -331,7 +332,7 @@ describe('History', function() {
       before(function(done) {
         browser.window.location.href = '/history/boo';
         browser.once('loaded', ()=> done());
-        browser.wait();
+        browser.wait().done();
       });
 
       it('should add page to history', function() {
@@ -353,7 +354,7 @@ describe('History', function() {
         browser.window.addEventListener('hashchange', ()=> done());
         browser.window.location.hash = 'boo';
         // Get the event loop running
-        browser.wait();
+        browser.wait().done();
       });
 
       it('should add page to history', function() {
@@ -372,7 +373,7 @@ describe('History', function() {
       before(function(done) {
         browser.window.location.assign('/history/boo');
         browser.once('loaded', ()=> done());
-        browser.wait();
+        browser.wait().done();
       });
 
       it('should add page to history', function() {
@@ -391,7 +392,7 @@ describe('History', function() {
       before(function(done) {
         browser.window.location.replace('/history/boo');
         browser.once('loaded', ()=> done());
-        browser.wait();
+        browser.wait().done();
       });
 
       it('should not add page to history', function() {
@@ -411,7 +412,7 @@ describe('History', function() {
         browser.window.document.innerHTML = 'Wolf';
         browser.reload();
         browser.once('loaded', ()=> done());
-        browser.wait();
+        browser.wait().done();
       });
 
       it('should not add page to history', function() {
@@ -459,7 +460,7 @@ describe('History', function() {
       before(function(done) {
         browser.window.location = 'http://example.com/history/boo';
         browser.once('loaded', ()=> done());
-        browser.wait();
+        browser.wait().done();
       });
 
       it('should add page to history', function() {
@@ -478,7 +479,7 @@ describe('History', function() {
       before(function(done) {
         browser.window.document.location = 'http://example.com/history/boo';
         browser.once('loaded', ()=> done());
-        browser.wait();
+        browser.wait().done();
       });
 
       it('should add page to history', function() {
@@ -505,8 +506,10 @@ describe('History', function() {
   });
 
   describe('referer set', function() {
-    before(function() {
-      return browser.visit('/history/referer', { referer: 'http://braindepot' });
+    before(async function() {
+      browser.referer = 'http://braindepot';
+      await browser.visit('/history/referer');
+      delete browser.referer;
     });
 
     it('should be set from browser', function() {
