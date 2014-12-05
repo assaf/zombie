@@ -20,7 +20,7 @@ Domain            = require("domain")
 { EventEmitter }  = require("events")
 ms                = require("ms")
 { Promise }       = require("bluebird")
-LazyPromise       = require("./lazy_promise")
+Lazybird          = require("lazybird")
 
 
 # The browser event loop.
@@ -82,7 +82,7 @@ class EventLoop extends EventEmitter
     waitDuration = ms(waitDuration.toString()) || @browser.waitDuration
     timeoutOn = Date.now() + waitDuration
 
-    lazy = new LazyPromise((resolve, reject)=>
+    lazy = new Lazybird((resolve, reject)=>
 
       # Someone (us) just started paying attention, start processing events
       ++@waiting
