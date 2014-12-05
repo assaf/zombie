@@ -20,37 +20,7 @@ Domain            = require("domain")
 { EventEmitter }  = require("events")
 ms                = require("ms")
 { Promise }       = require("bluebird")
-
-
-class LazyPromise
-  constructor: (@_resolver)->
-    @_resolved = false
-    @_promise = new Promise(=>
-      @_resolve = arguments[0]
-      @_reject  = arguments[1]
-    )
-
-  then: (args...)->
-    @_lazyResolve()
-    return @_promise.then(args...)
-
-  catch: (args...)->
-    @_lazyResolve()
-    return @_promise.catch(args...)
-
-  finally: (args...)->
-    @_lazyResolve()
-    return @_promise.finally(args...)
-
-  done: (args...)->
-    @_lazyResolve()
-    return @_promise.done(args...)
-
-  _lazyResolve: ->
-    unless @_resolved
-      @_resolved = true
-      @_resolver(@_resolve, @_reject)
-
+LazyPromise       = require("./lazy_promise")
 
 
 # The browser event loop.
