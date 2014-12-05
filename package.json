@@ -51,7 +51,7 @@
     "ms": "^0.7.0",
     "request": "^2.48.0",
     "tough-cookie": "^0.12.1",
-    "ws": "^0.5.0"
+    "ws": "^0.6.0"
   },
   "devDependencies": {
     "body-parser": "^1.10.0",
@@ -66,8 +66,8 @@
     "gulp-util": "^3.0.1",
     "mocha": "^2.0.1",
     "morgan": "^1.5.0",
-    "multiparty": "^4.0.0",
-    "replay": "^1.11.0",
+    "multiparty": "^4.1.0",
+    "replay": "^1.12.0",
     "requirejs": "^2.1.15",
     "traceur": "^0.0.79"
   },
