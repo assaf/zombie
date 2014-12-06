@@ -19,6 +19,8 @@ You can achieve the old behavior by calling `browser.wait().done()`.
 REMOVED Passing an options object to browser.visit is deprecated and will be
 removed soon.  Passing an options object to Browser.visit is still supported.
 
+UPGRADED to JSDOM 1.4.0
+
   700 passing (12s)
   8 pending
 

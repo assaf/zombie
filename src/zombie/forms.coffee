@@ -176,24 +176,3 @@ HTML.HTMLButtonElement.prototype._eventDefaults =
       if form
         form._dispatchSubmitEvent(button)
 
-
-# Default type for button is submit. jQuery live submit handler looks
-# for the type attribute, so we've got to make sure it's there.
-HTML.Document.prototype._elementBuilders["button"] = (doc, s)->
-  button = new HTML.HTMLButtonElement(doc, s)
-  button.type ||= "submit"
-  return button
-
-
-HTML.HTMLFormElement.prototype.reset = ->
-  for field in @elements
-    if field.nodeName == "SELECT"
-      ### defaultSelected currently broken in JSDOM
-      for option in field.options
-        option.selected = option.defaultSelected
-      ###
-    else if field.nodeName == "INPUT" && (field.type == "checkbox" || field.type == "radio")
-      field.checked = !!field.defaultChecked
-    else if field.nodeName == "INPUT" || field.nodeName == "TEXTAREA"
-      field.value = field.defaultValue
-
