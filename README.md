@@ -522,9 +522,9 @@ Asserts that one element matching selection exists.
 Fails if no element or more than one matching element are found.
 
 ```js
-browser.assert.elements('form');
-browser.assert.elements('form input[name=email]');
-browser.assert.elements('form input[name=email].has-error');
+browser.assert.element('form');
+browser.assert.element('form input[name=email]');
+browser.assert.element('form input[name=email].has-error');
 ```
 
 #### assert.elements(selection, count, message)
