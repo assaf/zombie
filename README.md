@@ -469,7 +469,7 @@ empty string, not `null`/`undefined`.
 
 All assertions take an optional last argument that is the message to show if the
 assertion fails.  Better yet, use a testing framework like
-[Mocha](http://visionmedia.github.com/mocha/) that has good diff support and
+[Mocha](https://github.com/mochajs/mocha) that has good diff support and
 don't worry about these messages.
 
 
