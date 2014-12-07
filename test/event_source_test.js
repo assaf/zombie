@@ -23,6 +23,9 @@ describe('EventSource', function() {
             });
           </script>
         </head>
+        <body>
+          <button>1</button>
+        </body>
       </html>
     `);
 
@@ -41,20 +44,23 @@ describe('EventSource', function() {
   });
 
   before(function(done) {
-    browser.visit('/streaming');
-
-    function gotBothEvents(window) {
-      return (window.events && window.events.length === 2);
-    }
-
-    browser.wait(gotBothEvents, ()=> {
-      this.events = browser.evaluate('window.events');
-      done();
-    });
+    browser.visit('/streaming').done(done,done);
   });
 
-  it('should stream to browser', function() {
-    assert.deepEqual(this.events, ['first', 'second']);
+  it('should stream to browser', async function() {
+    await browser.waitForServer()
+    assert.deepEqual(browser.evaluate('window.events'), ['first', 'second']);
+  });
+
+  describe('when present', function() {
+    before(async function() {
+      await browser.visit('/streaming');
+      await browser.pressButton('1');
+    });
+
+    it('pressButton should not timeout', function() {
+      assert(true);
+    });
   });
 
   after(function() {

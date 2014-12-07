@@ -315,6 +315,28 @@ class Browser extends EventEmitter
       return promise
 
 
+  # Waits for the browser to get a single event from any EventSource,
+  # then completes loading resources and processing JavaScript events.
+  #
+  # Accepts an optional callback which is called with error or nothing
+  #
+  # Without a callback, this method returns a promise.
+  waitForServer: (callback)->
+    assert @window, "No window open"
+
+    promise = new Promise((resolve, reject)=>
+      @eventLoop.once("server", =>
+        @wait(resolve)
+      )
+    )
+
+    if callback
+      promise.done(callback, callback)
+      return
+    else
+      return promise
+
+
   # Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking
   # a link.  These events will bubble up and can be cancelled.  Like `wait`
   # this method takes an optional callback and returns a promise.
