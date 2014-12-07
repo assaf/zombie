@@ -321,12 +321,14 @@ class Browser extends EventEmitter
   # Accepts an optional callback which is called with error or nothing
   #
   # Without a callback, this method returns a promise.
-  waitForServer: (callback)->
+  waitForServer: (options, callback)->
     assert @window, "No window open"
+    if arguments.length == 1 && typeof(options) == "function"
+      [callback, options] = [options, null]
 
     promise = new Promise((resolve, reject)=>
       @eventLoop.once("server", =>
-        @wait(resolve)
+        @wait(options, resolve)
       )
     )
 

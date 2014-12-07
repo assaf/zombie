@@ -19,6 +19,9 @@ describe('EventSource', function() {
             var source = new EventSource("/stream");
             window.events = [];
             source.addEventListener("test", function(event) {
+              if (window.events.length > 0) setTimeout(function() {
+                  window.events.push("third")
+              }, 50)
               window.events.push(event.data)
             });
           </script>
@@ -49,7 +52,7 @@ describe('EventSource', function() {
 
   it('should stream to browser', async function() {
     await browser.waitForServer()
-    assert.deepEqual(browser.evaluate('window.events'), ['first', 'second']);
+    assert.deepEqual(browser.evaluate('window.events'), ['first', 'second','third']);
   });
 
   describe('when present', function() {
@@ -60,6 +63,28 @@ describe('EventSource', function() {
 
     it('pressButton should not timeout', function() {
       assert(true);
+    });
+  });
+
+  describe('browser.waitForServer', function() {
+    before(async function() {
+      await browser.visit('/streaming');
+      await browser.waitForServer();
+    });
+
+    it('should capture synchronous event', function() {
+      assert.deepEqual(browser.evaluate('window.events'), ['first']);
+    });
+
+    it('should not wait longer than specified', function(done) {
+      function gotTwoEvents(window) {
+        return (window.events && window.events.length === 2);
+      }
+
+      browser.waitForServer(gotTwoEvents, function() {
+        assert.deepEqual(browser.evaluate('window.events'), ['first', 'second']);
+        done();
+      });
     });
   });
 
