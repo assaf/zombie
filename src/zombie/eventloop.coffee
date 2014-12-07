@@ -362,12 +362,10 @@ class EventQueue
 
     @eventSources.push(eventSource)
 
-    done = @eventLoop.expecting()
-    @expecting.push(done)
-
     emit = eventSource.emit
     eventSource.emit = ()=>
       args = arguments
+      @eventLoop.emit("server")
       @enqueue ->
         emit.apply(eventSource, args)
 
