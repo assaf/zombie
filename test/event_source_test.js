@@ -66,6 +66,7 @@ describe('EventSource', function() {
     });
   });
 
+
   describe('browser.waitForServer', function() {
     before(async function() {
       await browser.visit('/streaming');
@@ -81,7 +82,7 @@ describe('EventSource', function() {
         return (window.events && window.events.length === 2);
       }
 
-      browser.waitForServer(gotTwoEvents, function() {
+      browser.waitForServer({ function: gotTwoEvents }, function() {
         assert.deepEqual(browser.evaluate('window.events'), ['first', 'second']);
         done();
       });

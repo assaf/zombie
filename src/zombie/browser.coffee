@@ -325,10 +325,13 @@ class Browser extends EventEmitter
     assert @window, "No window open"
     if arguments.length == 1 && typeof(options) == "function"
       [callback, options] = [options, null]
+    else if arguments.length == 2 && typeof(options) == "function"
+      options =
+        function: options
 
     promise = new Promise((resolve, reject)=>
       @eventLoop.once("server", =>
-        @wait(options, resolve)
+        resolve(@wait(options))
       )
     )
 
