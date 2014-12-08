@@ -1,0 +1,24 @@
+{
+  "camelcase":  true,
+  "esnext":     true,
+  "freeze":     true,
+  "immed":      true,
+  "indent":     2,
+  "latedef":    "nofunc",
+  "maxdepth":   3,
+  "maxparams":  4,
+  "newcap":     true,
+  "node":       true,
+  "nonew":      true,
+  "scripturl":  true,
+  "undef":      true,
+  "unused":     true,
+  "globals": {
+    "Promise": false
+  },
+  "overrides": {
+    "test/**": {
+      "mocha": true,
+    }
+  }
+}

@@ -1,0 +1,44 @@
+#!/usr/bin/env coffee
+#
+# Simple Web server to review HTML documentation.
+#
+# To use:
+#
+#   ./scripts/live &
+#   open http://localhost:3000
+#
+# This server is necessary to test some behavior that only works when viewing
+# the documentation over HTTP and fails when opening a file.  Specifically, it
+# seems JavaScript cannot access external stylesheets when HTML is loaded from
+# the file system.
+
+
+Express = require("express")
+render  = require("./markdown")
+File    = require("fs")
+Path    = require("path")
+
+
+DOC_DIR = Path.resolve("#{__dirname}/../doc/new")
+
+
+server = Express()
+
+server.get "/", (req, res)->
+  render "#{DOC_DIR}/README.md", "#{DOC_DIR}/layout.html", (error, html)->
+    if error
+      res.send(500, error.message)
+    else
+      res.send(html)
+
+server.get "/*", (req, res)->
+  try
+    File.createReadStream("#{DOC_DIR}/#{req.params[0]}")
+      .on "error", (error)->
+        res.send(404, error.message)
+      .pipe(res)
+  catch error
+    res.send(500, error.message)
+
+server.listen 3000, ->
+  console.log "open http://localhost:3000/"

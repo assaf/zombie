@@ -2,14 +2,18 @@
 
 
 describe "IFrame", ->
-  browser = new Browser()
 
+  browser = null
   before (done)->
+    browser = Browser.create()
+    brains.ready(done)
+
+  before ->
     brains.get "/iframe", (req, res)->
       res.send """
       <html>
         <head>
-          <script src="/jquery.js"></script>
+          <script src="/scripts/jquery.js"></script>
         </head>
         <body>
           <iframe name="ever"></iframe>
@@ -29,13 +33,14 @@ describe "IFrame", ->
         <head>
           <title>What</title>
         </head>
-        <body>Hello World</body>
-        <script>
-          document.title = document.title + window.name;
-        </script>
+        <body>
+          Hello World
+          <script>
+            document.title = document.title + window.name;
+          </script>
+        </body>
       </html>
       """
-    brains.ready done
 
   before (done)->
     browser.visit("/iframe")
@@ -49,14 +54,14 @@ describe "IFrame", ->
   it "should load iframe document", ->
     iframeDocument = @iframe.contentWindow.document
     assert.equal "Whatever", iframeDocument.title
-    assert /Hello World/.test(iframeDocument.innerHTML)
-    assert.equal iframeDocument.URL, "http://localhost:3003/iframe/static"
+    assert /Hello World/.test(iframeDocument.body.innerHTML)
+    assert.equal iframeDocument.URL, "http://example.com/iframe/static"
   it "should set frame src attribute", ->
     assert.equal @iframe.src, "/iframe/static"
   it "should reference parent window from iframe", ->
     assert.equal @iframe.contentWindow.parent, browser.window.parent
   it "should not alter the parent", ->
-    browser.assert.url "http://localhost:3003/iframe"
+    browser.assert.url "/iframe"
 
   describe "javascript: protocol", ->
     # Seen this in the wild, checking that it doesn't blow up
@@ -103,8 +108,32 @@ describe "IFrame", ->
       browser.visit("/iframe/ping", done)
 
     it "should pass messages back and forth", ->
-      browser.assert.text "title", "pong http://localhost:3003"
+      browser.assert.text "title", "pong http://example.com"
 
+  describe "referer", ->
+    before (done)->
+      brains.get "/iframe/show-referer", (req, res)->
+        res.send "<html><title>#{req.headers["referer"]}</title></html>"
+
+      brains.get "/iframe/referer", (req, res)->
+        res.send """
+          <html>
+            <head></head>
+            <body>
+              <iframe name="child" src="/iframe/show-referer"></iframe>
+            </body>
+          </html>
+        """
+      brains.ready =>
+        browser.visit "/iframe/referer", done
+
+    it "should be the parent's URL", ->
+      document = browser.window.frames["child"].document
+      referrer = document.querySelector('title').textContent
+      assert.equal referrer, "http://example.com/iframe/referer"
+
+    after ->
+      browser.close()
 
   describe "link target", ->
     before (done)->
@@ -244,5 +273,5 @@ describe "IFrame", ->
           browser.close(1)
 
 
-   after ->
-     browser.destroy()
+  after ->
+    browser.destroy()

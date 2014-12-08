@@ -85,12 +85,12 @@ execute = (tests)->
 Vows.describe("Protocol").addBatch(
   "visit":
     execute
-      commands: ["VISIT", "http://localhost:3003/"]
+      commands: ["VISIT", "http://localhost/"]
       "should return OK": (client)-> assert.equal client.response, "OK"
 
   "visit and wait":
     execute
-      commands: [["VISIT", "http://localhost:3003/"], ["WAIT"]]
+      commands: [["VISIT", "http://localhost/"], ["WAIT"]]
       "should return OK": (client)-> assert.equal client.response, "OK"
       "status":
         execute

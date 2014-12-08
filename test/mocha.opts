@@ -1,4 +1,7 @@
+--require coffee-script/register
+--require ./test/helpers/first
 --compilers coffee:coffee-script
---timeout 2s
 --reporter spec
+--timeout 2s
 --growl
+--check-leaks

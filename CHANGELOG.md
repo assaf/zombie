@@ -1,8 +1,229 @@
-zombie.js-changelog(7) -- Changelog
-===================================
+## Version 2.5.1 2014-12-08
+
+ADDED `waitForServer` to wait for a server-initiated event before running
+`wait` method.  Accepts the same arguments as `wait`.
+
+Currently supports `EventSource` aka [Server-Sent
+Events](http://dev.w3.org/html5/eventsource/).
+
+  703 passing (12s)
+  8 pending
 
 
-## Version 2.0.0
+## Version 2.5.0 2014-12-01
+
+ADDED support for navigator.mimeTypes
+
+CHANGED wait() returns a lazy promise
+
+Prior to this change, calling `wait()` without a callback would return a
+promise, which will resolve by running the event loop for completion, even if
+you don't provide any callbacks.
+
+This is not specifically a problem with `wait`, but with methods that end by
+calling `wait`, like `clickLink` and `pressButton`.
+
+After this change, `wait()` will do nothing, unless you either supply a
+callback, or use the promise by means of calling `then/catch/done` on it.
+
+You can achieve the old behavior by calling `browser.wait().done()`.
+
+REMOVED Passing an options object to browser.visit is deprecated and will be
+removed soon.  Passing an options object to Browser.visit is still supported.
+
+UPGRADED to JSDOM 1.4.0
+
+  700 passing (12s)
+  8 pending
+
+
+## Version 2.4.0 2014-11-27
+
+FIXED eliminated endless spinning of the event loop
+
+NOTE this may break your tests suite if you added an asynchronous event listener
+in your Node code but forgot to wait() for the event to fire.  For example:
+
+https://github.com/assaf/zombie/commit/d83c901a07bd09cb9c583a57a0b4cd431bf71f8f#diff-cb54bacfa1b84057366b12e8b5c961d3L350
+
+    695 passing (10s)
+    8 pending
+
+
+## Version 2.3.2 2014-11-26
+
+FIXED XHR status and response text in case of error #811
+
+FIXED XHR events for abort and timeout
+
+FIXED ReferenceError: id is not defined
+
+    695 passing
+    11 sec to complete
+
+
+## Version 2.3.1 2014-11-26
+
+ADDED XHR now supports progress events
+
+    691 passing
+    11 sec to complete
+
+
+## Version 2.3.0 2014-11-25
+
+ADDED requestAnimationFrame
+
+FIXED don't process responses to aborted XHR requests
+
+UPDATED to JSDOM 1.3.1
+
+    688 passing
+    11 sec to complete
+
+
+## Version 2.2.1 2014-11-14
+
+FIXED request 2.48.0 leaks globals, reverting to 2.47.0
+
+    686 passing
+    11 sec to complete
+
+
+## Version 2.2.0 2014-11-14
+
+ADDED window.location.origin #796
+
+FIXED updated to JSDOM 1.2.1
+
+FIXED browser.evaluate({throws error}) should throw an error #790
+
+FIXED changing location.hash should be synchronous #781
+
+FIXED DNS.lookup(null) should resolve to null IP #783
+
+FIXED Browser should show errors for resources that fail to load #794
+
+REMOVED no longer support cookie folding with comma #792
+
+    687 passing
+    11 sec to complete
+
+
+## Version 2.1.1 2014-10-23
+
+FIXED pushState/replaceState should change history immediately #781
+
+    682 passing
+    10 sec to complete
+
+
+## Version 2.1.0 2014-10-22
+
+ADDED browser.assert.link can use regular expression to match link URL #770
+
+ADDED window now has access to XPathResult and friends #762
+
+FIXED images seem to load twice #780
+
+    680 passing
+    10 sec to complete
+
+
+## Version 2.0.8 2014-10-14
+
+FIXED bump to JSDOM 1.0.3 to fix cssstyle-browserify dependency
+
+FIXED console.debug fails when brower.silent = false
+
+    671 passing
+    10 sec to complete
+
+
+## Version 2.0.7 2014-10-13
+
+FIXED csstyle bug: Cannot find module './properties'
+
+    671 passing
+    11 sec to complete
+
+
+## Version 2.0.6 2014-10-11
+
+CHANGED Output from console.log() and friends goes to console unless
+`browser.silent = true`.  You can also set it globally with
+`Browser.default.silent = true`.  Console output always visible when debugging
+(`DEBUG=zombie`).
+
+ADDED documentation for debugging using `DEBUG=zombie` and `browser.silent`.
+
+    671 passing
+    11 sec to complete
+
+
+## Version 2.0.5 2014-10-10
+
+**NOTE** This version introduces a bug from JSDOM, whereby resetting a form will
+not reset `<select>` elements correctly
+
+UPDATED to latest JSDOM
+
+FIXED Exceptions are being swallowed #761
+
+Minor other bug fixes
+
+    671 passing
+    11 sec to complete
+
+
+## Version 2.0.4 2014-09-26
+
+FIXED browser will sometimes run code asynchronously outside a wait
+
+FIXED browser.wait should return a promise when called without open window #755
+
+FIXED complain when using event loop of destroyed browser
+
+    672 tests
+    12 sec to complete
+
+
+## Version 2.0.3 2014-09-25
+
+FIXED window.cookies fails with error #610
+
+FIXED HTMLImageElement._attrModified not passing callback to
+HTML.resourceLoader.load #624
+
+FIXED Add raise method to xhr to catch errors in handlers #681
+
+FIXED Chunked and gzipped content is not decompressed #707
+
+    672 tests
+    11 sec to complete
+
+
+## Version 2.0.2 2014-09-25
+
+ADDED Only decode HTML documents, and support meta tag with charset
+
+CHANGED Switched from using encoding to iconv-lite
+
+CHANGED Switched from using Q to Bluebird
+
+    671 tests
+    12 sec to complete
+
+
+## Version 2.0.1 2014-09-24
+
+FIXED DNS.lookup should use lookup, not resolve
+
+
+## Version 2.0.0 2014-09-24
+
+Much much has changed, and the documentation has not caught up.  Here's a
+partial and incomplete list.
 
 `browser.tabs` replaces `browser.windows`. Is now an array so you can access a
 tab directly (e.g. `browser.tabs[0]`), and also switch tabs more easily (e.g.
@@ -42,7 +263,7 @@ The `visit` method now passes applicable options to `wait` (`duration`,
 `function`, etc).
 
 The `maxWait` option is now called `waitDuration` and `waitFor` is no longer
-supported.
+supported. waitDuration should be provided in milliseconds (maxWait was provided in seconds)
 
 Introducing assertsions to make your life all the more easier, for example:
 
@@ -59,8 +280,8 @@ allowing you to retrieve resources directory (`resources.get`,
 (`resources.fail`), delay responses (`resources.delay`), even mock responses
 (`resources.mock`).
 
-    566 tests
-    11.1 sec to complete
+    676 tests
+    12 sec to complete
 
 
 ## Version 1.4.1 2012-08-22
