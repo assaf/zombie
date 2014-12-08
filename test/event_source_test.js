@@ -82,7 +82,7 @@ describe('EventSource', function() {
         return (window.events && window.events.length === 2);
       }
 
-      browser.waitForServer({ function: gotTwoEvents }, function() {
+      browser.waitForServer(gotTwoEvents, function() {
         assert.deepEqual(browser.evaluate('window.events'), ['first', 'second']);
         done();
       });
