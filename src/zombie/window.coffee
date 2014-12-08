@@ -35,6 +35,9 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
   name  ||= ""
   url   ||= "about:blank"
 
+  unless /^(about|javascript|http|https|file):/i.test(url)
+    throw new Error("Cannot load resource #{url}, unsupported protocol")
+
   window = createWindow(HTML)
   global = window.getGlobal()
   # window`s have a closed property defaulting to false
@@ -362,9 +365,6 @@ loadDocument = ({ document, history, url, method, encoding, params })->
   if method == "POST"
     headers =
       "content-type": encoding || "application/x-www-form-urlencoded"
-
-  # Update document location based on the requested URL
-  history.updateLocation(window, url)
 
   # Let's handle the specifics of each protocol
   { protocol, pathname } = URL.parse(url)
