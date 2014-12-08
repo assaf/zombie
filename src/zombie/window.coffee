@@ -282,8 +282,6 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
 
   # -- Navigating --
 
-  history.updateLocation(window, url)
-
   # Each window maintains its own view of history
   windowHistory =
     forward: ->
@@ -309,6 +307,13 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
   Object.defineProperties window,
     history:
       value: windowHistory
+    location:
+      get: ->
+        return history.location
+      set: (url)->
+        history.assign(url)
+      enumerable: true
+      
 
   # Window is now open, next load the document.
   browser.emit("opened", window)
@@ -331,7 +336,8 @@ module.exports = ({ browser, params, encoding, history, method, name, opener, pa
     submitTo.history._submit(url: url, method: method, encoding: encoding, params: params)
 
   # Load the document associated with this window.
-  loadDocument document: document, history: history, url: url, method: method, encoding: encoding, params: params
+  setImmediate ->
+    loadDocument document: document, history: history, url: url, method: method, encoding: encoding, params: params
   return window
 
 
@@ -340,6 +346,10 @@ loadDocument = ({ document, history, url, method, encoding, params })->
   window = document.window
   browser = window.browser
   window._response = {}
+
+  # Since document loaded asynchronously
+  if window.closed
+    return
 
   # Called on wrap up to update browser with outcome.
   done = (error)->
@@ -352,6 +362,9 @@ loadDocument = ({ document, history, url, method, encoding, params })->
   if method == "POST"
     headers =
       "content-type": encoding || "application/x-www-form-urlencoded"
+
+  # Update document location based on the requested URL
+  history.updateLocation(window, url)
 
   # Let's handle the specifics of each protocol
   { protocol, pathname } = URL.parse(url)
@@ -393,14 +406,6 @@ loadDocument = ({ document, history, url, method, encoding, params })->
           return
 
         window._response = response
-
-        # DDOPSON-2012-11-12 - we do history.replaceEntry here so if we get redirected, the browser's url reflects the last url in the redirection chain
-        # This is important because if we load A which redirects to B, which is a form, and the user submits to C, the 'referer' for the request to C must be B, not A
-        # Lack of fidelity in this behavior would block Facebook OAuth login scenarios
-        # DDOPSON-2012-11-13 - Note that we must also call history.replaceEntry BEFORE processing the document
-        # or else relative path linked assets will be loaded incorrectly for redirected responses
-        # eg www.facebook.com/login.php -> mysite.com, and mysite.com loads /assets/mysite.js.  This would incorrectly resolve to www.facebook.com/assets/mysite.js
-        history.replaceEntry(window, response.url)
 
         # JSDOM fires load event on document but not on window
         windowLoaded = (event)->
@@ -444,6 +449,10 @@ loadDocument = ({ document, history, url, method, encoding, params })->
           handleRefresh()
         document.addEventListener("DOMContentLoaded", contentLoaded)
 
+        # Update window.location and history entry to the actual document URL,
+        # which may be different from the requested URL
+        history.updateLocation(window, response.url)
+
         # Give event handler chance to register listeners.
         window.browser.emit("loading", document)
 
@@ -451,7 +460,6 @@ loadDocument = ({ document, history, url, method, encoding, params })->
         unless /<html>/.test(body)
           body = "<html><body>#{body || ""}</body></html>"
 
-        history.updateLocation(window, response.url)
         document.open()
         document.write(body)
         document.close()

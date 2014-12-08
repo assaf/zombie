@@ -121,20 +121,17 @@ class History
   addEntry: (window, url, pushState)->
     url ||= window.location.href
     entry = new Entry(window, url, pushState)
-    @updateLocation(window, url)
-    @focus(window)
     if @current
       @current.append(entry)
       @current = entry
     else
       @current = @first = entry
+    @focus(window)
 
   # Replace current entry with a new one.
   replaceEntry: (window, url, pushState)->
     url ||= window.location.href
     entry = new Entry(window, url, pushState)
-    @updateLocation(window, url)
-    @focus(window)
     if @current == @first
       if @current
         @current.destroy(window)
@@ -142,22 +139,15 @@ class History
     else
       @current.prev.append(entry, window)
       @current = entry
+    @focus(window)
 
-  # Update window location (navigating to new URL, same window, e.g pushState or hash change)
+  # Call with two argument to update window.location and current.url to new URL
   updateLocation: (window, url)->
-    if /^(about|file|https?|javascript):/.test(url)
-      # Only support protocols get to update page location and run callback
-      history = this
-      Object.defineProperty window, "location",
-        get: ->
-          return createLocation(history, url)
-        set: (url)->
-          history.assign(url)
-        enumerable: true
+    @current.url = url
 
-    else
-      # Asynchronous error so can be handled, does not affect running code or current page
-      throw new Error("Cannot load resource #{url}, unsupported protocol")
+  # Returns window.location
+  @prototype.__defineGetter__ "location", ->
+    return createLocation(this)
 
 
   # Form submission
@@ -241,7 +231,6 @@ class History
     # If moving from one page to another
     if @current && was && @current != was
       window = @current.window
-      @updateLocation(window, @current.url)
       @focus(window)
       if @current.pushState || was.pushState
         # Created with pushState/replaceState, send popstate event if navigating
@@ -315,7 +304,8 @@ hashChange = (entry, url)->
 
 
 # DOM Location object
-createLocation = (history, url)->
+createLocation = (history)->
+  url     = if history.current then history.current.url else "about:blank"
   browser = history.browser
   location = new Object()
   Object.defineProperties location,
