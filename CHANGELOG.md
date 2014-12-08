@@ -1,3 +1,15 @@
+## Version 2.5.1 2014-12-08
+
+ADDED `waitForServer` to wait for a server-initiated event before running
+`wait` method.  Accepts the same arguments as `wait`.
+
+Currently supports `EventSource` aka [Server-Sent
+Events](http://dev.w3.org/html5/eventsource/).
+
+  703 passing (12s)
+  8 pending
+
+
 ## Version 2.5.0 2014-12-01
 
 ADDED support for navigator.mimeTypes
