@@ -554,18 +554,15 @@ class Browser extends EventEmitter
   # Without a callback, returns a promise.
   load: (html, callback)->
     @location = "about:blank"
-    try
-      @errors = []
-      @document.readyState = "loading"
-      @document.open()
-      @document.write(html)
-      @document.close()
-    catch error
-      @emit "error", error
+    promise = @wait()
+      .then =>
+        @errors = []
+        @document.readyState = "loading"
+        @document.open()
+        @document.write(html)
+        @document.close()
+        return @wait
 
-    # Find (first of any) errors caught during document.write
-    error   = @errors[0]
-    promise = if error then Promise.reject(error) else @wait()
     if callback
       promise.done(callback, callback)
       return

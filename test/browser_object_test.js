@@ -507,7 +507,7 @@ describe('Browser', function() {
 
   describe('load HTML string', function() {
     before(function() {
-      browser.load(`
+      return browser.load(`
         <html>
           <head>
             <title>Load</title>

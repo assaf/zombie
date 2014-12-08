@@ -6,6 +6,9 @@ ADDED `waitForServer` to wait for a server-initiated event before running
 Currently supports `EventSource` aka [Server-Sent
 Events](http://dev.w3.org/html5/eventsource/).
 
+CHANGED `load` is now asynchronous just like `wait`.  Use a callback or promise
+before accessing the document.
+
   703 passing (12s)
   8 pending
 

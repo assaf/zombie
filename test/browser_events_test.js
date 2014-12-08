@@ -165,8 +165,8 @@ describe('Browser events', function() {
 
 
   describe('firing an event', function() {
-    before(function() {
-      browser.load('<html><body>Hello</body></html>');
+    before(async function() {
+      await browser.load('<html><body>Hello</body></html>');
 
       browser.on('event', function(event, target) {
         if (event.type == 'click')
