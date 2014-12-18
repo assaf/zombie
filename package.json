@@ -2,7 +2,7 @@
   "name": "zombie",
   "version": "2.5.1",
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
-  "homepage": "http://zombie.labnotes.org/",
+  "homepage": "https://www.npmjs.com/package/zombie",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
   "contributors": [
     "Bob Lail <bob.lailfamily@gmail.com> (http://boblail.tumblr.com/)",
@@ -78,10 +78,5 @@
   "bugs": {
     "url": "http://github.com/assaf/zombie/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/assaf/zombie/blob/master/MIT-LICENSE"
-    }
-  ]
+  "license": "MIT"
 }
