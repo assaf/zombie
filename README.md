@@ -62,7 +62,7 @@ browser.visit('/signup')
     browser.fill('password', 'eat-the-living');
     return browser.pressButton('Sign Me Up!');
   })
-  .done(function() {
+  .then(function() {
     // Form submitted, new page loaded.
     browser.assert.success();
     browser.assert.text('title', 'Welcome To Brains Depot');
