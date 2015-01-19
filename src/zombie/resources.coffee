@@ -160,7 +160,7 @@ class Resources extends Array
   # You can use this to restore default behavior to after using fail, delay or
   # mock.
   restore: (url)->
-    @urlMatchers = @urlMatchers.filter(([match, _])-> match != url)
+    @urlMatchers = @urlMatchers.filter(([match, _])-> match.toString() isnt url.toString() and typeof match isnt typeof url)
     return
 
 
