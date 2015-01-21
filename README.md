@@ -1191,9 +1191,11 @@ If you want to disable console output from scripts, set `browser.silent = true`
 or once for all browser instances with `Browser.default.silent = true`.
 
 For more details about what Zombie is doing (windows opened, requests made,
-event loop, etc), run with the environment variable `DEBUG=zombie`.  Zombie uses
-the [debug](https://github.com/visionmedia/debug) module, so if your code also
-uses it, you can selectively control which modules should output debug
+event loop, etc), run with the environment variable `DEBUG=zombie`. Alternatively,
+you can enable debugging on the browser constructor function itself; i.e. `Browser.debug()`
+
+Zombie uses the [debug](https://github.com/visionmedia/debug) module, so if your
+code also uses it, you can selectively control which modules should output debug
 information.
 
 Some objects, like the browser, history, resources, tabs and windows also
