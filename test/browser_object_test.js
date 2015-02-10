@@ -726,7 +726,7 @@ describe('Browser', function() {
       assert.equal(forked.evaluate('window.dead'), 'very');
     });
 
-    describe.skip('history', function() {
+    describe('history', function() {
       it('should clone from source', function() {
         assert.equal('http://example.com/browser/dead', forked.location.href);
         forked.window.history.back();

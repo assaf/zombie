@@ -28,14 +28,13 @@ module.exports = loadDocument = (args)->
   assert(browser && browser.visit, "Missing parameter browser")
   assert(history && history.reload, "Missing parameter history")
 
-  { url }     = args
+  { url } = args
   if url && browser.site
     site  = if /^(https?:|file:)/i.test(browser.site) then browser.site else "http://#{browser.site}"
     url   = URL.resolve(site, URL.parse(URL.format(url)))
-  args.url   = url       || "about:blank"
-  args.name  = args.name || ""
+  url     = url || "about:blank"
 
-  document = createDocument(args)
+  document = createDocument(Object.assign({ url }, args))
   window   = document.parentWindow
 
   if args.html
@@ -45,7 +44,7 @@ module.exports = loadDocument = (args)->
     return document
 
   # Let's handle the specifics of each protocol
-  { protocol, pathname } = URL.parse(args.url)
+  { protocol, pathname } = URL.parse(url)
   switch protocol
     when "about:"
       document.close()
@@ -74,7 +73,7 @@ module.exports = loadDocument = (args)->
       if method == "POST"
         headers["content-type"] = args.encoding || "application/x-www-form-urlencoded"
 
-      window._eventQueue.http method, args.url, headers: headers, params: args.params, target: document, (error, response)->
+      window._eventQueue.http method, url, headers: headers, params: args.params, target: document, (error, response)->
         if response
           history.updateLocation(window, response.url)
           window._response    = response
@@ -178,7 +177,7 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
     value: browser
     enumerable: true
 
-  window.name = name
+  window.name = name || ""
 
 
   # If this is an iframe within a parent window
@@ -317,7 +316,7 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
   window.setImmediate   = (fn)->
     eventQueue.setTimeout(fn, 0)
   window.clearImmediate = eventQueue.clearTimeout.bind(eventQueue)
-  window.requestAnimationFrame  = eventQueue.setImmediate
+  window.requestAnimationFrame  = window.setImmediate
 
 
   # Constructor for EventSource, URL is relative to document's.

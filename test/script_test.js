@@ -311,14 +311,14 @@ describe('Scripts', function() {
       before(function() {
         brains.static('/script/cdata', `
           <html>
-            <script><![CDATA[ document.title = 2 ]]></script>
+            <script><![CDATA[ document.title = "<2>" ]]></script>
           </html>
         `);
         return browser.visit('/script/cdata');
       });
 
       it('should run full script', function() {
-        assert.equal(browser.text('title'), '2');
+        assert.equal(browser.text('title'), '<2>');
       });
     });
 

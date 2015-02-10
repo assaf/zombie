@@ -8,10 +8,6 @@ DOM.HTMLDocument.prototype.__defineGetter__ "scripts",   ->
   return new DOM.HTMLCollection(this, => @querySelectorAll('script'))
 
 
-DOM.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
-DOM.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
-
-
 # Default behavior for clicking on links: navigate to new URL if specified.
 DOM.HTMLAnchorElement.prototype._eventDefaults =
   click: (event)->
@@ -31,23 +27,6 @@ DOM.HTMLAnchorElement.prototype._eventDefaults =
       else # open named window
         browser.tabs.open(name: anchor.target, url: anchor.href)
     browser.emit("link", anchor.href, anchor.target || "_self")
-
-
-# Changing style.height/width affects clientHeight/Weight and offsetHeight/Width
-["height", "width"].forEach (prop)->
-  client = "client#{prop[0].toUpperCase()}#{prop.slice(1)}"
-  offset = "offset#{prop[0].toUpperCase()}#{prop.slice(1)}"
-  Object.defineProperty DOM.HTMLElement.prototype, client,
-    get: ->
-      value = parseInt(this.style.getPropertyValue(prop), 10)
-      if Number.isFinite(value)
-        return value
-      else
-        return 100
-  Object.defineProperty DOM.HTMLElement.prototype, offset,
-    configurable: true
-    get: ->
-      return 0
 
 
 # Attempt to load the image, this will trigger a 'load' event when succesful
@@ -161,4 +140,27 @@ DOM.Document.prototype.raise = (type, message, data)->
 
     window._eventQueue.onerror(error)
   return
+
+
+###
+DOM.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
+DOM.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
+
+# Changing style.height/width affects clientHeight/Weight and offsetHeight/Width
+["height", "width"].forEach (prop)->
+  client = "client#{prop[0].toUpperCase()}#{prop.slice(1)}"
+  offset = "offset#{prop[0].toUpperCase()}#{prop.slice(1)}"
+  Object.defineProperty DOM.HTMLElement.prototype, client,
+    get: ->
+      value = parseInt(this.style.getPropertyValue(prop), 10)
+      if Number.isFinite(value)
+        return value
+      else
+        return 100
+  Object.defineProperty DOM.HTMLElement.prototype, offset,
+    configurable: true
+    get: ->
+      return 0
+###
+
 
