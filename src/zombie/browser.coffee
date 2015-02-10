@@ -252,7 +252,7 @@ class Browser extends EventEmitter
   open: (options)->
     if options
       { url, name, referrer } = options
-    return @tabs.open(url, name, referrer)
+    return @tabs.open({ url, name, referrer })
 
   # ### browser.error => Error
   #
