@@ -1,3 +1,15 @@
+## Version 
+
+CHANGED upgraded to JSDOM 3.1, added Node 0.12 and io.js support
+
+CHANGED browser.referer -> browser.referrer
+
+REMOVED browser.fork no longer supported
+
+REMOVED browser.htmlParser option no longer supported, always using default
+browser (parser5)
+
+
 ## Version 2.5.1 2014-12-08
 
 ADDED `waitForServer` to wait for a server-initiated event before running

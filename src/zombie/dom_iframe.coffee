@@ -31,7 +31,7 @@ DOM.HTMLFrameElement._init = ->
       contentWindow = active
     # Need to bypass JSDOM's window/document creation and use ours
     open = createHistory(parentWindow.browser, focus)
-    contentWindow = open(name: frame.name, parent: parentWindow, url: url, referer: parentWindow.location.href)
+    contentWindow = open(name: frame.name, parent: parentWindow, url: url, referrer: parentWindow.location.href)
     return contentWindow
 
 

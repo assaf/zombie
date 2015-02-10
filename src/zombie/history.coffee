@@ -29,6 +29,7 @@
 #   window = history(url: url, name: name)
 
 
+assert        = require("assert")
 loadDocument  = require("./document")
 DOM           = require("./dom")
 URL           = require("url")
@@ -45,6 +46,8 @@ URL           = require("url")
 # parent    - Parent window (for frames)
 # url       - Set document location to this URL upon opening
 createHistory = (browser, focus)->
+  assert(browser && browser.visit, "Missing parameter browser")
+  assert(focus && focus.call, "Missing parameter focus or not a function")
   history = new History(browser, focus)
   return history.open.bind(history)
 
@@ -159,9 +162,9 @@ class History
     options.browser = @browser
     options.history = this
     if window = @current.window
-      options.name = window.name
-      options.parent = parentFrom(window)
-      options.referer = window.URL
+      options.name      = window.name
+      options.parent    = parentFrom(window)
+      options.referrer  = window.location.href
     document  = loadDocument(options)
     @addEntry(document.parentWindow, options.url)
 
@@ -197,7 +200,7 @@ class History
         name:     name
         url:      url
         parent:   parent
-        referer:  @current.window.document.referrer
+        referrer: @current.window.document.referrer
       document = loadDocument(options)
       @addEntry(document.parentWindow, url)
     return
@@ -236,7 +239,7 @@ class History
         name:     window.name
         url:      url
         parent:   parentFrom(window)
-        referer:  window.referrer
+        referrer: window.document.referrer
       document = loadDocument(options)
       @replaceEntry(document.parentWindow, url)
 

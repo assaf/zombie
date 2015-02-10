@@ -36,8 +36,8 @@ debug = Debug("zombie")
 
 
 # Browser options you can set when creating new browser, or on browser instance.
-BROWSER_OPTIONS   = ["features", "headers", "htmlParser", "waitDuration",
-                     "proxy", "referer", "silent", "site", "strictSSL", "userAgent",
+BROWSER_OPTIONS   = ["features", "headers", "waitDuration",
+                     "proxy", "referrer", "silent", "site", "strictSSL", "userAgent",
                      "maxRedirects", "language", "runScripts", "localAddress"]
 
 # Supported browser features.
@@ -90,8 +90,8 @@ class Browser extends EventEmitter
 
     # -- Resources --
 
-    # Start with no this referer.
-    @referer = null
+    # Start with no this referrer.
+    @referrer = null
     # All the resources loaded by this browser.
     @resources = new Resources(this)
 
@@ -228,6 +228,8 @@ class Browser extends EventEmitter
   # Return a new browser with a snapshot of this browser's state.
   # Any changes to the forked browser's state do not affect this browser.
   fork: ->
+    throw new Error("Not implemented")
+
     opt = {}
     for name in BROWSER_OPTIONS
         opt[name] = @[name]
@@ -249,8 +251,8 @@ class Browser extends EventEmitter
   # Open new browser window.
   open: (options)->
     if options
-      { url, name, referer } = options
-    return @tabs.open(url: url, name: name, referer: referer)
+      { url, name, referrer } = options
+    return @tabs.open(url, name, referrer)
 
   # ### browser.error => Error
   #
@@ -533,7 +535,7 @@ class Browser extends EventEmitter
 
     if @window
       @tabs.close(@window)
-    @tabs.open(url: url, referer: @referer)
+    @tabs.open(url: url, referrer: @referrer)
 
     if options
       promise = @wait(options).finally(resetOptions)
@@ -1203,11 +1205,6 @@ Browser.VERSION = JSON.parse(File.readFileSync("#{__dirname}/../../package.json"
 Browser.default =
   # Which features are enabled.
   features: DEFAULT_FEATURES
-
-  # Which parser to use (HTML5 by default). For example:
-  #   Browser.default.htmlParser = require("html5")       // HTML5, forgiving
-  #   Browser.default.htmlParser = require("htmlparser2")  // Faster, stricter
-  htmlParser: null
 
   # Tells the browser how many redirects to follow before aborting a request. Defaults to 5
   maxRedirects: 5
