@@ -21,6 +21,7 @@ URL                     = require("url")
 # opener    - Opening window (for window.open)
 module.exports = loadDocument = (options)->
   { browser } = options
+  { history } = options
   { url }     = options
   if url && browser.site
     site  = if /^(https?:|file:)/i.test(browser.site) then browser.site else "http://#{browser.site}"
@@ -61,19 +62,18 @@ module.exports = loadDocument = (options)->
           "content-type": options.encoding || "application/x-www-form-urlencoded"
 
       # Proceeed to load resource ...
-      headers = headers || {}
+      headers = options.headers || {}
       # HTTP header Referer, but Document property referrer
-      if options.referrer && !header.referer
-        headers.referer ||= options.referrer
+      headers.referer ||= options.referrer || history.url || ""
       # Tell the browser we're looking for an HTML document
-      headers.accept ||= "text/html,*/*"
+      headers.accept  ||= "text/html,*/*"
 
-      window._eventQueue.http method, options.url, headers: options.headers, params: options.params, target: document, (error, response)->
+      window._eventQueue.http method, options.url, headers: headers, params: options.params, target: document, (error, response)->
         if response
-          options.history.updateLocation(window, response.url)
+          history.updateLocation(window, response.url)
           window._response    = response
           document._URL       = response.url
-          document._location  = options.history.location
+          document._location  = history.location
 
         if error
           # 4xx/5xx we get an error with an HTTP response
@@ -86,8 +86,6 @@ module.exports = loadDocument = (options)->
         document.write(response.body)
         document.close()
 
-        ###
-
         # Handle meta refresh.  Automatically reloads new location and counts
         # as a redirect.
         #
@@ -97,27 +95,27 @@ module.exports = loadDocument = (options)->
         #       return browser.query("meta[http-equiv='refresh']");
         #     }
         #   });
-        handleRefresh = ->
-          refresh = document.querySelector("meta[http-equiv='refresh']")
-          if refresh
-            content = refresh.getAttribute("content")
-            match   = content.match(/^\s*(\d+)(?:\s*;\s*url\s*=\s*(.*?))?\s*(?:;|$)/i)
-            if match
-              [nothing, refresh_timeout, refresh_url] = match
-            else
-              return
-            refreshTimeout = parseInt(refresh_timeout, 10)
-            refreshURL     = refresh_url || document.location.href
-            if refreshTimeout >= 0
-              window._eventQueue.enqueue ->
-                # Count a meta-refresh in the redirects count.
-                history.replace(refreshURL)
-                # This results in a new window getting loaded
-                newWindow = history.current.window
-                newWindow.addEventListener "load", ->
-                  newWindow._response.redirects++
-        ###
-        # Document parsed and such
+        refresh = document.querySelector("meta[http-equiv='refresh']")
+        if refresh
+          content = refresh.getAttribute("content")
+          match   = content.match(/^\s*(\d+)(?:\s*;\s*url\s*=\s*(.*?))?\s*(?:;|$)/i)
+          if match
+            [nothing, refresh_timeout, refresh_url] = match
+          else
+            return
+          refreshTimeout = parseInt(refresh_timeout, 10)
+          refreshURL     = refresh_url || document.location.href
+          if refreshTimeout >= 0
+            window._eventQueue.enqueue ->
+              # Count a meta-refresh in the redirects count.
+              history.replace(refreshURL)
+              console.log(refreshURL)
+              # This results in a new window getting loaded
+              newWindow = history.current.window
+              newWindow.addEventListener "load", ->
+                newWindow._response.redirects++
+            return
+
         if document.documentElement
           browser.emit("loaded", document)
         else
@@ -223,7 +221,7 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
   window.navigator =
     appName:        "Zombie"
     cookieEnabled:  true
-    javaEnabled:    false
+    javaEnabled:    ()-> false
     language:       browser.language
     mimeTypes:      emptySet
     noUI:           true
