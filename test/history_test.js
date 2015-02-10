@@ -314,7 +314,7 @@ describe('History', function() {
     });
 
     describe('open from file system', function() {
-      const FILE_URL = encodeURI(`file://${__dirname}/data/index.html`);
+      const FILE_URL = encodeURI(`file://${__dirname}/data/index.html`).toLowerCase();
 
       before(function() {
         return browser.visit(FILE_URL);
