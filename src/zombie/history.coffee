@@ -29,8 +29,8 @@
 #   window = history(url: url, name: name)
 
 
-createWindow  = require("./window")
-HTML          = require("jsdom").defaultLevel
+loadDocument  = require("./document")
+DOM           = require("./dom")
 URL           = require("url")
 
 
@@ -104,7 +104,8 @@ class History
   open: (options)->
     options.browser = @browser
     options.history = this
-    window = createWindow(options)
+    document  = loadDocument(options)
+    window    = document.parentWindow
     @addEntry(window, options.url)
     return window
 
@@ -158,8 +159,8 @@ class History
       options.name = window.name
       options.parent = parentFrom(window)
       options.referer = window.URL
-    newWindow = createWindow(options)
-    @addEntry(newWindow, options.url)
+    document  = loadDocument(options)
+    @addEntry(document.parentWindow, options.url)
 
   # Returns current URL.
   @prototype.__defineGetter__ "url", ->
@@ -171,7 +172,7 @@ class History
   # This method is available from Location, used to navigate to a new page.
   assign: (url)->
     if @current
-      url = HTML.resourceLoader.resolve(@current.window.document, url)
+      url = DOM.resourceLoader.resolve(@current.window.document, url)
       name = @current.window.name
       parent = parentFrom(@current.window)
     if @current && @current.url == url
@@ -186,15 +187,22 @@ class History
       window._eventQueue.enqueue ->
         window.dispatchEvent(event)
     else
-      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parent, referer: @current.window.document.referrer)
-      @addEntry(window, url)
+      options = 
+        browser:  @browser
+        history:  this
+        name:     name
+        url:      url
+        parent:   parent
+        referer:  @current.window.document.referrer
+      document = loadDocument(options)
+      @addEntry(document.parentWindow, url)
     return
 
   # This method is available from Location, used to navigate to a new page.
   replace: (url)->
     url = URL.format(url)
     if @current
-      url = HTML.resourceLoader.resolve(@current.window.document, url)
+      url = DOM.resourceLoader.resolve(@current.window.document, url)
       name = @current.window.name
 
     if hashChange(@current, url)
@@ -205,16 +213,28 @@ class History
       window._eventQueue.enqueue ->
         window.dispatchEvent(event)
     else
-      window = createWindow(browser: @browser, history: this, name: name, url: url, parent: parentFrom(@current.window))
-      @replaceEntry(window, url)
+      options = 
+        browser:  @browser
+        history:  this
+        name:     name
+        url:      url
+        parent:   parentFrom(@current.window)
+      document = loadDocument(options)
+      @replaceEntry(document.parentWindow, url)
     return
 
   reload: ->
     if window = @current.window
       url = window.location.href
-      newWindow = createWindow(browser: @browser, history: this, name: window.name, url: url,
-                               parent: parentFrom(window), referer: window.referrer)
-      @replaceEntry(newWindow, url)
+      options =
+        browser:  @browser
+        history:  this
+        name:     window.name
+        url:      url
+        parent:   parentFrom(window)
+        referer:  window.referrer
+      document = loadDocument(options)
+      @replaceEntry(document.parentWindow, url)
 
   # This method is available from Location.
   go: (amount)->
@@ -263,7 +283,7 @@ class History
   # This method is available from Location.
   pushState: (state, title, url)->
     url ||= @current.window.location.href
-    url = HTML.resourceLoader.resolve(@current.window.document, url)
+    url = DOM.resourceLoader.resolve(@current.window.document, url)
     # TODO: check same origin
     @addEntry(@current.window, url, state || {})
     return
@@ -271,7 +291,7 @@ class History
   # This method is available from Location.
   replaceState: (state, title, url)->
     url ||= @current.window.location.href
-    url = HTML.resourceLoader.resolve(@current.window.document, url)
+    url = DOM.resourceLoader.resolve(@current.window.document, url)
     # TODO: check same origin
     @replaceEntry(@current.window, url, state || {})
     return

@@ -1120,8 +1120,7 @@ describe('Forms', function() {
           if (text || image) {
             const file = (text || image)[0];
             const data = File.readFileSync(file.path);
-            if (image)
-              const digest = Crypto.createHash('md5').update(data).digest('hex');
+            const digest = image && Crypto.createHash('md5').update(data).digest('hex');
             res.send(`
               <html>
                 <head><title>${file.originalFilename}</title></head>

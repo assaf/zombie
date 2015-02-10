@@ -1,7 +1,7 @@
 const assert      = require('assert');
 const Browser     = require('../src/zombie');
 const { brains }  = require('./helpers');
-const { Event }   = require('jsdom').level(3, 'events');
+const { Event }   = require('../src/zombie/dom');
 const URL         = require('url');
 
 

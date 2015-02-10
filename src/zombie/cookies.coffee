@@ -1,7 +1,7 @@
 # See [RFC 2109](http://tools.ietf.org/html/rfc2109.html) and
 # [document.cookie](http://developer.mozilla.org/en/document.cookie)
 assert      = require("assert")
-HTML        = require("jsdom").defaultLevel
+DOM         = require("./dom")
 { isArray } = require("util")
 Tough       = require("tough-cookie")
 Cookie      = Tough.Cookie
@@ -90,7 +90,7 @@ module.exports = class Cookies extends Array
 
 
 # Returns name=value pairs
-HTML.HTMLDocument.prototype.__defineGetter__ "cookie", ->
+DOM.HTMLDocument.prototype.__defineGetter__ "cookie", ->
   return @window.browser.cookies.select(domain: @location.hostname, path: @location.pathname)
     .filter((cookie)-> !cookie.httpOnly)
     .map((cookie)-> "#{cookie.key}=#{cookie.value}")
@@ -98,5 +98,5 @@ HTML.HTMLDocument.prototype.__defineGetter__ "cookie", ->
 
 # Accepts serialized form (same as Set-Cookie header) and updates cookie from
 # new values.
-HTML.HTMLDocument.prototype.__defineSetter__ "cookie", (cookie)->
+DOM.HTMLDocument.prototype.__defineSetter__ "cookie", (cookie)->
   @window.browser.cookies.update(cookie.toString(), @location.hostname, @location.pathname)
