@@ -1,5 +1,4 @@
 {
-  "camelcase":  true,
   "esnext":     true,
   "freeze":     true,
   "immed":      true,
@@ -13,12 +12,12 @@
   "scripturl":  true,
   "undef":      true,
   "unused":     true,
-  "globals": {
-    "Promise": false
-  },
   "overrides": {
+    "src/**": {
+      "node":   true
+    },
     "test/**": {
-      "mocha": true,
+      "mocha": true
     }
   }
 }

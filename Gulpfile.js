@@ -1,11 +1,14 @@
-const assert = require('assert');
-const clean  = require('gulp-clean');
-const coffee = require('gulp-coffee');
-const exec   = require('gulp-exec');
-const File   = require('fs');
-const gulp   = require('gulp');
-const gutil  = require('gulp-util');
-const notify = require('gulp-notify');
+const assert      = require('assert');
+const clean       = require('gulp-clean');
+const coffee      = require('gulp-coffee');
+const exec        = require('gulp-exec');
+const File        = require('fs');
+const gulp        = require('gulp');
+const gutil       = require('gulp-util');
+const notify      = require('gulp-notify');
+const sourcemaps  = require("gulp-sourcemaps");
+const to5         = require('gulp-6to5');
+
 
 
 // gulp -> gulp watch
@@ -13,7 +16,14 @@ gulp.task('default', ['watch']);
 
 
 // gulp build -> compile coffee script
-gulp.task('build', ['clean'], function() {
+gulp.task('build', ['coffee', '6to5'], function() {
+  notify({
+    message: "Zombie: built!"
+  }).end();
+});
+
+// Compile CS sources in src into ES5 sources in lib
+gulp.task('coffee', function() {
   const compile = coffee({ bare: true })
     .on('error', function(error) {
       notify({
@@ -21,14 +31,23 @@ gulp.task('build', ['clean'], function() {
         message:  error.toString()
       }).write(error);
     });
-  gulp.src('src/**/*.coffee')
+  return gulp.src('src/**/*.coffee')
     .pipe(compile)
-    .pipe( notify({
-      title:    'Success!',
-      message:  'Compiled Zombie.js',
-      onLast:   true
-    }) )
-    .pipe( gulp.dest('lib/') );
+    .pipe(gulp.dest('lib/'));
+});
+
+// Compile ES6 sources in src into ES5 sources in lib
+gulp.task('6to5', function() {
+  return gulp
+    .src('src/**/*.js')
+    .pipe(sourcemaps.init())
+    .pipe(to5({
+      experimental: true,
+      loose:        'all',
+      optional:     [ 'selfContained' ]
+    }))
+    .pipe(sourcemaps.write('.'))
+    .pipe(gulp.dest('lib'));
 });
 
 
