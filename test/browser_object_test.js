@@ -667,7 +667,7 @@ describe('Browser', function() {
   });
 
 
-  describe('fork', function() {
+  describe.skip('fork', function() {
     let forked;
 
     before(async function() {

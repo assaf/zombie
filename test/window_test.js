@@ -111,29 +111,6 @@ describe('Window', function() {
 
   // -- This part deals with various windows properties ---
 
-  describe('.title', function() {
-    before(async function() {
-      brains.static('/window/title', `
-        <html>
-          <head>
-            <title>Whatever</title>
-          </head>
-          <body>Hello World</body>
-        </html>
-      `);
-      await browser.visit('/window/title');
-    });
-
-    it('should return the document title', function() {
-      browser.assert.text('title', 'Whatever');
-    });
-    it('should set the document title', function() {
-      browser.window.title = 'Overwritten';
-      assert.equal(browser.window.title, browser.document.title);
-    });
-  });
-
-
   describe('.screen', function() {
     it('should have a screen object available', function() {
       browser.assert.evaluate('screen.width',       1280);

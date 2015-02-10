@@ -1,3 +1,4 @@
+assert                  = require("assert")
 { browserAugmentation } = require("jsdom/lib/jsdom/browser")
 browserFeatures         = require("jsdom/lib/jsdom/browser/documentfeatures")
 Window                  = require("jsdom/lib/jsdom/browser/Window")
@@ -21,27 +22,30 @@ URL                     = require("url")
 # parent    - Parent document (for frames)
 # opener    - Opening window (for window.open)
 # target    - Target window name (for form.submit)
-module.exports = loadDocument = (options)->
-  { browser } = options
-  { history } = options
-  { url }     = options
+module.exports = loadDocument = (args)->
+  { browser } = args
+  { history } = args
+  assert(browser && browser.visit, "Missing parameter browser")
+  assert(history && history.reload, "Missing parameter history")
+
+  { url }     = args
   if url && browser.site
     site  = if /^(https?:|file:)/i.test(browser.site) then browser.site else "http://#{browser.site}"
     url   = URL.resolve(site, URL.parse(URL.format(url)))
-  options.url   = url          || "about:blank"
-  options.name  = options.name || ""
+  args.url   = url       || "about:blank"
+  args.name  = args.name || ""
 
-  document = createDocument(options)
+  document = createDocument(args)
   window   = document.parentWindow
 
-  if options.html
-    document.write(options.html)
+  if args.html
+    document.write(args.html)
     document.close()
     browser.emit("loaded", document)
     return document
 
   # Let's handle the specifics of each protocol
-  { protocol, pathname } = URL.parse(options.url)
+  { protocol, pathname } = URL.parse(args.url)
   switch protocol
     when "about:"
       document.close()
@@ -58,19 +62,19 @@ module.exports = loadDocument = (options)->
       return document
 
     when "http:", "https:", "file:"
-      method = (options.method || "GET").toUpperCase()
+      method = (args.method || "GET").toUpperCase()
 
       # Proceeed to load resource ...
-      headers = options.headers || {}
+      headers = args.headers || {}
       # HTTP header Referer, but Document property referrer
-      headers.referer ||= options.referrer || browser.referer || history.url || ""
+      headers.referer ||= args.referrer || browser.referrer || browser.referer || history.url || ""
       # Tell the browser we're looking for an HTML document
       headers.accept  ||= "text/html,*/*"
       # Forms require content type
       if method == "POST"
-        headers["content-type"] = options.encoding || "application/x-www-form-urlencoded"
+        headers["content-type"] = args.encoding || "application/x-www-form-urlencoded"
 
-      window._eventQueue.http method, options.url, headers: headers, params: options.params, target: document, (error, response)->
+      window._eventQueue.http method, args.url, headers: headers, params: args.params, target: document, (error, response)->
         if response
           history.updateLocation(window, response.url)
           window._response    = response
@@ -179,37 +183,16 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
 
   # If this is an iframe within a parent window
   if parent
-    Object.defineProperty window, "parent",
-      value: parent
-      enumerable: true
-    Object.defineProperty window, "top",
-      value: parent.top
-      enumerable: true
+    window.parent = parent
+    window.top    = parent.top
   else
-    Object.defineProperty window, "parent",
-      value: global
-      enumerable: true
-    Object.defineProperty window, "top",
-      value: global
-      enumerable: true
+    window.parent = global
+    window.top    = global
 
   # If this was opened from another window
-  Object.defineProperty window, "opener",
-    value: opener && opener
-    enumerable: true
-
-  # Window title is same as document title
-  Object.defineProperty window, "title",
-    get: ->
-      return document.title
-    set: (title)->
-      document.title = title
-    enumerable: true
+  window.opener   = opener
 
   window.console = browser.console
-
-  Object.defineProperty window, "requestAnimationFrame",
-    get: -> window.setImmediate
 
   # javaEnabled, present in browsers, not in spec Used by Google Analytics see
   # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
@@ -334,6 +317,7 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
   window.setImmediate   = (fn)->
     eventQueue.setTimeout(fn, 0)
   window.clearImmediate = eventQueue.clearTimeout.bind(eventQueue)
+  window.requestAnimationFrame  = eventQueue.setImmediate
 
 
   # Constructor for EventSource, URL is relative to document's.
@@ -421,7 +405,7 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
 
 
   # Form submission uses this
-  window._submit = ({url, method, encoding, params, target })->
+  window._submit = ({url, method, encoding, params, target, referrer })->
     url = DOM.resourceLoader.resolve(document, url)
     target ||= "_self"
     browser.emit("submit", url, target)
@@ -435,7 +419,7 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
         submitTo = window.top
       else # open named window
         submitTo = browser.tabs.open(name: target)
-    submitTo.history._submit(url: url, method: method, encoding: encoding, params: params, referrer: window.location.href)
+    submitTo.history._submit(url: url, method: method, encoding: encoding, params: params)
 
   # JSDOM fires DCL event on document but not on window
   windowLoaded = (event)->
