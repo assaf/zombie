@@ -284,7 +284,7 @@ describe('Resources', function() {
       // There will be at least the initial request and a second request to
       // follow the redirect.
       assert(requests.length >= 2);
-      for (const request of requests)
+      for (let request of requests)
         assert.strictEqual(request.strictSSL, browser.strictSSL);
     });
   });

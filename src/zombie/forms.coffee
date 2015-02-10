@@ -1,8 +1,8 @@
 # Patches to JSDOM for properly handling forms.
-HTML = require("jsdom").defaultLevel
-Path = require("path")
-File = require("fs")
-Mime = require("mime")
+DOM   = require("./dom")
+File  = require("fs")
+Mime  = require("mime")
+Path  = require("path")
 
 
 # The Form
@@ -26,7 +26,7 @@ UploadedFile = (filename) ->
 
 # Implement form.submit such that it actually submits a request to the server.
 # This method takes the submitting button so we can send the button name/value.
-HTML.HTMLFormElement.prototype.submit = (button)->
+DOM.HTMLFormElement.prototype.submit = (button)->
   document = @ownerDocument
   params = {}
 
@@ -84,7 +84,7 @@ HTML.HTMLFormElement.prototype.submit = (button)->
 
 
 # Replace dispatchEvent so we can send the button along the event.
-HTML.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
+DOM.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
   event = @ownerDocument.createEvent("HTMLEvents")
   event.initEvent "submit", true, true
   event._button = button
@@ -93,7 +93,7 @@ HTML.HTMLFormElement.prototype._dispatchSubmitEvent = (button)->
 
 # Default behavior for submit events is to call the form's submit method, but we
 # also pass the submitting button.
-HTML.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
+DOM.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
   event.target.submit(event._button)
 
 
@@ -101,7 +101,7 @@ HTML.HTMLFormElement.prototype._eventDefaults["submit"] = (event)->
 # -------
 
 # Default behavior for clicking on inputs.
-HTML.HTMLInputElement.prototype._eventDefaults =
+DOM.HTMLInputElement.prototype._eventDefaults =
   click: (event)->
     input = event.target
     change = ->
@@ -127,7 +127,7 @@ HTML.HTMLInputElement.prototype._eventDefaults =
 # Current INPUT behavior on click is to capture sumbit and handle it, but
 # ignore all other clicks. We need those other clicks to occur, so we're going
 # to dispatch them all.
-HTML.HTMLInputElement.prototype.click = ->
+DOM.HTMLInputElement.prototype.click = ->
   @focus()
 
   # First event we fire is click event
@@ -166,7 +166,7 @@ HTML.HTMLInputElement.prototype.click = ->
 
 
 # Default behavior for form BUTTON: submit form.
-HTML.HTMLButtonElement.prototype._eventDefaults =
+DOM.HTMLButtonElement.prototype._eventDefaults =
   click: (event)->
     button = event.target
     if button.getAttribute("disabled")

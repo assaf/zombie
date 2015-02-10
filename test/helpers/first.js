@@ -1,16 +1,11 @@
 const Bluebird  = require('bluebird');
-const Traceur   = require('traceur');
+const to5       = require('6to5/register');
 
 
-// All JS files, excluding node_modules, are transpiled using Traceur.
-Traceur.require.makeDefault(function(filename) {
-  return !(/\/(node_modules|test\/scripts)\//.test(filename));
-}, {
-  asyncFunctions: true,
+to5({
   experimental: true,
-  debug: true
+  loose:        'all'
 });
-
 
 // Long stack traces when running this test suite
 Bluebird.longStackTraces();

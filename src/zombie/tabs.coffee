@@ -41,6 +41,7 @@ createTabs = (browser)->
     # opener  - Opening window (window.open call)
     # referer - Referrer
     # url     - Set document location to this URL upon opening
+    # html    - Document contents (browser.load)
     open:
       value: (options = {})->
         { name, url } = options

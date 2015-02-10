@@ -1,13 +1,12 @@
 # Implemenets XMLHttpRequest.
 # See http://www.w3.org/TR/XMLHttpRequest/#the-abort()-method
 
-HTML      = require("jsdom").defaultLevel
-Events    = require("jsdom").level(3, 'events')
-URL       = require("url")
-raise     = require("./scripts")
+DOM   = require('./dom')
+URL   = require("url")
+raise = require("./scripts")
 
 
-class XMLHttpRequest extends Events.EventTarget
+class XMLHttpRequest extends DOM.EventTarget
   constructor: (window)->
     @_window      = window
     # Pending request
@@ -71,7 +70,7 @@ class XMLHttpRequest extends Events.EventTarget
   # openRequest()has already been called) is the equivalent of calling abort().
   open: (method, url, async, user, password)->
     if async == false
-      throw new HTML.DOMException(HTML.NOT_SUPPORTED_ERR, "Zombie does not support synchronous XHR requests")
+      throw new DOM.DOMException(DOM.NOT_SUPPORTED_ERR, "Zombie does not support synchronous XHR requests")
 
     # Abort any pending request.
     @abort()
@@ -79,9 +78,9 @@ class XMLHttpRequest extends Events.EventTarget
     # Check supported HTTP method
     method = method.toUpperCase()
     if /^(CONNECT|TRACE|TRACK)$/.test(method)
-      throw new HTML.DOMException(HTML.SECURITY_ERR, "Unsupported HTTP method")
+      throw new DOM.DOMException(DOM.SECURITY_ERR, "Unsupported HTTP method")
     unless /^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method)
-      throw new HTML.DOMException(HTML.SYNTAX_ERR, "Unsupported HTTP method")
+      throw new DOM.DOMException(DOM.SYNTAX_ERR, "Unsupported HTTP method")
 
     headers = {}
 
@@ -93,7 +92,7 @@ class XMLHttpRequest extends Events.EventTarget
       delete url.port
 
     unless /^https?:$/i.test(url.protocol)
-      throw new HTML.DOMException(HTML.NOT_SUPPORTED_ERR, "Only HTTP/S protocol supported")
+      throw new DOM.DOMException(DOM.NOT_SUPPORTED_ERR, "Only HTTP/S protocol supported")
     url.hostname ||= @_window.location.hostname
     url.host =
     if url.port
@@ -127,7 +126,7 @@ class XMLHttpRequest extends Events.EventTarget
   send: (data)->
     # Request must be opened.
     unless @readyState == XMLHttpRequest.OPENED
-      throw new HTML.DOMException(HTML.INVALID_STATE_ERR,  "Invalid state")
+      throw new DOM.DOMException(DOM.INVALID_STATE_ERR,  "Invalid state")
 
     @_fire("loadstart")
 
@@ -149,7 +148,7 @@ class XMLHttpRequest extends Events.EventTarget
       if request.aborted
         @_stateChanged(XMLHttpRequest.DONE)
         @_fire("progress")
-        error = new HTML.DOMException(HTML.ABORT_ERR, "Request aborted")
+        error = new DOM.DOMException(DOM.ABORT_ERR, "Request aborted")
         @_fire("abort", error)
         return
 
@@ -158,10 +157,10 @@ class XMLHttpRequest extends Events.EventTarget
         @_fire("progress")
 
         if error.code == "ETIMEDOUT"
-          error = new HTML.DOMException(HTML.TIMEOUT_ERR, "The request timed out")
+          error = new DOM.DOMException(DOM.TIMEOUT_ERR, "The request timed out")
           @_fire("timeout", wrappedError)
         else
-          wrappedError = new HTML.DOMException(HTML.NETWORK_ERR, error.message)
+          wrappedError = new DOM.DOMException(DOM.NETWORK_ERR, error.message)
           @_fire("error", wrappedError)
         @_fire("loadend")
         return
@@ -170,7 +169,7 @@ class XMLHttpRequest extends Events.EventTarget
       if @_cors
         allowedOrigin = response.headers['access-control-allow-origin']
         unless (allowedOrigin == '*' || allowedOrigin == @_cors)
-          error = new HTML.DOMException(HTML.SECURITY_ERR, "Cannot make request to different domain")
+          error = new DOM.DOMException(DOM.SECURITY_ERR, "Cannot make request to different domain")
           @_stateChanged(XMLHttpRequest.DONE)
           @_fire("progress")
           @_fire("error", error)
@@ -203,7 +202,7 @@ class XMLHttpRequest extends Events.EventTarget
   # after open(), but before send().
   setRequestHeader: (header, value)->
     unless @readyState == XMLHttpRequest.OPENED
-      throw new HTML.DOMException(HTML.INVALID_STATE_ERR,  "Invalid state")
+      throw new DOM.DOMException(DOM.INVALID_STATE_ERR,  "Invalid state")
     request = @_pending
     request.headers[header.toString().toLowerCase()] = value.toString()
     return
@@ -217,7 +216,7 @@ class XMLHttpRequest extends Events.EventTarget
 
   # Fire the named event on this object
   _fire: (eventName, error)->
-    event = new Events.Event('xhr')
+    event = new DOM.Event('xhr')
     event.initEvent(eventName, true, true)
     event.error = error
     @dispatchEvent(event)
@@ -234,13 +233,6 @@ XMLHttpRequest.OPENED = 1
 XMLHttpRequest.HEADERS_RECEIVED = 2
 XMLHttpRequest.LOADING = 3
 XMLHttpRequest.DONE = 4
-
-
-# Additional error codes defines for XHR and not in JSDOM.
-HTML.SECURITY_ERR = 18
-HTML.NETWORK_ERR = 19
-HTML.ABORT_ERR = 20
-HTML.TIMEOUT_ERR = 23
 
 
 module.exports = XMLHttpRequest

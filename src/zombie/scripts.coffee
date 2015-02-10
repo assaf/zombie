@@ -1,6 +1,6 @@
 # For handling JavaScript, mostly improvements to JSDOM
-HTML  = require("jsdom").defaultLevel
-URL   = require("url")
+DOM = require("./dom")
+URL = require("url")
 
 
 # -- Patches to JSDOM --
@@ -8,7 +8,7 @@ URL   = require("url")
 # If you're using CoffeeScript, you get client-side support.
 try
   CoffeeScript = require("coffee-script")
-  HTML.languageProcessors.coffeescript = (element, code, filename)->
+  DOM.languageProcessors.coffeescript = (element, code, filename)->
     @javascript(element, CoffeeScript.compile(code), filename)
 catch ex
   # Oh, well
@@ -16,7 +16,7 @@ catch ex
 
 # If JSDOM encounters a JS error, it fires on the element.  We expect it to be
 # fires on the Window.  We also want better stack traces.
-HTML.languageProcessors.javascript = (element, code, filename)->
+DOM.languageProcessors.javascript = (element, code, filename)->
   # Surpress JavaScript validation and execution
   window  = element.ownerDocument.window
   browser = window && window.top.browser
@@ -44,11 +44,11 @@ HTML.languageProcessors.javascript = (element, code, filename)->
 # attemps to evaluate at, but the script has no contents at that point in
 # time.  This adds just enough delay for the inline script's content to be
 # parsed and ready for processing.
-HTML.HTMLScriptElement._init = ->
+DOM.HTMLScriptElement._init = ->
   @addEventListener "DOMNodeInsertedIntoDocument", ->
     if @src
       # Script has a src attribute, load external resource.
-      HTML.resourceLoader.load(this, @src, @_eval)
+      DOM.resourceLoader.load(this, @src, @_eval)
     else
       if @id
         filename = "#{@ownerDocument.URL}:##{@id}"
@@ -58,7 +58,7 @@ HTML.HTMLScriptElement._init = ->
       executeInlineScript = =>
         @_eval(@textContent, filename)
       # Queue to be executed in order with all other scripts
-      executeInOrder = HTML.resourceLoader.enqueue(this, executeInlineScript, filename)
+      executeInOrder = DOM.resourceLoader.enqueue(this, executeInlineScript, filename)
       # There are two scenarios:
       # - script element added to existing document, we should evaluate it
       #   immediately
@@ -75,7 +75,7 @@ HTML.HTMLScriptElement._init = ->
 # Fix resource loading to keep track of in-progress requests. Need this to wait
 # for all resources (mainly JavaScript) to complete loading before terminating
 # browser.wait.
-HTML.resourceLoader.load = (element, href, callback)->
+DOM.resourceLoader.load = (element, href, callback)->
   document = element.ownerDocument
   window = document.parentWindow
   ownerImplementation = document.implementation
@@ -85,6 +85,6 @@ HTML.resourceLoader.load = (element, href, callback)->
     # This guarantees that all scripts are executed in order
     loaded = (response)->
       callback.call(element, response.body.toString(), url.pathname)
-    url = HTML.resourceLoader.resolve(document, href)
+    url = DOM.resourceLoader.resolve(document, href)
     window._eventQueue.http "GET", url, { target: element }, @enqueue(element, loaded, url)
 

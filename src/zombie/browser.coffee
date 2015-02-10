@@ -1,6 +1,3 @@
-Path              = require("path")
-JSDOM_PATH        = require.resolve("jsdom")
-
 assert            = require("assert")
 Assert            = require("./assert")
 createTabs        = require("./tabs")
@@ -8,14 +5,15 @@ Console           = require("./console")
 Cookies           = require("./cookies")
 Debug             = require("debug")
 DNSMask           = require("./dns_mask")
+DOM               = require("./dom")
 { EventEmitter }  = require("events")
 EventLoop         = require("./eventloop")
 { format }        = require("util")
 File              = require("fs")
 Interact          = require("./interact")
-HTML              = require("jsdom").defaultLevel
 Mime              = require("mime")
 ms                = require("ms")
+Path              = require("path")
 { Promise }       = require("bluebird")
 PortMap           = require("./port_map")
 Resources         = require("./resources")
@@ -23,7 +21,6 @@ Storages          = require("./storage")
 Tough             = require("tough-cookie")
 Cookie            = Tough.Cookie
 URL               = require("url")
-{ XPathResult }   = require("#{JSDOM_PATH}/../jsdom/level3/xpath")
 
 
 # DOM extensions.
@@ -397,7 +394,7 @@ class Browser extends EventEmitter
   queryAll: (selector, context)->
     if Array.isArray(selector)
       return selector
-    else if selector instanceof HTML.Element
+    else if selector instanceof DOM.Element
       return [selector]
     else if selector
       context ||= @document
@@ -410,7 +407,7 @@ class Browser extends EventEmitter
   #
   # Evaluates the CSS selector against the document (or context node) and return an element.
   query: (selector, context)->
-    if selector instanceof HTML.Element
+    if selector instanceof DOM.Element
       return selector
     if selector
       context ||= @document
@@ -484,7 +481,7 @@ class Browser extends EventEmitter
   # Evaluates the XPath expression against the document (or context node) and return the XPath result.  Shortcut for
   # `document.evaluate`.
   xpath: (expression, context)->
-    return @document.evaluate(expression, context || @document.documentElement, null, XPathResult.ANY_TYPE)
+    return @document.evaluate(expression, context || @document.documentElement, null, DOM.XPathResult.ANY_TYPE)
 
   # ### browser.document => Document
   #
@@ -555,21 +552,11 @@ class Browser extends EventEmitter
   #
   # Without a callback, returns a promise.
   load: (html, callback)->
-    @location = "about:blank"
-    promise = @wait()
-      .then =>
-        @errors = []
-        @document.readyState = "loading"
-        @document.open()
-        @document.write(html)
-        @document.close()
-        return @wait
-
-    if callback
-      promise.done(callback, callback)
-      return
-    else
-      return promise
+    if @window
+      @tabs.close(@window)
+    @errors = []
+    @tabs.open(url: "about:blank", html: html)
+    return @wait(callback)
 
 
   # ### browser.location => Location
@@ -600,7 +587,7 @@ class Browser extends EventEmitter
   # Finds and returns a link by its text content or selector.
   link: (selector)->
     # If the link has already been queried, return itself
-    if selector instanceof HTML.Element
+    if selector instanceof DOM.Element
       return selector
     try
       link = @querySelector(selector)
@@ -685,7 +672,7 @@ class Browser extends EventEmitter
   # spaces).
   field: (selector)->
     # If the field has already been queried, return itself
-    if selector instanceof HTML.Element
+    if selector instanceof DOM.Element
       return selector
     try
       # Try more specific selector first.
@@ -888,7 +875,7 @@ class Browser extends EventEmitter
   # selector - CSS selector, button name or text of BUTTON element
   button: (selector)->
     # If the button has already been queried, return itself
-    if selector instanceof HTML.Element
+    if selector instanceof DOM.Element
       return selector
     try
       if button = @querySelector(selector)

@@ -283,7 +283,7 @@ describe('Cookies', function() {
           assert.equal(pairs._path1, 'yummy');
         });
         it('should not include httpOnly cookies', function() {
-          for (const key in pairs)
+          for (let key in pairs)
             assert(key != '_http_only');
         });
       });

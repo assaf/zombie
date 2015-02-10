@@ -1,19 +1,19 @@
 # Fix things that JSDOM doesn't do quite right.
 
 
-HTML  = require("jsdom").defaultLevel
+DOM  = require("./dom")
 
 
-HTML.HTMLDocument.prototype.__defineGetter__ "scripts",   ->
-  return new HTML.HTMLCollection(this, => @querySelectorAll('script'))
+DOM.HTMLDocument.prototype.__defineGetter__ "scripts",   ->
+  return new DOM.HTMLCollection(this, => @querySelectorAll('script'))
 
 
-HTML.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
-HTML.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
+DOM.HTMLElement.prototype.__defineGetter__ "offsetLeft",   -> 0
+DOM.HTMLElement.prototype.__defineGetter__ "offsetTop",    -> 0
 
 
 # Default behavior for clicking on links: navigate to new URL if specified.
-HTML.HTMLAnchorElement.prototype._eventDefaults =
+DOM.HTMLAnchorElement.prototype._eventDefaults =
   click: (event)->
     anchor = event.target
     return unless anchor.href
@@ -37,14 +37,14 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
 ["height", "width"].forEach (prop)->
   client = "client#{prop[0].toUpperCase()}#{prop.slice(1)}"
   offset = "offset#{prop[0].toUpperCase()}#{prop.slice(1)}"
-  Object.defineProperty HTML.HTMLElement.prototype, client,
+  Object.defineProperty DOM.HTMLElement.prototype, client,
     get: ->
       value = parseInt(this.style.getPropertyValue(prop), 10)
       if Number.isFinite(value)
         return value
       else
         return 100
-  Object.defineProperty HTML.HTMLElement.prototype, offset,
+  Object.defineProperty DOM.HTMLElement.prototype, offset,
     configurable: true
     get: ->
       return 0
@@ -52,15 +52,15 @@ HTML.HTMLAnchorElement.prototype._eventDefaults =
 
 # Attempt to load the image, this will trigger a 'load' event when succesful
 # jsdom seemed to only queue the 'load' event
-HTML.HTMLImageElement.prototype._attrModified = (name, value, oldVal) ->
+DOM.HTMLImageElement.prototype._attrModified = (name, value, oldVal) ->
   if (name == 'src')
-    src = HTML.resourceLoader.resolve(this._ownerDocument, value)
+    src = DOM.resourceLoader.resolve(this._ownerDocument, value)
     if this.src != src
-      HTML.resourceLoader.load(this, value)
+      DOM.resourceLoader.load(this, value)
 
 
 # Implement insertAdjacentHTML
-HTML.HTMLElement.prototype.insertAdjacentHTML = (position, html)->
+DOM.HTMLElement.prototype.insertAdjacentHTML = (position, html)->
   container  = this.ownerDocument.createElementNS("http://www.w3.org/1999/xhtml", "_")
   parentNode = this.parentNode
 
@@ -86,7 +86,7 @@ HTML.HTMLElement.prototype.insertAdjacentHTML = (position, html)->
 # Implement documentElement.contains
 # e.g., if(document.body.contains(el)) { ... }
 # See https://developer.mozilla.org/en-US/docs/DOM/Node.contains
-HTML.Node.prototype.contains = (otherNode) ->
+DOM.Node.prototype.contains = (otherNode) ->
   # DDOPSON-2012-08-16 -- This implementation is stolen from Sizzle's
   # implementation of 'contains' (around line 1402).
   # We actually can't call Sizzle.contains directly:
@@ -100,7 +100,7 @@ HTML.Node.prototype.contains = (otherNode) ->
 
 
 # Support for opacity style property.
-Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
+Object.defineProperty DOM.CSSStyleDeclaration.prototype, "opacity",
   get: ->
     opacity = this.getPropertyValue("opacity")
     if Number.isFinite(opacity)
@@ -114,3 +114,51 @@ Object.defineProperty HTML.CSSStyleDeclaration.prototype, "opacity",
       opacity = parseFloat(opacity)
       if isFinite(opacity)
         this._setProperty("opacity", opacity)
+
+
+# Wrap dispatchEvent to support _windowInScope and error handling.
+jsdomDispatchEvent = DOM.EventTarget.prototype.dispatchEvent
+DOM.EventTarget.prototype.dispatchEvent = (event)->
+  # Could be node, window or document
+  document = @_ownerDocument || @document || this
+  window = document.parentWindow
+  # Fail miserably on objects that don't have ownerDocument: nodes and XHR
+  # request have those
+  browser = window.browser
+  browser.emit("event", event, this)
+
+  try
+    # The current window, postMessage and window.close need this
+    [originalInScope, browser._windowInScope] = [browser._windowInScope, window]
+    # Inline event handlers rely on window.event
+    window.event = event
+    return jsdomDispatchEvent.call(this, event)
+  finally
+    delete window.event
+    browser._windowInScope = originalInScope
+
+
+# Wrap raise to catch and propagate all errors to window
+jsdomRaise = DOM.Document.prototype.raise
+DOM.Document.prototype.raise = (type, message, data)->
+  jsdomRaise.call(this, type, message, data)
+
+  error = data && (data.exception || data.error)
+  if error
+    document = this
+    window = document.parentWindow
+    # Deconstruct the stack trace and strip the Zombie part of it
+    # (anything leading to this file).  Add the document location at
+    # the end.
+    partial = []
+    # "RangeError: Maximum call stack size exceeded" doesn't have a stack trace
+    if error.stack
+      for line in error.stack.split("\n")
+        break if ~line.indexOf("contextify/lib/contextify.js")
+        partial.push line
+    partial.push "    in #{document.location.href}"
+    error.stack = partial.join("\n")
+
+    window._eventQueue.onerror(error)
+  return
+

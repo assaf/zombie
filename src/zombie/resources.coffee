@@ -18,7 +18,7 @@
 
 iconv       = require("iconv-lite")
 File        = require("fs")
-HTML        = require("jsdom").defaultLevel
+DOM         = require("./dom")
 Path        = require("path")
 QS          = require("querystring")
 Request     = require("request")
@@ -175,7 +175,7 @@ class Resources extends Array
         output.write "#{resource.request.method} #{resource.request.url}\n"
 
       # Tell us which element/document is loading this.
-      if target instanceof HTML.Document
+      if target instanceof DOM.Document
         output.write "  Loaded as HTML document\n"
       else if target
         if target.id
@@ -284,7 +284,7 @@ Resources.normalizeURL = (request, next)->
     # Resolve URL relative to document URL/base, or for new browser, using
     # Browser.site
     if @document
-      request.url = HTML.resourceLoader.resolve(@document, request.url)
+      request.url = DOM.resourceLoader.resolve(@document, request.url)
     else
       request.url = URL.resolve(@site || "http://localhost", request.url)
 
