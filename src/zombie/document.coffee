@@ -1,82 +1,88 @@
-DOM             = require("./dom")
-EventSource     = require("eventsource")
-JSDOM           = require("jsdom")
-WebSocket       = require("ws")
-XMLHttpRequest  = require("./xhr")
-URL             = require("url")
+{ browserAugmentation } = require("jsdom/lib/jsdom/browser")
+browserFeatures         = require("jsdom/lib/jsdom/browser/documentfeatures")
+DOM                     = require("./dom")
+EventSource             = require("eventsource")
+JSDOM                   = require("jsdom")
+WebSocket               = require("ws")
+XMLHttpRequest          = require("./xhr")
+URL                     = require("url")
 
 
-module.exports = loadDocument = ({browser, url, method, params, encoding, html, history, parent, name, referrer })->
-  url ||= "about:blank"
-  docOptions =
-    browser:  browser
-    parent:   parent
-    history:  history
-    name:     name || ""
-    url:      url
-    referrer: referrer
+# browser   - The browser (required)
+# history   - Window history (required)
+# url       - URL of document to open (defaults to "about:blank")
+# method    - HTTP method (defaults to "GET")
+# params    - Additional request parameters
+# encoding  - Request document this this encoding
+# html      - Create document with this content instead of loading from URL
+# name      - Window name
+# referrer  - HTTP referer header
+# parent    - Parent document (for frames)
+# opener    - Opening window (for window.open)
+module.exports = loadDocument = (options)->
+  { browser } = options
+  { url }     = options
+  if url && browser.site
+    site  = if /^(https?:|file:)/i.test(browser.site) then browser.site else "http://#{browser.site}"
+    url   = URL.resolve(site, URL.parse(URL.format(url)))
+  options.url   = url          || "about:blank"
+  options.name  = options.name || ""
 
-  if html
-    document = createDocument(docOptions)
-    document.write(html)
+  document = createDocument(options)
+  window   = document.parentWindow
+
+  if options.html
+    document.write(options.html)
     document.close()
     browser.emit("loaded", document)
     return document
 
-  method = (method || "GET").toUpperCase()
-  if method == "POST"
-    headers =
-      "content-type": encoding || "application/x-www-form-urlencoded"
-
   # Let's handle the specifics of each protocol
-  { protocol, pathname } = URL.parse(url)
+  { protocol, pathname } = URL.parse(options.url)
   switch protocol
     when "about:"
-      document = createDocument(docOptions)
       document.close()
       browser.emit("loaded", document)
       return document
 
     when "javascript:"
-      document = createDocument(docOptions)
+      document.close()
       try
-        document.parentWindow._evaluate(pathname, "javascript:")
+        window._evaluate(pathname, "javascript:")
         browser.emit("loaded", document)
       catch error
         browser.emit("error", error)
       return document
 
     when "http:", "https:", "file:"
+      method = (options.method || "GET").toUpperCase()
+      if method == "POST"
+        headers =
+          "content-type": options.encoding || "application/x-www-form-urlencoded"
+
       # Proceeed to load resource ...
       headers = headers || {}
       # HTTP header Referer, but Document property referrer
-      if referrer && !header.referer
-        headers.referer ||= referrer
+      if options.referrer && !header.referer
+        headers.referer ||= options.referrer
       # Tell the browser we're looking for an HTML document
       headers.accept ||= "text/html,*/*"
 
-      document = createDocument(docOptions)
-      window   = document.parentWindow
+      window._eventQueue.http method, options.url, headers: options.headers, params: options.params, target: document, (error, response)->
+        if response
+          options.history.updateLocation(window, response.url)
+          window._response    = response
+          document._URL       = response.url
+          document._location  = options.history.location
 
-      window._eventQueue.http method, url, headers: headers, params: params, target: document, (error, response)->
         if error
           # 4xx/5xx we get an error with an HTTP response
-          if response
-            window._response = response
-            history.updateLocation(window, response.url)
-
           # Error in body of page helps with debugging
           message = (response && response.body) || error.message || error
-          options =
-            browser: browser
-            url:     'about:blank'
-            name:    message
-            html:    "<html><body>#{message}</body></html>"
-          createDocument(options, callback)
+          document.write "<html><body>#{message}</body></html>"
+          document.close()
           return
 
-        document.parentWindow._response = response
-        document.url = response.url
         document.write(response.body)
         document.close()
 
@@ -120,18 +126,11 @@ module.exports = loadDocument = ({browser, url, method, params, encoding, html, 
       return document
 
     else # but not any other protocol for now
-      browser.emit("error", new Error("Cannot load resource #{url}, unsupported protocol"))
-      # TODO callback with error
-
+      throw new Error("Cannot load resource #{url}, unsupported protocol")
 
 
 # Creates an returns a new document attached to the window.
-#
-# browser - The browser
-# window  - The window
-# url     - Document URL
-# referer - Referring URL
-createDocument = ({ browser, url, html, name, parent, history, referer })->
+createDocument = ({ browser, url, html, name, parent, history, referrer, opener })->
   features =
     FetchExternalResources:   []
     ProcessExternalResources: []
@@ -147,32 +146,23 @@ createDocument = ({ browser, url, html, name, parent, history, referer })->
   if browser.hasFeature("iframe", true)
     features.FetchExternalResources.push("iframe")
 
-  options =
-    features:   features
-    deferClose: true
-    url:        url
-    # HTTP header Referer, but Document property referrer
-    referrer:   referer
-    created:    (error, window)->
-      document = window.document
-      setupDocument({ window, document })
-      setupWindow({ browser, window, document, name, parent, history })
-      # Give event handler chance to register listeners.
-      browser.emit("loading", document)
 
-  return JSDOM.jsdom(html, options)
+  # Based on JSDOM.jsdom but skips the document.write
+  # Calling document.write twice leads to strange results
+  dom       = browserAugmentation(DOM, { parsingMode: "html" })
+  document  = new dom.HTMLDocument({ url, referrer, parsingMode: "html" });
+  browserFeatures.applyDocumentFeatures(document, features)
+  window    = document.parentWindow
+  setupDocument({ window, document, history })
+  setupWindow({ browser, window, document, name, parent, history, opener })
+
+  # Give event handler chance to register listeners.
+  browser.emit("loading", document)
+
+  return document
 
 
-setupDocument = ({ window, document })->
-  Object.defineProperty document, "location",
-    get: ->
-      return window.location
-    set: (url)->
-      window.location = url
-  Object.defineProperty document, "URL",
-    get: ->
-      return window.location.href
-
+setupDocument = ({ window, document, history })->
   Object.defineProperty document, "window",
     value: window
     enumerable: true
@@ -220,24 +210,28 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
       document.title = title
     enumerable: true
 
-  Object.defineProperty window, "console",
-    value: browser.console
-    enumerable: true
+  window.console = browser.console
 
   Object.defineProperty window, "requestAnimationFrame",
     get: -> window.setImmediate
 
   # javaEnabled, present in browsers, not in spec Used by Google Analytics see
   # https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
-  plugins = []
-  plugins.item = ->
-  plugins.namedItem = ->
-  Object.defineProperties window.navigator,
-    cookieEnabled: { value: true }
-    language:      { value: browser.language }
-    platform:      { value: 'node' }
-    userAgent:     { value: browser.userAgent }
-    vendor:        { value: "Zombie Industries" }
+  emptySet = []
+  emptySet.item = ->
+  emptySet.namedItem = ->
+  window.navigator =
+    appName:        "Zombie"
+    cookieEnabled:  true
+    javaEnabled:    false
+    language:       browser.language
+    mimeTypes:      emptySet
+    noUI:           true
+    platform:       process.platform
+    plugins:        emptySet
+    userAgent:      browser.userAgent
+    vendor:         "Zombie Industries"
+    version:        require("../../package.json").version
 
   # Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
   Object.defineProperty window, "cookies",
@@ -249,10 +243,10 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
   Object.defineProperties window,
     File:           { value: File }
     Event:          { value: DOM.Event }
-    screen:         { value: new Screen() }
     MouseEvent:     { value: DOM.MouseEvent }
     MutationEvent:  { value: DOM.MutationEvent }
     UIEvent:        { value: DOM.UIEvent }
+  window.screen = new Screen()
 
   # Base-64 encoding/decoding
   window.atob = (string)->
@@ -423,15 +417,11 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
     state:
       get: -> return history.state
       enumerable: true
-  Object.defineProperties window,
-    location:
-      get: ->
-        return history.location
-      set: (url)->
-        history.assign(url)
-      enumerable: true
-
   window.history = windowHistory
+
+  window.constructor.prototype.__defineSetter__ "location", (url)->
+    history.assign(url)
+
 
   # Form submission uses this
   window._submit = ({url, method, encoding, params, target })->
