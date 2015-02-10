@@ -1136,7 +1136,7 @@ describe('Forms', function() {
     describe('text', function() {
       before(async function() {
         await browser.visit('/forms/upload');
-        const filename = __dirname + '/data/random.txt';
+        const filename = `${__dirname}/data/random.txt`;
         browser.attach('text', filename);
         await browser.pressButton('Upload');
       });

@@ -144,7 +144,10 @@ class History
 
   # Call with two argument to update window.location and current.url to new URL
   updateLocation: (window, url)->
-    @current.url = url
+    if window == @current
+      @current.url = url
+    window.document._URL       = url
+    window.document._location  = createLocation(this, url)
 
   # Returns window.location
   @prototype.__defineGetter__ "location", ->
@@ -181,6 +184,7 @@ class History
 
     if hashChange(@current, url)
       window = @current.window
+      @updateLocation window, url
       @addEntry(window, url) # Reuse window with new URL
       event = window.document.createEvent("HTMLEvents")
       event.initEvent("hashchange", true, false)
@@ -251,6 +255,7 @@ class History
     # If moving from one page to another
     if @current && was && @current != was
       window = @current.window
+      @updateLocation(window, @current.url)
       @focus(window)
       if @current.pushState || was.pushState
         # Created with pushState/replaceState, send popstate event if navigating
@@ -286,6 +291,7 @@ class History
     url = DOM.resourceLoader.resolve(@current.window.document, url)
     # TODO: check same origin
     @addEntry(@current.window, url, state || {})
+    @updateLocation(@current.window, url)
     return
 
   # This method is available from Location.
@@ -294,6 +300,7 @@ class History
     url = DOM.resourceLoader.resolve(@current.window.document, url)
     # TODO: check same origin
     @replaceEntry(@current.window, url, state || {})
+    @updateLocation(@current.window, url)
     return
 
   # This method is available from Location.
@@ -324,10 +331,10 @@ hashChange = (entry, url)->
 
 
 # DOM Location object
-createLocation = (history)->
-  url     = if history.current then history.current.url else "about:blank"
-  browser = history.browser
-  location = new Object()
+createLocation = (history, url)->
+  url     ||= if history.current then history.current.url else "about:blank"
+  browser   = history.browser
+  location  = new Object()
   Object.defineProperties location,
     assign:
       value: (url)->

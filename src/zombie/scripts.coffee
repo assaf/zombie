@@ -76,12 +76,12 @@ DOM.HTMLScriptElement._init = ->
 # for all resources (mainly JavaScript) to complete loading before terminating
 # browser.wait.
 DOM.resourceLoader.load = (element, href, callback)->
-  document = element.ownerDocument
-  window = document.parentWindow
-  ownerImplementation = document.implementation
-  tagName = element.tagName.toLowerCase()
+  document      = element.ownerDocument
+  window        = document.parentWindow
+  tagName       = element.tagName.toLowerCase()
+  loadResource  = document.implementation._hasFeature("FetchExternalResources", tagName)
 
-  if ownerImplementation.hasFeature("FetchExternalResources", tagName)
+  if loadResource
     # This guarantees that all scripts are executed in order
     loaded = (response)->
       callback.call(element, response.body.toString(), url.pathname)

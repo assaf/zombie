@@ -1,5 +1,6 @@
 { browserAugmentation } = require("jsdom/lib/jsdom/browser")
 browserFeatures         = require("jsdom/lib/jsdom/browser/documentfeatures")
+Window                  = require("jsdom/lib/jsdom/browser/Window")
 DOM                     = require("./dom")
 EventSource             = require("eventsource")
 JSDOM                   = require("jsdom")
@@ -12,13 +13,14 @@ URL                     = require("url")
 # history   - Window history (required)
 # url       - URL of document to open (defaults to "about:blank")
 # method    - HTTP method (defaults to "GET")
+# encoding  - Request content type (forms use this)
 # params    - Additional request parameters
-# encoding  - Request document this this encoding
 # html      - Create document with this content instead of loading from URL
 # name      - Window name
 # referrer  - HTTP referer header
 # parent    - Parent document (for frames)
 # opener    - Opening window (for window.open)
+# target    - Target window name (for form.submit)
 module.exports = loadDocument = (options)->
   { browser } = options
   { history } = options
@@ -57,23 +59,21 @@ module.exports = loadDocument = (options)->
 
     when "http:", "https:", "file:"
       method = (options.method || "GET").toUpperCase()
-      if method == "POST"
-        headers =
-          "content-type": options.encoding || "application/x-www-form-urlencoded"
 
       # Proceeed to load resource ...
       headers = options.headers || {}
       # HTTP header Referer, but Document property referrer
-      headers.referer ||= options.referrer || history.url || ""
+      headers.referer ||= options.referrer || browser.referer || history.url || ""
       # Tell the browser we're looking for an HTML document
       headers.accept  ||= "text/html,*/*"
+      # Forms require content type
+      if method == "POST"
+        headers["content-type"] = options.encoding || "application/x-www-form-urlencoded"
 
       window._eventQueue.http method, options.url, headers: headers, params: options.params, target: document, (error, response)->
         if response
           history.updateLocation(window, response.url)
           window._response    = response
-          document._URL       = response.url
-          document._location  = history.location
 
         if error
           # 4xx/5xx we get an error with an HTTP response
@@ -109,7 +109,6 @@ module.exports = loadDocument = (options)->
             window._eventQueue.enqueue ->
               # Count a meta-refresh in the redirects count.
               history.replace(refreshURL)
-              console.log(refreshURL)
               # This results in a new window getting loaded
               newWindow = history.current.window
               newWindow.addEventListener "load", ->
@@ -151,8 +150,8 @@ createDocument = ({ browser, url, html, name, parent, history, referrer, opener 
   document  = new dom.HTMLDocument({ url, referrer, parsingMode: "html" });
   browserFeatures.applyDocumentFeatures(document, features)
   window    = document.parentWindow
-  setupDocument({ window, document, history })
-  setupWindow({ browser, window, document, name, parent, history, opener })
+  setupDocument({ document, window, history, url })
+  setupWindow({ browser, document, window, history, name, parent, opener })
 
   # Give event handler chance to register listeners.
   browser.emit("loading", document)
@@ -160,11 +159,10 @@ createDocument = ({ browser, url, html, name, parent, history, referrer, opener 
   return document
 
 
-setupDocument = ({ window, document, history })->
+setupDocument = ({ window, document, history, url })->
   Object.defineProperty document, "window",
     value: window
     enumerable: true
-
 
 
 setupWindow = ({ browser, window, document, name, parent, history, opener })->
@@ -415,10 +413,11 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
     state:
       get: -> return history.state
       enumerable: true
-  window.history = windowHistory
 
-  window.constructor.prototype.__defineSetter__ "location", (url)->
-    history.assign(url)
+  # DOM History object
+  window.history  = windowHistory
+  # Actual history, see location getter/setter
+  window._history = history
 
 
   # Form submission uses this
@@ -436,13 +435,13 @@ setupWindow = ({ browser, window, document, name, parent, history, opener })->
         submitTo = window.top
       else # open named window
         submitTo = browser.tabs.open(name: target)
-    submitTo.history._submit(url: url, method: method, encoding: encoding, params: params)
+    submitTo.history._submit(url: url, method: method, encoding: encoding, params: params, referrer: window.location.href)
 
-  # JSDOM fires load event on document but not on window
+  # JSDOM fires DCL event on document but not on window
   windowLoaded = (event)->
-    document.removeEventListener("load", windowLoaded)
+    document.removeEventListener("DOMContentLoaded", windowLoaded)
     window.dispatchEvent(event)
-  document.addEventListener("load", windowLoaded)
+  document.addEventListener("DOMContentLoaded", windowLoaded)
   
   # Window is now open, next load the document.
   browser.emit("opened", window)
@@ -465,5 +464,14 @@ class Screen
   @prototype.__defineGetter__ "availHeight", -> 800
   @prototype.__defineGetter__ "colorDepth", -> 24
   @prototype.__defineGetter__ "pixelDepth", -> 24
+
+
+# Change location, bypass JSDOM history
+Window.prototype.__defineSetter__ "location", (url)->
+  this._history.assign(url)
+
+# Change location
+DOM.Document.prototype.__defineSetter__ "location", (url)->
+  this.parentWindow.location = url
 
 
