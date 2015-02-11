@@ -10,7 +10,7 @@ DOM               = require("./dom")
 EventLoop         = require("./eventloop")
 { format }        = require("util")
 File              = require("fs")
-Interact          = require("./interact")
+Interactions      = require("./interact")
 Mime              = require("mime")
 ms                = require("ms")
 Path              = require("path")
@@ -59,7 +59,7 @@ class Browser extends EventEmitter
     browser = this
     @cookies = new Cookies()
     @_storages = new Storages()
-    @_interact = Interact.use(this)
+    @_interact = new Interactions(this);
     # The window that is currently in scope, some JS functions need this, e.g.
     # when closing a window, you need to determine whether caller (window in
     # scope) is same as window.opener
@@ -1154,13 +1154,6 @@ class Browser extends EventEmitter
     else
       return null
 
-
-  # ### browser.viewInBrowser(name?)
-  #
-  # Views the current document in a real Web browser.  Uses the default system browser on OS X, BSD and Linux.  Probably
-  # errors on Windows.
-  viewInBrowser: (browser)->
-    require("./bcat").bcat @html()
 
   # Zombie can spit out messages to help you figure out what's going on as your code executes.
   #
