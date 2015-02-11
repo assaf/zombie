@@ -1,6 +1,6 @@
 assert            = require("assert")
 Assert            = require("./assert")
-createTabs        = require("./tabs")
+Tabs              = require("./tabs")
 Console           = require("./console")
 Cookies           = require("./cookies")
 Debug             = require("debug")
@@ -28,6 +28,7 @@ require("./jsdom_patches")
 require("./forms")
 require("./dom_focus")
 require("./dom_iframe")
+require("./scripts")
 
 
 # Debug instance.  Create new instance when enabling debugging with Zombie.debug
@@ -111,7 +112,7 @@ class Browser extends EventEmitter
     # -- Tabs/Windows --
 
     # Open tabs.
-    @tabs = createTabs(this)
+    @tabs = new Tabs(this)
 
     # Window has been opened
     @on "opened", (window)->
