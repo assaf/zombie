@@ -45,7 +45,7 @@ module.exports = function loadDocument(args) {
   const window   = document.parentWindow;
 
   if (args.html) {
-    setTimeout(function() {
+    window._eventQueue.enqueue(function() {
       document.write(args.html); // jshint ignore:line
       document.close();
       browser.emit('loaded', document);
@@ -57,7 +57,7 @@ module.exports = function loadDocument(args) {
   const { protocol, pathname } = URL.parse(url);
   switch (protocol) {
     case 'about:': {
-      setTimeout(function() {
+      window._eventQueue.enqueue(function() {
         document.close();
         browser.emit('loaded', document);
       });
@@ -65,6 +65,7 @@ module.exports = function loadDocument(args) {
     }
 
     case 'javascript:': {
+      window._eventQueue.enqueue(function() {
       document.close();
       try {
         window._evaluate(pathname, 'javascript:');
@@ -72,6 +73,7 @@ module.exports = function loadDocument(args) {
       } catch (error) {
         browser.emit('error', error);
       }
+      });
       break;
     }
 
@@ -115,19 +117,27 @@ module.exports = function loadDocument(args) {
           //   });
           const refreshURL = getMetaRefreshURL(document);
           if (refreshURL) {
+            // Allow completion function to run
             window._eventQueue.enqueue(function() {
-              // Count a meta-refresh in the redirects count.
-              history.replace(refreshURL || document.location.href);
-              // This results in a new window getting loaded
-              const newWindow = history.current.window;
-              newWindow.addEventListener('load', function() {
-                newWindow._response.redirects++;
+              // Now refresh the page
+              window._eventQueue.enqueue(function() {
+                // Count a meta-refresh in the redirects count.
+                history.replace(refreshURL || document.location.href);
+                // This results in a new window getting loaded
+                const newWindow = history.current.window;
+                newWindow.addEventListener('load', function() {
+                  newWindow._response.redirects++;
+                });
               });
             });
-          } else if (document.documentElement) {
-            browser.emit('loaded', document);
-          } else
-            browser.emit('error', new Error(`Could not parse document at ${response.url}`));
+
+          } else {
+
+            if (document.documentElement)
+              browser.emit('loaded', document);
+            else
+              browser.emit('error', new Error(`Could not parse document at ${response.url}`));
+          }
         }
       });
       break;
@@ -485,7 +495,8 @@ function setupWindow(window, args) {
       (target === '_parent') ? window.parent :
       (target === '_top')    ? window.top :
       browser.tabs.open({ name: target });
-    targetWindow._history.submit(args);
+    const modified = Object.assign({}, args, { url, target });
+    targetWindow._history.submit(modified);
   };
 
   // JSDOM fires DCL event on document but not on window
