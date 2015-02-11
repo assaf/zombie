@@ -335,26 +335,6 @@ function setupWindow(window, args) {
   // deciding to use onhashchange, so we need to set it to null.
   window.onhashchange = null;
 
-  // Help iframes talking with each other
-  window.postMessage = function(data, targetOrigin) { // jshint unused:false
-    // Create the event now, but dispatch asynchronously
-    const event = document.createEvent('MessageEvent');
-    event.initEvent('message', false, false);
-    event.data = data;
-    // Window A (source) calls B.postMessage, to determine A we need the
-    // caller's window.
-
-    // DDOPSON-2012-11-09 - _windowInScope.getGlobal() is used here so that for
-    // website code executing inside the sandbox context, event.source ==
-    // window. Even though the _windowInScope object is mapped to the sandboxed
-    // version of the object returned by getGlobal, they are not the same object
-    // ie, _windowInScope.foo == _windowInScope.getGlobal().foo, but
-    // _windowInScope != _windowInScope.getGlobal()
-    event.source = (browser._windowInScope || window).getGlobal();
-    const origin = event.source.location;
-    event.origin = URL.format({ protocol: origin.protocol, host: origin.host });
-    window.dispatchEvent(event);
-  };
 
 
   // -- JavaScript evaluation
@@ -531,4 +511,26 @@ Window.prototype.__defineSetter__('location', function(url) {
 DOM.Document.prototype.__defineSetter__('location', function(url) {
   this.parentWindow.location = url;
 });
+
+
+// Help iframes talking with each other
+Window.prototype.postMessage = function(data, targetOrigin) { // jshint unused:false
+  // Create the event now, but dispatch asynchronously
+  const event = this.document.createEvent('MessageEvent');
+  event.initEvent('message', false, false);
+  event.data = data;
+  // Window A (source) calls B.postMessage, to determine A we need the
+  // caller's window.
+
+  // DDOPSON-2012-11-09 - _windowInScope.getGlobal() is used here so that for
+  // website code executing inside the sandbox context, event.source ==
+  // window. Even though the _windowInScope object is mapped to the sandboxed
+  // version of the object returned by getGlobal, they are not the same object
+  // ie, _windowInScope.foo == _windowInScope.getGlobal().foo, but
+  // _windowInScope != _windowInScope.getGlobal()
+  event.source = (this.browser._windowInScope || this).getGlobal();
+  const origin = event.source.location;
+  event.origin = URL.format({ protocol: origin.protocol, host: origin.host });
+  this.dispatchEvent(event);
+};
 
