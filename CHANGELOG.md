@@ -1,13 +1,18 @@
-## Version 
-
-CHANGED upgraded to JSDOM 3.1, added Node 0.12 and io.js support
-
-CHANGED browser.referer -> browser.referrer
+## Version 3.0.0 2015-02-11
 
 REMOVED browser.fork no longer supported
 
 REMOVED browser.htmlParser option no longer supported, always using default
 browser (parser5)
+
+REMOVED Browser.visit(url, options) no longer changes instance options
+
+CHANGED browser.referer -> browser.referrer
+
+CHANGED upgraded to JSDOM 3.1, added Node 0.12 and io.js support
+
+ 695 passing (23s)
+  12 pending
 
 
 ## Version 2.5.1 2014-12-08

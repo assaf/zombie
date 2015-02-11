@@ -291,19 +291,6 @@ describe('Browser', function() {
 
   describe('with options', function() {
 
-    describe('per call', function() {
-      before(function() {
-        return browser.visit('/browser/scripted', { features: 'no-scripts' });
-      });
-
-      it('should set options for the duration of the request', function() {
-        browser.assert.text('title', 'Whatever');
-      });
-      it('should reset options following the request', function() {
-        assert.equal(browser.features, 'scripts no-css no-img iframe');
-      });
-    });
-
     describe('global', function() {
       let newBrowser;
       let originalFeatures;
@@ -341,8 +328,9 @@ describe('Browser', function() {
       });
 
       describe('specified', function() {
-        before(function() {
-          return browser.visit('/browser/useragent', { userAgent: 'imposter' });
+        before(async function() {
+          browser.userAgent = 'imposter';
+          await browser.visit('/browser/useragent');
         });
 
         it('should send user agent to server', function() {

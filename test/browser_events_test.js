@@ -4,15 +4,14 @@ const { brains }  = require('./helpers');
 
 
 describe('Browser events', function() {
-  let browser;
-  let events = {
+  const browser = new Browser();
+  const events = {
     console:  [],
     log:      [],
     resource: []
   };
 
   before(function() {
-    browser = Browser.create();
     return brains.ready();
   });
 
