@@ -7,6 +7,8 @@ browser (parser5)
 
 REMOVED Browser.visit(url, options) no longer changes instance options
 
+REMOVED resources.mock/fail/delay, use Nock instead
+
 CHANGED browser.referer -> browser.referrer
 
 CHANGED upgraded to JSDOM 3.1, added Node 0.12 and io.js support

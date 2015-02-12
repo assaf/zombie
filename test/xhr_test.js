@@ -424,10 +424,12 @@ describe('XMLHttpRequest', function() {
             </script>
           </body>
         </html>`);
-      browser.resources.fail('/xhr/onreadystatechange-error');
+      brains.get('/xhr/onreadystatechange-error', function(req, res) {
+        res.sendStatus(500);
+      });
       return browser.visit('/xhr/get-onreadystatechange-error')
         .catch(function(error) {
-          assert.equal(error.message, 'This request was intended to fail');
+          assert.equal(error.message, 'Server returned status code 500 from http://example.com/xhr/onreadystatechange-error');
         })
         .then(function () {
           return browser.wait();
