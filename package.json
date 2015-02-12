@@ -41,8 +41,7 @@
     "postpublish": "gulp tag"
   },
   "engines": {
-    "node": "0.12.x",
-    "iojs": "1.x"
+    "node": "0.12.x"
   },
   "dependencies": {
     "6to5-runtime": "^3.5.3",
