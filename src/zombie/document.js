@@ -119,15 +119,12 @@ module.exports = function loadDocument(args) {
           if (refreshURL) {
             // Allow completion function to run
             window._eventQueue.enqueue(function() {
-              // Now refresh the page
-              window._eventQueue.enqueue(function() {
-                // Count a meta-refresh in the redirects count.
-                history.replace(refreshURL || document.location.href);
-                // This results in a new window getting loaded
-                const newWindow = history.current.window;
-                newWindow.addEventListener('load', function() {
-                  newWindow._response.redirects++;
-                });
+              // Count a meta-refresh in the redirects count.
+              history.replace(refreshURL || document.location.href);
+              // This results in a new window getting loaded
+              const newWindow = history.current.window;
+              newWindow.addEventListener('load', function() {
+                newWindow._response.redirects++;
               });
             });
 

@@ -283,7 +283,7 @@ describe('Window', function() {
       browser.visit('/windows/refresh');
 
       function complete() {
-        return browser.query('meta');
+        return !!browser.query('meta');
       }
 
       await browser.wait({ function: complete });
