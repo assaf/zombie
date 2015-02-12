@@ -5,11 +5,6 @@
 // Each browser has a resources objects that allows you to:
 // - Inspect the history of retrieved resources, useful for troubleshooting
 //   issues related to resource loading
-// - Simulate a failed server
-// - Change the order in which resources are retrieved, or otherwise introduce
-//   delays to simulate a real world network
-// - Mock responses from servers you don't have access to, or don't want to
-//   access from test environment
 // - Request resources directly, but have Zombie handle cookies,
 //   authentication, etc
 // - Implement new mechanism for retrieving resources, for example, add new
@@ -36,9 +31,8 @@ const { Promise } = require('bluebird');
 class Resources extends Array {
 
   constructor(browser) {
-    this.browser      = browser;
-    this.pipeline     = Resources.pipeline.slice();
-    this.urlMatchers  = [];
+    this.browser  = browser;
+    this.pipeline = Resources.pipeline.slice();
   }
 
 
@@ -130,51 +124,6 @@ class Resources extends Array {
   // callback  - Called with error, or null and response
   post(url, options, callback) {
     return this.request('post', url, options, callback);
-  }
-
-
-  // You can use this to make a request to a given URL fail.
-  //
-  // url     - URL to fail
-  // message - Optional error message
-  fail(url, message) {
-    function failTheRequest(request, next) {
-      next(new Error(message || 'This request was intended to fail'));
-    }
-    this.urlMatchers.push([url, failTheRequest]);
-    return this;
-  }
-
-  // You can use this to delay a response from a given URL.
-  //
-  // url   - URL to delay
-  // delay - Delay in milliseconds (defaults to 10)
-  delay(url, delay = 10) {
-    function delayTheResponse(request, next) {
-      setTimeout(next, delay);
-    }
-    this.urlMatchers.push([url, delayTheResponse]);
-    return this;
-  }
-
-  // You can use this to return a particular result for a given URL.
-  //
-  // url     - The URL to mock
-  // result  - The result to return (statusCode, headers, body)
-  mock(url, result = {}) {
-    function mockTheResponse(request, next) {
-      next(null, result);
-    }
-    this.urlMatchers.push([url, mockTheResponse]);
-    return this;
-  }
-
-  // You can use this to restore default behavior to after using fail, delay or
-  // mock.
-  restore(url) {
-    this.urlMatchers = this.urlMatchers
-      .filter(([match])=> match !== url);
-    return this;
   }
 
 
@@ -456,24 +405,6 @@ function formData(name, value) {
 }
 
 
-// Special URL handlers can be used to fail or delay a request, or mock a
-// response.
-Resources.specialURLHandlers = function(request, next) {
-  for (let [url, handler] of this.resources.urlMatchers) {
-    if (url instanceof RegExp) {
-      if (url.test(request.url)) {
-        handler(request, next);
-        return;
-      }
-    } else if (URL.resolve(request.url, url) === request.url) {
-      handler(request, next);
-      return;
-    }
-  }
-  next();
-};
-
-
 Resources.handleHTTPResponse = function(request, response, next) {
   response.headers = response.headers || {};
 
@@ -613,7 +544,6 @@ Resources.pipeline = [
   Resources.normalizeURL,
   Resources.mergeHeaders,
   Resources.createBody,
-  Resources.specialURLHandlers,
   Resources.handleHTTPResponse,
   Resources.decompressBody,
   Resources.decodeBody
