@@ -412,8 +412,7 @@ module.exports = class EventLoop extends EventEmitter {
       if (eventLoop.waiting === 1)
         setImmediate(()=> eventLoop.run());
 
-      let finished  = false;
-      let timer     = global.setTimeout(resolve, waitDuration);
+      const timer = global.setTimeout(resolve, waitDuration);
 
       function ontick(next) {
         if (next >= timeoutOn) {
@@ -444,22 +443,19 @@ module.exports = class EventLoop extends EventEmitter {
       eventLoop.browser.once('error', done);
         
       function done(error) {
-        if (finished)
-          return;
-        finished = true;
-
         clearInterval(timer);
         eventLoop.removeListener('tick', ontick);
         eventLoop.removeListener('done', done);
         eventLoop.browser.removeListener('error', done);
 
-        --eventLoop.waiting;
-        if (eventLoop.waiting === 0)
-          eventLoop.browser.emit('done');
         if (error)
           reject(error);
         else
           resolve();
+
+        --eventLoop.waiting;
+        if (eventLoop.waiting === 0)
+          eventLoop.browser.emit('done');
       }
     });
     return lazy;
