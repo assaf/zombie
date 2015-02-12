@@ -64,7 +64,7 @@ module.exports = function createTabs(browser) {
           // select a different window.
           tabs.current = named;
           if (url)
-            named.location = url;
+            current.location = url;
           return current;
         } else {
           if (name === '_blank' || !name)
@@ -87,7 +87,7 @@ module.exports = function createTabs(browser) {
             const index = tabs.indexOf(active);
             if (~index)
               tabs[index] = window;
-            if (tabs.current === active)
+            if (current === active)
               tabs.current = window;
             active = window;
           }

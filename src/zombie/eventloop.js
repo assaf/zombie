@@ -245,7 +245,6 @@ class EventQueue {
 
   // Fire an error event.
   onerror(error) {
-    this.window.console.error(error);
     this.browser.emit('error', error);
 
     const event = this.window.document.createEvent('Event');
@@ -405,66 +404,63 @@ module.exports = class EventLoop extends EventEmitter {
     // Don't wait longer than duration
     waitDuration = ms(waitDuration.toString()) || this.browser.waitDuration;
     const timeoutOn = Date.now() + waitDuration;
+    const eventLoop = this;
 
-    const lazy = new Lazybird((resolve)=> {
+    const lazy = new Lazybird((resolve, reject)=> {
       // Someone (us) just started paying attention, start processing events
-      ++this.waiting;
-      if (this.waiting === 1) {
-        setImmediate(()=> {
-          if (this.active)
-            this.run();
-        });
-      }
+      ++eventLoop.waiting;
+      if (eventLoop.waiting === 1)
+        setImmediate(()=> eventLoop.run());
 
-      let timer   = null;
-      let ontick  = null;
-      let onerror = null;
-      let ondone  = null;
+      let finished  = false;
+      let timer     = global.setTimeout(resolve, waitDuration);
 
-      const work = new Promise((resolve, reject)=> {
-        timer = global.setTimeout(resolve, waitDuration);
+      function ontick(next) {
+        if (next >= timeoutOn) {
+          // Next event too long in the future, or no events in queue
+          // (Infinity), no point in waiting
+          done();
+          return;
+        }
 
-        ontick = (next)=> {
-          if (next >= timeoutOn) {
-            // Next event too long in the future, or no events in queue
-            // (Infinity), no point in waiting
-            resolve();
-          } else if (completionFunction && this.active.document.documentElement) {
-            try {
-              const waitFor = Math.max(next - Date.now(), 0);
-              // Event processed, are we ready to complete?
-              const completed = completionFunction(this.active, waitFor);
-              if (completed)
-                resolve();
-            } catch (error) {
-              reject(error);
-            }
+        const activeWindow = eventLoop.active;
+        if (completionFunction && activeWindow.document.documentElement) {
+          try {
+            const waitFor = Math.max(next - Date.now(), 0);
+            // Event processed, are we ready to complete?
+            const completed = completionFunction(activeWindow, waitFor);
+            if (completed)
+              done();
+          } catch (error) {
+            done(error);
           }
-        };
-        this.on('tick', ontick);
+        }
+      }
+      eventLoop.on('tick', ontick);
 
-        ondone  = resolve;
-        this.once('done', ondone);
+      eventLoop.once('done', done);
+      // Don't wait if browser encounters an error (event loop errors also
+      // propagate to browser)
+      eventLoop.browser.once('error', done);
+        
+      function done(error) {
+        if (finished)
+          return;
+        finished = true;
 
-
-        // Don't wait if browser encounters an error (event loop errors also
-        // propagate to browser)
-        onerror = reject;
-        this.browser.once('error', onerror);
-      });
-
-      const finalized = work.finally(()=> {
         clearInterval(timer);
-        this.removeListener('tick', ontick);
-        this.removeListener('done', ondone);
-        this.browser.removeListener('error', onerror);
+        eventLoop.removeListener('tick', ontick);
+        eventLoop.removeListener('done', done);
+        eventLoop.browser.removeListener('error', done);
 
-        --this.waiting;
-        if (this.waiting === 0)
-          this.browser.emit('done');
-      });
-
-      resolve(finalized);
+        --eventLoop.waiting;
+        if (eventLoop.waiting === 0)
+          eventLoop.browser.emit('done');
+        if (error)
+          reject(error);
+        else
+          resolve();
+      }
     });
     return lazy;
   }
@@ -545,7 +541,7 @@ module.exports = class EventLoop extends EventEmitter {
     this.running = true;
     setImmediate(()=> {
       this.running = false;
-      if (!this.active) {
+      if (!this.active || this.waiting === 0) {
         this.emit('done');
         return;
       }
