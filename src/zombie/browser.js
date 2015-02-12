@@ -23,14 +23,6 @@ const { Cookie }        = Tough;
 const URL               = require('url');
 
 
-// Monkey patching JSDOM.  This is why we can't have nice things.
-require('./jsdom_patches');
-require('./forms');
-require('./dom_focus');
-require('./dom_iframe');
-require('./scripts');
-
-
 // Version number.  We get this from package.json.
 const VERSION = require(`${__dirname}/../../package.json`).version;
 
