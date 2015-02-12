@@ -1,13 +1,12 @@
 const assert      = require('assert');
-const Browser     = require('../src/zombie');
+const Browser     = require('../src');
 const { brains }  = require('./helpers');
 
 
 describe('Promises', function() {
-  let browser;
+  const browser = new Browser();
 
   before(async function() {
-    browser = Browser.create();
     brains.get('/promises', function(req, res) {
       res.send('<script>document.title = "Loaded"</script>');
     });

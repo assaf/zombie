@@ -1,15 +1,14 @@
 const assert      = require('assert');
-const Browser     = require('../src/zombie');
+const Browser     = require('../src');
 const { brains }  = require('./helpers');
 const WebSocket   = require('ws');
 
 
 describe('WebSockets', function() {
-  let browser;
+  const browser = new Browser();
   const prompts = [];
 
   before(function() {
-    browser = Browser.create();
     return brains.ready();
   });
 

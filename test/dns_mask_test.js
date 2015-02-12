@@ -1,5 +1,5 @@
 const assert  = require('assert');
-const Browser = require('../src/zombie');
+const Browser = require('../src');
 const DNS     = require('dns');
 
 

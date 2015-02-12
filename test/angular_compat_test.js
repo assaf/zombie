@@ -1,13 +1,11 @@
-const assert      = require('assert');
-const Browser     = require('../src/zombie');
+const Browser     = require('../src');
 const { brains }  = require('./helpers');
 
 
 describe.skip('angularjs', function() {
-  let browser;
+  const browser = new Browser();
 
   before(async function() {
-    browser = Browser.create();
     await brains.ready();
 
     brains.static('/angular/show.html', '<h1>{{title}}</h1>');

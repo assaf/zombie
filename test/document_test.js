@@ -1,12 +1,11 @@
 const assert      = require('assert');
-const Browser     = require('../src/zombie');
+const Browser     = require('../src');
 const { brains }  = require('./helpers');
 
 describe('Document', function() {
-  let browser;
+  const browser = new Browser();
 
   before(function() {
-    browser = Browser.create();
     return brains.ready();
   });
 

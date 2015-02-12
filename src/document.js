@@ -286,8 +286,7 @@ function setupWindow(window, args) {
     platform:       process.platform,
     plugins:        emptySet,
     userAgent:      browser.userAgent,
-    vendor:         'Zombie Industries',
-    version:        require('../../package.json').version
+    vendor:         'Zombie Industries'
   };
 
   // Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc

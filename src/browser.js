@@ -24,7 +24,7 @@ const URL               = require('url');
 
 
 // Version number.  We get this from package.json.
-const VERSION = require(`${__dirname}/../../package.json`).version;
+const VERSION = require(`${__dirname}/../package.json`).version;
 
 // Browser options you can set when creating new browser, or on browser instance.
 const BROWSER_OPTIONS  = ['features', 'headers', 'waitDuration',
