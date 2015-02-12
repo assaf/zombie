@@ -18,14 +18,14 @@ a simulated environment.  No browser required.
 Let's try to sign up to a page and see what happens:
 
 ```js
-var Browser = require('zombie');
-var assert  = require('assert');
+const Browser = require('zombie');
+const assert  = require('assert');
 
 // We call our test example.com
 Browser.localhost('example.com', 3000);
 
 // Load the page from localhost
-var browser = Browser.create();
+const browser = new Browser();
 browser.visit('/signup', function (error) {
   assert.ifError(error);
 
@@ -48,13 +48,13 @@ browser.visit('/signup', function (error) {
 If you prefer using promises:
 
 ```js
-var Browser = require('zombie');
+const Browser = require('zombie');
 
 // We call our test example.com
 Browser.localhost('example.com', 3000);
 
 // Load the page from localhost
-var browser = Browser.create();
+const browser = new Browser();
 browser.visit('/signup')
   .then(function() {
     // Fill email, password and submit form
@@ -180,7 +180,7 @@ tests can be as simple as:
 Browser.localhost('*.example.com', 3000);
 
 // Browser instance for this test
-var browser = Browser.create();
+const browser = new Browser();
 browser.visit('/path', function() {
   // It picks example.com as the default host
   browser.assert.url('http://example.com/path');
@@ -244,7 +244,7 @@ Consider this code:
 ```js
 browser.setCookie(name: 'session', domain: 'example.com', value: 'delicious');
 browser.visit('http://example.com', function() {
-  var value = browser.getCookie('session');
+  const value = browser.getCookie('session');
   console.log('Cookie', value);
 });
 ```
@@ -855,11 +855,6 @@ any of the following:
 
 - Inspect the history of retrieved resources, useful for troubleshooting issues
   related to resource loading
-- Simulate a failed server
-- Change the order in which resources are retrieved, or otherwise introduce
-  delays to simulate a real world network
-- Mock responses from servers you don't have access to, or don't want to access
-  from test environment
 - Request resources directly, but have Zombie handle cookies, authentication,
   etc
 - Implement new mechanism for retrieving resources, for example, add new
@@ -909,53 +904,11 @@ document. This is used internally, and may also give you more insight as to why
 a request is being made.
 
 
-### Mocking, Failing and Delaying Responses
-
-To help in testing, Zombie includes some convenience methods for mocking,
-failing and delaying responses.
-
-For example, to mock a response:
-
-```js
-browser.resources.mock('http://3rd.party.api/v1/request', {
-  statusCode: 200,
-  headers:    { 'ContentType': 'application/json' },
-  body:       JSON.stringify({ 'count': 5 })
-})
-```
-
-In the real world, servers and networks often fail.  You can test for these
-conditions by asking Zombie to simulate a failure.  For example:
-
-```js
-browser.resources.fail('/form/post');
-```
-
-Resource URLs can be absolute or relative strings or regular expressions.
-Relative URLs will match any request with the same path, so only use relative
-URLs that are specific to a given request.  If the resource URL is a regular
-expression, it will be tested against the requested URL and the handler used
-if there is a match.
-
-Another issue you'll encounter in real-life applications are network latencies.
-When running tests, Zombie will request resources in the order in which they
-appear on the page, and likely receive them from the local server in that same
-order.
-
-Occassionally you'll need to force the server to return resources in a different
-order, for example, to check what happens when script A loads after script B.
-You can introduce a delay into any response as simple as:
-
-```js
-browser.resources.delay('http://3d.party.api/v1/request', 50);
-```
-
-
 ### The Pipeline
 
 Zombie uses a pipeline to operate on resources.  You can extend that pipeline
 with your own set of handlers, for example, to support additional protocols,
-content types, special handlers, better resource mocking, etc.
+content types, special handlers, etc.
 
 The pipeline consists of a set of handlers.  There are two types of handlers:
 
@@ -1004,7 +957,7 @@ When handlers are executed, `this` is set to the browser instance.
 ### Operating On Resources
 
 If you need to retrieve or operate on resources directly, you can do that as
-well, using all the same features available to Zombie, including mocks, cookies,
+well, using all the same features available to Zombie, including cookies,
 authentication, etc.
 
 #### resources.addHandler(handler)
@@ -1012,23 +965,10 @@ authentication, etc.
 Adds a handler to the pipeline of this browser instance.  To add a handler to the
 pipeline of every browser instance, use `Browser.Resources.addHandler`.
 
-#### resources.delay(url, delay)
-
-Retrieve the resource with the given URL, but only after a delay.
-
 #### resources.dump(output)
 
 Dumps the resources list to the output stream (defaults to standard output
 stream). 
-
-#### resources.fail(url, error)
-
-Do not attempt to retrieve the resource with the given URL, but act as if the
-request failed with the given message.
-
-This is used to simulate network failures (can't resolve hostname, can't make
-connection, etc).  To simulate server failures (status codes 5xx), use
-`resources.mock`.
 
 #### resources.pipeline
 
@@ -1047,11 +987,6 @@ browser.resources.get('http://some.service', function(error, response) {
 });
 ```
 
-#### resources.mock(url, response)
-
-Do not attempt to retrieve the resource with the given URL, but return the
-response object instead.
-
 #### resources.post(url, options, callback)
 
 Posts a document to the resource with the given URL and passes the response to
@@ -1067,17 +1002,23 @@ Supported options are:
 For example:
 
 ```js
-var params  = { 'count': 5 };
-browser.resources.post('http://some.service',
-                       { params: params },
-                       function(error, response) {
+const params  = {
+  'count': 5
+};
+browser.resources.post(
+  'http://some.service',
+   { params: params },
+   function(error, response) {
   . . .
 });
 
-var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-browser.resources.post('http://some.service',
-                       { headers: headers, body: 'count=5' },
-                       function(error, response) {
+const headers = {
+  'Content-Type': 'application/x-www-form-urlencoded'
+};
+browser.resources.post(
+  'http://some.service',
+   { headers: headers, body: 'count=5' },
+   function(error, response) {
    . . .
 });
 ```
@@ -1105,11 +1046,6 @@ browser.resources.request('DELETE',
 });
 ```
 
-#### resources.restore(url)
-
-Reset any special resource handling from a previous call to `delay`, `fail` or
-`mock`.
-
 
 ### DNS masking
 
@@ -1120,7 +1056,7 @@ example:
 Browser.dns.localhost('*.example.com');
 Browser.default.site = 'http://example.com:3000';
 
-browser = Browser.create();
+browser = new Browser();
 browser.visit('/here', function(error, browser) {
   browser.assert.url('http://example.com:3000/here');
 });
@@ -1200,70 +1136,4 @@ information.
 
 Some objects, like the browser, history, resources, tabs and windows also
 include `dump` method that will dump the current state to the console.
-
-
-
-
-## FAQ
-
-**Q:** *How do I get Zombie working with http://google.com (or any other public
-web site)?*
-
-**A:** Zombie is intended for **functional testing of Web applications**.
-
-Zombie is not intended for scraping web sites.  You can use Zombie however you
-want to, just be advised it might not work and will never get fixed.
-
-
-**Q:** *How do I report a bug?*
-
-**A:** [Open an issue on Github](https://github.com/assaf/zombie/issues).  But
-first, read the answer to the next question.
-
-
-**Q:** *How do I get someone to look at my bug?*
-
-**A:** By **isolating, testing and pull requesting**:
-
-1.  Isolate to the minimum HTML/JS/etc that's necessary to prove the bug.
-    That means code that works directly with the DOM.  No one else is going to
-    do the work of isolating the test case from thousands of lines of
-    Angular/Backbone/jQuery/etc.
-2.  Write a test case that will go green when that bug is fixed.
-    The [Zombie test suite](https://github.com/assaf/zombie/tree/master/test)
-    has over 680 test cases, you can easily find one to copy and adapt.
-3.  Submit a pull request with the test case, and if you have any, the suggested
-    solution.
-
-
-**Q:** *I found a bug in Zombie, here's a stack trace line showing where
-Contextify/JSDOM/CSSOM/htmlparser/whatever is crashing.*
-
-**A:** You found a bug that happens when you call some method on Zombie.
-There's a chance it's a bug in Zombie, and there's a chance it's an issue with
-one of the many dependencies, as shows in the stack trace.
-
-If you're looking for the quickest solution, try to find the responsible
-component and report the issue there.  The developers of
-Contextify/JSDOM/CSSOM/htmlparser/whatever are not monitoring the Zombie issues
-list.
-
-
-**Q:** *But how can I find what component is repsonsible for that bug?*
-
-**A:** There is no Zombie developer team with privileged access.
-
-The [full source code](https://github.com/assaf/zombie) for Zombie is available
-here.  The dependencies are [listed
-here](https://github.com/assaf/zombie/blob/master/package.json).  Everything,
-even the Node and V8 runtimes are open source.
-
-
-**Q:** *Zombie not working for me, can you fix it?*
-
-**A:** Zombie is an open source project.  It's free as in "do whatever you want
-with it!"
-
-Zombie is not free as in "open bar".  You get as much out of it as you put into
-it, plus everyone else's contributions.
 
