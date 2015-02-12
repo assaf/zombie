@@ -1,10 +1,10 @@
 const assert      = require('assert');
-const Browser     = require('../src/zombie');
+const Browser     = require('../src');
 const { brains }  = require('./helpers');
 
 
 describe('IFrame', function() {
-  const browser = Browser.create();
+  const browser = new Browser();
   let   iframe;
 
   before(function() {

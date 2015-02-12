@@ -1,14 +1,12 @@
 const assert      = require('assert');
-const Browser     = require('../src/zombie');
+const Browser     = require('../src');
 const { brains }  = require('./helpers');
 
 
 describe('XPath', function() {
-  let browser;
+  const browser = new Browser();
 
   before(async function() {
-    browser = Browser.create();
-
     brains.get('/xpath', function(req, res) {
       res.send(`
         <html>

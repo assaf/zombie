@@ -17,7 +17,7 @@ gulp.task('default', ['watch']);
 // gulp build -> compile coffee script
 gulp.task('build', ['clean'], function() {
   return gulp
-    .src('src/**/*.js')
+    .src('src/*.js')
     .pipe(sourcemaps.init())
     .pipe(to5({
       experimental: true,
@@ -43,7 +43,7 @@ gulp.task('clean', function() {
 
 // gulp watch -> watch for changes and compile
 gulp.task('watch', ['build'], function() {
-  return gulp.watch('src/**/*.coffee', ['clean', 'build']);
+  return gulp.watch('src/*.js', ['clean', 'build']);
 });
 
 

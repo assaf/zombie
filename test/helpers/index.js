@@ -1,7 +1,7 @@
 // We switch this directory to instrumented code when running code coverage
 // report
 const Replay    = require('replay');
-const Browser   = require('../../src/zombie');
+const Browser   = require('../../src');
 
 
 // Always run in verbose mode on Travis.

@@ -1,7 +1,7 @@
 // Creates an Express server for testing 3rd party sites against thirdparty.test. 
 // Exports a method that returns a promise that resolves to a live Express server.
 
-const Browser = require('../../src/zombie');
+const Browser = require('../../src');
 const debug   = require('debug')('server');
 const Express = require('express');
 const morgan  = require('morgan');

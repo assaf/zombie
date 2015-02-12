@@ -33,7 +33,7 @@
     "full-stack",
     "DSL"
   ],
-  "main": "lib/zombie",
+  "main": "lib",
   "scripts": {
     "build": "gulp build",
     "test": "mocha",
