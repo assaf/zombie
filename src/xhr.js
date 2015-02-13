@@ -156,7 +156,6 @@ class XMLHttpRequest extends DOM.EventTarget {
       if (error) {
         this._stateChanged(XMLHttpRequest.DONE);
         this._fire('progress');
-
         if (error.code === 'ETIMEDOUT')
           this._fire('timeout', new DOM.DOMException(DOM.TIMEOUT_ERR, 'The request timed out'));
         else

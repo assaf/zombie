@@ -95,12 +95,17 @@ module.exports = function loadDocument(args) {
           window._response    = response;
         }
 
+        if (response && response.statusCode >= 400)
+          error = new Error(`Server returned status code ${response.statusCode} from ${url}`);
         if (error) {
+
           // 4xx/5xx we get an error with an HTTP response
           // Error in body of page helps with debugging
           const message = (response && response.body) || error.message || error;
           document.write(`<html><body>${message}</body></html>`); //jshint ignore:line
           document.close();
+          browser.emit('error', error);
+
         } else {
         
           document.write(response.body); //jshint ignore:line

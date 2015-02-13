@@ -220,19 +220,10 @@ class EventQueue {
       // We can't cancel pending requests, but we can ignore the response if
       // window already closed
       if (this.queue) {
-
-        // Since this is used by resourceLoader that doesn't check the response,
-        // we're responsible to turn anything other than 2xx/3xx into an error
-        if (response && response.statusCode >= 400)
-          error = new Error(`Server returned status code ${response.statusCode} from ${url}`);
-
+        // This will get completion function to execute, e.g. to check a page
+        // before meta tag refresh
         this.enqueue(()=> {
           callback(error, response);
-          // Make sure browser gets a hold of this error and adds it to error list
-          // This is necessary since resource loading (CSS, image, etc) does nothing
-          // with the callback error
-          if (error)
-            this.browser.emit('error', error);
         });
       }
 

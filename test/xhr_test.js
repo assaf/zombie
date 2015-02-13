@@ -400,9 +400,9 @@ describe('XMLHttpRequest', function() {
   });
 
 
-  describe('errors onreadystatechange', function() {
+  describe('server error', function() {
     before(function() {
-      brains.static('/xhr/get-onreadystatechange-error', `
+      brains.static('/xhr/server-error', `
         <html>
           <head></head>
           <body>
@@ -412,21 +412,21 @@ describe('XMLHttpRequest', function() {
               document.responseText = { 1:null, 4:null};
               var xhr = new XMLHttpRequest();
               xhr.onreadystatechange = function(){
-                document.readyStatesReceived[xhr.readyState].push(Date.now())
+                document.readyStatesReceived[xhr.readyState].push(Date.now());
                 document.responseText[xhr.readyState] = xhr.responseText;
               };
-              xhr.onload = function() {
-                  document.onloadTime = Date.now()
-              }
-              xhr.open('GET', '/xhr/onreadystatechange-error', true);
+              xhr.onerror = function() {
+                document.title = 'Errored';
+              };
+              xhr.open('POST', document.location.pathname, true);
               xhr.send();
             </script>
           </body>
         </html>`);
-      brains.get('/xhr/onreadystatechange-error', function(req, res) {
+      brains.post('/xhr/server-error', function(req, res) {
         res.sendStatus(500);
       });
-      return browser.visit('/xhr/get-onreadystatechange-error')
+      return browser.visit('/xhr/server-error')
         .catch(function(error) {
           assert.equal(error.message, 'Server returned status code 500 from http://example.com/xhr/onreadystatechange-error');
         })
@@ -435,12 +435,70 @@ describe('XMLHttpRequest', function() {
         });
     });
 
-    it('should not trigger onload to be called', function() {
-      assert.equal(browser.document.onloadTime, null);
+    it('should not trigger onerror event handler', function() {
+      assert.equal(browser.document.title, '');
     });
 
-    it('responseText should be empty on error', function() {
-        assert.equal(browser.document.responseText[4], "");
+    it('responseText should be error message', function() {
+        assert.equal(browser.document.responseText[4], "Internal Server Error");
+    });
+
+    it('should go through states 1 through 4', function() {
+      assert.equal(browser.document.readyStatesReceived[1].length, 1, 'state 1');
+      assert.equal(browser.document.readyStatesReceived[2].length, 1, 'state 2');
+      assert.equal(browser.document.readyStatesReceived[3].length, 1, 'state 3');
+      assert.equal(browser.document.readyStatesReceived[4].length, 1, 'state 4');
+    });
+
+    it('should get the readyStateChanges in chronological order', function() {
+      assert(browser.document.readyStatesReceived[1][0] <=
+             browser.document.readyStatesReceived[4][0]);
+    });
+
+  });
+
+
+  describe('connection error', function() {
+    before(function() {
+      brains.static('/xhr/connection-error', `
+        <html>
+          <head></head>
+          <body>
+            <script>
+              document.readyStatesReceived = { 1:[], 2:[], 3:[], 4:[] };
+              document.onloadTime = null;
+              document.responseText = { 1:null, 4:null };
+              var xhr = new XMLHttpRequest();
+              xhr.onreadystatechange = function(){
+                document.readyStatesReceived[xhr.readyState].push(Date.now());
+                document.responseText[xhr.readyState] = xhr.responseText;
+              };
+              xhr.open('POST', document.location.pathname, true);
+              xhr.onerror = function() {
+                document.title = 'Errored';
+              };
+              xhr.send();
+            </script>
+          </body>
+        </html>`);
+      brains.post('/xhr/connection-error', function(req, res) {
+        res.destroy();
+      });
+      return browser.visit('/xhr/connection-error')
+        .catch(function(error) {
+          assert.equal(error.message, 'Server returned status code 500 from http://example.com/xhr/onreadystatechange-error');
+        })
+        .then(function () {
+          return browser.wait();
+        });
+    });
+
+    it('should trigger onerror event handler', function() {
+      assert.equal(browser.document.title, 'Errored');
+    });
+
+    it('should have no responseText', function() {
+      assert.equal(browser.document.responseText[4], '');
     });
 
     it('should get exactly one readyState of type 1 and 4', function() {
@@ -458,7 +516,7 @@ describe('XMLHttpRequest', function() {
   });
 
 
-  describe('abort onreadystatechange', function() {
+  describe('abort', function() {
     before(function() {
       brains.static('/xhr/abort-onreadystatechange', `
         <html>
