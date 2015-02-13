@@ -330,7 +330,7 @@ class EventQueue
         #
         # This can cause problems when testing the client-side handling of AJAX calls that return an error,
         # and can be optionally disabled by setting continueOnError to true.
-        if response && response.statusCode >= 400 && (!options || !options.continueOnError)
+        if response && response.statusCode >= 400 && !@browser.continueOnError
           error = new Error("Server returned status code #{response.statusCode} from #{url}")
 
         @enqueue =>
