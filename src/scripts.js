@@ -18,7 +18,8 @@ try {
 
 // If JSDOM encounters a JS error, it fires on the element.  We expect it to be
 // fires on the Window.  We also want better stack traces.
-DOM.languageProcessors.javascript = function(element, code, filename) {
+DOM.languageProcessors.javascript = function(element, buffer, filename) {
+  const code = buffer.toString();
   // This may be called without code, e.g. script element that has no body yet
   if (!code)
     return;
@@ -61,10 +62,6 @@ DOM.HTMLScriptElement._init = function() {
       DOM.resourceLoader.load(script, script.src, script._eval);
     } else {
       const filename = script.id ?  `${document.URL}:#${script.id}` : `${document.URL}:script`;
-      // Execute inline script
-      function executeInlineScript() {
-        script._eval(script.textContent, filename);
-      };
       // Queue to be executed in order with all other scripts
       const executeInOrder = DOM.resourceLoader.enqueue(script, executeInlineScript, filename);
       // There are two scenarios:
@@ -78,28 +75,11 @@ DOM.HTMLScriptElement._init = function() {
       else
         executeInOrder();
     }
+
+    // Execute inline script
+    function executeInlineScript(code, filename) {
+      script._eval(script.textContent, filename);
+    }
   });
-};
-
-
-// Fix resource loading to keep track of in-progress requests. Need this to wait
-// for all resources (mainly JavaScript) to complete loading before terminating
-// browser.wait.
-DOM.resourceLoader.load = function(element, href, callback) {
-  const document      = element.ownerDocument;
-  const window        = document.parentWindow;
-  const tagName       = element.tagName.toLowerCase();
-  const loadResource  = document.implementation._hasFeature('FetchExternalResources', tagName);
-  const url           = DOM.resourceLoader.resolve(document, href);
-
-  if (loadResource) {
-    const inOrder = this.enqueue(element, loaded, url);
-    window._eventQueue.http('GET', url, { target: element }, inOrder);
-  }
-
-  // This guarantees that all scripts are executed in order
-  function loaded(response) {
-    callback.call(element, response.body.toString(), url.pathname);
-  }
 };
 

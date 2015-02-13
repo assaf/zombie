@@ -175,3 +175,37 @@ DOM.Document.prototype.raise = function(type, message, data) {
   window._eventQueue.onerror(error);
 };
 
+
+// Fix resource loading to keep track of in-progress requests. Need this to wait
+// for all resources (mainly JavaScript) to complete loading before terminating
+// browser.wait.
+DOM.resourceLoader.load = function(element, href, callback) {
+  const document      = element.ownerDocument;
+  const window        = document.parentWindow;
+  const tagName       = element.tagName.toLowerCase();
+  const loadResource  = document.implementation._hasFeature('FetchExternalResources', tagName);
+  const url           = DOM.resourceLoader.resolve(document, href);
+
+  if (loadResource) {
+    // This guarantees that all scripts are executed in order, must add to the
+    // JSDOM queue before we add to the Zombie event queue.
+    const enqueued = this.enqueue(element, callback && callback.bind(element), url);
+    window._eventQueue.http('GET', url, { target: element }, (error, response)=> {
+      // Since this is used by resourceLoader that doesn't check the response,
+      // we're responsible to turn anything other than 2xx/3xx into an error
+      if (response && response.statusCode >= 400)
+        error = new Error(`Server returned status code ${response.statusCode} from ${url}`);
+      // Make sure browser gets a hold of this error and adds it to error list
+      // This is necessary since resource loading (CSS, image, etc) does nothing
+      // with the callback error
+      if (error) {
+        const event = document.createEvent('HTMLEvents');
+        event.initEvent('error', false, false);
+        event.error = error;
+        element.dispatchEvent(event);
+      } else
+        enqueued(null, response.body);
+    });
+  }
+};
+
