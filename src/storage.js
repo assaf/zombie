@@ -37,7 +37,7 @@ class StorageEvent extends DOM.Event {
 class StorageArea {
 
   constructor() {
-    this._items     = new Map();
+    this._items     = {};
     this._storages  = [];
   }
 
@@ -54,48 +54,47 @@ class StorageArea {
 
   // Return number of key/value pairs.
   get length() {
-    return this._items.size;
+    return Object.keys(this._items).length;
   }
 
   // Get key by ordinal position.
   key(index) {
-    const keys = [...this._items.keys()];
-    return keys[index];
+    return Object.keys(this._items)[index];
   }
 
   // Get value from key
   get(key) {
-    return this._items.get(key) || null;
+    return this._items[key] || null;
   }
 
   // Set the value of a key. We also need the source storage (so we don't send
   // it a storage event).
   set(source, key, value) {
-    const oldValue = this._items.get(key);
-    this._items.set(key, value);
+    const oldValue = this._items[key];
+    this._items[key] = value;
     this._fire(source, key, oldValue, value);
   }
 
   // Remove the value at the key. We also need source storage (see set above).
   remove(source, key) {
-    const oldValue = this._items.get(key);
-    this._items.delete(key);
+    const oldValue = this._items[key];
+    delete this._items[key];
     this._fire(source, key, oldValue);
   }
 
   // Remove all values. We also need source storage (see set above).
   clear(source) {
-    this._items.clear();
+    this._items = {};
     this._fire(source);
   }
 
   get pairs() {
-    return [...this._items.entries()];
+    return Object.keys(this._items).map(key => [key, this._items[key]] );
   }
 
   toString() {
-    this.pairs()
-      .map((name, value)=> `${name} = ${value}`)
+    return Object.keys(this._items)
+      .map(key => `${key} = ${this._items[key]}` )
       .join('\n');
   }
 
