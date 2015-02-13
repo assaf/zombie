@@ -522,5 +522,25 @@ describe('EventLoop', function() {
   after(function() {
     browser.destroy();
   });
+
+  // In a normal browser instance, a visit to a page that cannot be found would result in an uncaught error.
+  //
+  // With the new configuration option, it's allowed.
+  //
+  // NOTE: The default handling of 404 errors is already tested in browser_object_test.
+  describe('continue on error when asked to', function() {
+    var permissiveBrowser = Browser.create({continueOnError: true});
+    before(function() {
+      brains.static('/browser-events/continue-on-error', '<html>not found, dude.</html>', { status: 404 });
+
+      return permissiveBrowser.visit('/browser-events/continue-on-error');
+    });
+
+    it('should have loaded without errors.', function() {
+      assert.equal(browser.error, undefined, 'There should be no browser errors');
+    });
+  });
+
+
 });
 

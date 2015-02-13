@@ -53,6 +53,7 @@ You can use the following options:
   timers fire.  Defaults to 0.5 seconds.
 - `localAddress` -- The outgoing IP address to use for requests. The default is the default route. Will fail
   if an IP address is used which is not bound to a local interface.
+- `continueOnError` -- By default, making ajax requests to pages whose status is an error will stop everything.  Set this option to `true` to continue in spite of the status code.
 
 The proxy URL specifies the host and port of the proxy.  It also supports HTTP
 Basic authentication, for example:

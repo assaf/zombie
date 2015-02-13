@@ -309,10 +309,11 @@ class EventQueue
   # callback - Called with error, or null and response
   #
   # Options:
-  #   headers   - Name/value pairs of headers to send in request
-  #   params    - Parameters to pass in query string or document body
-  #   body      - Request document body
-  #   timeout   - Request timeout in milliseconds (0 or null for no timeout)
+  #   headers         - Name/value pairs of headers to send in request
+  #   params          - Parameters to pass in query string or document body
+  #   body            - Request document body
+  #   timeout         - Request timeout in milliseconds (0 or null for no timeout)
+  #   continueOnError - Whether to continue if there are errors making an http request (false by default).
   #
   # Calls callback with response error or null and response object.
   http: (method, url, options, callback)->
@@ -325,8 +326,11 @@ class EventQueue
       if @queue
 
         # Since this is used by resourceLoader that doesn't check the response,
-        # we're responsible to turn anything other than 2xx/3xx into an error
-        if response && response.statusCode >= 400
+        # we're responsible to turn anything other than 2xx/3xx into an error.
+        #
+        # This can cause problems when testing the client-side handling of AJAX calls that return an error,
+        # and can be optionally disabled by setting continueOnError to true.
+        if response && response.statusCode >= 400 && !@browser.continueOnError
           error = new Error("Server returned status code #{response.statusCode} from #{url}")
 
         @enqueue =>
