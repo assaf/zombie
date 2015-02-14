@@ -1,4 +1,4 @@
-## Version 3.0.0 2015-02-11
+## Version 3.0.2 2015-02-14
 
 REMOVED browser.fork no longer supported
 
