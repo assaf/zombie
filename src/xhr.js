@@ -10,6 +10,7 @@ class XMLHttpRequest extends DOM.EventTarget {
 
   constructor(window) {
     this._window      = window;
+    this._browser     = window.browser;
     // Pending request
     this._pending     = null;
     // Response headers
@@ -75,13 +76,15 @@ class XMLHttpRequest extends DOM.EventTarget {
     url.hash = null;
     if (user)
       url.auth = `${user}:${password}`;
+    // Used for logging requests
+    this._url       = URL.format(url);
 
     // Reset response status
-    this._response = null;  
-    this._error    = null;  
+    this._response  = null;  
+    this._error     = null;  
 
-    const request = { method, headers, url: URL.format(url) };
-    this._pending = request;
+    const request   = { method, headers, url: URL.format(url) };
+    this._pending   = request;
     this._stateChanged(XMLHttpRequest.OPENED);
   }
 
@@ -104,9 +107,9 @@ class XMLHttpRequest extends DOM.EventTarget {
     if (this.readyState !== XMLHttpRequest.OPENED)
       throw new DOM.DOMException(DOM.INVALID_STATE_ERR,  'Invalid state');
 
+    const request = this._pending;
     this._fire('loadstart');
 
-    const request   = this._pending;
     request.headers['content-type'] = request.headers['content-type'] || 'text/plain';
     // Make the actual request
     request.body    = data;
@@ -136,7 +139,7 @@ class XMLHttpRequest extends DOM.EventTarget {
           this._fire('error', this._error);
         }
         this._fire('loadend');
-        this._window.browser.errors.push(this._error);
+        this._browser.errors.push(this._error);
         return;
       }
 
@@ -145,7 +148,7 @@ class XMLHttpRequest extends DOM.EventTarget {
         const allowedOrigin = response.headers['access-control-allow-origin'];
         if (!(allowedOrigin === '*' || allowedOrigin === this._cors)) {
           this._error = new DOM.DOMException(DOM.SECURITY_ERR, 'Cannot make request to different domain');
-          this._window.browser.errors.push(this._error);
+          this._browser.errors.push(this._error);
           this._stateChanged(XMLHttpRequest.DONE);
           this._fire('progress');
           this._fire('error', this._error);
@@ -235,6 +238,7 @@ class XMLHttpRequest extends DOM.EventTarget {
     event.initEvent(eventName, true, true);
     event.error = error;
     this.dispatchEvent(event);
+    this._browser.emit('xhr', eventName, this._url);
   }
 
   // Raise error coming from jsdom

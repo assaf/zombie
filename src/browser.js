@@ -135,30 +135,33 @@ class Browser extends EventEmitter {
       })
       .on('log', (...args)=> {
         // Message written to browser.log.
-        Browser._debug(...args);
+        Browser._debug(format(...args));
       });
 
     // Logging resources
     this
       .on('request', (request)=> request)
       .on('response', (request, response)=> {
-        Browser._debug(`${request.method || 'GET'} ${response.url} => ${response.statusCode}`);
+        Browser._debug('%s %s => %s', request.method, response.url, response.statusCode);
       })
       .on('redirect', (request, response, redirectRequest)=> {
-        Browser._debug(`${request.method || 'GET'} ${request.url} => ${response.statusCode} ${redirectRequest.url}`);
+        Browser._debug('%s %s => %s %s', request.method, request.url, response.statusCode, redirectRequest.url);
       })
       .on('loaded', (document)=> {
-        Browser._debug('Loaded document', document.location.href);
+        Browser._debug('Loaded document %s', document.location.href);
+      })
+      .on('xhr', (eventName, url)=> {
+        Browser._debug('XHR %s %s', eventName, url);
       });
 
 
     // Logging windows/tabs
     this
       .on('opened', (window)=> {
-        Browser._debug('Opened window', window.location.href, window.name || '');
+        Browser._debug('Opened window %s %s', window.location.href, window.name || '');
       })
       .on('closed', (window)=> {
-        Browser._debug('Closed window', window.location.href, window.name || '');
+        Browser._debug('Closed window %s %s', window.location.href, window.name || '');
       });
 
     // Window becomes inactive
@@ -193,20 +196,20 @@ class Browser extends EventEmitter {
     // reported while processing resources/JavaScript.
     this
       .on('timeout', (fn, delay)=> {
-        Browser._debug(`Fired timeout after ${delay}ms delay`);
+        Browser._debug('Fired timeout after %dms delay', delay);
       })
       .on('interval', (fn, interval)=> {
-        Browser._debug(`Fired interval every ${interval}ms`);
+        Browser._debug('Fired interval every %dms', interval);
       })
       .on('link', (url, target)=> {
-        Browser._debug(`Follow link to ${url}`);
+        Browser._debug('Follow link to %s', url);
       })
       .on('submit', (url, target)=> {
-        Browser._debug(`Submit form to ${url}`);
+        Browser._debug('Submit form to %s', url);
       })
       .on('error', (error)=> {
         this.errors.push(error);
-        Browser._debug(error.message, error.stack);
+        Browser._debug(error.stack);
       })
       .on('done', (timedOut)=> {
         if (timedOut)
