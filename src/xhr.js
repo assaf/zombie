@@ -156,10 +156,15 @@ class XMLHttpRequest extends DOM.EventTarget {
       if (error) {
         this._stateChanged(XMLHttpRequest.DONE);
         this._fire('progress');
-        if (error.code === 'ETIMEDOUT')
-          this._fire('timeout', new DOM.DOMException(DOM.TIMEOUT_ERR, 'The request timed out'));
-        else
-          this._fire('error', new DOM.DOMException(DOM.NETWORK_ERR, error.message));
+        if (error.code === 'ETIMEDOUT') {
+          const timeoutError = new DOM.DOMException(DOM.TIMEOUT_ERR, 'The request timed out');
+          this._window.browser.errors.push(timeoutError);
+          this._fire('timeout', timeoutError);
+        } else {
+          const networkError = new DOM.DOMException(DOM.NETWORK_ERR, error.message);
+          this._window.browser.errors.push(networkError);
+          this._fire('error', networkError);
+        }
         this._fire('loadend');
         return;
       }
@@ -169,6 +174,7 @@ class XMLHttpRequest extends DOM.EventTarget {
         const allowedOrigin = response.headers['access-control-allow-origin'];
         if (!(allowedOrigin === '*' || allowedOrigin === this._cors)) {
           const corsError = new DOM.DOMException(DOM.SECURITY_ERR, 'Cannot make request to different domain');
+          this._window.browser.errors.push(corsError);
           this._stateChanged(XMLHttpRequest.DONE);
           this._fire('progress');
           this._fire('error', corsError);

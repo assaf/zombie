@@ -316,6 +316,7 @@ function setupWindow(window, args) {
 
   // Constructor for XHLHttpRequest
   window.XMLHttpRequest = ()=> new XMLHttpRequest(window);
+  window.Fetch = ()=> new Fetch(window);
 
   // Web sockets
   window.WebSocket = function(url, protocol) {

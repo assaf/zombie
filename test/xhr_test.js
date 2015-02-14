@@ -312,6 +312,10 @@ describe('XMLHttpRequest', function() {
         }
         assert(false, 'Error not propagated to window');
       });
+
+      it('should capture error', function() {
+        assert.equal(browser.errors[0], 'DOMException: undefined: Cannot make request to different domain');
+      });
     });
 
     describe('access to *', function() {
@@ -454,7 +458,6 @@ describe('XMLHttpRequest', function() {
       assert(browser.document.readyStatesReceived[1][0] <=
              browser.document.readyStatesReceived[4][0]);
     });
-
   });
 
 
@@ -511,6 +514,10 @@ describe('XMLHttpRequest', function() {
     it('should get the readyStateChanges in chronological order', function() {
       assert(browser.document.readyStatesReceived[1][0] <=
              browser.document.readyStatesReceived[4][0]);
+    });
+
+    it('should capture error', function() {
+      assert.equal(browser.errors[0], 'DOMException: undefined: socket hang up');
     });
 
   });
