@@ -430,13 +430,7 @@ describe('XMLHttpRequest', function() {
       brains.post('/xhr/server-error', function(req, res) {
         res.sendStatus(500);
       });
-      return browser.visit('/xhr/server-error')
-        .catch(function(error) {
-          assert.equal(error.message, 'Server returned status code 500 from http://example.com/xhr/onreadystatechange-error');
-        })
-        .then(function () {
-          return browser.wait();
-        });
+      return browser.visit('/xhr/server-error');
     });
 
     it('should not trigger onerror event handler', function() {
@@ -487,13 +481,7 @@ describe('XMLHttpRequest', function() {
       brains.post('/xhr/connection-error', function(req, res) {
         res.destroy();
       });
-      return browser.visit('/xhr/connection-error')
-        .catch(function(error) {
-          assert.equal(error.message, 'Server returned status code 500 from http://example.com/xhr/onreadystatechange-error');
-        })
-        .then(function () {
-          return browser.wait();
-        });
+      return browser.visit('/xhr/connection-error');
     });
 
     it('should trigger onerror event handler', function() {
@@ -501,7 +489,7 @@ describe('XMLHttpRequest', function() {
     });
 
     it('should have no responseText', function() {
-      assert.equal(browser.document.responseText[4], '');
+      assert.equal(browser.document.responseText[4], null);
     });
 
     it('should get exactly one readyState of type 1 and 4', function() {
@@ -525,7 +513,7 @@ describe('XMLHttpRequest', function() {
 
   describe('abort', function() {
     before(function() {
-      brains.static('/xhr/abort-onreadystatechange', `
+      brains.static('/xhr/abort', `
         <html>
           <head></head>
           <body>
@@ -535,14 +523,21 @@ describe('XMLHttpRequest', function() {
               xhr.onreadystatechange = function(){
                 document.readyStatesReceived[xhr.readyState].push(Date.now())
               };
-              xhr.open('GET', '/xhr/onreadystatechange', true);
+              xhr.open('POST', '/xhr/onreadystatechange', true);
               xhr.send();
-              xhr.abort();
+              setImmediate(function() {
+                xhr.abort();
+              });
             </script>
           </body>
         </html>`);
+      brains.post('/xhr/connection-error', function(req, res) {
+        setImmediate(function() {
+          res.sendStatus(200);
+        });
+      });
       brains.static('/xhr/onreadystatechange', 'foo');
-      return browser.visit('/xhr/abort-onreadystatechange');
+      return browser.visit('/xhr/abort');
     });
 
     it('should get exactly one readyState of type 1, and 4', function() {

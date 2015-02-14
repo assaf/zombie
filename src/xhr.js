@@ -2,8 +2,8 @@
 // See http://www.w3.org/TR/XMLHttpRequest/#the-abort()-method
 
 
-const DOM   = require('./dom');
-const URL   = require('url');
+const DOM = require('./dom');
+const URL = require('url');
 
 
 class XMLHttpRequest extends DOM.EventTarget {
@@ -13,15 +13,10 @@ class XMLHttpRequest extends DOM.EventTarget {
     // Pending request
     this._pending     = null;
     // Response headers
-    this._responseHeaders = null;
     this.readyState   = XMLHttpRequest.UNSENT;
 
     this.onreadystatechange = null;
     this.timeout      = 0;
-    this.status       = null;
-    this.statusText   = null;
-    this.responseText = null;
-    this.responseXML  = null;
 
     // XHR events need the first to dispatch, the second to propagate up to window
     this._ownerDocument = window.document;
@@ -39,35 +34,6 @@ class XMLHttpRequest extends DOM.EventTarget {
 
     // Tell any pending request it has been aborted.
     request.aborted = true;
-  }
-
-
-  // Returns all the response headers as a string, or null if no response has
-  // been received. Note: For multipart requests, this returns the headers from
-  // the current part of the request, not from the original channel.
-  getAllResponseHeaders(header) {
-    if (this._responseHeaders) {
-      // XHR's getAllResponseHeaders, against all reason, returns a multi-line
-      // string.  See http://www.w3.org/TR/XMLHttpRequest/#the-getallresponseheaders-method
-      const headerStrings = [];
-      for (let name in this._responseHeaders) {
-        let value = this._responseHeaders[name];
-        headerStrings.push(`${name}: ${value}`);
-      }
-      return headerStrings.join('\n');
-    } else
-      return null;
-  }
-
-
-  // Returns the string containing the text of the specified header, or null if
-  // either the response has not yet been received or the header doesn't exist in
-  // the response.
-  getResponseHeader(header) {
-    if (this._responseHeaders)
-      return this._responseHeaders[header.toLowerCase()];
-    else
-      return null;
   }
 
 
@@ -110,16 +76,25 @@ class XMLHttpRequest extends DOM.EventTarget {
     if (user)
       url.auth = `${user}:${password}`;
 
-    // Reset all the response fields.
-    this.status       = null;
-    this.statusText   = null;
-    this.responseText = null;
-    this.responseXML  = null;
+    // Reset response status
+    this._response = null;  
+    this._error    = null;  
 
     const request = { method, headers, url: URL.format(url) };
     this._pending = request;
     this._stateChanged(XMLHttpRequest.OPENED);
   }
+
+
+  // Sets the value of an HTTP request header.You must call setRequestHeader()
+  // after open(), but before send().
+  setRequestHeader(header, value) {
+    if (this.readyState !== XMLHttpRequest.OPENED)
+      throw new DOM.DOMException(DOM.INVALID_STATE_ERR,  'Invalid state');
+    const request = this._pending;
+    request.headers[header.toString().toLowerCase()] = value.toString();
+  }
+
 
   // Sends the request. If the request is asynchronous (which is the default),
   // this method returns as soon as the request is sent. If the request is
@@ -141,15 +116,12 @@ class XMLHttpRequest extends DOM.EventTarget {
       if (this._pending === request)
         this._pending = null;
 
-      // If aborting or error
-      this.status       = 0;
-      this.responseText = '';
-
       // Request aborted
       if (request.aborted) {
         this._stateChanged(XMLHttpRequest.DONE);
         this._fire('progress');
-        this._fire('abort', new DOM.DOMException(DOM.ABORT_ERR, 'Request aborted'));
+        this._error = new DOM.DOMException(DOM.ABORT_ERR, 'Request aborted');
+        this._fire('abort', this._error);
         return;
       }
 
@@ -157,15 +129,14 @@ class XMLHttpRequest extends DOM.EventTarget {
         this._stateChanged(XMLHttpRequest.DONE);
         this._fire('progress');
         if (error.code === 'ETIMEDOUT') {
-          const timeoutError = new DOM.DOMException(DOM.TIMEOUT_ERR, 'The request timed out');
-          this._window.browser.errors.push(timeoutError);
-          this._fire('timeout', timeoutError);
+          this._error = new DOM.DOMException(DOM.TIMEOUT_ERR, 'The request timed out');
+          this._fire('timeout', this._error);
         } else {
-          const networkError = new DOM.DOMException(DOM.NETWORK_ERR, error.message);
-          this._window.browser.errors.push(networkError);
-          this._fire('error', networkError);
+          this._error = new DOM.DOMException(DOM.NETWORK_ERR, error.message);
+          this._fire('error', this._error);
         }
         this._fire('loadend');
+        this._window.browser.errors.push(this._error);
         return;
       }
 
@@ -173,28 +144,23 @@ class XMLHttpRequest extends DOM.EventTarget {
       if (this._cors) {
         const allowedOrigin = response.headers['access-control-allow-origin'];
         if (!(allowedOrigin === '*' || allowedOrigin === this._cors)) {
-          const corsError = new DOM.DOMException(DOM.SECURITY_ERR, 'Cannot make request to different domain');
-          this._window.browser.errors.push(corsError);
+          this._error = new DOM.DOMException(DOM.SECURITY_ERR, 'Cannot make request to different domain');
+          this._window.browser.errors.push(this._error);
           this._stateChanged(XMLHttpRequest.DONE);
           this._fire('progress');
-          this._fire('error', corsError);
+          this._fire('error', this._error);
           this._fire('loadend');
-          this.raise('error', corsError.message, { exception: corsError });
+          this.raise('error', this._error.message, { exception: this._error });
           return;
         }
       }
 
-      // Since the request was not aborted, we set all the fields here and change
-      // the state to HEADERS_RECEIVED.
-      this.status           = response.statusCode;
-      this.statusText       = response.statusText;
-      this._responseHeaders = response.headers;
+      // Store the response so getters have acess access it
+      this._response        = response;
+      // We have a one-stop implementation that goes through all the state
+      // transitions
       this._stateChanged(XMLHttpRequest.HEADERS_RECEIVED);
-
-      this.responseText = response.body ? response.body.toString() : '';
       this._stateChanged(XMLHttpRequest.LOADING);
-
-      this.responseXML = null;
       this._stateChanged(XMLHttpRequest.DONE);
 
       this._fire('progress');
@@ -206,13 +172,54 @@ class XMLHttpRequest extends DOM.EventTarget {
   }
 
 
-  // Sets the value of an HTTP request header.You must call setRequestHeader()
-  // after open(), but before send().
-  setRequestHeader(header, value) {
-    if (this.readyState !== XMLHttpRequest.OPENED)
-      throw new DOM.DOMException(DOM.INVALID_STATE_ERR,  'Invalid state');
-    const request = this._pending;
-    request.headers[header.toString().toLowerCase()] = value.toString();
+  get status() {
+    // Status code/headers available immediatly, 0 if request errored
+    return this._response ? this._response.statusCode :
+           this._error    ? 0 : null;
+  }
+
+  get statusText() {
+    // Status code/headers available immediatly, '' if request errored
+    return this._response ? this._response.statusText :
+           this._error    ? '' : null;
+  }
+
+  get responseText() {
+    // Response body available only after LOADING event, check for response
+    // since DONE event triggered in all cases
+    const hasBody = (this._response && this.readyState >= XMLHttpRequest.LOADING);
+    if (hasBody) {
+      const body = this._response.body;
+      return Buffer.isBuffer(body) ? body.toString() : body;
+    } else
+      return null;
+  }
+
+  get responseXML() {
+    // Not implemented yet
+    return null;
+  }
+
+  getResponseHeader(name) {
+    // Returns the string containing the text of the specified header, or null if
+    // either the response has not yet been received or the header doesn't exist in
+    // the response.
+    return this._response && this._response.headers[name.toLowerCase()] || null;
+  }
+
+  getAllResponseHeaders(header) {
+    // Returns all the response headers as a string, or null if no response has
+    // been received. Note: For multipart requests, this returns the headers from
+    // the current part of the request, not from the original channel.
+    if (this._response) {
+      // XHR's getAllResponseHeaders, against all reason, returns a multi-line
+      // string.  See http://www.w3.org/TR/XMLHttpRequest/#the-getallresponseheaders-method
+      return Object.keys(this._response.headers)
+        .map(name => [name.toLowerCase(), this._response.headers[name]] )
+        .map(pair => pair.join(': ') )
+        .join('\n');
+    } else
+      return null;
   }
 
 
