@@ -246,6 +246,37 @@ class Screen {
 }
 
 
+// DOM implementation of URL class
+class DOMURL {
+
+  constructor(url, base) {
+    assert(url != null, new DOM.DOMException('Failed to construct \'URL\': Invalid URL'));
+    if (base)
+      url = URL.resolve(base, url);
+    const parsed = URL.parse(url || 'about:blank');
+    const origin = parsed.protocol && parsed.hostname && `${parsed.protocol}//${parsed.hostname}`;
+    Object.defineProperties(this, {
+      hash:     { value: parsed.hash,         enumerable: true },
+      host:     { value: parsed.host,         enumerable: true },
+      hostname: { value: parsed.hostname,     enumerable: true },
+      href:     { value: URL.format(parsed),  enumerable: true },
+      origin:   { value: origin,              enumerable: true },
+      password: { value: parsed.password,     enumerable: true },
+      pathname: { value: parsed.pathname,     enumerable: true },
+      port:     { value: parsed.port,         enumerable: true },
+      protocol: { value: parsed.protocol,     enumerable: true  },
+      search:   { value: parsed.search,       enumerable: true },
+      username: { value: parsed.username,     enumerable: true }
+    });
+  }
+
+  toString() {
+    return this.href;
+  }
+
+}
+
+
 function setupWindow(window, args) {
   const { document }          = window;
   const global                = window.getGlobal();
@@ -316,7 +347,7 @@ function setupWindow(window, args) {
 
   // Constructor for XHLHttpRequest
   window.XMLHttpRequest = ()=> new XMLHttpRequest(window);
-  window.Fetch = ()=> new Fetch(window);
+  window.URL = DOMURL;
 
   // Web sockets
   window.WebSocket = function(url, protocol) {

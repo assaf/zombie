@@ -1,4 +1,8 @@
-## Version 3.0.2 2015-02-14
+## Version 3.0.3 2015-02-14
+
+ADDED DOM URL class
+
+ADDED XHR events emitted to browser
 
 REMOVED browser.fork no longer supported
 
