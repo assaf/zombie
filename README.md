@@ -201,7 +201,7 @@ shortcut for making these three changes:
   to 127.0.0.1 (see [DNS Masking](#dnsmasking))
 - `Browser.ports.map(hostname, port)` will redirect any HTTP request to hostname
   from port 80 to the designated port (see [Port Mapping](#portmapping))
-- `Browser.default.size = hostname` will add the hostname to any relative URL
+- `Browser.default.site = hostname` will add the hostname to any relative URL
   (e.g. when using `browser.visit`)
 
 
@@ -1118,7 +1118,7 @@ example:
 
 ```
 Browser.dns.localhost('*.example.com');
-Browser.defaults.site = 'http://example.com:3000';
+Browser.default.site = 'http://example.com:3000';
 
 browser = Browser.create();
 browser.visit('/here', function(error, browser) {
