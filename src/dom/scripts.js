@@ -1,6 +1,6 @@
 // For handling JavaScript, mostly improvements to JSDOM
 
-const DOM = require('./dom');
+const DOM = require('./index');
 
 
 // -- Patches to JSDOM --

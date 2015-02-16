@@ -1,8 +1,7 @@
 // Support for iframes.
 
 
-const createHistory = require('./history');
-const DOM           = require('./dom');
+const DOM = require('./index');
 
 
 // Support for iframes that load content when you set the src attribute.
@@ -31,6 +30,7 @@ DOM.HTMLFrameElement._init = function() {
 
   // URL created on the fly, or when src attribute set
   function createWindow() {
+    const createHistory = require('../history');
     // Need to bypass JSDOM's window/document creation and use ours
     const open = createHistory(parentWindow.browser, function(active) {
       // Change the focus from window to active.

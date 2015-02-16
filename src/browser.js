@@ -131,7 +131,7 @@ class Browser extends EventEmitter {
         if (this.silent)
           debug(`>> ${message}`);
         else
-          console.log(message);
+          process.stdout.write(message + '\n');
       })
       .on('log', (...args)=> {
         // Message written to browser.log.
@@ -1280,6 +1280,99 @@ class Browser extends EventEmitter {
       process.stdout.write('No document\n');
   }
 
+  // ### zombie.visit(url, callback)
+  // ### zombie.visit(url, options? callback)
+  //
+  // Creates a new Browser, opens window to the URL and calls the callback when
+  // done processing all events.
+  //
+  // * url -- URL of page to open
+  // * callback -- Called with error, browser
+  static visit(url, options, callback) {
+    if (arguments.length === 2 && typeof(options) === 'function')
+      [options, callback] = [null, options];
+    const browser = new Browser(options);
+    if (callback)
+      browser.visit(url, (error)=> callback(error, browser));
+    else
+      return browser.visit(url).then(()=> browser);
+  },
+
+  // Use this function to create a new Browser instance.
+  static create(options) {
+    return new Browser(options);
+  }
+
+  // Enable debugging.  You can do this in code instead of setting DEBUG environment variable.
+  static debug() {
+    debug.enable('zombie');
+    this._debug = debug('zombie');
+  }
+
+  // Allows you to masquerade CNAME, A (IPv4) and AAAA (IPv6) addresses.  For
+  // example:
+  //   Brower.dns.localhost('example.com')
+  //
+  // This is a shortcut for:
+  //   Brower.dns.map('example.com', '127.0.0.1)
+  //   Brower.dns.map('example.com', '::1')
+  //
+  // See also Browser.localhost.
+  static get dns() {
+    if (!this._dns)
+      this._dns = new DNSMask();
+    return this._dns;
+  }
+
+  // Allows you to make request against port 80, route them to test server running
+  // on less privileged port.
+  //
+  // For example, if your application is listening on port 3000, you can do:
+  //   Browser.ports.map('localhost', '3000')
+  //
+  // Or in combination with DNS mask:
+  //   Brower.dns.map('example.com', '127.0.0.1)
+  //   Browser.ports.map('example.com', '3000')
+  //
+  // See also Browser.localhost.
+  static get ports() {
+    if (!this._ports)
+      this._ports = new PortMap();
+    return this._ports;
+  }
+
+  // Allows you to make requests against a named domain and port 80, route them to
+  // the test server running on localhost and less privileged port.
+  //
+  // For example, say your test server is running on port 3000, you can do:
+  //   Browser.localhost('example.com', 3000)
+  //
+  // You can now visit http://example.com and it will be handled by the server
+  // running on port 3000.  In fact, you can just write:
+  //   browser.visit('/path', function() {
+  //     assert(broswer.location.href == 'http://example.com/path');
+  //   });
+  //
+  // This is equivalent to DNS masking the hostname as 127.0.0.1 (see
+  // Browser.dns), mapping port 80 to the specified port (see Browser.ports) and
+  // setting Browser.default.site to the hostname.
+  static localhost(hostname, port) {
+    this.dns.localhost(hostname);
+    this.ports.map(hostname, port);
+    if (!this.default.site)
+      this.default.site = hostname.replace(/^\*\./, '');
+  }
+
+
+  // Register a browser extension.
+  //
+  // Browser extensions are called for each newly created browser object, and
+  // can be used to change browser options, register listeners, add methods,
+  // etc.
+  static extend(extension) {
+    this._extensions.push(extension);
+  }
+
 }
 
 
@@ -1329,84 +1422,12 @@ Object.assign(Browser, {
     runScripts: true
   },
 
+  Assert,
+  Resources,
 
-  // Use this function to create a new Browser instance.
-  create(options) {
-    return new Browser(options);
-  },
 
   // Debug instance.  Create new instance when enabling debugging with Zombie.debug
   _debug: debug('zombie'),
-
-  // Enable debugging.  You can do this in code instead of setting DEBUG environment variable.
-  debug() {
-    debug.enable('zombie');
-    this._debug = debug('zombie');
-  },
-
-  // Allows you to masquerade CNAME, A (IPv4) and AAAA (IPv6) addresses.  For
-  // example:
-  //   Brower.dns.localhost('example.com')
-  //
-  // This is a shortcut for:
-  //   Brower.dns.map('example.com', '127.0.0.1)
-  //   Brower.dns.map('example.com', '::1')
-  //
-  // See also Browser.localhost.
-  get dns() {
-    if (!this._dns)
-      this._dns = new DNSMask();
-    return this._dns;
-  },
-
-  // Allows you to make request against port 80, route them to test server running
-  // on less privileged port.
-  //
-  // For example, if your application is listening on port 3000, you can do:
-  //   Browser.ports.map('localhost', '3000')
-  //
-  // Or in combination with DNS mask:
-  //   Brower.dns.map('example.com', '127.0.0.1)
-  //   Browser.ports.map('example.com', '3000')
-  //
-  // See also Browser.localhost.
-  get ports() {
-    if (!this._ports)
-      this._ports = new PortMap();
-    return this._ports;
-  },
-
-  // Allows you to make requests against a named domain and port 80, route them to
-  // the test server running on localhost and less privileged port.
-  //
-  // For example, say your test server is running on port 3000, you can do:
-  //   Browser.localhost('example.com', 3000)
-  //
-  // You can now visit http://example.com and it will be handled by the server
-  // running on port 3000.  In fact, you can just write:
-  //   browser.visit('/path', function() {
-  //     assert(broswer.location.href == 'http://example.com/path');
-  //   });
-  //
-  // This is equivalent to DNS masking the hostname as 127.0.0.1 (see
-  // Browser.dns), mapping port 80 to the specified port (see Browser.ports) and
-  // setting Browser.default.site to the hostname.
-  localhost(hostname, port) {
-    this.dns.localhost(hostname);
-    this.ports.map(hostname, port);
-    if (!this.default.site)
-      this.default.site = hostname.replace(/^\*\./, '');
-  },
-
-
-  // Register a browser extension.
-  //
-  // Browser extensions are called for each newly created browser object, and
-  // can be used to change browser options, register listeners, add methods,
-  // etc.
-  extend(extension) {
-    this._extensions.push(extension);
-  },
 
   _extensions: []
 

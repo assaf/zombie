@@ -1,7 +1,7 @@
 // Fix things that JSDOM doesn't do quite right.
 
 
-const DOM  = require('./dom');
+const DOM  = require('./index');
 
 
 DOM.HTMLDocument.prototype.__defineGetter__('scripts', function() {
@@ -10,7 +10,8 @@ DOM.HTMLDocument.prototype.__defineGetter__('scripts', function() {
 
 
 // Default behavior for clicking on links: navigate to new URL if specified.
-DOM.HTMLAnchorElement.prototype._eventDefaults = {};
+DOM.HTMLAnchorElement.prototype._eventDefaults =
+  Object.assign({}, DOM.HTMLElement.prototype._eventDefaults);
 DOM.HTMLAnchorElement.prototype._eventDefaults.click = function(event) {
   const anchor = event.target;
   if (!anchor.href)

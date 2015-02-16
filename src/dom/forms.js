@@ -1,5 +1,5 @@
 // Patches to JSDOM for properly handling forms.
-const DOM   = require('./dom');
+const DOM   = require('./index');
 const File  = require('fs');
 const Mime  = require('mime');
 const Path  = require('path');
@@ -120,7 +120,8 @@ DOM.HTMLFormElement.prototype._eventDefaults.submit = function(event) {
 // -------
 
 // Default behavior for clicking on inputs.
-DOM.HTMLInputElement.prototype._eventDefaults = {};
+DOM.HTMLInputElement.prototype._eventDefaults =
+  Object.assign({}, DOM.HTMLElement.prototype._eventDefaults)
 DOM.HTMLInputElement.prototype._eventDefaults.click = function(event) {
   const input = event.target;
 

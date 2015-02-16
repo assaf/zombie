@@ -1,7 +1,7 @@
 // Support for element focus.
 
 
-const DOM = require('./dom');
+const DOM = require('./index');
 
 
 const FOCUS_ELEMENTS = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'ANCHOR'];

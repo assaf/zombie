@@ -18,9 +18,9 @@ DOM.exceptionMessages[DOM.TIMEOUT_ERR]  = 'Timeout';
 
 
 // Monkey patching JSDOM.  This is why we can't have nice things.
-require('./jsdom_patches');
+require('./focus');
+require('./iframe');
 require('./forms');
-require('./dom_focus');
-require('./dom_iframe');
+require('./jsdom_patches');
 require('./scripts');
 
