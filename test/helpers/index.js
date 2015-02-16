@@ -4,12 +4,7 @@ const Replay    = require('replay');
 const Browser   = require('../../src');
 
 
-// Always run in verbose mode on Travis.
-if (process.env.CI)
-  Browser.debug();
-Browser.default.silent = true;
-
-
+Browser.default.silent = false;
 // Tests visit example.com, server is localhost port 3003
 Browser.localhost('*.example.com', 3003);
 

@@ -9,3 +9,4 @@ babel({
 
 // Long stack traces when running this test suite
 Bluebird.longStackTraces();
+
