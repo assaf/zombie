@@ -6,7 +6,7 @@ const gulp        = require('gulp');
 const gutil       = require('gulp-util');
 const notify      = require('gulp-notify');
 const sourcemaps  = require("gulp-sourcemaps");
-const to5         = require('gulp-6to5');
+const babel       = require('gulp-babel');
 
 
 
@@ -19,7 +19,7 @@ gulp.task('build', ['clean'], function() {
   return gulp
     .src('src/*.js')
     .pipe(sourcemaps.init())
-    .pipe(to5({
+    .pipe(babel({
       experimental: true,
       loose:        'all',
       optional:     [ 'selfContained' ]

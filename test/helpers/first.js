@@ -1,8 +1,8 @@
 const Bluebird  = require('bluebird');
-const to5       = require('6to5/register');
+const babel     = require('babel/register');
 
 
-to5({
+babel({
   experimental: true,
   loose:        'all'
 });
