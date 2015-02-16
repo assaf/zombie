@@ -16,11 +16,8 @@
 // `enqueue`, `http`, `dispatch` and the timeout/interval methods.
 
 
-const Domain            = require('domain');
 const { EventEmitter }  = require('events');
 const ms                = require('ms');
-const { Promise }       = require('bluebird');
-const Lazybird          = require('lazybird');
 
 
 // Wrapper for a timeout (setTimeout)
@@ -391,65 +388,59 @@ module.exports = class EventLoop extends EventEmitter {
   // during page navigation or form submission) and how long until the next
   // event, and returns true to stop waiting, any other value to continue
   // processing events.
-  wait(waitDuration, completionFunction) {
+  wait(waitDuration, completionFunction, callback) {
     // Don't wait longer than duration
     waitDuration = ms(waitDuration.toString()) || this.browser.waitDuration;
     const timeoutOn = Date.now() + waitDuration;
     const eventLoop = this;
 
-    const lazy = new Lazybird((resolve, reject)=> {
-      // Someone (us) just started paying attention, start processing events
-      ++eventLoop.waiting;
-      if (eventLoop.waiting === 1)
-        setImmediate(()=> eventLoop.run());
+    // Someone (us) just started paying attention, start processing events
+    ++eventLoop.waiting;
+    if (eventLoop.waiting === 1)
+      setImmediate(()=> eventLoop.run());
 
-      const timer = global.setTimeout(resolve, waitDuration);
+    const timer = setTimeout(done, waitDuration);
 
-      function ontick(next) {
-        if (next >= timeoutOn) {
-          // Next event too long in the future, or no events in queue
-          // (Infinity), no point in waiting
-          done();
-          return;
-        }
+    function ontick(next) {
+      if (next >= timeoutOn) {
+        // Next event too long in the future, or no events in queue
+        // (Infinity), no point in waiting
+        done();
+        return;
+      }
 
-        const activeWindow = eventLoop.active;
-        if (completionFunction && activeWindow.document.documentElement) {
-          try {
-            const waitFor = Math.max(next - Date.now(), 0);
-            // Event processed, are we ready to complete?
-            const completed = completionFunction(activeWindow, waitFor);
-            if (completed)
-              done();
-          } catch (error) {
-            done(error);
-          }
+      const activeWindow = eventLoop.active;
+      if (completionFunction && activeWindow.document.documentElement) {
+        try {
+          const waitFor = Math.max(next - Date.now(), 0);
+          // Event processed, are we ready to complete?
+          const completed = completionFunction(activeWindow, waitFor);
+          if (completed)
+            done();
+        } catch (error) {
+          done(error);
         }
       }
-      eventLoop.on('tick', ontick);
+    }
+    eventLoop.on('tick', ontick);
 
-      eventLoop.once('done', done);
-      // Don't wait if browser encounters an error (event loop errors also
-      // propagate to browser)
-      eventLoop.browser.once('error', done);
-        
-      function done(error) {
-        clearInterval(timer);
-        eventLoop.removeListener('tick', ontick);
-        eventLoop.removeListener('done', done);
-        eventLoop.browser.removeListener('error', done);
+    eventLoop.once('done', done);
+    // Don't wait if browser encounters an error (event loop errors also
+    // propagate to browser)
+    eventLoop.browser.once('error', done);
+      
+    function done(error) {
+      clearTimeout(timer);
+      eventLoop.removeListener('tick', ontick);
+      eventLoop.removeListener('done', done);
+      eventLoop.browser.removeListener('error', done);
 
-        if (error)
-          reject(error);
-        else
-          resolve();
+      --eventLoop.waiting;
+      if (eventLoop.waiting === 0)
+        eventLoop.browser.emit('done');
 
-        --eventLoop.waiting;
-        if (eventLoop.waiting === 0)
-          eventLoop.browser.emit('done');
-      }
-    });
-    return lazy;
+      callback(error);
+    }
   }
 
 

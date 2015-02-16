@@ -21,6 +21,8 @@ CHANGED browser.referer -> browser.referrer
 
 CHANGED upgraded to JSDOM 3.1, added Node 0.12 and io.js support
 
+CHANGED browser.wait() runs event loop so you can catch done/error events
+
 FIXED XHR errors no longer stop the event loop
 
  695 passing (23s)

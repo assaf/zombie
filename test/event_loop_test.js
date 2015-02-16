@@ -412,22 +412,6 @@ describe('EventLoop', function() {
       });
     });
 
-    describe('with no callback/then', function() {
-      before(function() {
-        return browser.visit('/eventloop/wait');
-      });
-
-      before(function(done) {
-        browser.evaluate(runAsynchronously);
-        browser.wait();
-        setTimeout(done, 100);
-      });
-
-      it('should not run asynchronous code', function() {
-        browser.assert.text('title', '');
-      });
-    });
-
     describe('composed promise', function() {
       before(function() {
         return browser.visit('/eventloop/wait');

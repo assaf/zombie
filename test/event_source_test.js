@@ -46,7 +46,7 @@ describe('EventSource', function() {
   });
 
   before(function(done) {
-    browser.visit('/streaming').done(done,done);
+    browser.visit('/streaming').then(done,done);
   });
 
   it('should stream to browser', async function() {

@@ -30,7 +30,7 @@ describe('Promises', function() {
   describe('error', function() {
     it('should reject with an error', function(done) {
       browser.visit('/promises/nosuch')
-        .done(function() {
+        .then(function() {
           done(new Error('Promise resolved'));
         }, function(error) {
           assert.equal(error.message, 'Server returned status code 404 from http://example.com/promises/nosuch');

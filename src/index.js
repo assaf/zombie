@@ -15,6 +15,7 @@ const Mime              = require('mime');
 const ms                = require('ms');
 const Path              = require('path');
 const { Promise }       = require('bluebird');
+const { promisify }     = require('bluebird');
 const PortMap           = require('./port_map');
 const Resources         = require('./resources');
 const Storages          = require('./storage');
@@ -297,6 +298,7 @@ class Browser extends EventEmitter {
   //
   // Without a callback, this method returns a promise.
   wait(options, callback) {
+    assert(this.window, new Error('No window open'));
     if (arguments.length === 1 && typeof(options) === 'function')
       [callback, options] = [options, null];
     assert(!callback || typeof(callback) === 'function', 'Second argument expected to be a callback function or null');
@@ -317,14 +319,12 @@ class Browser extends EventEmitter {
       };
     }
 
-    const promise = this.window ?
-      this.eventLoop.wait(waitDuration, completionFunction) :
-      Promise.reject(new Error('No window open'));
-
-    if (callback)
-      promise.done(callback, callback);
-    else
-      return promise;
+    const { eventLoop } = this;
+    if (callback) {
+      eventLoop.wait(waitDuration, completionFunction, callback);
+    } else {
+      return promisify(eventLoop.wait, eventLoop)(waitDuration, completionFunction);
+    }
   }
 
 
@@ -335,21 +335,47 @@ class Browser extends EventEmitter {
   //
   // Without a callback, this method returns a promise.
   waitForServer(options, callback) {
+    assert(this.window, new Error('No window open'));
     if (arguments.length === 1 && typeof(options) === 'function')
       [callback, options] = [options, null];
 
-    const promise = this.window ?
-      new Promise((resolve)=> {
+    if (callback) {
+      this.eventLoop.once('server', ()=> {
+        this.wait(options, callback);
+      });
+    } else {
+      return new Promise((resolve)=> {
         this.eventLoop.once('server', ()=> {
           resolve(this.wait(options, null));
         });
-      }) :
-      Promise.reject(new Error('No window open'));
+      });
+    }
+  }
 
-    if (callback)
-      promise.done(callback, callback);
-    else
-      return promise;
+
+  // Various methods use this with a callback, or return a lazy promise (e.g.
+  // visit, click, fire)
+  _wait(options, callback) {
+    if (callback) {
+      this.wait(options, callback);
+    } else {
+      let promise = null;
+      const lazyResolve = ()=> {
+        if (!promise)
+          promise = this.wait(options, null);
+        return promise;
+      };
+      // Returns equivalent of a promise that only starts evaluating when you
+      // call then() or catch() on it.
+      return {
+        then(resolved, rejected) {
+          return lazyResolve().then(resolved, rejected);
+        },
+        catch(rejected) {
+          return lazyResolve().then(null, rejected);
+        },
+      };
+    }
   }
 
 
@@ -359,15 +385,9 @@ class Browser extends EventEmitter {
   //
   // name - Even name (e.g `click`)
   // target - Target element (e.g a link)
-  // callback - Called with error or nothing, can be false (see below)
+  // callback - Called with error or nothing
   //
-  // Returns a promise
-  //
-  // In some cases you want to fire the event and wait for JS to do its thing
-  // (e.g.  click link), either with callback or promise.  In other cases,
-  // however, you want to fire the event but not wait quite yet (e.g. fill
-  // field).  Not passing callback is not enough, that just implies using
-  // promises.  Instead, pass false as the callback.
+  // If called without callback, returns a promsie
   fire(selector, eventName, callback) {
     assert(this.window, 'No window open');
     const target = this.query(selector);
@@ -377,9 +397,7 @@ class Browser extends EventEmitter {
     const event = this.document.createEvent(eventType);
     event.initEvent(eventName, true, true);
     target.dispatchEvent(event);
-    // Only run wait if intended to
-    if (callback !== false)
-      return this.wait(callback);
+    return this._wait(null, callback);
   }
 
   // Click on the element and returns a promise.
@@ -387,7 +405,7 @@ class Browser extends EventEmitter {
   // selector - Element or CSS selector
   // callback - Called with error or nothing
   //
-  // Returns a promise.
+  // If called without callback, returns a promsie
   click(selector, callback) {
     return this.fire(selector, 'click', callback);
   }
@@ -565,7 +583,7 @@ class Browser extends EventEmitter {
       this.tabs.close(this.window);
     this.errors = [];
     this.tabs.open({ url: url, referrer: this.referrer });
-    return this.wait(options, callback);
+    return this._wait(options, callback);
   }
 
 
@@ -579,7 +597,7 @@ class Browser extends EventEmitter {
       this.tabs.close(this.window);
     this.errors = [];
     this.tabs.open({ html: html });
-    return this.wait(null, callback);
+    return this._wait(null, callback);
   }
 
 
@@ -652,13 +670,13 @@ class Browser extends EventEmitter {
   // Navigate back in history.
   back(callback) {
     this.window.history.back();
-    return this.wait(callback);
+    return this._wait(null, callback);
   }
 
   // Reloads current page.
   reload(callback) {
     this.window.location.reload();
-    return this.wait(callback);
+    return this._wait(null, callback);
   }
 
   // Returns a new Credentials object for the specified host.  These

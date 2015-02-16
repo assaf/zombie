@@ -57,7 +57,7 @@ describe('WebSockets', function() {
         done();
     });
 
-    browser.visit('/websockets').done();
+    browser.visit('/websockets', ()=> null);
   });
 
 
