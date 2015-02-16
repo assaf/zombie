@@ -122,6 +122,8 @@ class Browser extends EventEmitter {
     // scope) is same as window.opener
     this._windowInScope = null;
 
+    this._debug         = Browser._debug;
+
     // Message written to window.console.  Level is log, info, error, etc.
     //
     // All output goes to stdout, except when browser.silent = true and output
@@ -129,39 +131,39 @@ class Browser extends EventEmitter {
     this
       .on('console', (level, message)=> {
         if (this.silent)
-          debug(`>> ${message}`);
+          this._debug(`>> ${message}`);
         else
           console.log(message);
       })
       .on('log', (...args)=> {
         // Message written to browser.log.
-        Browser._debug(format(...args));
+        this._debug(format(...args));
       });
 
     // Logging resources
     this
       .on('request', (request)=> request)
       .on('response', (request, response)=> {
-        Browser._debug('%s %s => %s', request.method, response.url, response.statusCode);
+        this._debug('%s %s => %s', request.method, response.url, response.statusCode);
       })
       .on('redirect', (request, response, redirectRequest)=> {
-        Browser._debug('%s %s => %s %s', request.method, request.url, response.statusCode, redirectRequest.url);
+        this._debug('%s %s => %s %s', request.method, request.url, response.statusCode, redirectRequest.url);
       })
       .on('loaded', (document)=> {
-        Browser._debug('Loaded document %s', document.location.href);
+        this._debug('Loaded document %s', document.location.href);
       })
       .on('xhr', (eventName, url)=> {
-        Browser._debug('XHR %s %s', eventName, url);
+        this._debug('XHR %s %s', eventName, url);
       });
 
 
     // Logging windows/tabs
     this
       .on('opened', (window)=> {
-        Browser._debug('Opened window %s %s', window.location.href, window.name || '');
+        this._debug('Opened window %s %s', window.location.href, window.name || '');
       })
       .on('closed', (window)=> {
-        Browser._debug('Closed window %s %s', window.location.href, window.name || '');
+        this._debug('Closed window %s %s', window.location.href, window.name || '');
       });
 
     // Window becomes inactive
@@ -196,26 +198,26 @@ class Browser extends EventEmitter {
     // reported while processing resources/JavaScript.
     this
       .on('timeout', (fn, delay)=> {
-        Browser._debug('Fired timeout after %dms delay', delay);
+        this._debug('Fired timeout after %dms delay', delay);
       })
       .on('interval', (fn, interval)=> {
-        Browser._debug('Fired interval every %dms', interval);
+        this._debug('Fired interval every %dms', interval);
       })
       .on('link', (url, target)=> {
-        Browser._debug('Follow link to %s', url);
+        this._debug('Follow link to %s', url);
       })
       .on('submit', (url, target)=> {
-        Browser._debug('Submit form to %s', url);
+        this._debug('Submit form to %s', url);
       })
       .on('error', (error)=> {
         this.errors.push(error);
-        Browser._debug(error.stack);
+        this._debug(error.stack);
       })
       .on('done', (timedOut)=> {
         if (timedOut)
-          Browser._debug('Event loop timed out');
+          this._debug('Event loop timed out');
         else
-          Browser._debug('Event loop is empty');
+          this._debug('Event loop is empty');
       });
 
 
@@ -1223,6 +1225,12 @@ class Browser extends EventEmitter {
   // Debugging
   // ---------
 
+  // Enable debugging.  You can do this in code instead of setting DEBUG environment variable.
+  debug() {
+    debug.enable('zombie');
+    this._debug = debug('zombie');
+  }
+
   get statusCode() {
     return (this.window && this.window._response) ?
       this.window._response.statusCode :
@@ -1304,12 +1312,6 @@ class Browser extends EventEmitter {
   // Use this function to create a new Browser instance.
   static create(options) {
     return new Browser(options);
-  }
-
-  // Enable debugging.  You can do this in code instead of setting DEBUG environment variable.
-  static debug() {
-    debug.enable('zombie');
-    this._debug = debug('zombie');
   }
 
   // Allows you to masquerade CNAME, A (IPv4) and AAAA (IPv6) addresses.  For

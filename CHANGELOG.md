@@ -15,6 +15,8 @@ REMOVED resources.mock/fail/delay, use Nock instead
 
 REMOVED protocol and bcat, no tests
 
+CHANGED Browser.debug -> browser.debug (per instance)
+
 CHANGED browser.referer -> browser.referrer
 
 CHANGED upgraded to JSDOM 3.1, added Node 0.12 and io.js support
