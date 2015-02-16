@@ -253,10 +253,10 @@ class EventQueue {
 
     const emit = eventSource.emit;
     eventSource.emit = (...args)=> {
-      this.eventLoop.emit('server');
       this.enqueue(()=> {
         emit.apply(eventSource, args);
       });
+      this.eventLoop.emit('server');
     };
   }
 

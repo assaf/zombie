@@ -18,9 +18,10 @@ describe('EventSource', function() {
             var source = new EventSource("/stream");
             window.events = [];
             source.addEventListener("test", function(event) {
-              if (window.events.length > 0) setTimeout(function() {
-                  window.events.push("third")
-              }, 50)
+              if (window.events.length > 0)
+                setTimeout(function() {
+                    window.events.push("third")
+                }, 50)
               window.events.push(event.data)
             });
           </script>
@@ -50,7 +51,7 @@ describe('EventSource', function() {
   });
 
   it('should stream to browser', async function() {
-    await browser.waitForServer()
+    await browser.waitForServer();
     assert.deepEqual(browser.evaluate('window.events'), ['first', 'second','third']);
   });
 

@@ -1,4 +1,4 @@
-## Version 3.0.3 2015-02-14
+## Version 3.0.4 2015-02-16
 
 ADDED DOM URL class
 
@@ -25,7 +25,7 @@ CHANGED browser.wait() runs event loop so you can catch done/error events
 
 FIXED XHR errors no longer stop the event loop
 
- 695 passing (23s)
+ 694 passing (25s)
   12 pending
 
 

@@ -4,7 +4,7 @@ const Replay    = require('replay');
 const Browser   = require('../../src');
 
 
-Browser.default.silent = false;
+Browser.default.silent = true;
 // Tests visit example.com, server is localhost port 3003
 Browser.localhost('*.example.com', 3003);
 
