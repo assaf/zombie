@@ -41,57 +41,6 @@ const DEFAULT_FEATURES  = 'scripts no-css no-img iframe';
 const MOUSE_EVENT_NAMES = ['mousedown', 'mousemove', 'mouseup'];
 
 
-// Represents credentials for a given host.
-class Credentials {
-
-  // Apply security credentials to the outgoing request headers.
-  apply(headers) {
-    switch (this.scheme) {
-      case 'basic': {
-        const base64 = new Buffer(`${this.user}:${this.password}`).toString('base64');
-        headers.authorization = `Basic ${base64}`;
-        break;
-      }
-      case 'bearer': {
-        headers.authorization = `Bearer ${this.token}`;
-        break;
-      }
-      case 'oauth': {
-        headers.authorization = `OAuth ${this.token}`;
-        break;
-      }
-    }
-  }
-
-  // Use HTTP Basic authentication.  Requires two arguments, username and password.
-  basic(user, password) {
-    this.scheme   = 'basic';
-    this.user     =  user;
-    this.password = password;
-  }
-
-  // Use OAuth 2.0 Bearer (recent drafts).  Requires one argument, the access token.
-  bearer(token) {
-    this.scheme = 'bearer';
-    this.token  = token;
-  }
-
-  // Use OAuth 2.0 (early drafts).  Requires one argument, the access token.
-  oauth(token) {
-    this.scheme = 'oauth';
-    this.token  = token;
-  }
-
-  // Reset these credentials.
-  reset() {
-    delete this.scheme;
-    delete this.token;
-    delete this.user;
-    delete this.password;
-  }
-}
-
-
 // Use the browser to open up new windows and load documents.
 //
 // The browser maintains state for cookies and local storage.
@@ -675,29 +624,6 @@ class Browser extends EventEmitter {
   reload(callback) {
     this.window.location.reload();
     return this._wait(null, callback);
-  }
-
-  // Returns a new Credentials object for the specified host.  These
-  // authentication credentials will only apply when making requests to that
-  // particular host (hostname:port).
-  //
-  // You can also set default credentials by using the host '*'.
-  //
-  // If you need to get the credentials without setting them, call with true as
-  // the second argument.
-  authenticate(host, create = true) {
-    host = host || '*';
-    let credentials = this._credentials && this._credentials[host];
-    if (!credentials) {
-      if (create) {
-        credentials = new Credentials();
-        if (!this._credentials)
-          this._credentials = {};
-        this._credentials[host] = credentials;
-      } else
-        credentials = this.authenticate();
-    }
-    return credentials;
   }
 
 

@@ -25,87 +25,40 @@ describe('Authentication', function() {
     });
 
     describe('without credentials', function() {
-      it('should return status code 401', async function() {
-        try {
-          await browser.visit('/auth/basic');
-          assert(false, 'browser.visit should have failed');
-        } catch (error) {
-          browser.assert.status(401);
-        }
-        return;
+      before(async function() {
+        await browser.visit('/auth/basic').catch(()=> null);
+      });
+
+      it('should return status code 401', function() {
+        browser.assert.status(401);
       });
     });
 
     describe('with invalid credentials', function() {
-      it('should return status code 401', async function() {
-        try {
-          browser.authenticate('example.com').basic('username', 'wrong');
-          await browser.visit('/auth/basic');
-          assert(false, 'browser.visit should have failed');
-        } catch (error) {
-          browser.assert.status(401);
-        }
-        return;
+      before(async function() {
+        browser.on('authenticate', function(authentication) {
+          authentication.username = 'username';
+          authentication.password = 'wrong';
+        });
+        await browser.visit('/auth/basic').catch(()=> null);
+      });
+
+      it('should return status code 401', function() {
+        browser.assert.status(401);
       });
     });
 
     describe('with valid credentials', function() {
-      it('should have the authentication header', async function() {
-        browser.authenticate('example.com').basic('username', 'pass123');
+      before(async function() {
+        browser.on('authenticate', function(authentication) {
+          authentication.username = 'username';
+          authentication.password = 'pass123';
+        });
         await browser.visit('/auth/basic');
+      });
+
+      it('should have the authentication header', function() {
         browser.assert.text('body', 'Basic dXNlcm5hbWU6cGFzczEyMw==');
-        return;
-      });
-    });
-
-  });
-
-
-  describe('OAuth bearer', function() {
-    before(function() {
-      brains.get('/auth/oauth2', function(req, res) {
-        const auth = req.headers.authorization;
-        if (auth) {
-          if (auth == 'Bearer 12345')
-            res.send(`<html><body>${req.headers.authorization}</body></html>`);
-          else
-            res.status(401).send('Invalid token');
-        } else
-          res.status(401).send('Missing token');
-      });
-    });
-
-    describe('without credentials', function() {
-      it('should return status code 401', async function() {
-        try {
-          await browser.visit('/auth/oauth2');
-          assert(false, 'browser.visit should have failed');
-        } catch (error) {
-          browser.assert.status(401);
-        }
-        return;
-      });
-    });
-
-    describe('with invalid credentials', function() {
-      it('should return status code 401', async function() {
-        try {
-          browser.authenticate('example.com').bearer('wrong');
-          await browser.visit('/auth/oauth2');
-          assert(false, 'browser.visit should have failed');
-        } catch (error) {
-          browser.assert.status(401);
-        }
-        return;
-      });
-    });
-
-    describe('with valid credentials', function() {
-      it('should have the authentication header', async function() {
-        browser.authenticate('example.com').bearer('12345');
-        await browser.visit('/auth/oauth2');
-        browser.assert.text('body', 'Bearer 12345');
-        return;
       });
     });
 
@@ -139,11 +92,17 @@ describe('Authentication', function() {
       });
     });
 
-    it('should download the script', async function() {
-      browser.authenticate('example.com').basic('username', 'pass123');
+    before(async function() {
+      browser.on('authenticate', function(authentication) {
+        authentication.username = 'username';
+        authentication.password = 'pass123';
+      });
+
       await browser.visit('/auth/script');
+    });
+
+    it('should download the script', function() {
       browser.assert.text('title', 'ZeroOne');
-      return;
     });
 
   });

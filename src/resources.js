@@ -315,10 +315,15 @@ Resources.mergeHeaders = function(request, next) {
   // Depends on URL, don't allow over-ride.
   headers.host = host;
 
-  // Apply authentication credentials
-  const credentials = this.authenticate(host, false);
-  if (credentials)
-    credentials.apply(headers);
+  // HTTP Basic authentication
+  const authenticate = { host, username: null, password: null };
+  this.emit('authenticate', authenticate);
+  const { username, password } = authenticate;
+  if (username && password) {
+    this.log(`Authenticating as ${username}:${password}`);
+    const base64 = new Buffer(`${username}:${password}`).toString('base64');
+    headers.authorization = `Basic ${base64}`;
+  }
 
   request.headers = headers;
   next();
