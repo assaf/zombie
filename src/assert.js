@@ -245,10 +245,5 @@ module.exports = class Assert {
     }
   }
 
-  // Assert that browser prompted with a given message.
-  prompted(messageShown, message) {
-    assert(this.browser.prompted(messageShown), message);
-  }
-
 };
 

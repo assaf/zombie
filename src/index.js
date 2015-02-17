@@ -10,7 +10,6 @@ const { EventEmitter }  = require('events');
 const EventLoop         = require('./eventloop');
 const { format }        = require('util');
 const File              = require('fs');
-const Interactions      = require('./interact');
 const Mime              = require('mime');
 const ms                = require('ms');
 const Path              = require('path');
@@ -116,7 +115,6 @@ class Browser extends EventEmitter {
     this.errors     = [];
 
     this._storages  = new Storages();
-    this._interact  = new Interactions(this);
 
     // The window that is currently in scope, some JS functions need this, e.g.
     // when closing a window, you need to determine whether caller (window in
@@ -1193,50 +1191,6 @@ class Browser extends EventEmitter {
     if (!this.window)
       this.open();
     return this.window._evaluate(code, filename);
-  }
-
-
-  // Interaction
-  // -----------
-
-  // browser.onalert(fn)
-  //
-  // Called by `window.alert` with the message.
-  onalert(fn) {
-    this._interact.onalert(fn);
-  }
-
-  // browser.onconfirm(question, response)
-  // browser.onconfirm(fn)
-  //
-  // The first form specifies a canned response to return when `window.confirm` is called with that question.  The second
-  // form will call the function with the question and use the respone of the first function to return a value (true or
-  // false).
-  //
-  // The response to the question can be true or false, so all canned responses are converted to either value.  If no
-  // response available, returns false.
-  onconfirm(question, response) {
-    this._interact.onconfirm(question, response);
-  }
-
-  // browser.onprompt(message, response)
-  // browser.onprompt(fn)
-  //
-  // The first form specifies a canned response to return when `window.prompt` is called with that message.  The second
-  // form will call the function with the message and default value and use the response of the first function to return
-  // a value or false.
-  //
-  // The response to a prompt can be any value (converted to a string), false to indicate the user cancelled the prompt
-  // (returning null), or nothing to have the prompt return the default value or an empty string.
-  onprompt(message, response) {
-    this._interact.onprompt(message, response);
-  }
-
-  // browser.prompted(message) => boolean
-  //
-  // Returns true if user was prompted with that message (`window.alert`, `window.confirm` or `window.prompt`)
-  prompted(message) {
-    return this._interact.prompted(message);
   }
 
 

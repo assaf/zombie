@@ -332,7 +332,6 @@ function setupWindow(window, args) {
     }
   });
   browser._storages.extend(window);
-  browser._interact.extend(window);
 
   window.File =           File;
   window.Event =          DOM.Event;
@@ -426,6 +425,36 @@ function setupWindow(window, args) {
     const eventSource = new EventSource(url);
     eventQueue.addEventSource(eventSource);
     return eventSource;
+  };
+
+
+  // -- Interaction --
+
+  window.alert = function(message) {
+    const handled = browser.emit('alert', message);
+    if (!handled)
+      browser.log('Unhandled window.alert("%s")');
+    browser.log('alert("%s")', message);
+  };
+
+  window.confirm = function(question) {
+    const event     = { question, response: true };
+    const handled   = browser.emit('confirm', event);
+    if (!handled)
+      browser.log('Unhandled window.confirm("%s")');
+    const response  = !!event.response;
+    browser.log('confirm("%s") -> %ss', question, response);
+    return response;
+  };
+
+  window.prompt = function(question, value) {
+    const event     = { question, response: value || '' };
+    const handled   = browser.emit('prompt', event);
+    if (!handled)
+      browser.log('Unhandled window.prompt("%s")');
+    const response  = (event.response || '').toString();
+    browser.log('prompt("..") -> "%s"', question, response);
+    return response;
   };
 
 

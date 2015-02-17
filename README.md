@@ -622,14 +622,6 @@ URL.
 browser.assert.link('footer a', 'Privacy Policy', '/privacy');
 ```
 
-#### assert.prompted(messageShown, message)
-
-Asserts the browser prompted with a given message.
-
-```js
-browser.assert.prompted('Are you sure?');
-```
-
 #### assert.redirected(message)
 
 Asserts the browser was redirected when retrieving the current page.

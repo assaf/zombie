@@ -13,6 +13,8 @@ describe('Window', function() {
   // -- Alert, confirm and popup; form when we let browsers handle our UI --
 
   describe('.alert', function() {
+    let alert = null;
+
     before(async function() {
       brains.static('/window/alert', `
         <html>
@@ -22,21 +24,20 @@ describe('Window', function() {
           </script>
         </html>
       `);
-      browser.onalert(function(message) {
-        browser.window.promptedWith = message;
+      browser.on('alert', function(message) {
+        alert = message;
       });
       await browser.visit('/window/alert');
     });
 
-    it('should record last alert show to user', function() {
-      browser.assert.prompted('Me again');
-    });
-    it('should call onalert function with message', function() {
-      assert.equal(browser.window.promptedWith, 'Me again');
+    it('should emit alert event with message', function() {
+      assert.equal(alert, 'Me again');
     });
   });
 
   describe('.confirm', function() {
+    const questions = [];
+
     before(async function() {
       brains.static('/window/confirm', `
         <html>
@@ -47,63 +48,85 @@ describe('Window', function() {
           </script>
         </html>
       `);
-      browser.onconfirm('continue?', true);
-      browser.onconfirm((prompt)=> prompt === 'more?');
+
+      browser.on('confirm', function(confirm) {
+        questions.push(confirm.question);
+      });
+      browser.on('confirm', function(confirm) {
+        if (confirm.question === 'continue?')
+          confirm.response = true;
+      });
+      browser.on('confirm', function(confirm) {
+        if (confirm.question === 'more?')
+          confirm.response = '';
+      });
+
       await browser.visit('/window/confirm');
     });
 
-    it('should return canned response', function() {
-      assert(browser.window.first);
+    it('should emit confirm event with message', function() {
+      assert.deepEqual(questions, ['continue?', 'more?', 'silent?']);
     });
-    it('should return response from function', function() {
-      assert(browser.window.second);
+    it('should return last response from event handler', function() {
+      assert.equal(browser.window.first, true);
     });
-    it('should return false if no response/function', function() {
-      assert.equal(browser.window.third, false);
+    it('should convert response to boolean', function() {
+      assert.equal(browser.window.second, false);
     });
-    it('should report prompted question', function() {
-      browser.assert.prompted('continue?');
-      browser.assert.prompted('silent?');
-      assert(!browser.prompted('missing?'));
+    it('should default to return true', function() {
+      assert.equal(browser.window.third, true);
     });
   });
 
 
   describe('.prompt', function() {
+    const questions = [];
+
     before(async function() {
       brains.static('/window/prompt', `
         <html>
           <script>
             window.first = prompt("age");
-            window.second = prompt("gender");
-            window.third = prompt("location");
-            window.fourth = prompt("weight");
+            window.second = prompt("gender", "missing");
+            window.third = prompt("location", "here");
+            window.fourth = prompt("weight", 180);
           </script>
         </html>
       `);
-      browser.onprompt('age', 31);
-      browser.onprompt((message, def)=> message === 'gender' ? 'unknown' : undefined);
-      browser.onprompt('location', false);
+
+      browser.on('prompt', function(prompt) {
+        questions.push(prompt.question);
+      });
+      browser.on('prompt', function(prompt) {
+        if (prompt.question === 'age')
+          prompt.response = 31;
+      });
+      browser.on('prompt', function(prompt) {
+        if (prompt.question === 'gender')
+          prompt.response = 'unknown';
+      });
+      browser.on('prompt', function(prompt) {
+        if (prompt.question === 'weight')
+          prompt.response = false;
+      });
+
       await browser.visit('/window/prompt');
     });
 
-    it('should return canned response', function() {
+    it('should emit confirm event with message', function() {
+      assert.deepEqual(questions, ['age', 'gender', 'location', 'weight']);
+    });
+    it('should return event handler response as string', function() {
       assert.equal(browser.window.first, '31');
     });
-    it('should return response from function', function() {
+    it('should return last response from event handler', function() {
       assert.equal(browser.window.second, 'unknown');
     });
-    it('should return null if cancelled', function() {
-      assert.equal(browser.window.third, null);
+    it('should return default value if no response specified', function() {
+      assert.equal(browser.window.third, 'here');
     });
-    it('should return empty string if no response/function', function() {
+    it('should return null if response if response is falsy', function() {
       assert.equal(browser.window.fourth, '');
-    });
-    it('should report prompts', function() {
-      browser.assert.prompted('age');
-      browser.assert.prompted('gender');
-      browser.assert.prompted('location');
-      assert(!browser.prompted('not asked'));
     });
   });
 

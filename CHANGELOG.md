@@ -19,7 +19,7 @@ CHANGED Browser.debug -> browser.debug (per instance)
 
 CHANGED browser.referer -> browser.referrer
 
-CHANGED upgraded to JSDOM 3.1, added Node 0.12 and io.js support
+CHANGED removed onalert/onconfirm/onprompt, use browser.on('alert', fn) etc
 
 CHANGED browser.wait() runs event loop so you can catch done/error events
 
