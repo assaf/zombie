@@ -260,23 +260,23 @@ describe('Browser events', function() {
 
   describe('event loop empty', function() {
     before(function() {
-      brains.static('/browser-events/done', `
+      brains.static('/browser-events/idle', `
         <html>
           <script>setTimeout(function() { }, 1);</script>
         </html>
       `);
 
-      browser.on('done', function() {
-        events.done = true;
+      browser.on('idle', function() {
+        events.idle = true;
       });
 
-      browser.visit('/browser-events/done');
-      events.done = false;
+      browser.visit('/browser-events/idle');
+      events.idle = false;
       return browser.wait();
     });
 
-    it('should receive done event', function() {
-      assert(events.done);
+    it('should receive idle event', function() {
+      assert(events.idle);
     });
   });
 

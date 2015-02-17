@@ -212,7 +212,7 @@ class Browser extends EventEmitter {
         this.errors.push(error);
         this._debug(error.stack);
       })
-      .on('done', (timedOut)=> {
+      .on('idle', (timedOut)=> {
         if (timedOut)
           this._debug('Event loop timed out');
         else

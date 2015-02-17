@@ -23,6 +23,10 @@ CHANGED removed onalert/onconfirm/onprompt, use browser.on('alert', fn) etc
 
 CHANGED browser.wait() runs event loop so you can catch done/error events
 
+CHANGED event loop `done` event renamed to `idle`
+
+CHANGED upgraded to JSDOM 3.1, added Node 0.12 and io.js support
+
 FIXED XHR errors no longer stop the event loop
 
  694 passing (25s)

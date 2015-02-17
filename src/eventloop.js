@@ -424,7 +424,7 @@ module.exports = class EventLoop extends EventEmitter {
     }
     eventLoop.on('tick', ontick);
 
-    eventLoop.once('done', done);
+    eventLoop.once('idle', done);
     // Don't wait if browser encounters an error (event loop errors also
     // propagate to browser)
     eventLoop.browser.once('error', done);
@@ -432,12 +432,12 @@ module.exports = class EventLoop extends EventEmitter {
     function done(error) {
       clearTimeout(timer);
       eventLoop.removeListener('tick', ontick);
-      eventLoop.removeListener('done', done);
+      eventLoop.removeListener('idle', done);
       eventLoop.browser.removeListener('error', done);
 
       --eventLoop.waiting;
       if (eventLoop.waiting === 0)
-        eventLoop.browser.emit('done');
+        eventLoop.browser.emit('idle');
 
       callback(error);
     }
@@ -511,7 +511,7 @@ module.exports = class EventLoop extends EventEmitter {
       return;
     // Are there any open windows?
     if (!this.active) {
-      this.emit('done');
+      this.emit('idle');
       return;
     }
 
@@ -520,7 +520,7 @@ module.exports = class EventLoop extends EventEmitter {
     setImmediate(()=> {
       this.running = false;
       if (!this.active || this.waiting === 0) {
-        this.emit('done');
+        this.emit('idle');
         return;
       }
 
