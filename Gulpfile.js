@@ -22,7 +22,7 @@ gulp.task('build', ['clean'], function() {
     .pipe(babel({
       experimental: true,
       loose:        'all',
-      optional:     [ 'selfContained' ]
+      optional:     [ 'runtime' ]
     }))
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('lib'))
