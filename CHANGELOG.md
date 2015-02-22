@@ -1,4 +1,4 @@
-## Version 3.0.5 2015-02-16
+## Version 3.0.6 2015-02-22
 
 ADDED DOM URL class
 
