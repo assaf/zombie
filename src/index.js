@@ -59,13 +59,6 @@ class Browser extends EventEmitter {
     this.tabs       = new Tabs(this);
     // The browser event loop.
     this.eventLoop  = new EventLoop(this);
-    this.eventLoop
-      .on('idle', ()=> {
-        this.emit('idle');
-      })
-      .on('error', (error)=> {
-        this.emit('error', error);
-      });
 
     // Returns all errors reported while loading this window.
     this.errors     = [];
@@ -111,8 +104,7 @@ class Browser extends EventEmitter {
         this._debug('XHR %s %s', eventName, url);
       });
 
-
-    // Logging windows/tabs
+    // Logging windows/tabs/navigation
     this
       .on('opened', (window)=> {
         this._debug('Opened window %s %s', window.location.href, window.name || '');
@@ -121,60 +113,72 @@ class Browser extends EventEmitter {
         this._debug('Closed window %s %s', window.location.href, window.name || '');
       });
 
-    // Window becomes inactive
-    this.on('active', (window)=> {
-      const winFocus = window.document.createEvent('HTMLEvents');
-      winFocus.initEvent('focus', false, false);
-      window.dispatchEvent(winFocus);
-
-      if (window.document.activeElement) {
-        const elemFocus = window.document.createEvent('HTMLEvents');
-        elemFocus.initEvent('focus', false, false);
-        window.document.activeElement.dispatchEvent(elemFocus);
-      }
-    });
-
-    // Window becomes inactive
-    this.on('inactive', (window)=> {
-      if (window.document.activeElement) {
-        const elemBlur = window.document.createEvent('HTMLEvents');
-        elemBlur.initEvent('blur', false, false);
-        window.document.activeElement.dispatchEvent(elemBlur);
-      }
-      const winBlur = window.document.createEvent('HTMLEvents');
-      winBlur.initEvent('blur', false, false);
-      window.dispatchEvent(winBlur);
-    });
-
-
-    // Event loop
-
-    // Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
-    // reported while processing resources/JavaScript.
+    // Switching tabs/windows fires blur/focus event on active window/element
     this
-      .on('timeout', (fn, delay)=> {
-        this._debug('Fired timeout after %dms delay', delay);
+      .on('active', (window)=> {
+        // Window becomes inactive
+        const winFocus = window.document.createEvent('HTMLEvents');
+        winFocus.initEvent('focus', false, false);
+        window.dispatchEvent(winFocus);
+
+        if (window.document.activeElement) {
+          const elemFocus = window.document.createEvent('HTMLEvents');
+          elemFocus.initEvent('focus', false, false);
+          window.document.activeElement.dispatchEvent(elemFocus);
+        }
       })
-      .on('interval', (fn, interval)=> {
-        this._debug('Fired interval every %dms', interval);
-      })
+      .on('inactive', (window)=> {
+        // Window becomes inactive
+        if (window.document.activeElement) {
+          const elemBlur = window.document.createEvent('HTMLEvents');
+          elemBlur.initEvent('blur', false, false);
+          window.document.activeElement.dispatchEvent(elemBlur);
+        }
+        const winBlur = window.document.createEvent('HTMLEvents');
+        winBlur.initEvent('blur', false, false);
+        window.dispatchEvent(winBlur);
+      });
+
+    // Logging navigation
+    this
       .on('link', (url, target)=> {
         this._debug('Follow link to %s', url);
       })
       .on('submit', (url, target)=> {
         this._debug('Submit form to %s', url);
+      });
+
+    // Logging event loop
+    this.eventLoop
+      .on('timeout', (fn, delay)=> {
+        this._debug('Fired timeout after %dms delay', delay);
+        this.emit('timeout', fn, delay);
       })
-      .on('error', (error)=> {
-        this.errors.push(error);
-        this._debug(error.stack);
+      .on('interval', (fn, interval)=> {
+        this._debug('Fired interval every %dms', interval);
+        this.emit('interval', fn, interval);
+      })
+      .on('server', ()=> {
+        this._debug('Server initiated event');
+        this.emit('server');
       })
       .on('idle', (timedOut)=> {
         if (timedOut)
           this._debug('Event loop timed out');
         else
           this._debug('Event loop is empty');
+        this.emit('idle');
+      })
+      .on('error', (error)=> {
+        this.emit('error', error);
       });
 
+    // Make sure we don't blow up Node when we get a JS error, but dump error to console.  Also, catch any errors
+    // reported while processing resources/JavaScript.
+    this.on('error', (error)=> {
+      this.errors.push(error);
+      this._debug(error.stack);
+    });
 
     // Sets the browser options.
     for (let name of BROWSER_OPTIONS) {

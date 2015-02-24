@@ -45,11 +45,11 @@ class Timeout {
     // In response to Node firing setTimeout, but only allowed to process this
     // event during a wait()
     this.queue.enqueue(()=> {
-      this.queue.browser.emit('timeout', this.fn, this.delay);
+      this.queue.eventLoop.emit('timeout', this.fn, this.delay);
       try {
         this.queue.window._evaluate(this.fn);
       } catch (error) {
-        this.queue.browser.emit('error', error);
+        this.queue.eventLoop.emit('error', error);
       }
     });
     this.remove();
@@ -97,11 +97,11 @@ class Interval {
     this.queue.enqueue(()=> {
       this.fireInProgress = false;
 
-      this.queue.browser.emit('interval', this.fn, this.interval);
+      this.queue.eventLoop.emit('interval', this.fn, this.interval);
       try {
         this.queue.window._evaluate(this.fn);
       } catch (error) {
-        this.queue.browser.emit('error', error);
+        this.queue.eventLoop.emit('error', error);
       }
     });
   }
@@ -239,11 +239,11 @@ class EventQueue {
     });
   }
 
-  // Fire an error event.
+  // Fire an error event.  Used by JSDOM patches.
   onerror(error) {
     assert(this.queue, 'This browser has been destroyed');
 
-    this.browser.emit('error', error);
+    this.eventLoop.emit('error', error);
 
     const event = this.window.document.createEvent('Event');
     event.initEvent('error', false, false);

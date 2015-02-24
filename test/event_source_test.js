@@ -15,15 +15,16 @@ describe('EventSource', function() {
       <html>
         <head>
           <script>
-            var source = new EventSource("/stream");
+            var source    = new EventSource("/stream");
             window.events = [];
             source.addEventListener("test", function(event) {
-              if (window.events.length > 0)
-                setTimeout(function() {
-                    window.events.push("third")
-                }, 50)
-              window.events.push(event.data)
+              window.events.push(event.data);
             });
+            /*
+            setTimeout(function() {
+              window.events.push("timeout");
+            }, 100);
+            */
           </script>
         </head>
         <body>
@@ -38,21 +39,19 @@ describe('EventSource', function() {
         'Cache-Control':  'no-cache',
         'Connection':     'keep-alive'
       });
+      // Send first event immediately
       res.write('event: test\nid: 1\ndata: first\n\n');
+      // Send second event with some delay, still get to see this because of
+      // client-side timeout
       setTimeout(function() {
         res.write('event: test\nid: 2\ndata: second\n\n');
+      }, 50);
+      // Send third event with too much delay, browser.wait() concluded
+      setTimeout(function() {
+        res.write('event: test\nid: 3\ndata: third\n\n');
         res.end();
-      }, 100);
+      }, 200);
     });
-  });
-
-  before(function(done) {
-    browser.visit('/streaming').then(done,done);
-  });
-
-  it('should stream to browser', async function() {
-    await browser.waitForServer();
-    assert.deepEqual(browser.evaluate('window.events'), ['first', 'second','third']);
   });
 
   describe('when present', function() {
@@ -74,16 +73,16 @@ describe('EventSource', function() {
     });
 
     it('should capture synchronous event', function() {
-      assert.deepEqual(browser.evaluate('window.events'), ['first']);
+      assert.deepEqual(browser.window.events, ['first']);
     });
 
     it('should not wait longer than specified', function(done) {
       function gotTwoEvents(window) {
-        return (window.events && window.events.length === 2);
+        return (window.events && window.events.length >= 2);
       }
 
       browser.waitForServer({ function: gotTwoEvents }, function() {
-        assert.deepEqual(browser.evaluate('window.events'), ['first', 'second']);
+        assert.deepEqual(browser.window.events, ['first', 'second']);
         done();
       });
     });

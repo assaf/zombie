@@ -36,7 +36,7 @@ CHANGED all dump() methods now accept output stream or output to stdout
 
 FIXED XHR errors no longer stop the event loop
 
- 690 passing (22s)
+ 689 passing (22s)
   12 pending
 
 
