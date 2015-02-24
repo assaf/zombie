@@ -527,6 +527,9 @@ function setupWindow(window, args) {
     },
     replaceState(...args) {
       history.replaceState(...args);
+    },
+    dump(output) {
+      history.dump(output);
     }
   };
   Object.defineProperties(windowHistory, {

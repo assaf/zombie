@@ -444,8 +444,15 @@ module.exports = class EventLoop extends EventEmitter {
   }
 
 
-  dump() {
-    return [];
+  dump(output = process.stdout) {
+    if (this.waiting)
+      output.write('Event loop: waiting\n');
+    else if (this.running)
+      output.write('Event loop: running\n');
+    else if (this.expected)
+      output.write(`Event loop: waiting on ${this.expected} events\n`);
+    else
+      output.write('Event loop: idle\n');
   }
 
   // -- Event queue management --

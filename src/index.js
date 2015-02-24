@@ -1167,23 +1167,27 @@ class Browser extends EventEmitter {
 
   // Dump information to the console: Zombie version, current URL, history, cookies, event loop, etc.  Useful for
   // debugging and submitting error reports.
-  dump() {
+  dump(output = process.stdout) {
     function indent(lines) {
       return lines.map(line => `  ${line}\n`).join('');
     }
-    process.stdout.write(`Zombie: ${Browser.VERSION}\n\n`);
-    process.stdout.write(`URL: ${this.window.location.href}\n`);
-    process.stdout.write(`History:\n${indent(this.window.history.dump())}\n`);
-    process.stdout.write(`Cookies:\n${indent(this.cookies.dump())}\n`);
-    process.stdout.write(`Storage:\n${indent(this._storages.dump())}\n`);
-    process.stdout.write(`Eventloop:\n${indent(this.eventLoop.dump())}\n`);
+    output.write(`Zombie: ${Browser.VERSION}\n`);
+    output.write(`URL:    ${this.window.location.href}\n`);
+    output.write(`\nHistory:\n`);
+    this.history.dump(output);
+    output.write(`\nCookies:\n`);
+    this.cookies.dump(output);
+    output.write(`\nStorage:\n`);
+
     if (this.document) {
-      let html = this.document.outerHTML;
-      if (html.length > 497)
-        html = html.slice(0, 497) + '...';
-      process.stdout.write(`Document:\n${indent(html.split('\n'))}\n`);
+      const html  = this.html();
+      const slice = (html.length > 497) ? `${html.slice(0, 497)}...` : html;
+      output.write(`Document:\n${indent(slice.split('\n'))}\n`);
     } else
-      process.stdout.write('No document\n');
+      output.write('No document\n');
+
+    output.write('\n');
+    this.eventLoop.dump(output);
   }
 
 

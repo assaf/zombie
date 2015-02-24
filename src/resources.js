@@ -127,8 +127,15 @@ class Resources extends Array {
   }
 
 
-  // Human readable resource listing.  With no arguments, write it to stdout.
+  // Human readable resource listing.
+  //
+  // output - Write to this stream (optional)
   dump(output = process.stdout) {
+    if (this.length === 0) {
+      output.write('No resources\n');
+      return;
+    }
+
     for (let resource of this) {
       const { request, response, error, target } = resource;
       // Write summary request/response header

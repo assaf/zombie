@@ -133,7 +133,7 @@ describe('History', function() {
         await browser.visit('/');
         browser.history.pushState({ is: 'first' }, null, '/first');
         browser.history.pushState({ is: 'second' },   null, '/second');
-        window = browser.window
+        window = browser.window;
       });
 
       it('should add state to history', function() {

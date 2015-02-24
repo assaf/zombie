@@ -293,7 +293,7 @@ properties: `name`, `value`, `domain`, `path`, `expires`, `httpOnly` and
 
 Returns an object holding all cookies used by this browser.
 
-#### browser.cookies.dump(stream?)
+#### browser.cookies.dump(output?)
 
 Dumps all cookies to standard output, or the output stream.
 
@@ -405,7 +405,7 @@ Can also be used to change the currently active tab.  You can set it to a
 window (e.g. as currently returned from `browser.current`), a window name or the
 tab index number.
 
-#### browser.tabs.dump(output)
+#### browser.tabs.dump(output?)
 
 Dump a list of all open tabs to standard output, or the output stream.
 
@@ -957,7 +957,7 @@ authentication, etc.
 Adds a handler to the pipeline of this browser instance.  To add a handler to the
 pipeline of every browser instance, use `Browser.Resources.addHandler`.
 
-#### resources.dump(output)
+#### resources.dump(output?)
 
 Dumps the resources list to the output stream (defaults to standard output
 stream). 
@@ -1128,4 +1128,30 @@ information.
 
 Some objects, like the browser, history, resources, tabs and windows also
 include `dump` method that will dump the current state to the console.
+
+
+
+
+## FAQ
+
+**Q:** Why won't Zombie work with [insert some web site]?
+
+**A:** Zombie was designed for testing, not for web scraping.  You can use it
+for whatever purpose you want, just to be clear:
+
+1. Zombie cannot scrape many popular web sites, that's known
+2. The core contributors are not concerned by that, not even a little
+
+
+**Q:** How do I find position/location/styling of element?
+
+**A:** Unlike a Web browser, Zombie doesn't visually render the HTML document.
+It gives you access to the DOM, but since it doesn't attempt to render and
+layout elements, it doesn't have information like position, location, etc.
+
+
+**Q:** Does Zombie handle XHR sync/document.write/CDATA?
+
+**A:** Those are some of the things we thought were good ideas in 1999.  It's
+time to let go and move on.
 

@@ -351,18 +351,10 @@ class History {
   }
 
 
-  dump() {
-    let cur = this.first;
-    let i = 1;
-    const lines = [];
-    while (cur) {
-      let line = cur.next ? `#${i}: ` : `${i}. `;
-      line += URL.format(cur.url);
-      cur = cur.next;
-      ++i;
-      lines.push(line);
+  dump(output = process.stdout) {
+    for (let entry = this.first, i = 1; entry; entry = entry.next, ++i) {
+      output.write(`${i}: ${URL.format(entry.url)}\n`);
     }
-    return lines;
   }
 }
 

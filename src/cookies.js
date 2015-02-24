@@ -10,9 +10,9 @@ const { Cookie }  = Tough;
 module.exports = class Cookies extends Array {
 
   // Used to dump state to console (debugging)
-  dump() {
+  dump(output = process.stdout) {
     for (let cookie of this.sort(Tough.cookieCompare))
-      process.stdout.write(cookie.toString() + '\n');
+      output.write(`${cookie}\n`);
   }
 
   // Serializes all selected cookies into a single string.  Used to generate a cookies header.

@@ -156,8 +156,8 @@ class Storage {
   }
   
   // Dump to a string, useful for debugging.
-  dump() {
-    return this._area.dump();
+  dump(output = process.stdout) {
+    return this._area.dump(output);
   }
 
 }
@@ -212,21 +212,19 @@ class Storages {
   }
 
   // Used to dump state to console (debuggin)
-  dump() {
-    const serialized = [];
+  dump(output = process.stdout) {
     for (let domain of this._locals) {
       let area = this._locals[domain];
-      serialized.push(`${domain} local:`);
+      output.write(`${domain} local:\n`);
       for (let [name, value] of area.pairs)
-        serialized.push(`  ${name} = ${value}`);
+        output.write(`  ${name} = ${value}\n`);
     }
     for (let domain of this._sessions) {
       let area = this._sessions[domain];
-      serialized.push(`${domain} session:`);
+      output.push(`${domain} session:\n`);
       for (let [name, value] of area.pairs)
-        serialized.push(`  ${name} = ${value}`);
+        output.write(`  ${name} = ${value}\n`);
     }
-    return serialized;
   }
 
   // browser.saveStorage uses this
