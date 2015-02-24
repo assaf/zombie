@@ -1,5 +1,8 @@
 ## Version 3.0.7 2015-02-23
 
+NOTE Zombie 3.0 tested to work with io.js 1.3 or later, and with Node 0.12 or
+later.  It may or may not work correctly with Node 0.10.
+
 ADDED DOM URL class
 
 ADDED XHR events emitted to browser

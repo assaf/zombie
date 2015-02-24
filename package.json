@@ -4,6 +4,9 @@
   "publishConfig": {
     "tag": "next"
   },
+  "engines": {
+    "node": ">= 0.12"
+  },
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "https://www.npmjs.com/package/zombie",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
