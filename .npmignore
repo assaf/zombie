@@ -5,4 +5,5 @@ npm-debug.log
 Gulpfile
 scripts
 src
+lib/**/*.map
 test
