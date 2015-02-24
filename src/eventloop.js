@@ -16,8 +16,8 @@
 // `enqueue`, `http`, `dispatch` and the timeout/interval methods.
 
 
+const assert            = require('assert');
 const { EventEmitter }  = require('events');
-const ms                = require('ms');
 
 
 // Wrapper for a timeout (setTimeout)
@@ -29,28 +29,30 @@ class Timeout {
   // remove  - Call this to discard timer
   //
   // Instance variables add:
-  // next    - When is this timer firing next
   // handle  - Node.js timeout handle
+  // next    - When is this timer firing next
   constructor(queue, fn, delay, remove) {
     this.queue  = queue;
     this.fn     = fn;
     this.delay  = Math.max(delay || 0, 0);
     this.remove = remove;
 
-    // When timeout fires, queue event for processing during a wait.
-    const fire = ()=> {
-      this.queue.enqueue(()=> {
-        this.queue.browser.emit('timeout', this.fn, this.delay);
-        try {
-          this.queue.window._evaluate(this.fn);
-        } catch (error) {
-          this.queue.browser.emit('error', error);
-        }
-      });
-      this.remove();
-    };
-    this.handle = global.setTimeout(fire, this.delay);
+    this.handle = global.setTimeout(this.fire.bind(this), this.delay);
     this.next   = Date.now() + this.delay;
+  }
+
+  fire() {
+    // In response to Node firing setTimeout, but only allowed to process this
+    // event during a wait()
+    this.queue.enqueue(()=> {
+      this.queue.browser.emit('timeout', this.fn, this.delay);
+      try {
+        this.queue.window._evaluate(this.fn);
+      } catch (error) {
+        this.queue.browser.emit('error', error);
+      }
+    });
+    this.remove();
   }
 
   // clearTimeout
@@ -71,35 +73,37 @@ class Interval {
   // remove    - Call this to discard timer
   //
   // Instance variables add:
-  // next    - When is this timer firing next
   // handle  - Node.js interval handle
+  // next    - When is this timer firing next
   constructor(queue, fn, interval, remove) {
-    this.queue    = queue;
-    this.fn       = fn;
-    this.interval =  Math.max(interval || 0);
-    this.remove   = remove;
+    this.queue          = queue;
+    this.fn             = fn;
+    this.interval       = Math.max(interval || 0, 0);
+    this.remove         = remove;
+    this.fireInProgress = false;
+    this.handle         = global.setInterval(this.fire.bind(this), this.interval);
+    this.next           = Date.now() + this.interval;
+  }
 
-    // When interval fires, queue event for processing during a wait.
-    // Don't queue if already processing.
-    let pendingEvent = false;
-    const fire = ()=> {
-      this.next = Date.now() + this.interval;
-      if (pendingEvent)
-        return;
-
-      pendingEvent = true;
-      this.queue.enqueue(()=> {
-        pendingEvent = false;
-        this.queue.browser.emit('interval', this.fn, this.interval);
-        try {
-          this.queue.window._evaluate(this.fn);
-        } catch (error) {
-          this.queue.browser.emit('error', error);
-        }
-      });
-    };
-    this.handle = global.setInterval(fire, this.interval);
+  fire() {
+    // In response to Node firing setInterval, but only allowed to process this
+    // event during a wait()
     this.next = Date.now() + this.interval;
+
+    // setInterval events not allowed to overlap, don't queue two at once
+    if (this.fireInProgress)
+      return;
+    this.fireInProgress = true;
+    this.queue.enqueue(()=> {
+      this.fireInProgress = false;
+
+      this.queue.browser.emit('interval', this.fn, this.interval);
+      try {
+        this.queue.window._evaluate(this.fn);
+      } catch (error) {
+        this.queue.browser.emit('error', error);
+      }
+    });
   }
 
   // clearTimeout
@@ -111,53 +115,55 @@ class Interval {
 }
 
 
-// Each window has an event queue that holds all pending events and manages
-// timers.
+// Each window has an event queue that holds all pending events.  Various
+// browser features push new functions into the queue (e.g. process XHR
+// response, setTimeout fires).  The event loop is responsible to pop these
+// events from the queue and run them, but only during browser.wait().
 //
-// Each event is a function that gets called when it's the event time to fire.
-// Various components push new functions to the queue, the event loop is
-// reponsible for fetching the events and executing them.
+// In addition, the event queue keeps track of all outstanding timers
+// (setTimeout/setInterval) so it can return consecutive handles and clean them
+// up during window.destroy().
 //
-// Timers are resumed when the window becomes active, suspened when the window
-// becomes inactive, and execute by queuing events.
-//
-// HTTP request should use the `http` method, which uses `expecting` to indicate
-// an event is expected while the request is in progress (so don't stop event
-// loop), and queue the event when the response arrives.
+// In addition, we keep track of when the browser is expecting an event to
+// arrive in the queue (e.g. sent XHR request, expecting an event to process the
+// response soon enough).  The event loop uses that to determine if it's worth
+// waiting.
 class EventQueue {
 
   // Instance variables:
-  // browser     - Reference to the browser
-  // window      - Reference to the window
-  // eventLoop   - Reference to the browser's event loop
-  // expecting   - These are holding back the event loop
-  // queue       - FIFO queue of functions to call
-  // timers      - Sparse array of timers (index is the timer handle)
-  // nextTimerHandle - Value of next timer handler
+  // browser          - Reference to the browser
+  // eventLoop        - Reference to the browser's event loop
+  // queue            - FIFO queue of functions to call
+  // expecting        - These are holding back the event loop
+  // timers           - Sparse array of timers (index is the timer handle)
+  // eventSources     - Additional sources for events (SSE, WS, etc)
+  // nextTimerHandle  - Value of next timer handler
   constructor(window) {
     this.window           = window;
     this.browser          = window.browser;
     this.eventLoop        = this.browser.eventLoop;
     this.queue            = [];
-    this.expecting        = [];
+    this.expecting        = 0;
     this.timers           = [];
     this.eventSources     = [];
     this.nextTimerHandle  = 1;
   }
 
+
   // Cleanup when we dispose of the window
   destroy() {
+    if (!this.queue)
+      return;
     this.queue = null;
+
     for (let timer of this.timers) {
       if (timer)
         timer.stop();
     }
     this.timers = null;
-    for (let expecting of this.expecting)
-      expecting();
-    this.expecting = null;
+
     for (let eventSource of this.eventSources) {
-      if (eventSource)
+      //if (eventSource)
         eventSource.close();
     }
     this.eventSources = null;
@@ -166,20 +172,27 @@ class EventQueue {
 
   // -- Events --
 
+  // Any events expected in the future?
+  get expected() {
+    return !!(this.expecting ||
+              [...this.window.frames].filter(frame => frame._eventQueue.expected).length);
+  }
+
   // Add a function to the event queue, to be executed in order.
   enqueue(fn) {
-    if (!this.queue)
-      throw new Error('This browser has been destroyed');
+    assert(this.queue, 'This browser has been destroyed');
+  
     if (fn) {
       this.queue.push(fn);
       this.eventLoop.run();
     }
   }
 
+
   // Event loop uses this to grab event from top of the queue.
   dequeue() {
-    if (!this.queue)
-      return;
+    assert(this.queue, 'This browser has been destroyed');
+
     const fn = this.queue.shift();
     if (fn)
       return fn;
@@ -190,6 +203,7 @@ class EventQueue {
     }
     return null;
   }
+
 
   // Makes an HTTP request.
   //
@@ -207,13 +221,12 @@ class EventQueue {
   //
   // Calls callback with response error or null and response object.
   http(method, url, options, callback) {
-    if (!this.queue)
-      return;
+    assert(this.queue, 'This browser has been destroyed');
 
-    const done = this.eventLoop.expecting();
-    this.expecting.push(done);
-
+    // We're expecting to queue an event, event loop should wait
+    ++this.expecting;
     this.browser.resources.request(method, url, options, (error, response)=> {
+      --this.expecting;
       // We can't cancel pending requests, but we can ignore the response if
       // window already closed
       if (this.queue) {
@@ -223,16 +236,13 @@ class EventQueue {
           callback(error, response);
         });
       }
-
-      if (this.expecting) {
-        this.expecting.splice(this.expecting.indexOf(done), 1);
-        done();
-      }
     });
   }
 
   // Fire an error event.
   onerror(error) {
+    assert(this.queue, 'This browser has been destroyed');
+
     this.browser.emit('error', error);
 
     const event = this.window.document.createEvent('Event');
@@ -246,17 +256,16 @@ class EventQueue {
   // -- EventSource --
 
   addEventSource(eventSource) {
-    if (!this.eventSources)
-      throw new Error('This browser has been destroyed');
+    assert(this.queue, 'This browser has been destroyed');
 
     this.eventSources.push(eventSource);
 
     const emit = eventSource.emit;
     eventSource.emit = (...args)=> {
+      this.eventLoop.emit('server');
       this.enqueue(()=> {
         emit.apply(eventSource, args);
       });
-      this.eventLoop.emit('server');
     };
   }
 
@@ -265,24 +274,22 @@ class EventQueue {
 
   // Window.setTimeout
   setTimeout(fn, delay = 0) {
-    if (!this.timers)
-      throw new Error('This browser has been destroyed');
+    assert(this.queue, 'This browser has been destroyed');
     if (!fn)
       return;
 
     const handle = this.nextTimerHandle;
     ++this.nextTimerHandle;
-    const remove = ()=> {
+    this.timers[handle] = new Timeout(this, fn, delay, ()=> {
       delete this.timers[handle];
-    };
-    this.timers[handle] = new Timeout(this, fn, delay, remove);
+    });
     return handle;
   }
 
   // Window.clearTimeout
   clearTimeout(handle) {
-    if (!this.timers)
-      throw new Error('This browser has been destroyed');
+    assert(this.queue, 'This browser has been destroyed');
+
     const timer = this.timers[handle];
     if (timer)
       timer.stop();
@@ -290,42 +297,32 @@ class EventQueue {
 
   // Window.setInterval
   setInterval(fn, interval = 0) {
-    if (!this.timers)
-      throw new Error('This browser has been destroyed');
+    assert(this.queue, 'This browser has been destroyed');
     if (!fn)
       return;
 
     const handle = this.nextTimerHandle;
     ++this.nextTimerHandle;
-    const remove = ()=> {
+    this.timers[handle] = new Interval(this, fn, interval, ()=> {
       delete this.timers[handle];
-    };
-    this.timers[handle] = new Interval(this, fn, interval, remove);
+    });
     return handle;
   }
 
   // Window.clearInterval
   clearInterval(handle) {
-    if (!this.timers)
-      throw new Error('This browser has been destroyed');
+    assert(this.queue, 'This browser has been destroyed');
+
     const timer = this.timers[handle];
     if (timer)
       timer.stop();
   }
 
   // Returns the timestamp of the next timer event
-  next() {
-    let next = Infinity;
-    for (let timer of this.timers) {
-      if (timer && timer.next < next)
-        next = timer.next;
-    }
-    for (let frame of [...this.window.frames]) {
-      let frameNext = frame._eventQueue.next();
-      if (frameNext < next)
-        next = frameNext;
-    }
-    return next;
+  get next() {
+    const timers  = this.timers.map(timer => timer.next);
+    const frames  = [...this.window.frames].map(frame => frame._eventQueue.next);
+    return timers.concat(frames).sort()[0] || Infinity;
   }
 
 }
@@ -333,43 +330,38 @@ class EventQueue {
 
 // The browser event loop.
 //
-// All asynchronous events are processed by this one. The event loop monitors one
-// event queue, of the currently active window, and executes its events. Other
-// windows are suspended.
+// Each browser has one event loop that processes events from the queues of the
+// currently active window and its frames (child windows).
 //
-// Reason to wait for the event loop:
-// - One or more events waiting in the queue to be processed
-// - One or more timers waiting to fire
-// - One or more future events, expected to arrive in the queue
+// The wait method is responsible to process all pending events.  It goes idle
+// once:
+// - There are no more events waiting in the queue (of the active window)
+// - There are no more timers waiting to fire (next -> Infinity)
+// - No future events are expected to arrive (e.g. in-progress XHR requests)
 //
-// Reasons to stop waiting:
-// - No more events in the queue, or expected to arrive
-// - No more timers, or all timers are further than our timeout
-// - Completion function evaluated to true
+// The wait method will complete before the loop goes idle, if:
+// - Past the specified timeout
+// - The next scheduled timer is past the specified timeout
+// - The completio function evaluated to true
 //
-// The event loop emits the following events (on the browser):
-// tick  - Emitted after executing an event; single argument is expected time
-//         until next tick event (in ms, zero for "soon")
-// done  - Emitted when the event queue is empty (may fire more than once)
-// error - Emitted when an error occurs
+// While processing, the event loop emits the following events (on the browser
+// object):
+// tick(next) - Emitted after executing a single event; the argument is the
+//              expected duration until the next event (in ms) 
+// idle       - Emitted when there are no more events (queued or expected)
+// error(err) - Emitted after an error
 module.exports = class EventLoop extends EventEmitter {
 
   // Instance variables are:
-  // active    - The active window
+  // active    - Currently active window
   // browser   - Reference to the browser
-  // expected  - Number of events expected to appear (see `expecting` method)
   // running   - True when inside a run loop
-  // waiting   - Counts calls in-progess calls to wait
+  // waiting   - Counts in-progess calls to wait (waiters?)
   constructor(browser) {
     this.browser  = browser;
     this.active   = null;
-    this.expected = 0;
     this.running  = false;
     this.waiting  = 0;
-    // Error in event loop propagates to browser
-    this.on('error', (error)=> {
-      this.browser.emit('error', error);
-    });
   }
 
 
@@ -388,23 +380,29 @@ module.exports = class EventLoop extends EventEmitter {
   // during page navigation or form submission) and how long until the next
   // event, and returns true to stop waiting, any other value to continue
   // processing events.
+  //
+  //
+  // waitDuration       - How long to wait (ms)
+  // completionFunction - Returns true for early completion
   wait(waitDuration, completionFunction, callback) {
-    // Don't wait longer than duration
-    waitDuration = ms(waitDuration.toString()) || this.browser.waitDuration;
-    const timeoutOn = Date.now() + waitDuration;
+    assert(waitDuration, 'Wait duration required, cannot be 0');
     const eventLoop = this;
 
-    // Someone (us) just started paying attention, start processing events
     ++eventLoop.waiting;
+    // Someone (us) just started paying attention, start processing events
     if (eventLoop.waiting === 1)
       setImmediate(()=> eventLoop.run());
 
-    const timer = setTimeout(done, waitDuration);
+    // The timer fires when we waited long enough, we need timeoutOn to tell if
+    // the next event is past the wait duration and there's no point in waiting
+    // further
+    const timer     = global.setTimeout(done, waitDuration);
+    const timeoutOn = Date.now() + waitDuration;
 
+    // Fired after every event, decide if we want to stop waiting
     function ontick(next) {
+      // No point in waiting that long
       if (next >= timeoutOn) {
-        // Next event too long in the future, or no events in queue
-        // (Infinity), no point in waiting
         done();
         return;
       }
@@ -412,7 +410,7 @@ module.exports = class EventLoop extends EventEmitter {
       const activeWindow = eventLoop.active;
       if (completionFunction && activeWindow.document.documentElement) {
         try {
-          const waitFor = Math.max(next - Date.now(), 0);
+          const waitFor   = Math.max(next - Date.now(), 0);
           // Event processed, are we ready to complete?
           const completed = completionFunction(activeWindow, waitFor);
           if (completed)
@@ -424,36 +422,38 @@ module.exports = class EventLoop extends EventEmitter {
     }
     eventLoop.on('tick', ontick);
 
+    // Fired when there are no more events to process
     eventLoop.once('idle', done);
-    // Don't wait if browser encounters an error (event loop errors also
-    // propagate to browser)
+
+    // Stop on first error reported (document load, script, etc)
+    // Event loop errors also propagated to the browser
     eventLoop.browser.once('error', done);
-      
+  
+
+    // The wait is over ...
     function done(error) {
-      clearTimeout(timer);
+      global.clearTimeout(timer);
       eventLoop.removeListener('tick', ontick);
       eventLoop.removeListener('idle', done);
       eventLoop.browser.removeListener('error', done);
 
       --eventLoop.waiting;
-      if (eventLoop.waiting === 0)
-        eventLoop.browser.emit('idle');
-
       callback(error);
     }
   }
 
 
   dump(output = process.stdout) {
-    if (this.waiting)
-      output.write('Event loop: waiting\n');
-    else if (this.running)
+    if (this.running)
       output.write('Event loop: running\n');
     else if (this.expected)
-      output.write(`Event loop: waiting on ${this.expected} events\n`);
+      output.write(`Event loop: waiting for ${this.expected} events\n`);
+    else if (this.waiting)
+      output.write('Event loop: waiting\n');
     else
       output.write('Event loop: idle\n');
   }
+
 
   // -- Event queue management --
 
@@ -468,39 +468,12 @@ module.exports = class EventLoop extends EventEmitter {
     if (window === this.active)
       return;
     this.active = window;
-    if (this.active);
-      this.run(); // new window, new events
+    this.run(); // new window, new events?
   }
 
-  // Call this method when you know an event is coming, but don't have the event
-  // yet. For example, when starting an HTTP request, and the event is for
-  // processing the response.
-  //
-  // This method returns a continuation function that you must call eventually,
-  // of the event loop will wait forever.
-  expecting() {
-    ++this.expected;
-    const done = ()=> {
-      --this.expected;
-      this.run(); // may be dead waiting for next event
-    };
-    return done;
-  }
-
-
-  // Cross-breed between expecting() and process.nextTick.  Executes the function
-  // in the next tick, but makes sure waiters block for the function.
-  next(fn) {
-    ++this.expected;
-    setImmediate(()=> {
-      --this.expected;
-      try {
-        fn();
-        this.run();
-      } catch (error) {
-        this.emit('error', error);
-      }
-    });
+  // Are there any expected events for the active window?
+  get expected() {
+    return this.active && this.active._eventQueue.expected;
   }
 
 
@@ -510,52 +483,53 @@ module.exports = class EventLoop extends EventEmitter {
   // Keeps processing until the queue is empty or all listeners are gone. You
   // only need to bootstrap this when you suspect it's not recursing.
   run() {
-    // Are we in the midst of another run loop?
+    // A lot of code calls run() without checking first, so not uncommon to have
+    // concurrent executions of this function
     if (this.running)
       return;
     // Is there anybody out there?
     if (this.waiting === 0)
       return;
-    // Are there any open windows?
-    if (!this.active) {
-      this.emit('idle');
-      return;
-    }
 
     // Give other (Node) events a chance to process
     this.running = true;
     setImmediate(()=> {
       this.running = false;
-      if (!this.active || this.waiting === 0) {
-        this.emit('idle');
-        return;
-      }
-
       try {
+
+        // Are there any open windows?
+        if (!this.active) {
+          this.emit('idle');
+          return;
+        }
+        // Don't run event outside browser.wait()
+        if (this.waiting === 0)
+          return;
+
         const fn = this.active._eventQueue.dequeue();
         if (fn) {
           // Process queued function, tick, and on to next event
-          try {
-            fn();
-            this.emit('tick', 0);
-            this.run();
-          } catch (error) {
-            this.emit('error', error);
-          }
+          fn();
+          this.emit('tick', 0);
+          this.run();
         } else if (this.expected > 0) {
           // We're waiting for some events to come along, don't know when,
           // but they'll call run for us
           this.emit('tick', 0);
         } else {
-          // All that's left are timers
-          const nextTick = this.active._eventQueue.next();
-          this.emit('tick', nextTick);
+          // All that's left are timers, and not even that if next == Infinity
+          const next = this.active._eventQueue.next;
+          if (isFinite(next))
+            this.emit('tick', next);
+          else
+            this.emit('idle');
         }
+
       } catch (error) {
         this.emit('error', error);
       }
     });
   }
 
-}
+};
 

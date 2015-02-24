@@ -1,5 +1,6 @@
 const assert            = require('assert');
 const Assert            = require('./assert');
+const Bluebird          = require('bluebird');
 const Tabs              = require('./tabs');
 const Console           = require('./console');
 const Cookies           = require('./cookies');
@@ -13,8 +14,6 @@ const File              = require('fs');
 const Mime              = require('mime');
 const ms                = require('ms');
 const Path              = require('path');
-const { Promise }       = require('bluebird');
-const { promisify }     = require('bluebird');
 const PortMap           = require('./port_map');
 const Resources         = require('./resources');
 const Storages          = require('./storage');
@@ -60,6 +59,14 @@ class Browser extends EventEmitter {
     this.tabs       = new Tabs(this);
     // The browser event loop.
     this.eventLoop  = new EventLoop(this);
+    this.eventLoop
+      .on('idle', ()=> {
+        this.emit('idle');
+      })
+      .on('error', (error)=> {
+        this.emit('error', error);
+      });
+
     // Returns all errors reported while loading this window.
     this.errors     = [];
 
@@ -251,10 +258,13 @@ class Browser extends EventEmitter {
     assert(!callback || typeof(callback) === 'function', 'Second argument expected to be a callback function or null');
 
     // Support all sort of shortcuts for options. Unofficial.
-    const waitDuration =
+    const duration = 
       (typeof(options) === 'number') ? options :
-      (typeof(options) === 'string') ? ms(options) :
-      (options && options.duration || this.waitDuration);
+      (typeof(options) === 'string') ? options :
+      (options && options.duration || this.waitDuration || '5s');
+    // Support 500 (ms) as well as "5s"
+    const waitDuration = ms(duration.toString());
+
     const completionFunction =
       (typeof(options) === 'function') ? options :
       (options && options.element) ? completionFromElement(options.element) :
@@ -270,7 +280,7 @@ class Browser extends EventEmitter {
     if (callback) {
       eventLoop.wait(waitDuration, completionFunction, callback);
     } else {
-      return promisify(eventLoop.wait, eventLoop)(waitDuration, completionFunction);
+      return Bluebird.promisify(eventLoop.wait, eventLoop)(waitDuration, completionFunction);
     }
   }
 
@@ -291,7 +301,7 @@ class Browser extends EventEmitter {
         this.wait(options, callback);
       });
     } else {
-      return new Promise((resolve)=> {
+      return new Bluebird((resolve)=> {
         this.eventLoop.once('server', ()=> {
           resolve(this.wait(options, null));
         });

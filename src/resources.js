@@ -11,17 +11,17 @@
 //   protocols or support new headers
 
 
-const iconv       = require('iconv-lite');
-const File        = require('fs');
+const assert      = require('assert');
+const Bluebird    = require('bluebird');
 const DOM         = require('./dom');
+const File        = require('fs');
+const HTTP        = require('http');
+const iconv       = require('iconv-lite');
 const Path        = require('path');
 const QS          = require('querystring');
 const Request     = require('request');
 const URL         = require('url');
-const HTTP        = require('http');
 const Zlib        = require('zlib');
-const assert      = require('assert');
-const { Promise } = require('bluebird');
 
 
 // Each browser has a resources object that provides the means for retrieving
@@ -81,7 +81,7 @@ class Resources extends Array {
     this.push(resource);
     this.browser.emit('request', request);
 
-    const promise = new Promise((resolve, reject)=> {
+    const promise = new Bluebird((resolve, reject)=> {
       this.runPipeline(request, (error, response)=> {
         if (error) {
           resource.error = error;

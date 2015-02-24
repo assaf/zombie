@@ -518,9 +518,7 @@ function setupWindow(window, args) {
       windowHistory.go(-1);
     },
     go(amount) {
-      browser.eventLoop.next(function() {
-        history.go(amount);
-      });
+      history.go(amount);
     },
     pushState(...args) {
       history.pushState(...args);

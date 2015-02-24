@@ -257,7 +257,7 @@ describe('Browser', function() {
       });
 
       describe('wait over', function() {
-        it('should fire done event', function(done) {
+        it('should fire idle event', function(done) {
           browser.once('idle', done);
           browser.location = '/browser/scripted';
           browser.wait().done();
