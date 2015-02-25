@@ -201,7 +201,7 @@ shortcut for making these three changes:
   to 127.0.0.1 (see [DNS Masking](#dnsmasking))
 - `Browser.ports.map(hostname, port)` will redirect any HTTP request to hostname
   from port 80 to the designated port (see [Port Mapping](#portmapping))
-- `Browser.default.site = hostname` will add the hostname to any relative URL
+- `Browser.site = hostname` will add the hostname to any relative URL
   (e.g. when using `browser.visit`)
 
 
@@ -1046,7 +1046,7 @@ example:
 
 ```
 Browser.dns.localhost('*.example.com');
-Browser.default.site = 'http://example.com:3000';
+Browser.site = 'http://example.com:3000';
 
 browser = new Browser();
 browser.visit('/here', function(error, browser) {
@@ -1116,7 +1116,7 @@ To see what your code is doing, you can use `console.log` and friends from both
 client-side scripts and your test code.
 
 If you want to disable console output from scripts, set `browser.silent = true`
-or once for all browser instances with `Browser.default.silent = true`.
+or once for all browser instances with `Browser.silent = true`.
 
 For more details about what Zombie is doing (windows opened, requests made,
 event loop, etc), run with the environment variable `DEBUG=zombie`. Alternatively,

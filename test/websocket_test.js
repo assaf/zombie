@@ -1,7 +1,7 @@
-const assert      = require('assert');
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
-const WebSocket   = require('ws');
+const assert    = require('assert');
+const Browser   = require('../src');
+const brains    = require('./helpers/brains');
+const WebSocket = require('ws');
 
 
 describe('WebSockets', function() {

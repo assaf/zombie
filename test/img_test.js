@@ -1,7 +1,7 @@
-const assert      = require('assert');
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
-const File        = require('fs');
+const assert  = require('assert');
+const brains  = require('./helpers/brains');
+const Browser = require('../src');
+const File    = require('fs');
 
 
 describe('IMG', function() {

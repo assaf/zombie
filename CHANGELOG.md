@@ -25,6 +25,8 @@ CHANGED Browser.debug -> browser.debug (per instance)
 
 CHANGED browser.referer -> browser.referrer
 
+CHANGED Browser.default.<name> = <value> deprecated, use Browser.<name> = <value> instead
+
 CHANGED timeout event -> setTimeout, interval -> setInterval
 
 CHANGED removed onalert/onconfirm/onprompt, use browser.on('alert', fn) etc

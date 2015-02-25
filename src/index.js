@@ -5,6 +5,7 @@ const Tabs              = require('./tabs');
 const Console           = require('./console');
 const Cookies           = require('./cookies');
 const debug             = require('debug');
+const { deprecate }     = require('util');
 const DNSMask           = require('./dns_mask');
 const DOM               = require('./dom');
 const { EventEmitter }  = require('events');
@@ -181,12 +182,9 @@ class Browser extends EventEmitter {
     });
 
     // Sets the browser options.
-    for (let name of BROWSER_OPTIONS) {
-      if (options && options.hasOwnProperty(name))
-        this[name] = options[name];
-      else if (Browser.default.hasOwnProperty(name))
-        this[name] = Browser.default[name];
-    }
+    options = options || {};
+    for (let name of BROWSER_OPTIONS)
+      this[name] = options.hasOwnProperty(name) ? options[name] : Browser[name];
 
     // Last, run all extensions in order.
     for (let extension of Browser._extensions)
@@ -1276,12 +1274,12 @@ class Browser extends EventEmitter {
   //
   // This is equivalent to DNS masking the hostname as 127.0.0.1 (see
   // Browser.dns), mapping port 80 to the specified port (see Browser.ports) and
-  // setting Browser.default.site to the hostname.
+  // setting Browser.site to the hostname.
   static localhost(hostname, port) {
     this.dns.localhost(hostname);
     this.ports.map(hostname, port);
-    if (!this.default.site)
-      this.default.site = hostname.replace(/^\*\./, '');
+    if (!this.site)
+      this.site = hostname.replace(/^\*\./, '');
   }
 
   // Register a browser extension.
@@ -1302,53 +1300,60 @@ Object.assign(Browser, {
   Resources,
   VERSION,
 
-  // These defaults are used in any new browser instance.
-  default: {
+  // -- These defaults are used in any new browser instance --
 
-    // Which features are enabled.
-    features: DEFAULT_FEATURES,
+  // Which features are enabled.
+  features: DEFAULT_FEATURES,
 
-    // Tells the browser how many redirects to follow before aborting a request. Defaults to 5
-    maxRedirects: 5,
+  // Tells the browser how many redirects to follow before aborting a request. Defaults to 5
+  maxRedirects: 5,
 
-    // Proxy URL.
-    //
-    // Example
-    //   Browser.default.proxy = 'http://myproxy:8080'
-    proxy: null,
+  // Proxy URL.
+  //
+  // Example
+  //   Browser.proxy = 'http://myproxy:8080'
+  proxy: null,
 
-    // If true, supress `console.log` output from scripts (ignored when DEBUG=zombie)
-    silent: false,
+  // If true, supress `console.log` output from scripts (ignored when DEBUG=zombie)
+  silent: false,
 
-    // You can use visit with a path, and it will make a request relative to this host/URL.
-    site: undefined,
+  // You can use visit with a path, and it will make a request relative to this host/URL.
+  site: undefined,
 
-    // Check SSL certificates against CA.  False by default since you're likely
-    // testing with a self-signed certificate.
-    strictSSL: false,
+  // Check SSL certificates against CA.  False by default since you're likely
+  // testing with a self-signed certificate.
+  strictSSL: false,
 
-    // Sets the outgoing IP address in case there is more than on available.
-    // Defaults to 0.0.0.0 which should select default interface
-    localAddress: '0.0.0.0',
+  // Sets the outgoing IP address in case there is more than on available.
+  // Defaults to 0.0.0.0 which should select default interface
+  localAddress: '0.0.0.0',
 
-    // User agent string sent to server.
-    userAgent: `Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/${VERSION}`,
+  // User agent string sent to server.
+  userAgent: `Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/${VERSION}`,
 
-    // Navigator language code
-    language: 'en-US',
+  // Navigator language code
+  language: 'en-US',
 
-    // Default time to wait (visit, wait, etc).
-    waitDuration: '5s',
+  // Default time to wait (visit, wait, etc).
+  waitDuration: '5s',
 
-    // Indicates whether or not to validate and execute JavaScript, default true.
-    runScripts: true
+  // Indicates whether or not to validate and execute JavaScript, default true.
+  runScripts: true,
+
+  get default() {
+    return Browser._getDefaults(this);
   },
+
+  // -- Internal properties --
 
   // Debug instance.  Create new instance when enabling debugging with Zombie.debug
   _debug: debug('zombie'),
 
   // Browser extensions;
-  _extensions: []
+  _extensions: [],
+
+  _getDefaults: deprecate(browser => browser,
+                          'Browser.default.<name> = <value> deprecated, please use Browser.<name> = <value> instead')
 
 });
 

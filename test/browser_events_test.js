@@ -1,6 +1,6 @@
-const assert      = require('assert');
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
+const assert  = require('assert');
+const brains  = require('./helpers/brains');
+const Browser = require('../src');
 
 
 describe('Browser events', function() {
@@ -17,6 +17,10 @@ describe('Browser events', function() {
 
   describe('sending output to console', function() {
     before(function() {
+      browser.silent = true;
+    });
+
+    before(function() {
       browser.on('console', function(level, message) {
         events.console.push({ level: level, message: message });
       });
@@ -32,6 +36,10 @@ describe('Browser events', function() {
     it('should receive console events with the message', function() {
       assert.deepEqual(events.console[0].message, 'Logging message');
       assert.deepEqual(events.console[1].message, 'Some [Error: error]');
+    });
+
+    after(function() {
+      browser.silent = false;
     });
   });
 

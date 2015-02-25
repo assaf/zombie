@@ -1,8 +1,8 @@
-const assert      = require('assert');
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
-const { Event }   = require('../src/dom');
-const URL         = require('url');
+const assert    = require('assert');
+const brains    = require('./helpers/brains');
+const Browser   = require('../src');
+const { Event } = require('../src/dom');
+const URL       = require('url');
 
 
 describe('History', function() {

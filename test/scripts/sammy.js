@@ -94,11 +94,11 @@
   if (typeof window.console != 'undefined') {
     if (_isFunction(window.console.log.apply)) {
       Sammy.addLogger(function() {
-        window.console.log.apply(window.console, arguments);
+        //window.console.log.apply(window.console, arguments);
       });
     } else {
       Sammy.addLogger(function() {
-        window.console.log(arguments);
+        //window.console.log(arguments);
       });
     }
   } else if (typeof console != 'undefined') {

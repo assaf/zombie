@@ -1,7 +1,7 @@
-const assert      = require('assert');
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
-const JSDOM       = require('jsdom');
+const assert  = require('assert');
+const brains  = require('./helpers/brains');
+const Browser = require('../src');
+const JSDOM   = require('jsdom');
 
 
 describe('Browser', function() {
@@ -292,8 +292,8 @@ describe('Browser', function() {
       let originalFeatures;
 
       before(function() {
-        originalFeatures = Browser.default.features;
-        Browser.default.features = 'no-scripts';
+        originalFeatures = Browser.features;
+        Browser.features = 'no-scripts';
         newBrowser = Browser.create();
         return newBrowser.visit('/browser/scripted');
       });
@@ -304,7 +304,7 @@ describe('Browser', function() {
 
       after(function() {
         newBrowser.destroy();
-        Browser.default.features = originalFeatures;
+        Browser.features = originalFeatures;
       });
     });
 

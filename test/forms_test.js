@@ -1,8 +1,8 @@
-const assert      = require('assert');
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
-const File        = require('fs')
-const Crypto      = require('crypto');
+const assert  = require('assert');
+const brains  = require('./helpers/brains');
+const Browser = require('../src');
+const File    = require('fs')
+const Crypto  = require('crypto');
 
 
 describe('Forms', function() {
@@ -1100,7 +1100,6 @@ describe('Forms', function() {
   // File upload
   describe('file upload', function() {
     before(function() {
-    });
       brains.static('/forms/upload', `
         <html>
           <body>
@@ -1130,6 +1129,7 @@ describe('Forms', function() {
         } else
           res.send('<html><body>nothing</body></html>');
       });
+    });
 
 
     describe('text', function() {

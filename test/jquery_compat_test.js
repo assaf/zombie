@@ -1,6 +1,6 @@
-const assert      = require('assert');
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
+const assert  = require('assert');
+const brains  = require('./helpers/brains');
+const Browser = require('../src');
 
 
 const JQUERY_VERSIONS = ['1.4.4', '1.5.1', '1.6.3', '1.7.1', '1.8.0', '1.9.1', '2.0.3'];

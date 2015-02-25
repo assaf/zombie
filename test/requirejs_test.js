@@ -1,5 +1,5 @@
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
+const Browser = require('../src');
+const brains  = require('./helpers/brains');
 
 
 describe('require.js', function() {

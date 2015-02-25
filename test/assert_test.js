@@ -1,6 +1,5 @@
-const assert      = require('assert');
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
+const brains  = require('./helpers/brains');
+const Browser = require('../src');
 
 
 describe('Browser assert', function() {

@@ -1,5 +1,5 @@
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
+const brains  = require('./helpers/brains');
+const Browser = require('../src');
 
 
 describe.skip('angularjs', function() {

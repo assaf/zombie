@@ -1,6 +1,7 @@
-const assert      = require('assert');
-const Browser     = require('../src');
-const { brains }  = require('./helpers');
+const assert  = require('assert');
+const brains  = require('./helpers/brains');
+const Browser = require('../src');
+
 
 describe('Document', function() {
   const browser = new Browser();
