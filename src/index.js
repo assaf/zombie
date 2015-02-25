@@ -150,17 +150,17 @@ class Browser extends EventEmitter {
 
     // Logging event loop
     this.eventLoop
-      .on('timeout', (fn, delay)=> {
-        this._debug('Fired timeout after %dms delay', delay);
-        this.emit('timeout', fn, delay);
+      .on('setTimeout', (fn, delay)=> {
+        this._debug('Fired setTimeout after %dms delay', delay);
+        this.emit('setTimeout', fn, delay);
       })
-      .on('interval', (fn, interval)=> {
-        this._debug('Fired interval every %dms', interval);
-        this.emit('interval', fn, interval);
+      .on('setInterval', (fn, interval)=> {
+        this._debug('Fired setInterval every %dms', interval);
+        this.emit('setInterval', fn, interval);
       })
-      .on('server', ()=> {
+      .on('serverEvent', ()=> {
         this._debug('Server initiated event');
-        this.emit('server');
+        this.emit('serverEvent');
       })
       .on('idle', (timedOut)=> {
         if (timedOut)
@@ -301,12 +301,12 @@ class Browser extends EventEmitter {
       [callback, options] = [options, null];
 
     if (callback) {
-      this.eventLoop.once('server', ()=> {
+      this.eventLoop.once('serverEvent', ()=> {
         this.wait(options, callback);
       });
     } else {
       return new Bluebird((resolve)=> {
-        this.eventLoop.once('server', ()=> {
+        this.eventLoop.once('serverEvent', ()=> {
           resolve(this.wait(options, null));
         });
       });

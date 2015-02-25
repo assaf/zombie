@@ -40,7 +40,9 @@ describe('EventSource', function() {
         'Connection':     'keep-alive'
       });
       // Send first event immediately
-      res.write('event: test\nid: 1\ndata: first\n\n');
+      setTimeout(function() {
+        res.write('event: test\nid: 1\ndata: first\n\n');
+      }, 10);
       // Send second event with some delay, still get to see this because of
       // client-side timeout
       setTimeout(function() {
@@ -54,6 +56,7 @@ describe('EventSource', function() {
     });
   });
 
+
   describe('when present', function() {
     before(async function() {
       await browser.visit('/streaming');
@@ -66,7 +69,19 @@ describe('EventSource', function() {
   });
 
 
-  describe('browser.waitForServer', function() {
+  describe('wait', function() {
+    before(async function() {
+      await browser.visit('/streaming');
+      await browser.wait();
+    });
+
+    it('should not wait for server event', function() {
+      assert.deepEqual(browser.window.events, []);
+    });
+  });
+
+
+  describe('waitForServer', function() {
     before(async function() {
       await browser.visit('/streaming');
       await browser.waitForServer();
@@ -87,6 +102,7 @@ describe('EventSource', function() {
       });
     });
   });
+  
 
   after(function() {
     browser.destroy();

@@ -23,33 +23,34 @@ const { EventEmitter }  = require('events');
 // Wrapper for a timeout (setTimeout)
 class Timeout {
 
-  // queue   - Reference to the event queue
-  // fn      - When timer fires, evaluate this function
-  // delay   - How long to wait
-  // remove  - Call this to discard timer
+  // eventQueue - Reference to the event queue
+  // fn         - When timer fires, evaluate this function
+  // delay      - How long to wait
+  // remove     - Call this to discard timer
   //
   // Instance variables add:
   // handle  - Node.js timeout handle
   // next    - When is this timer firing next
-  constructor(queue, fn, delay, remove) {
-    this.queue  = queue;
-    this.fn     = fn;
-    this.delay  = Math.max(delay || 0, 0);
-    this.remove = remove;
+  constructor(eventQueue, fn, delay, remove) {
+    this.eventQueue   = eventQueue;
+    this.fn           = fn;
+    this.delay        = Math.max(delay || 0, 0);
+    this.remove       = remove;
 
-    this.handle = global.setTimeout(this.fire.bind(this), this.delay);
-    this.next   = Date.now() + this.delay;
+    this.handle       = global.setTimeout(this.fire.bind(this), this.delay);
+    this.next         = Date.now() + this.delay;
   }
 
   fire() {
     // In response to Node firing setTimeout, but only allowed to process this
     // event during a wait()
-    this.queue.enqueue(()=> {
-      this.queue.eventLoop.emit('timeout', this.fn, this.delay);
+    this.eventQueue.enqueue(()=> {
+      const { eventLoop } = this.eventQueue;
+      eventLoop.emit('setTimeout', this.fn, this.delay);
       try {
-        this.queue.window._evaluate(this.fn);
+        this.eventQueue.window._evaluate(this.fn);
       } catch (error) {
-        this.queue.eventLoop.emit('error', error);
+        eventLoop.emit('error', error);
       }
     });
     this.remove();
@@ -67,7 +68,7 @@ class Timeout {
 // Wapper for an interval (setInterval)
 class Interval {
 
-  // queue     - Reference to the event queue
+  // eventQueue - Reference to the event queue
   // fn        - When timer fires, evaluate this function
   // interval  - Interval between firing
   // remove    - Call this to discard timer
@@ -75,8 +76,8 @@ class Interval {
   // Instance variables add:
   // handle  - Node.js interval handle
   // next    - When is this timer firing next
-  constructor(queue, fn, interval, remove) {
-    this.queue          = queue;
+  constructor(eventQueue, fn, interval, remove) {
+    this.eventQueue     = eventQueue;
     this.fn             = fn;
     this.interval       = Math.max(interval || 0, 0);
     this.remove         = remove;
@@ -94,14 +95,15 @@ class Interval {
     if (this.fireInProgress)
       return;
     this.fireInProgress = true;
-    this.queue.enqueue(()=> {
+    this.eventQueue.enqueue(()=> {
       this.fireInProgress = false;
 
-      this.queue.eventLoop.emit('interval', this.fn, this.interval);
+      const { eventLoop } = this.eventQueue;
+      eventLoop.emit('setInterval', this.fn, this.interval);
       try {
-        this.queue.window._evaluate(this.fn);
+        this.eventQueue.window._evaluate(this.fn);
       } catch (error) {
-        this.queue.eventLoop.emit('error', error);
+        eventLoop.emit('error', error);
       }
     });
   }
@@ -181,6 +183,7 @@ class EventQueue {
   // Add a function to the event queue, to be executed in order.
   enqueue(fn) {
     assert(this.queue, 'This browser has been destroyed');
+    assert(typeof(fn) === 'function', 'eventLoop.enqueue called without a function');
   
     if (fn) {
       this.queue.push(fn);
@@ -262,7 +265,7 @@ class EventQueue {
 
     const emit = eventSource.emit;
     eventSource.emit = (...args)=> {
-      this.eventLoop.emit('server');
+      this.eventLoop.emit('serverEvent');
       this.enqueue(()=> {
         emit.apply(eventSource, args);
       });
@@ -396,14 +399,14 @@ module.exports = class EventLoop extends EventEmitter {
     // The timer fires when we waited long enough, we need timeoutOn to tell if
     // the next event is past the wait duration and there's no point in waiting
     // further
-    const timer     = global.setTimeout(done, waitDuration);
+    const timer     = global.setTimeout(timeout, waitDuration);
     const timeoutOn = Date.now() + waitDuration;
 
     // Fired after every event, decide if we want to stop waiting
     function ontick(next) {
       // No point in waiting that long
       if (next >= timeoutOn) {
-        done();
+        timeout();
         return;
       }
 
@@ -428,7 +431,14 @@ module.exports = class EventLoop extends EventEmitter {
     // Stop on first error reported (document load, script, etc)
     // Event loop errors also propagated to the browser
     eventLoop.browser.once('error', done);
-  
+ 
+    // We gave up, could be result of slow response ...
+    function timeout() {
+      if (eventLoop.expected)
+        done(new Error('Timeout: did not get to load all resources on this page'));
+      else
+        done();
+    }
 
     // The wait is over ...
     function done(error) {
@@ -506,10 +516,10 @@ module.exports = class EventLoop extends EventEmitter {
         if (this.waiting === 0)
           return;
 
-        const fn = this.active._eventQueue.dequeue();
-        if (fn) {
+        const event = this.active._eventQueue.dequeue();
+        if (event) {
           // Process queued function, tick, and on to next event
-          fn();
+          event();
           this.emit('tick', 0);
           this.run();
         } else if (this.expected > 0) {

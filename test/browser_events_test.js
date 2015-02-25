@@ -215,7 +215,7 @@ describe('Browser events', function() {
           <script>setTimeout(function() { }, 1);</script>
         </html>`);
 
-      browser.on('timeout', function(fn, delay) {
+      browser.on('setTimeout', function(fn, delay) {
         events.timeout = { fn, delay };
       });
 
@@ -240,7 +240,7 @@ describe('Browser events', function() {
         </html>
       `);
 
-      browser.on('interval', function(fn, interval) {
+      browser.on('setInterval', function(fn, interval) {
         events.interval = { fn, interval };
       });
 

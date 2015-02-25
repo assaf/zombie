@@ -7,6 +7,9 @@ ADDED DOM URL class
 
 ADDED XHR events emitted to browser
 
+ADDED wait() ends with error if Browser cannot load all resources on the page
+(e.g. doesn't get to load scripts)
+
 REMOVED browser.fork no longer supported
 
 REMOVED browser.htmlParser option no longer supported, always using default
@@ -21,6 +24,8 @@ REMOVED protocol and bcat, no tests
 CHANGED Browser.debug -> browser.debug (per instance)
 
 CHANGED browser.referer -> browser.referrer
+
+CHANGED timeout event -> setTimeout, interval -> setInterval
 
 CHANGED removed onalert/onconfirm/onprompt, use browser.on('alert', fn) etc
 
