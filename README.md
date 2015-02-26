@@ -191,19 +191,6 @@ Notice the asterisk in the above example, that tells Zombie to route all
 sub-domains, so you can visit `foo.example.com` and `bar.example.com` in your
 test case.
 
-If you need to map multiple domains and/or ports, see [DNS Masking](#dnsmasking)
-and [Port Mapping](#portmapping).
-
-If you need more flexibility, consider that `Browser.localhost` is just a
-shortcut for making these three changes:
-
-- `Browser.dns.localhost(hostname)` will make any DNS lookup of hostname resolve
-  to 127.0.0.1 (see [DNS Masking](#dnsmasking))
-- `Browser.ports.map(hostname, port)` will redirect any HTTP request to hostname
-  from port 80 to the designated port (see [Port Mapping](#portmapping))
-- `Browser.site = hostname` will add the hostname to any relative URL
-  (e.g. when using `browser.visit`)
-
 
 #### browser.proxy
 
