@@ -1,13 +1,14 @@
-const dns   = require('./dns_mask');
-const ports = require('./port_map');
+const reroute = require('./reroute');
 
+
+let firstHostname = null;
 
 function localhost(hostname, port = 3000) {
   if (hostname) {
-    dns.localhost(hostname);
-    ports.map(hostname, port);
+    reroute(`${hostname}:80`, `localhost:${port}`);
+    firstHostname = hostname;
   }
-  return ports.names[0].replace(/^\*\./, '');
+  return firstHostname;
 }
 
-module.exports = { localhost, dns, ports };
+module.exports = { localhost };

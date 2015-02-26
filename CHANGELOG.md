@@ -23,6 +23,8 @@ REMOVED resources.mock/fail/delay, use Nock instead
 
 REMOVED protocol and bcat, no tests
 
+REMOVED Browser.dns and Browser.ports, switching to different implementation
+
 CHANGED Browser.debug -> browser.debug (per instance)
 
 CHANGED browser.referer -> browser.referrer
@@ -45,7 +47,7 @@ CHANGED all dump() methods now accept output stream or output to stdout
 
 FIXED XHR errors no longer stop the event loop
 
- 689 passing (22s)
+ 684 passing (22s)
   12 pending
 
 

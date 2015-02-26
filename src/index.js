@@ -6,17 +6,15 @@ const Console           = require('./console');
 const Cookies           = require('./cookies');
 const debug             = require('debug');
 const { deprecate }     = require('util');
-const DNSMask           = require('./dns_mask');
 const DOM               = require('./dom');
 const { EventEmitter }  = require('events');
 const EventLoop         = require('./eventloop');
 const { format }        = require('util');
 const File              = require('fs');
-const localhosted       = require('./localhost');
 const Mime              = require('mime');
 const ms                = require('ms');
 const Path              = require('path');
-const PortMap           = require('./port_map');
+const reroute           = require('./reroute');
 const Resources         = require('./resources');
 const serializeDOM      = require('./serialize');
 const Storages          = require('./storage');
@@ -1250,12 +1248,8 @@ class Browser extends EventEmitter {
   //   browser.visit('/path', function() {
   //     assert(broswer.location.href == 'http://example.com/path');
   //   });
-  //
-  // This is equivalent to DNS masking the hostname as 127.0.0.1 (see
-  // Browser.dns), mapping port 80 to the specified port (see Browser.ports) and
-  // setting Browser.site to the hostname.
   static localhost(hostname, port) {
-    localhosted.localhost(hostname, port);
+    reroute(`${hostname}:80`, `localhost:${port}`);
     if (!this.site)
       this.site = hostname.replace(/^\*\./, '');
   }
@@ -1332,30 +1326,6 @@ Object.assign(Browser, {
 
   _getDefaults: deprecate(browser => browser,
                           'Browser.default.<name> = <value> deprecated, please use Browser.<name> = <value> instead'),
-
-  // Allows you to make request against port 80, route them to test server running
-  // on less privileged port.
-  //
-  // For example, if your application is listening on port 3000, you can do:
-  //   Browser.ports.map('localhost', '3000')
-  //
-  // Or in combination with DNS mask:
-  //   Brower.dns.map('example.com', '127.0.0.1)
-  //   Browser.ports.map('example.com', '3000')
-  //
-  // See also Browser.localhost.
-  ports: localhosted.ports,
-
-  // Allows you to masquerade CNAME, A (IPv4) and AAAA (IPv6) addresses.  For
-  // example:
-  //   Brower.dns.localhost('example.com')
-  //
-  // This is a shortcut for:
-  //   Brower.dns.map('example.com', '127.0.0.1)
-  //   Brower.dns.map('example.com', '::1')
-  //
-  // See also Browser.localhost.
-  dns: localhosted.dns
 
 });
 
