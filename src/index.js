@@ -12,6 +12,7 @@ const { EventEmitter }  = require('events');
 const EventLoop         = require('./eventloop');
 const { format }        = require('util');
 const File              = require('fs');
+const localhosted       = require('./localhost');
 const Mime              = require('mime');
 const ms                = require('ms');
 const Path              = require('path');
@@ -1254,8 +1255,7 @@ class Browser extends EventEmitter {
   // Browser.dns), mapping port 80 to the specified port (see Browser.ports) and
   // setting Browser.site to the hostname.
   static localhost(hostname, port) {
-    this.dns.localhost(hostname);
-    this.ports.map(hostname, port);
+    localhosted.localhost(hostname, port);
     if (!this.site)
       this.site = hostname.replace(/^\*\./, '');
   }
@@ -1344,7 +1344,7 @@ Object.assign(Browser, {
   //   Browser.ports.map('example.com', '3000')
   //
   // See also Browser.localhost.
-  ports: new PortMap(),
+  ports: localhosted.ports,
 
   // Allows you to masquerade CNAME, A (IPv4) and AAAA (IPv6) addresses.  For
   // example:
@@ -1355,7 +1355,7 @@ Object.assign(Browser, {
   //   Brower.dns.map('example.com', '::1')
   //
   // See also Browser.localhost.
-  dns: new DNSMask()
+  dns: localhosted.dns
 
 });
 

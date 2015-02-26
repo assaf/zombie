@@ -1,7 +1,7 @@
 const HTTP = require("http");
 
 
-module.exports = class PortMap {
+class PortMap {
 
   constructor() {
   }
@@ -14,6 +14,10 @@ module.exports = class PortMap {
   unmap(hostname) {
     this._enable();
     delete this._ports.hostname;
+  }
+
+  get names() {
+    return Object.keys(this._ports);
   }
 
   _enable() {
@@ -59,5 +63,8 @@ module.exports = class PortMap {
       .filter(port => port)[0];
   }
 
-};
+}
+
+
+module.exports = new PortMap();
 

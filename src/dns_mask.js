@@ -8,9 +8,7 @@ const Net = require("net");
 
 // DNSMask hijacks Node's DNS.resolve and DNS.lookup and returns results based on
 // your domain/type -> IP mapping.
-module.exports = class DNSMask {
-
-
+class DNSMask {
 
   // Requests for the given domain will return 127.0.0.1 (or ::1 for IPv6).
   //
@@ -184,5 +182,7 @@ module.exports = class DNSMask {
                   .filter(ip   => ip)[0];
   }
 
-};
+}
 
+
+module.exports = new DNSMask();
