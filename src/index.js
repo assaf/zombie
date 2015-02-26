@@ -1238,38 +1238,6 @@ class Browser extends EventEmitter {
     return new Browser(options);
   }
 
-  // Allows you to masquerade CNAME, A (IPv4) and AAAA (IPv6) addresses.  For
-  // example:
-  //   Brower.dns.localhost('example.com')
-  //
-  // This is a shortcut for:
-  //   Brower.dns.map('example.com', '127.0.0.1)
-  //   Brower.dns.map('example.com', '::1')
-  //
-  // See also Browser.localhost.
-  static get dns() {
-    if (!this._dns)
-      this._dns = new DNSMask();
-    return this._dns;
-  }
-
-  // Allows you to make request against port 80, route them to test server running
-  // on less privileged port.
-  //
-  // For example, if your application is listening on port 3000, you can do:
-  //   Browser.ports.map('localhost', '3000')
-  //
-  // Or in combination with DNS mask:
-  //   Brower.dns.map('example.com', '127.0.0.1)
-  //   Browser.ports.map('example.com', '3000')
-  //
-  // See also Browser.localhost.
-  static get ports() {
-    if (!this._ports)
-      this._ports = new PortMap();
-    return this._ports;
-  }
-
   // Allows you to make requests against a named domain and port 80, route them to
   // the test server running on localhost and less privileged port.
   //
@@ -1299,6 +1267,10 @@ class Browser extends EventEmitter {
   // etc.
   static extend(extension) {
     this._extensions.push(extension);
+  }
+
+  static get default() {
+    return Browser._getDefaults(this);
   }
 
 }
@@ -1350,10 +1322,6 @@ Object.assign(Browser, {
   // Indicates whether or not to validate and execute JavaScript, default true.
   runScripts: true,
 
-  get default() {
-    return Browser._getDefaults(this);
-  },
-
   // -- Internal properties --
 
   // Debug instance.  Create new instance when enabling debugging with Zombie.debug
@@ -1363,7 +1331,31 @@ Object.assign(Browser, {
   _extensions: [],
 
   _getDefaults: deprecate(browser => browser,
-                          'Browser.default.<name> = <value> deprecated, please use Browser.<name> = <value> instead')
+                          'Browser.default.<name> = <value> deprecated, please use Browser.<name> = <value> instead'),
+
+  // Allows you to make request against port 80, route them to test server running
+  // on less privileged port.
+  //
+  // For example, if your application is listening on port 3000, you can do:
+  //   Browser.ports.map('localhost', '3000')
+  //
+  // Or in combination with DNS mask:
+  //   Brower.dns.map('example.com', '127.0.0.1)
+  //   Browser.ports.map('example.com', '3000')
+  //
+  // See also Browser.localhost.
+  ports: new PortMap(),
+
+  // Allows you to masquerade CNAME, A (IPv4) and AAAA (IPv6) addresses.  For
+  // example:
+  //   Brower.dns.localhost('example.com')
+  //
+  // This is a shortcut for:
+  //   Brower.dns.map('example.com', '127.0.0.1)
+  //   Brower.dns.map('example.com', '::1')
+  //
+  // See also Browser.localhost.
+  dns: new DNSMask()
 
 });
 

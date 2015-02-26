@@ -10,15 +10,6 @@ const Net = require("net");
 // your domain/type -> IP mapping.
 module.exports = class DNSMask {
 
-  constructor() {
-    this._domains   = {};
-    this._lookup    = DNS.lookup;
-    DNS.lookup      = this.lookup.bind(this);
-    this._resolve   = DNS.resolve;
-    DNS.resolve     = this.resolve.bind(this);
-    this._resolveMx = DNS.resolve;
-    DNS.resolveMx   = this.resolveMx.bind(this);
-  }
 
 
   // Requests for the given domain will return 127.0.0.1 (or ::1 for IPv6).
@@ -44,6 +35,8 @@ module.exports = class DNSMask {
   //
   // Use asterisks to map all subdomains, e.g. *.example.com.
   map(domain, type, address) {
+    this._enable();
+
     if (arguments.length === 2) {
       address = type;
       switch (Net.isIP(address)) {
@@ -72,6 +65,7 @@ module.exports = class DNSMask {
   // Remove all mapping for the given domain/type.  With one argument, removes
   // all mapping for the given domain, of any type.
   unmap(domain, type) {
+    this._enable();
     if (type) {
       if (this._domains[domain])
         delete this._domains[domain][type];
@@ -80,8 +74,22 @@ module.exports = class DNSMask {
   }
 
 
+  // Set everything up
+  _enable() {
+    if (!this._domains) {
+      this._domains           = {};
+      this._originalLookup    = DNS.lookup;
+      DNS.lookup              = this._lookup.bind(this);
+      this._originalResolve   = DNS.resolve;
+      DNS.resolve             = this._resolve.bind(this);
+      this._originalResolveMx = DNS.resolve;
+      DNS.resolveMx           = this._resolveMx.bind(this);
+    }
+  }
+
+
   // Alternative implementation for Node's DNS.lookup.
-  lookup(domain, family, callback) {
+  _lookup(domain, family, callback) {
     // With two arguments, second argument is the callback, family is 4 or 6
     if (arguments.length === 2)
       [family, callback] = [null, family];
@@ -125,11 +133,12 @@ module.exports = class DNSMask {
         return;
       }
     }
-    this._lookup(domain, family, callback);
+    this._originalLookup(domain, family, callback);
   }
 
+
   // Alternative implementation for Node's DNS.resolve.
-  resolve(domain, type, callback) {
+  _resolve(domain, type, callback) {
     // With two arguments, second argument is the callback, type is 'A'
     if (arguments.length === 2)
       [type, callback] = ["A", type];
@@ -139,18 +148,18 @@ module.exports = class DNSMask {
         callback(null, [ip]);
       });
     } else
-      this._resolve(domain, type, callback);
+      this._originalResolve(domain, type, callback);
   }
 
   // Alternative implementation for Node's DNS.resolveMx.
-  resolveMx(domain, callback) {
+  _resolveMx(domain, callback) {
     const exchange = this._find(domain, "MX");
     if (exchange) {
       setImmediate(function() {
         callback(null, [exchange]);
       });
     } else
-      this._resolveMx(domain, callback);
+      this._originalResolveMx(domain, callback);
   }
 
 

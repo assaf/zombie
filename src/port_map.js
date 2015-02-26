@@ -4,17 +4,24 @@ const HTTP = require("http");
 module.exports = class PortMap {
 
   constructor() {
-    this._ports = {};
-    this._http  = HTTP.request;
-    HTTP.request = this._request.bind(this);
   }
 
   map(hostname, port) {
+    this._enable();
     this._ports[hostname] = port;
   }
 
   unmap(hostname) {
+    this._enable();
     delete this._ports.hostname;
+  }
+
+  _enable() {
+    if (!this._ports) {
+      this._ports = {};
+      this._http  = HTTP.request;
+      HTTP.request = this._request.bind(this);
+    }
   }
 
   _request(options, callback) {
