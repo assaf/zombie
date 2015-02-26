@@ -13,7 +13,6 @@ const Replay    = require('replay');
 
 // Tests visit example.com, server is localhost port 3003
 Browser.localhost('*.example.com', 3003);
-Browser.default.site = 'example.com';
 
 // Redirect all HTTP requests to localhost
 Replay.fixtures = __dirname + '/../replay';
