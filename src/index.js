@@ -1146,8 +1146,7 @@ class Browser extends EventEmitter {
 
   // Enable debugging.  You can do this in code instead of setting DEBUG environment variable.
   debug() {
-    debug.enable('zombie');
-    this._debug = debug('zombie');
+    this._debug = Browser._enableDebugging();
   }
 
   get statusCode() {
@@ -1263,9 +1262,27 @@ class Browser extends EventEmitter {
     this._extensions.push(extension);
   }
 
+  // Deprecated soon
   static get default() {
     return Browser._getDefaults(this);
   }
+
+  // Call this to return a debug() instance with debugging enabled.
+  static _enableDebugging() {
+    // With debugging enabled, every time we call debug('zombie') we get a new
+    // instance which outputs with a different color.  This can be confusing, so
+    // if debugging is already enabled (DEBUG=zombie) we want to use the current
+    // instance.  Otherwise, we want to create a new instance (_debugEnabled)
+    // and reuse it every time someone calls browser.debug().
+    if (this._debug.enabled)
+      return this._debug.enabled;
+
+    if (!this._debugEnabled) {
+      debug.enable('zombie');
+      this._debugEnabled = debug('zombie');
+    }
+    return this._debugEnabled;
+  } 
 
 }
 
@@ -1320,6 +1337,9 @@ Object.assign(Browser, {
 
   // Debug instance.  Create new instance when enabling debugging with Zombie.debug
   _debug: debug('zombie'),
+
+  // Set after calling _enableDebugging
+  _debugEnabled: null,
 
   // Browser extensions;
   _extensions: [],
