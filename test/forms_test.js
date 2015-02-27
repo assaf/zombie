@@ -99,6 +99,7 @@ describe('Forms', function() {
             <input type="reset" value="Reset">
             <input type="submit" name="button" value="Submit">
             <input type="image" name="image" id="image_submit" value="Image Submit">
+            <input type="image" name="image" id="image_no_value_submit">
 
             <button name="button" value="hit-me">Hit Me</button>
 
@@ -151,7 +152,11 @@ describe('Forms', function() {
             <div id="addresses">${JSON.stringify(req.body.addresses)}</div>
             <div id="unknown">${req.body.unknown}</div>
             <div id="clicked">${req.body.button}</div>
-            <div id="image_clicked">${req.body.image}</div>
+            <div id="image_clicked">
+              ${req.body.image}:
+              ${req.body["image.x"]}
+              ${req.body["image.y"]}
+            </div>
           </body>
         </html>
       `);
@@ -977,7 +982,7 @@ describe('Forms', function() {
         browser.assert.text('#likes', 'Arm Biting');
       });
       it('should not send other button values to server', function() {
-        browser.assert.text('#image_clicked', 'undefined');
+        browser.assert.text('#image_clicked', 'undefined: undefined undefined');
       });
     });
 
@@ -1029,7 +1034,7 @@ describe('Forms', function() {
         assert.equal(browser.window.history.length, 2);
       });
       it('should send image value to server', function() {
-        browser.assert.text('#image_clicked', 'Image Submit');
+        browser.assert.text('#image_clicked', 'Image Submit: 0 0');
       });
       it('should send input values to server', function() {
         browser.assert.text('#name', 'ArmBiter');
@@ -1037,6 +1042,22 @@ describe('Forms', function() {
       });
       it('should not send other button values to server', function() {
         browser.assert.text('#clicked', 'undefined');
+      });
+    });
+
+    describe('by clicking image button without value', function() {
+      before(async function() {
+        await browser.visit('/forms/form');
+        browser.fill('Name', 'ArmBiter');
+        browser.fill('likes', 'Arm Biting');
+        await browser.pressButton('#image_no_value_submit');
+      });
+
+      it('should open new page', function() {
+        browser.assert.url('/forms/submit');
+      });
+      it('should send image value to server', function() {
+        browser.assert.text('#image_clicked', 'undefined: 0 0');
       });
     });
 

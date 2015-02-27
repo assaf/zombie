@@ -80,8 +80,21 @@ DOM.HTMLFormElement.prototype.submit = function(button) {
   function submit() {
     // No triggering event, just get history to do the submission.
     if (button && button.name) {
-      params[button.name] = params[button.name] || [];
-      params[button.name].push(button.value);
+      if (button.nodeName === 'INPUT' && button.type === 'image') {
+        params[button.name + '.x'] = params[button.name + '.x'] || [];
+        params[button.name + '.x'].push('0');
+
+        params[button.name + '.y'] = params[button.name + '.y'] || [];
+        params[button.name + '.y'].push('0');
+
+        if (button.value) {
+          params[button.name] = params[button.name] || [];
+          params[button.name].push(button.value);
+        }
+      } else {
+        params[button.name] = params[button.name] || [];
+        params[button.name].push(button.value);
+      }
     }
 
     // Ask window to submit form, let it figure out how to handle this based on
@@ -155,7 +168,7 @@ DOM.HTMLInputElement.prototype._eventDefaults.click = function(event) {
       if (!input.getAttribute('readonly')) {
         input.checked = true;
         change();
-      } 
+      }
     }
   }
 };
@@ -214,7 +227,7 @@ DOM.HTMLInputElement.prototype.click = function() {
       }
       break;
     }
-    
+
     default: {
       click();
       break;
