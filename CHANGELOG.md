@@ -1,4 +1,4 @@
-## Version 3.0.10 2015-02-26
+## Version 3.0.11 2015-02-27
 
 NOTE Zombie 3.0 tested to work with io.js 1.3 or later, and with Node 0.12 or
 later.  It may or may not work correctly with Node 0.10.
@@ -11,6 +11,9 @@ ADDED wait() ends with error if Browser cannot load all resources on the page
 (e.g. doesn't get to load scripts)
 
 ADDED experimental browser.serialize()
+
+ADDED submitting form using an image input will include coordinates #865 (Werner
+Beroux)
 
 REMOVED browser.fork no longer supported
 
