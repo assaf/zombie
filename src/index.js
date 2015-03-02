@@ -1221,6 +1221,8 @@ class Browser extends EventEmitter {
   //
   // * url -- URL of page to open
   // * callback -- Called with error, browser
+  //
+  // See also: site property.
   static visit(url, options, callback) {
     if (arguments.length === 2 && typeof(options) === 'function')
       [options, callback] = [null, options];
@@ -1236,19 +1238,27 @@ class Browser extends EventEmitter {
     return new Browser(options);
   }
 
+  // Reroute any network connections from source to target.
+  //
   // Allows you to make requests against a named domain and port 80, route them to
   // the test server running on localhost and less privileged port.
   //
   // For example, say your test server is running on port 3000, you can do:
-  //   Browser.localhost('example.com', 3000)
+  //   Browser.reroute('*.example.com', 'localhost:3000')
   //
-  // You can now visit http://example.com and it will be handled by the server
-  // running on port 3000.  In fact, you can just write:
-  //   browser.visit('/path', function() {
-  //     assert(broswer.location.href == 'http://example.com/path');
-  //   });
-  static localhost(hostname, port) {
-    reroute(`${hostname}:80`, `localhost:${port}`);
+  // If source is a hostname, target must also be a hostname.  Connections will be
+  // routed using the same port.
+  //
+  // If source is host:port, target must also be host:port.  Connections will be
+  // routed to different host and port.
+  //
+  // You can call multiple times with any combination of the above.  In additionl,
+  // source host can start with a wildcard.  For example, '*.example.com' will
+  // match 'example.com' and 'www.example.com'.
+  //
+  // See also: site property.
+  static reroute(source, target) {
+    reroute(source, target);
     if (!this.site)
       this.site = hostname.replace(/^\*\./, '');
   }
@@ -1310,7 +1320,7 @@ Object.assign(Browser, {
   // If true, supress `console.log` output from scripts (ignored when DEBUG=zombie)
   silent: false,
 
-  // You can use visit with a path, and it will make a request relative to this host/URL.
+  // When defined, visit() will make a request relative to this host/URL.
   site: undefined,
 
   // Check SSL certificates against CA.  False by default since you're likely
