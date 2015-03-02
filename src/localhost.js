@@ -3,9 +3,9 @@ const reroute = require('./reroute');
 
 let firstHostname = null;
 
-function localhost(hostname, port = 3000) {
+function localhost(hostname, target_port = 3000, target_hostname = 'localhost') {
   if (hostname) {
-    reroute(`${hostname}:80`, `localhost:${port}`);
+    reroute(`${hostname}:80`, `${target_hostname}:${target_port}`);
     firstHostname = hostname;
   }
   return firstHostname;
