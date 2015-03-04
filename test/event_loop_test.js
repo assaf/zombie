@@ -1,6 +1,7 @@
-const assert  = require('assert');
-const brains  = require('./helpers/brains');
-const Browser = require('../src');
+const assert    = require('assert');
+const Bluebird  = require('bluebird');
+const brains    = require('./helpers/brains');
+const Browser   = require('../src');
 
 
 describe('EventLoop', function() {
@@ -133,7 +134,7 @@ describe('EventLoop', function() {
         await browser.wait(120); // wait long enough to fire no. 1
         await browser.wait(120); // wait long enough to fire no. 2
         // wait long enough to fire no. 3, but no events processed
-        await new Promise((resolve)=> setTimeout(resolve, 200));
+        await Bluebird.delay(200);
       });
       it('should not fire', function() {
         browser.assert.text('title', '12');
@@ -302,7 +303,7 @@ describe('EventLoop', function() {
         await browser.wait(120); // wait long enough to fire no. 1
         await browser.wait(120); // wait long enough to fire no. 2
         // wait long enough to fire no. 3, but no events processed
-        await new Promise((resolve)=> setTimeout(resolve, 200));
+        await Bluebird.delay(200);
       });
 
       it('should not fire', function() {
