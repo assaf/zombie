@@ -1,5 +1,5 @@
 const assert      = require('assert');
-const clean       = require('gulp-clean');
+const del         = require('del');
 const exec        = require('gulp-exec');
 const File        = require('fs');
 const gulp        = require('gulp');
@@ -34,10 +34,10 @@ gulp.task('build', ['clean'], function() {
 
 
 // gulp clean -> clean generated files
-gulp.task('clean', function() {
-  return gulp
-    .src('lib', { read: false })
-    .pipe( clean() );
+gulp.task('clean', function(done) {
+  del([
+    'lib'
+  ], done);
 });
 
 
