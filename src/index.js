@@ -1244,13 +1244,26 @@ class Browser extends EventEmitter {
   //
   // You can now visit http://example.com and it will be handled by the server
   // running on port 3000.  In fact, you can just write:
+  //
   //   browser.visit('/path', function() {
   //     assert(broswer.location.href == 'http://example.com/path');
   //   });
-  static localhost(hostname, port) {
-    reroute(`${hostname}:80`, `localhost:${port}`);
-    if (!this.site)
+  //
+  // You can also route multiple sub-domains, for example to route
+  // `example.test` and `wwww.example.test` to port 3000:
+  //
+  //   Browser.localhost('*.example.test', 3000);
+  //
+  // To map ports other than 80, append port number to the host name, for
+  // example:
+  //
+  //   Browser.localhost('example.com:443', 3001);
+  static localhost(source, target) {
+    reroute(source, target);
+    if (!this.site) {
+      const [ hostname ] = source.split(':');
       this.site = hostname.replace(/^\*\./, '');
+    }
   }
 
   // Register a browser extension.
@@ -1311,7 +1324,7 @@ Object.assign(Browser, {
   silent: false,
 
   // You can use visit with a path, and it will make a request relative to this host/URL.
-  site: undefined,
+  site: null,
 
   // Check SSL certificates against CA.  False by default since you're likely
   // testing with a self-signed certificate.

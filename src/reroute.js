@@ -19,74 +19,33 @@ const Net     = require('net');
 
 // Routing table.
 //
-// key   - Soruce host name or wildcard (e.g. "example.com", "*.example.com")
-// value - Target host name and port mapping, see blow
-//
-// The target object has:
-//
-// host   - Target host name
-// ports  - Object mapping source port number to target port number
+// key   - Source host name or wildcard (e.g. "example.com", "*.example.com")
+// value - Object that maps source port to target port
 const routing = {};
 
 // Flip this from enable() so we only inject our code into Socket.connect once.
 let   enabled = false;
 
 
-// Reroute any network connections from source to target.
-//
-// If source is a hostname, target must also be a hostname.  Connections will be
-// routed using the same port.
-//
-// If source is host:port, target must also be host:port.  Connections will be
-// routed to different host and port.
-//
-// You can call multiple times with any combination of the above.  In additionl,
-// source host can start with a wildcard.  For example, '*.example.com' will
-// match 'example.com' and 'www.example.com'.
+// Reroute any network connections from source (hostname and optional port) to
+// target (port).
 module.exports = function route(source, target) {
   assert(source, 'Expected source address of the form "host:port" or just "host"');
   const sourceHost = source.split(':')[0];
-  const sourcePort = +source.split(':')[1];
-  if (sourcePort) {
-
-    // Route from one host:port combination to another host:port
-    const targetHost  = target.split(':')[0];
-    const targetPort  = +target.split(':')[1];
-    assert(targetHost && targetPort, 'Expected target address of the form "host:port", target port required');
-    if (!routing[sourceHost]) {
-      routing[sourceHost] = {
-        host:   targetHost,
-        ports:  {} 
-      };
-    }
-    assert(routing[sourceHost].host === targetHost,
-           'Already have routing from ' + source + ' to ' + routing[sourceHost].host);
-    if (!routing[sourceHost].ports[sourcePort])
-      routing[sourceHost].ports[sourcePort] = targetPort;
-    assert(routing[sourceHost].ports[sourcePort] === targetPort,
-           'Already have routing from ' + source +' to ' + routing[sourceHost].host + ':' + routing[sourceHost].ports[sourcePort]);
+  const sourcePort = source.split(':')[1] || 80;
+  if (!routing[sourceHost])
+    routing[sourceHost] = { };
+  if (!routing[sourceHost][sourcePort])
+    routing[sourceHost][sourcePort] = target;
+  assert(routing[sourceHost][sourcePort] === target,
+         `Already have routing from ${source} to ${routing[sourceHost][sourcePort]}`);
   
-  } else {
-
-    // Route from one host to another (don't change ports)
-    assert(target.indexOf('.') < 0, 'Expected target address of the form "host", no port allowed');
-    if (!routing[sourceHost]) {
-      routing[sourceHost] = {
-        host:   target,
-        ports:  {} 
-      };
-    }
-    assert(routing[sourceHost].host === target,
-           'Already have routing from ' + source + ' to ' + routing[sourceHost].host);
-
-  
-  }
   // Enable Socket.connect routing
   enable();
 };
 
 
-// If there's a route for host/port, return object with host/port properties.
+// If there's a route for host/port, returns destination port number.
 //
 // Called recursively to handle wildcards.  Starting with the host
 // www.example.com, it will attempt to match routes from most to least specific:
@@ -95,17 +54,14 @@ module.exports = function route(source, target) {
 // *.www.example.com
 //     *.example.com
 //             *.com
-function find(host, port) {
-  const route = routing[host];
+function find(hostname, port) {
+  const route = routing[hostname];
   if (route) {
-    return {
-      host: route.host,
-      port: route.ports[port] || port
-    };
+    return route[port];
   } else {
     // This will first expand www.hostname.com to *.www.hostname.com,
     // then contract it to *.hostname.com, *.com and finally *.
-    const wildcard = host.replace(/^(\*\.[^.]+(\.|$))?/, '*.');
+    const wildcard = hostname.replace(/^(\*\.[^.]+(\.|$))?/, '*.');
     if (wildcard !== '*.')
       return find(wildcard, port);
   }
@@ -121,9 +77,9 @@ function enable() {
   const connect = Net.Socket.prototype.connect;
   Net.Socket.prototype.connect = function(options, callback) {
     if (typeof(options) === 'object') {
-      const route = find(options.host, options.port);
-      if (route) {
-        options = Object.assign({}, options, route);
+      const port = find(options.host, options.port);
+      if (port) {
+        options = Object.assign({}, options, { host: 'localhost', port });
         return connect.call(this, options, callback);
       }
     }
