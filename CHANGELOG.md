@@ -1,4 +1,4 @@
-## Version 3.0.11 2015-02-27
+## Version 3.0.12 2015-03-04
 
 NOTE Zombie 3.0 tested to work with io.js 1.3 or later, and with Node 0.12 or
 later.  It may or may not work correctly with Node 0.10.
@@ -48,7 +48,7 @@ CHANGED all dump() methods now accept output stream or output to stdout
 
 FIXED XHR errors no longer stop the event loop
 
- 684 passing (22s)
+ 686 passing (29s)
   12 pending
 
 
