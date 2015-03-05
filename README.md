@@ -155,41 +155,42 @@ window at a time.
 
 See [Tabs](#tabs) for detailed discussion.
 
-#### Browser.localhost(hostname, port)
+#### Browser.localhost(host, port)
 
-Even though your test server is running on localhost and unprivileged port, this
-method makes it possible to access it as a different domain name and through
-port 80.
+Allows you to make requests against a named domain and HTTP/S port, and will
+route it to the test server running on localhost and unprivileged port.
 
-It also sets the default site URL, so your tests don't have to specify the
-hostname every time.
+For example, if you want to call your application "example.com", and redirect
+traffic from port 80 to the test server that's listening on port 3000, you can
+do this:
 
-Let's say your test server runs on port 3000, and you want to write tests that
-visit `example.com`:
-
-```
-Browser.localhost('example.com', 3000);
-```
-
-You can now visit `http://example.com/path` and it will talk to your local
-server on port 3000.  In fact, `example.com` becomes the default domain, so your
-tests can be as simple as:
-
-```
-// Global setting, applies to all browser instances
-Browser.localhost('*.example.com', 3000);
-
-// Browser instance for this test
-const browser = new Browser();
+```javascript
+Browser.localhost('example.com', 3000)
 browser.visit('/path', function() {
-  // It picks example.com as the default host
-  browser.assert.url('http://example.com/path');
+  assert(broswer.location.href == 'http://example.com/path');
 });
 ```
 
-Notice the asterisk in the above example, that tells Zombie to route all
-sub-domains, so you can visit `foo.example.com` and `bar.example.com` in your
+The first time you call `Browser.localhost`, if you didn't specify
+`Browser.site`, it will set it to the hostname (in the above example,
+"example.com").  Whenever you call `browser.visit` with a relative URL, it
+appends it to `Browser.site`, so you don't need to repeat the full URL in every
 test case.
+
+You can use wildcards to map domains and all hosts within these domains, and you
+can specify the source port to map protocols other than HTTP.  For example:
+
+```javascript
+// HTTP requests for example.test www.example.test will be answered by localhost
+// server running on port 3000
+Browser.localhost('*.example.test', 3000);
+// HTTPS requests will be answered by localhost server running on port 3001
+Browser.localhost('*.example.test:443', 3001);
+```
+
+The underlying implementation hacks `net.Socket.connect`, so it will route any
+TCP connection made by the Node application, whether Zombie or any other
+library.  It does not affect other processes running on your machine.
 
 
 #### browser.proxy

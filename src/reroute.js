@@ -1,16 +1,10 @@
 // Domain routing and port forwarding
 //
-// You can map all network connections from one host to another.  You can also
-// map all network connections from one host/port to another host/port.
-// Wildcards allow routing multiple hostnames and even entire TLD.
+// Used for mapping hosts and domains to localhost, so you can open TCP
+// connections with friendly hostnames to test against the local server.
 //
-// For example: 
-//
-//   // Any connection to .test TLD handled by localhost
-//   reroute('*.test', 'localhost');
-//   // HTTP/S connections to example.test handled by localhost:3000/1
-//   reroute('example.test:80', 'localhost:3000');
-//   reroute('example.test:443', 'localhost:3001');
+// Can also map any source port to any destination port, so you can use port 80
+// to access localhost server running on unprivileged port.
 
 
 const assert  = require('assert');
@@ -23,25 +17,26 @@ const Net     = require('net');
 // value - Object that maps source port to target port
 const routing = {};
 
-// Flip this from enable() so we only inject our code into Socket.connect once.
+// Flip this from enableRerouting() so we only inject our code into
+// Socket.connect once.
 let   enabled = false;
 
 
-// Reroute any network connections from source (hostname and optional port) to
-// target (port).
-module.exports = function route(source, target) {
+// source - Hostname or host:port (default to port 80)
+// target - Target port number
+module.exports = function addRoute(source, target) {
   assert(source, 'Expected source address of the form "host:port" or just "host"');
-  const sourceHost = source.split(':')[0];
-  const sourcePort = source.split(':')[1] || 80;
-  if (!routing[sourceHost])
-    routing[sourceHost] = { };
-  if (!routing[sourceHost][sourcePort])
-    routing[sourceHost][sourcePort] = target;
-  assert(routing[sourceHost][sourcePort] === target,
-         `Already have routing from ${source} to ${routing[sourceHost][sourcePort]}`);
+  const sourceHost    = source.split(':')[0];
+  const sourcePort    = source.split(':')[1] || 80;
+  const route         = routing[sourceHost] || {};
+  routing[sourceHost] = route;
+  if (!route[sourcePort])
+    route[sourcePort] = target;
+  assert(route[sourcePort] === target,
+         `Already have routing from ${source} to ${route[sourcePort]}`);
   
   // Enable Socket.connect routing
-  enable();
+  enableRerouting();
 };
 
 
@@ -54,7 +49,7 @@ module.exports = function route(source, target) {
 // *.www.example.com
 //     *.example.com
 //             *.com
-function find(hostname, port) {
+function findTargetPort(hostname, port) {
   const route = routing[hostname];
   if (route) {
     return route[port];
@@ -63,13 +58,13 @@ function find(hostname, port) {
     // then contract it to *.hostname.com, *.com and finally *.
     const wildcard = hostname.replace(/^(\*\.[^.]+(\.|$))?/, '*.');
     if (wildcard !== '*.')
-      return find(wildcard, port);
+      return findTargetPort(wildcard, port);
   }
 }
 
 
 // Called once to hack Socket.connect
-function enable() {
+function enableRerouting() {
   if (enabled)
     return;
   enabled = true;
@@ -77,7 +72,7 @@ function enable() {
   const connect = Net.Socket.prototype.connect;
   Net.Socket.prototype.connect = function(options, callback) {
     if (typeof(options) === 'object') {
-      const port = find(options.host, options.port);
+      const port = findTargetPort(options.host, options.port);
       if (port) {
         options = Object.assign({}, options, { host: 'localhost', port });
         return connect.call(this, options, callback);

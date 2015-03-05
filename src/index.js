@@ -1226,28 +1226,9 @@ class Browser extends EventEmitter {
     return new Browser(options);
   }
 
-  // Allows you to make requests against a named domain and port 80, route them to
-  // the test server running on localhost and less privileged port.
-  //
-  // For example, say your test server is running on port 3000, you can do:
-  //   Browser.localhost('example.com', 3000)
-  //
-  // You can now visit http://example.com and it will be handled by the server
-  // running on port 3000.  In fact, you can just write:
-  //
-  //   browser.visit('/path', function() {
-  //     assert(broswer.location.href == 'http://example.com/path');
-  //   });
-  //
-  // You can also route multiple sub-domains, for example to route
-  // `example.test` and `wwww.example.test` to port 3000:
-  //
-  //   Browser.localhost('*.example.test', 3000);
-  //
-  // To map ports other than 80, append port number to the host name, for
-  // example:
-  //
-  //   Browser.localhost('example.com:443', 3001);
+  // Allows you to make requests against a named domain and HTTP/S port, and
+  // will route it to the test server running on localhost and unprivileged
+  // port.
   static localhost(source, target) {
     reroute(source, target);
     if (!this.site) {
