@@ -10,8 +10,6 @@ ADDED XHR events emitted to browser
 ADDED wait() ends with error if Browser cannot load all resources on the page
 (e.g. doesn't get to load scripts)
 
-ADDED experimental browser.serialize()
-
 ADDED submitting form using an image input will include coordinates #865 (Werner
 Beroux)
 

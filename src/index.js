@@ -16,7 +16,6 @@ const ms                = require('ms');
 const Path              = require('path');
 const reroute           = require('./reroute');
 const Resources         = require('./resources');
-const serializeDOM      = require('./serialize');
 const Storages          = require('./storage');
 const Tough             = require('tough-cookie');
 const { Cookie }        = Tough;
@@ -507,15 +506,6 @@ class Browser extends EventEmitter {
   // Element that has the current focus.
   get activeElement() {
     return this.document && this.document.activeElement;
-  }
-
-  // Serializes the element (defaults to the current document).
-  //
-  // Second argument is the ignore function, called for every element or
-  // attribute node.  It should return true for nodes that should not be
-  // serialized.
-  serialize(element = this.document, ignore = null) {
-    return serializeDOM(element, ignore);
   }
 
   // Close the currently open tab, or the tab opened to the specified window.
