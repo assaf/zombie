@@ -1,4 +1,4 @@
-## Version 3.0.12 2015-03-04
+## Version 3.0.13 2015-03-06
 
 NOTE Zombie 3.0 tested to work with io.js 1.3 or later, and with Node 0.12 or
 later.  It may or may not work correctly with Node 0.10.
