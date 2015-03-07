@@ -1,8 +1,9 @@
 // Enable ES6/7 before loading the Browser
 const babel     = require('babel/register');
+
 babel({
   experimental: true,
-  loose:        'all'
+  loose:        'all',
 });
 
 

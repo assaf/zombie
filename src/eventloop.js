@@ -516,7 +516,8 @@ module.exports = class EventLoop extends EventEmitter {
         if (this.waiting === 0)
           return;
 
-        const event = this.active._eventQueue.dequeue();
+        const jsdomQueue  = this.active.document._queue;
+        const event       = this.active._eventQueue.dequeue();
         if (event) {
           // Process queued function, tick, and on to next event
           event();
@@ -526,6 +527,9 @@ module.exports = class EventLoop extends EventEmitter {
           // We're waiting for some events to come along, don't know when,
           // but they'll call run for us
           this.emit('tick', 0);
+        } else if (jsdomQueue.tail) {
+          jsdomQueue.resume();
+          this.run();
         } else {
           // All that's left are timers, and not even that if next == Infinity
           const next = this.active._eventQueue.next;

@@ -22,7 +22,10 @@ gulp.task('build', ['clean'], function() {
     .pipe(babel({
       experimental: true,
       loose:        'all',
-      optional:     [ 'runtime' ]
+      optional:     [
+        'bluebirdCoroutines',
+        'runtime'
+      ]
     }))
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('lib'))

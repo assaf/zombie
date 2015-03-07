@@ -349,25 +349,37 @@ describe('Scripts', function() {
           <html>
             <head>
               <script>
-                var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
-                s.src = '/script/append.js';
-                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);
+                var script = document.createElement('script');
+                script.src = '/script/append.js';
+                script.onload = function() {
+                  document.title = document.title + '.onload';
+                };
+                document.body.appendChild(script);
               </script>
             </head>
             <body>
               <script>
-                document.title = document.title + 'element.';
+                document.title = document.title + 'internal.';
               </script>
             </body>
           </html>
         `);
-        brains.static('/script/append.js', 'document.title = document.title + "appendChild"');
+        brains.static('/script/append.js', `document.title = document.title + 'external'`);
         return browser.visit('/script/append');
       });
 
-      it('should run script', function() {
-        browser.assert.text('title', 'element.appendChild');
+      it('should load and evaluate external script', function() {
+        browser.assert.text('title', /external/);
       });
+
+      it('should run internal then external script ', function() {
+        browser.assert.text('title', /internal.external/);
+      });
+
+      it('should trigger onload event afert loading script', function() {
+        browser.assert.text('title', /external.onload/);
+      });
+
     });
 
   });

@@ -196,16 +196,7 @@ DOM.resourceLoader.load = function(element, href, callback) {
       // we're responsible to turn anything other than 2xx/3xx into an error
       if (response && response.statusCode >= 400)
         error = new Error(`Server returned status code ${response.statusCode} from ${url}`);
-      // Make sure browser gets a hold of this error and adds it to error list
-      // This is necessary since resource loading (CSS, image, etc) does nothing
-      // with the callback error
-      if (error) {
-        const event = document.createEvent('HTMLEvents');
-        event.initEvent('error', false, false);
-        event.error = error;
-        element.dispatchEvent(event);
-      } else
-        enqueued(null, response.body);
+      enqueued(error, response && response.body);
     });
   }
 };
