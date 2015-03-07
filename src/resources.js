@@ -441,10 +441,10 @@ Resources.handleHTTPResponse = function(request, response, next) {
   if (statusCode === 301 || statusCode === 307) {
     // Do not follow POST redirects automatically, only GET/HEAD
     if (request.method === 'GET' || request.method === 'HEAD')
-      redirectUrl = URL.resolve(request.url, response.headers.location);
+      redirectUrl = URL.resolve(request.url, response.headers.location || '');
   } else if (statusCode === 302 || statusCode === 303) {
     // Follow redirect using GET (e.g. after form submission)
-    redirectUrl = URL.resolve(request.url, response.headers.location);
+    redirectUrl = URL.resolve(request.url, response.headers.location || '');
   }
 
   if (redirectUrl) {
