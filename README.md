@@ -4,7 +4,7 @@
 **NOTE:** This documentation is still work in progress.  Please help make it
 better by adding as much as you can and submitting a pull request.
 
-You can also consult [the older 1.4 documentation](http://zombie.labnotes.org).
+You can also consult [the older 1.4 documentation](http://zomrbie.labnotes.org).
 
 
 ## The Bite
@@ -845,7 +845,7 @@ any of the following:
 
 Each browser provides access to its resources list through `browser.resources`.
 
-The resources list is an array of all resouces requested by the browser.  You
+The resources list is an array of all resources requested by the browser.  You
 can iterate and manipulate it just like any other JavaScript array.
 
 Each resource provides four properties:
