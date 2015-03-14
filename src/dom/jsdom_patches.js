@@ -45,7 +45,7 @@ DOM.HTMLAnchorElement.prototype._eventDefaults.click = function(event) {
 // Attempt to load the image, this will trigger a 'load' event when succesful
 // jsdom seemed to only queue the 'load' event
 DOM.HTMLImageElement.prototype._attrModified = function(name, value, oldVal) {
-  if (name === 'src') {
+  if (name === 'src' && value != null) {
     const src = DOM.resourceLoader.resolve(this._ownerDocument, value);
     if (this.src !== src)
       DOM.resourceLoader.load(this, value);
