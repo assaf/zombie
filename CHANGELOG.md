@@ -42,7 +42,7 @@ CHANGED browser.wait() runs event loop so you can catch done/error events
 
 CHANGED event loop `done` event renamed to `idle`
 
-CHANGED upgraded to JSDOM 3.1, added Node 0.12 and io.js support
+CHANGED upgraded to JSDOM 3.1, added io.js and Node 0.12 support
 
 CHANGED all dump() methods now accept output stream or output to stdout
 
