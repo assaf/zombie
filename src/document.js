@@ -66,13 +66,13 @@ module.exports = function loadDocument(args) {
 
     case 'javascript:': {
       window._eventQueue.enqueue(function() {
-      document.close();
-      try {
-        window._evaluate(pathname, 'javascript:');
-        browser.emit('loaded', document);
-      } catch (error) {
-        browser.emit('error', error);
-      }
+        document.close();
+        try {
+          window._evaluate(pathname, 'javascript:');
+          browser.emit('loaded', document);
+        } catch (error) {
+          browser.emit('error', error);
+        }
       });
       break;
     }

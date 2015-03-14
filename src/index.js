@@ -5,7 +5,6 @@ const Tabs              = require('./tabs');
 const Console           = require('./console');
 const Cookies           = require('./cookies');
 const debug             = require('debug');
-const { deprecate }     = require('util');
 const DOM               = require('./dom');
 const { EventEmitter }  = require('events');
 const EventLoop         = require('./eventloop');
@@ -1246,11 +1245,6 @@ class Browser extends EventEmitter {
     this._extensions.push(extension);
   }
 
-  // Deprecated soon
-  static get default() {
-    return Browser._getDefaults(this);
-  }
-
   // Call this to return a debug() instance with debugging enabled.
   static _enableDebugging() {
     // With debugging enabled, every time we call debug('zombie') we get a new
@@ -1327,9 +1321,6 @@ Object.assign(Browser, {
 
   // Browser extensions;
   _extensions: [],
-
-  _getDefaults: deprecate(browser => browser,
-                          'Browser.default.<name> = <value> deprecated, please use Browser.<name> = <value> instead'),
 
 });
 

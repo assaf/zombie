@@ -350,7 +350,7 @@ class EventQueue {
 // While processing, the event loop emits the following events (on the browser
 // object):
 // tick(next) - Emitted after executing a single event; the argument is the
-//              expected duration until the next event (in ms) 
+//              expected duration until the next event (in ms)
 // idle       - Emitted when there are no more events (queued or expected)
 // error(err) - Emitted after an error
 module.exports = class EventLoop extends EventEmitter {
@@ -431,7 +431,7 @@ module.exports = class EventLoop extends EventEmitter {
     // Stop on first error reported (document load, script, etc)
     // Event loop errors also propagated to the browser
     eventLoop.browser.once('error', done);
- 
+
     // We gave up, could be result of slow response ...
     function timeout() {
       if (eventLoop.expected)
