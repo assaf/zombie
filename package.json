@@ -1,6 +1,6 @@
 {
   "name": "zombie",
-  "version": "3.0.14-0",
+  "version": "3.0.15-0",
   "publishConfig": {
     "tag": "next"
   },
