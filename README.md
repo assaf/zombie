@@ -13,7 +13,6 @@ Let's try to sign up to a page and see what happens:
 
 ```js
 const Browser = require('zombie');
-const assert  = require('assert');
 
 // We're going to make requests to http://example.com/signup
 // Which will be routed to our test server localhost:3000
@@ -57,7 +56,6 @@ supports promises, we can also write the test like this:
 
 ```js
 const Browser = require('zombie');
-const assert  = require('assert');
 
 // We're going to make requests to http://example.com/signup
 // Which will be routed to our test server localhost:3000
@@ -105,13 +103,12 @@ Well, that was easy.
 
 * [Installing](#installing)
 * [Browser](#browser)
+* [Assertions](#assertions)
 * [Cookies](#cookies)
 * [Tabs](#tabs)
-* [Assertions](#assertions)
+* [Debugging](#debugging)
 * [Events](#events)
 * [Resources](#resources)
-* [Debugging](#debugging)
-* [FAQ](#faq)
 
 
 
@@ -224,203 +221,6 @@ Browser.extend(function(browser) {
   });
 });
 ```
-
-
-## Cookies
-
-Are delicious.  Also, somewhat tricky to work with.   A browser will only send a
-cookie to the server if it matches the request domain and path.
-
-Most modern Web applications don't care so much about the path and set all
-cookies to the root path of the application (`/`), but do pay attention to the
-domain.
-
-Consider this code:
-
-```js
-browser.setCookie(name: 'session', domain: 'example.com', value: 'delicious');
-browser.visit('http://example.com', function() {
-  const value = browser.getCookie('session');
-  console.log('Cookie', value);
-});
-```
-
-In order for the cookie to be set in this example, we need to specify the cookie
-name, domain and path.  In this example we omit the path and choose the default
-`/`.
-
-To get the cookie in this example, we only need the cookie name, because at that
-point the browser has an open document, and it can use the domain of that
-document to find the right cookie.  We do need to specify a domain if we're
-interested in other cookies, e.g for a 3rd party widget.
-
-There may be multiple cookies that match the same host, for example, cookies set
-for `.example.com` and `www.example.com` will both match `www.example.com`, but
-only the former will match `example.com`.  Likewise, cookies set for `/` and
-`/foo` will both match a request for `/foo/bar`.
-
-`getCookie`, `setCookie` and `deleteCookie` always operate on a single cookie,
-and they match the most specific one, starting with the cookies that have the
-longest matching domain, followed by the cookie that has the longest matching
-path.
-
-If the first argument is a string, they look for a cookie with that name using
-the hostname of the currently open page as the domain and `/` as the path.  To
-be more specific, the first argument can be an object with the properties
-`name`, `domain` and `path`.
-
-The following are equivalent:
-
-```js
-browser.getCookie('session');
-browser.getCookie({ name: 'session',
-                    domain: browser.location.hostname,
-                    path: browser.location.pathname });
-```
-
-
-`getCookie` take a second argument.  If false (or missing), it returns the
-value of the cookie.  If true, it returns an object with all the cookie
-properties: `name`, `value`, `domain`, `path`, `expires`, `httpOnly` and
-`secure`.
-
-#### browser.cookies
-
-Returns an object holding all cookies used by this browser.
-
-#### browser.cookies.dump(output?)
-
-Dumps all cookies to standard output, or the output stream.
-
-#### browser.deleteCookie(identifier)
-
-Deletes a cookie matching the identifier.
-
-The identifier is either the name of a cookie, or an object with the property
-`name` and the optional properties `domain` and `path`.
-
-#### browser.deleteCookies()
-
-Deletes all cookies.
-
-#### browser.getCookie(identifier, allProperties?)
-
-Returns a cookie matching the identifier.
-
-The identifier is either the name of a cookie, or an object with the property
-`name` and the optional properties `domain` and `path`.
-
-If `allProperties` is true, returns an object with all the cookie properties,
-otherwise returns the cookie value.
-
-#### browser.setCookie(name, value)
-
-Sets the value of a cookie based on its name.
-
-#### browser.setCookie(cookie)
-
-Sets the value of a cookie based on the following properties:
-
-* `domain` - Domain of the cookie (requires, defaults to hostname of currently
-  open page)
-* `expires` - When cookie it set to expire (`Date`, optional, defaults to
-  session)
-* `maxAge` - How long before cookie expires (in seconds, defaults to session)
-* `name` - Cookie name (required)
-* `path` - Path for the cookie (defaults to `/`)
-* `httpOnly` - True if HTTP-only (not accessible from client-side JavaScript,
-  defaults to false)
-* `secure` - True if secure (requires HTTPS, defaults to false)
-* `value` - Cookie value (required)
-
-
-
-
-## Tabs
-
-Just like your favorite Web browser, Zombie manages multiple open windows as
-tabs.  New browsers start without any open tabs.  As you visit the first page,
-Zombie will open a tab for it.
-
-All operations against the `browser` object operate on the currently active tab
-(window) and most of the time you only need to interact with that one tab.  You
-can access it directly via `browser.window`.
-
-Web pages can open additional tabs using the `window.open` method, or whenever a
-link or form specifies a target (e.g. `target=_blank` or `target=window-name`).
-You can also open additional tabs by calling `browser.open`.  To close the
-currently active tab, close the window itself.
-
-You can access all open tabs from `browser.tabs`.  This property is an
-associative array, you can access each tab by its index number, and iterate over
-all open tabs using functions like `forEach` and `map`.
-
-If a window was opened with a name, you can also access it by its name.  Since
-names may conflict with reserved properties/methods, you may need to use
-`browser.tabs.find`.
-
-The value of a tab is the currently active window.  That window changes when you
-navigate forwards and backwards in history.  For example, if you visited the URL
-'/foo' and then the URL '/bar', the first tab (`browser.tabs[0]`) would be a
-window with the document from '/bar'.  If you then navigate back in history, the
-first tab would be the window with the document '/foo'.
-
-The following operations are used for managing tabs:
-
-#### browser.close(window)
-
-Closes the tab with the given window.
-
-#### browser.close()
-
-Closes the currently open tab.
-
-#### browser.tabs
-
-Returns an array of all open tabs.
-
-#### browser.tabs[number]
-
-Returns the tab with that index number.
-
-#### browser.tabs[string]
-#### browser.tabs.find(string)
-
-Returns the tab with that name.
-
-#### browser.tabs.closeAll()
-
-Closes all tabs.
-
-#### browser.tabs.current
-
-This is a read/write property.  It returns the currently active tab.
-
-Can also be used to change the currently active tab.  You can set it to a
-window (e.g. as currently returned from `browser.current`), a window name or the
-tab index number.
-
-#### browser.tabs.dump(output?)
-
-Dump a list of all open tabs to standard output, or the output stream.
-
-#### browser.tabs.index
-
-Returns the index of the currently active tab.
-
-#### browser.tabs.length
-
-Returns the number of currently opened tabs.
-
-#### browser.open(url: 'http://example.com')
-
-Opens and returns a new tab.  Supported options are:
-- `name` - Window name.
-- `url` - Load document from this URL.
-
-#### browser.window
-
-Returns the currently active window, same as `browser.tabs.current.`
 
 
 
@@ -692,7 +492,6 @@ Browser.Assert.prototype.openTabs = function(expected, message) {
 
 Or application specific:
 
-
 ```js
 // Asserts which links is highlighted in the navigation bar
 Browser.Assert.navigationOn = function(linkText) {
@@ -700,6 +499,236 @@ Browser.Assert.navigationOn = function(linkText) {
   this.assert.text('.navigation-bar a.highlighted', linkText);
 };
 ```
+
+
+
+
+## Cookies
+
+Are delicious.  Also, somewhat tricky to work with.   A browser will only send a
+cookie to the server if it matches the request domain and path.
+
+Most modern Web applications don't care so much about the path and set all
+cookies to the root path of the application (`/`), but do pay attention to the
+domain.
+
+Consider this code:
+
+```js
+browser.setCookie(name: 'session', domain: 'example.com', value: 'delicious');
+browser.visit('http://example.com', function() {
+  const value = browser.getCookie('session');
+  console.log('Cookie', value);
+});
+```
+
+In order for the cookie to be set in this example, we need to specify the cookie
+name, domain and path.  In this example we omit the path and choose the default
+`/`.
+
+To get the cookie in this example, we only need the cookie name, because at that
+point the browser has an open document, and it can use the domain of that
+document to find the right cookie.  We do need to specify a domain if we're
+interested in other cookies, e.g for a 3rd party widget.
+
+There may be multiple cookies that match the same host, for example, cookies set
+for `.example.com` and `www.example.com` will both match `www.example.com`, but
+only the former will match `example.com`.  Likewise, cookies set for `/` and
+`/foo` will both match a request for `/foo/bar`.
+
+`getCookie`, `setCookie` and `deleteCookie` always operate on a single cookie,
+and they match the most specific one, starting with the cookies that have the
+longest matching domain, followed by the cookie that has the longest matching
+path.
+
+If the first argument is a string, they look for a cookie with that name using
+the hostname of the currently open page as the domain and `/` as the path.  To
+be more specific, the first argument can be an object with the properties
+`name`, `domain` and `path`.
+
+The following are equivalent:
+
+```js
+browser.getCookie('session');
+browser.getCookie({ name: 'session',
+                    domain: browser.location.hostname,
+                    path: browser.location.pathname });
+```
+
+
+`getCookie` take a second argument.  If false (or missing), it returns the
+value of the cookie.  If true, it returns an object with all the cookie
+properties: `name`, `value`, `domain`, `path`, `expires`, `httpOnly` and
+`secure`.
+
+#### browser.cookies
+
+Returns an object holding all cookies used by this browser.
+
+#### browser.cookies.dump(output?)
+
+Dumps all cookies to standard output, or the output stream.
+
+#### browser.deleteCookie(identifier)
+
+Deletes a cookie matching the identifier.
+
+The identifier is either the name of a cookie, or an object with the property
+`name` and the optional properties `domain` and `path`.
+
+#### browser.deleteCookies()
+
+Deletes all cookies.
+
+#### browser.getCookie(identifier, allProperties?)
+
+Returns a cookie matching the identifier.
+
+The identifier is either the name of a cookie, or an object with the property
+`name` and the optional properties `domain` and `path`.
+
+If `allProperties` is true, returns an object with all the cookie properties,
+otherwise returns the cookie value.
+
+#### browser.setCookie(name, value)
+
+Sets the value of a cookie based on its name.
+
+#### browser.setCookie(cookie)
+
+Sets the value of a cookie based on the following properties:
+
+* `domain` - Domain of the cookie (requires, defaults to hostname of currently
+  open page)
+* `expires` - When cookie it set to expire (`Date`, optional, defaults to
+  session)
+* `maxAge` - How long before cookie expires (in seconds, defaults to session)
+* `name` - Cookie name (required)
+* `path` - Path for the cookie (defaults to `/`)
+* `httpOnly` - True if HTTP-only (not accessible from client-side JavaScript,
+  defaults to false)
+* `secure` - True if secure (requires HTTPS, defaults to false)
+* `value` - Cookie value (required)
+
+
+
+
+## Tabs
+
+Just like your favorite Web browser, Zombie manages multiple open windows as
+tabs.  New browsers start without any open tabs.  As you visit the first page,
+Zombie will open a tab for it.
+
+All operations against the `browser` object operate on the currently active tab
+(window) and most of the time you only need to interact with that one tab.  You
+can access it directly via `browser.window`.
+
+Web pages can open additional tabs using the `window.open` method, or whenever a
+link or form specifies a target (e.g. `target=_blank` or `target=window-name`).
+You can also open additional tabs by calling `browser.open`.  To close the
+currently active tab, close the window itself.
+
+You can access all open tabs from `browser.tabs`.  This property is an
+associative array, you can access each tab by its index number, and iterate over
+all open tabs using functions like `forEach` and `map`.
+
+If a window was opened with a name, you can also access it by its name.  Since
+names may conflict with reserved properties/methods, you may need to use
+`browser.tabs.find`.
+
+The value of a tab is the currently active window.  That window changes when you
+navigate forwards and backwards in history.  For example, if you visited the URL
+'/foo' and then the URL '/bar', the first tab (`browser.tabs[0]`) would be a
+window with the document from '/bar'.  If you then navigate back in history, the
+first tab would be the window with the document '/foo'.
+
+The following operations are used for managing tabs:
+
+#### browser.close(window)
+
+Closes the tab with the given window.
+
+#### browser.close()
+
+Closes the currently open tab.
+
+#### browser.tabs
+
+Returns an array of all open tabs.
+
+#### browser.tabs[number]
+
+Returns the tab with that index number.
+
+#### browser.tabs[string]
+#### browser.tabs.find(string)
+
+Returns the tab with that name.
+
+#### browser.tabs.closeAll()
+
+Closes all tabs.
+
+#### browser.tabs.current
+
+This is a read/write property.  It returns the currently active tab.
+
+Can also be used to change the currently active tab.  You can set it to a
+window (e.g. as currently returned from `browser.current`), a window name or the
+tab index number.
+
+#### browser.tabs.dump(output?)
+
+Dump a list of all open tabs to standard output, or the output stream.
+
+#### browser.tabs.index
+
+Returns the index of the currently active tab.
+
+#### browser.tabs.length
+
+Returns the number of currently opened tabs.
+
+#### browser.open (url)
+
+Opens and returns a new tab.  Supported options are:
+- `name` - Window name.
+- `url` - Load document from this URL.
+
+#### browser.window
+
+Returns the currently active window, same as `browser.tabs.current.`
+
+
+
+
+## Debugging
+
+To see what your code is doing, you can use `console.log` and friends from both
+client-side scripts and your test code.
+
+To see everything Zombie does (opening windows, loading URLs, firing events,
+etc), set the environment variable `DEBUG=zombie`.  Zombie uses the
+[debug](https://github.com/visionmedia/debug) module.  For example:
+
+```bash
+$ DEBUG=zombie mocha
+```
+
+You can also turn debugging on from your code (e.g. a specific test you're
+trying to troubleshoot) by calling `browser.debug()`.
+
+Some objects, like the browser, history, resources, tabs and windows also
+include `dump` method that will dump the current state to the console, or an
+output stream of your choice.  For example:
+
+```js
+browser.dump();
+browser.dump(process.stderr);
+```
+
+If you want to disable console output from scripts, set `browser.silent = true`
+or once for all browser instances with `Browser.silent = true`.
 
 
 
@@ -852,6 +881,7 @@ the delay in milliseconds.
 
 Called for each XHR event (`progress`, `abort`, `readystatechange`, `loadend`,
 etc).
+
 
 
 
@@ -1056,34 +1086,4 @@ browser.resources.request('DELETE',
   . . .
 });
 ```
-
-
-
-## Debugging
-
-To see what your code is doing, you can use `console.log` and friends from both
-client-side scripts and your test code.
-
-To see everything Zombie does (opening windows, loading URLs, firing events,
-etc), set the environment variable `DEBUG=zombie`.  Zombie uses the
-[debug](https://github.com/visionmedia/debug) module.  For example:
-
-```bash
-$ DEBUG=zombie mocha
-```
-
-You can also turn debugging on from your code (e.g. a specific test you're
-trying to troubleshoot) by calling `browser.debug()`.
-
-Some objects, like the browser, history, resources, tabs and windows also
-include `dump` method that will dump the current state to the console, or an
-output stream of your choice.  For example:
-
-```js
-browser.dump();
-browser.dump(process.stderr);
-```
-
-If you want to disable console output from scripts, set `browser.silent = true`
-or once for all browser instances with `Browser.silent = true`.
 
