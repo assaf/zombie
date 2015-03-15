@@ -1,4 +1,8 @@
-## Version 3.0.15 2015-03-15
+## Version 3.1.0 2015-03-15
+
+3.1 is the first official release of Zombie 3.x.  It is a major upgrade from
+2.5, and as such has several breaking changes.  Please check the list of changes
+below to learn what has changed.
 
 ADDED DOM URL class
 
@@ -46,6 +50,11 @@ CHANGED upgraded to JSDOM 3.1, added io.js and Node 0.12 support
 CHANGED all dump() methods now accept output stream or output to stdout
 
 CHANGED XHR errors no longer stop the event loop
+
+If you are wondering what happened to 3.0, there were 16 test relases of 3.0
+leading up to 3.1.  Test releases are tagged as `next` instead of `latest`.  NPM
+defaults to showing and installing `latest versions, you have to explicitly
+instruct it to `install` next versions.
 
  688 passing (22s)
   12 pending
