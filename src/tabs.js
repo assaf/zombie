@@ -91,7 +91,7 @@ module.exports = function createTabs(browser) {
               tabs.current = window;
             active = window;
           }
-          browser.eventLoop.setActiveWindow(window);
+          browser._eventLoop.setActiveWindow(window);
         }
 
       }

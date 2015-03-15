@@ -191,10 +191,9 @@ describe('Browser', function() {
       });
 
       describe('missing resource', function() {
-        let browser;
+        const browser = new Browser();
 
         before(async function() {
-          browser = Browser.create();
           browser.features = 'img';
           brains.static('/browser/missing-resource', `
             <html>
@@ -294,7 +293,7 @@ describe('Browser', function() {
       before(function() {
         originalFeatures = Browser.features;
         Browser.features = 'no-scripts';
-        newBrowser = Browser.create();
+        newBrowser = new Browser();
         return newBrowser.visit('/browser/scripted');
       });
 

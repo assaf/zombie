@@ -406,7 +406,7 @@ function setupWindow(window, args) {
 
   // -- Event loop --
 
-  const eventQueue = browser.eventLoop.createEventQueue(window);
+  const eventQueue = browser._eventLoop.createEventQueue(window);
   Object.defineProperty(window, '_eventQueue', {
     value: eventQueue
   });

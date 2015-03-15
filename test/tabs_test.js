@@ -259,7 +259,7 @@ describe('Tabs', function() {
     let newBrowser = null;
 
     before(function() {
-      newBrowser = Browser.create();
+      newBrowser = new Browser();
     });
 
     it('should have no open windows', function() {

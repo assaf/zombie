@@ -5,7 +5,7 @@ describe.skip "Facebook Connect", ->
 
   browser = null
   before (done)->
-    browser = Browser.create()
+    browser = new Browser()
     brains.ready(done)
 
   before ->

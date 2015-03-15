@@ -143,7 +143,7 @@ class EventQueue {
   constructor(window) {
     this.window           = window;
     this.browser          = window.browser;
-    this.eventLoop        = this.browser.eventLoop;
+    this.eventLoop        = this.browser._eventLoop;
     this.queue            = [];
     this.expecting        = 0;
     this.timers           = [];
@@ -184,7 +184,7 @@ class EventQueue {
   enqueue(fn) {
     assert(this.queue, 'This browser has been destroyed');
     assert(typeof(fn) === 'function', 'eventLoop.enqueue called without a function');
-  
+
     if (fn) {
       this.queue.push(fn);
       this.eventLoop.run();

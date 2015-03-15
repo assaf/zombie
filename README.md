@@ -164,7 +164,7 @@ For example, if you want to call your application "example.com", and redirect
 traffic from port 80 to the test server that's listening on port 3000, you can
 do this:
 
-```javascript
+```js
 Browser.localhost('example.com', 3000)
 browser.visit('/path', function() {
   assert(broswer.location.href == 'http://example.com/path');
@@ -180,7 +180,7 @@ test case.
 You can use wildcards to map domains and all hosts within these domains, and you
 can specify the source port to map protocols other than HTTP.  For example:
 
-```javascript
+```js
 // HTTP requests for example.test www.example.test will be answered by localhost
 // server running on port 3000
 Browser.localhost('*.example.test', 3000);
@@ -197,11 +197,15 @@ library.  It does not affect other processes running on your machine.
 
 The `proxy` option takes a URL so you can tell Zombie what protocol, host and port to use. Also supports Basic authentication, e.g.:
 
-    browser.proxy = "http://me:secret@myproxy:8080"
+```javascript
+browser.proxy = 'http://me:secret@myproxy:8080'
+```
 
 
-#### browser.eventLoop
 #### browser.errors
+
+Collection of errors accumulated by the browser while loading page and executing
+scripts.
 
 
 ### Extending The Browser

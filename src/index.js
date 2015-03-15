@@ -57,7 +57,7 @@ class Browser extends EventEmitter {
     // Open tabs.
     this.tabs       = new Tabs(this);
     // The browser event loop.
-    this.eventLoop  = new EventLoop(this);
+    this._eventLoop = new EventLoop(this);
 
     // Returns all errors reported while loading this window.
     this.errors     = [];
@@ -148,7 +148,7 @@ class Browser extends EventEmitter {
       });
 
     // Logging event loop
-    this.eventLoop
+    this._eventLoop
       .on('setTimeout', (fn, delay)=> {
         this._debug('Fired setTimeout after %dms delay', delay);
         this.emit('setTimeout', fn, delay);
@@ -181,8 +181,11 @@ class Browser extends EventEmitter {
 
     // Sets the browser options.
     options = options || {};
-    for (let name of BROWSER_OPTIONS)
-      this[name] = options.hasOwnProperty(name) ? options[name] : Browser[name];
+    for (let name of BROWSER_OPTIONS) {
+      this[name] = options.hasOwnProperty(name) ?
+        options[name] :
+        (Browser[name] || null);
+    }
 
     // Last, run all extensions in order.
     for (let extension of Browser._extensions)
@@ -276,11 +279,11 @@ class Browser extends EventEmitter {
       };
     }
 
-    const { eventLoop } = this;
+    const { _eventLoop } = this;
     if (callback) {
-      eventLoop.wait(waitDuration, completionFunction, callback);
+      _eventLoop.wait(waitDuration, completionFunction, callback);
     } else {
-      return Bluebird.promisify(eventLoop.wait, eventLoop)(waitDuration, completionFunction);
+      return Bluebird.promisify(_eventLoop.wait, _eventLoop)(waitDuration, completionFunction);
     }
   }
 
@@ -297,12 +300,12 @@ class Browser extends EventEmitter {
       [callback, options] = [options, null];
 
     if (callback) {
-      this.eventLoop.once('serverEvent', ()=> {
+      this._eventLoop.once('serverEvent', ()=> {
         this.wait(options, callback);
       });
     } else {
       return new Bluebird((resolve)=> {
-        this.eventLoop.once('serverEvent', ()=> {
+        this._eventLoop.once('serverEvent', ()=> {
           resolve(this.wait(options, null));
         });
       });
@@ -1196,7 +1199,7 @@ class Browser extends EventEmitter {
       output.write('No document\n');
 
     output.write('\n');
-    this.eventLoop.dump(output);
+    this._eventLoop.dump(output);
   }
 
 
