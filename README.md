@@ -1,12 +1,6 @@
 # Zombie.js
 ### Insanely fast, headless full-stack testing using Node.js
 
-**NOTE:** This documentation is still work in progress.  Please help make it
-better by adding as much as you can and submitting a pull request.
-
-You can also consult [the older 1.4 documentation](http://zombie.labnotes.org).
-
-
 ## The Bite
 
 If you're going to write an insanely fast, headless browser, how can you not
@@ -21,52 +15,85 @@ Let's try to sign up to a page and see what happens:
 const Browser = require('zombie');
 const assert  = require('assert');
 
-// We call our test example.com
+// We're going to make requests to http://example.com/signup
+// Which will be routed to our test server localhost:3000
 Browser.localhost('example.com', 3000);
 
-// Load the page from localhost
-const browser = new Browser();
-browser.visit('/signup', function (error) {
-  assert.ifError(error);
+describe('User visits signup page', function() {
 
-  // Fill email, password and submit form
-  browser.
-    fill('email', 'zombie@underworld.dead').
-    fill('password', 'eat-the-living').
-    pressButton('Sign Me Up!', function(error) {
-      assert.ifError(error);
+  const browser = new Browser();
 
-      // Form submitted, new page loaded.
-      browser.assert.success();
-      browser.assert.text('title', 'Welcome To Brains Depot');
+  before(function(done) {
+    browser.visit('/signup', done);
+  });
 
+  describe('submits form', function() {
+
+    before(function(done) {
+      browser
+        .fill('email',    'zombie@underworld.dead')
+        .fill('password', 'eat-the-living')
+        .pressButton('Sign Me Up!', done);
     });
 
+    it('should be successful', function() {
+      browser.assert.success();
+    });
+
+    it('should see welcome page', function() {
+      browser.assert.text('title', 'Welcome To Brains Depot');
+    });
+  });
+
+  after(function() {
+    browser.destroy();
+  });
 });
 ```
 
-If you prefer using promises:
+This example uses the [Mocha](https://github.com/mochajs/mocha) testing
+framework, but Zombie will work with other testing frameworks.  Since Mocha
+supports promises, we can also write the test like this:
 
 ```js
 const Browser = require('zombie');
+const assert  = require('assert');
 
-// We call our test example.com
+// We're going to make requests to http://example.com/signup
+// Which will be routed to our test server localhost:3000
 Browser.localhost('example.com', 3000);
 
-// Load the page from localhost
-const browser = new Browser();
-browser.visit('/signup')
-  .then(function() {
-    // Fill email, password and submit form
-    browser.fill('email', 'zombie@underworld.dead');
-    browser.fill('password', 'eat-the-living');
-    return browser.pressButton('Sign Me Up!');
-  })
-  .then(function() {
-    // Form submitted, new page loaded.
-    browser.assert.success();
-    browser.assert.text('title', 'Welcome To Brains Depot');
+describe('User visits signup page', function() {
+
+  const browser = new Browser();
+
+  before(function() {
+    return browser.visit('/signup');
   });
+
+  describe('submits form', function() {
+
+    before(function() {
+      browser
+        .fill('email',    'zombie@underworld.dead')
+        .fill('password', 'eat-the-living');
+      return browser.pressButton('Sign Me Up!');
+    });
+
+    it('should be successful', function() {
+      browser.assert.success();
+    });
+
+    it('should see welcome page', function() {
+      browser.assert.text('title', 'Welcome To Brains Depot');
+    });
+  });
+
+  after(function() {
+    browser.destroy();
+  });
+
+});
 ```
 
 Well, that was easy.
@@ -91,34 +118,13 @@ Well, that was easy.
 
 ## Installing
 
-To install Zombie.js you will need [Node.js](http://nodejs.org/) 0.8 or later,
-[NPM](https://npmjs.org/), a [C++ toolchain and
+To install Zombie.js you will need [io.js](https://iojs.org/) or
+[Node.js](http://nodejs.org/) 0.10/0.12, and the [C++ toolchain and
 Python](https://github.com/TooTallNate/node-gyp).
 
-One-click installers for Windows, OS X, Linux and SunOS are available directly
-from the [Node.js site](http://nodejs.org/download/).
-
-On OS X you can download the full XCode from the Apple Store, or install the
-[OSX GCC toolchain](https://github.com/kennethreitz/osx-gcc-installer) directly
-(smaller download).
-
-You can also install Node and NPM using the wonderful
-[Homebrew](http://mxcl.github.com/homebrew/) (if you're serious about developing
-on the Mac, you should be using Homebrew):
-
-```sh
-$ brew install node
-$ node --version
-v0.10.25
-$ npm --version
-1.3.24
+```bash
 $ npm install zombie --save-dev
 ```
-
-On Windows you will need to install a recent version of Python and Visual
-Studio. See [node-gyp for specific installation
-instructions](https://github.com/TooTallNate/node-gyp) and
-[Chocolatey](http://chocolatey.org/) for easy package management.
 
 
 
@@ -131,10 +137,6 @@ Methods for making assertions against the browser, such as
 `browser.assert.element('.foo')`.
 
 See [Assertions](#assertions) for detailed discussion.
-
-#### browser.console
-
-Provides access to the browser console (same as `window.console`).
 
 #### browser.referer
 
@@ -154,6 +156,20 @@ Array of all open tabs (windows).  Allows you to operate on more than one open
 window at a time.
 
 See [Tabs](#tabs) for detailed discussion.
+
+#### browser.proxy
+
+The `proxy` option takes a URL so you can tell Zombie what protocol, host and
+port to use. Also supports Basic authentication, e.g.:
+
+```js
+browser.proxy = 'http://me:secret@myproxy:8080'
+```
+
+#### browser.errors
+
+Collection of errors accumulated by the browser while loading page and executing
+scripts.
 
 #### Browser.localhost(host, port)
 
@@ -192,23 +208,11 @@ The underlying implementation hacks `net.Socket.connect`, so it will route any
 TCP connection made by the Node application, whether Zombie or any other
 library.  It does not affect other processes running on your machine.
 
+### Browser.extend
 
-#### browser.proxy
-
-The `proxy` option takes a URL so you can tell Zombie what protocol, host and port to use. Also supports Basic authentication, e.g.:
-
-```javascript
-browser.proxy = 'http://me:secret@myproxy:8080'
-```
-
-
-#### browser.errors
-
-Collection of errors accumulated by the browser while loading page and executing
-scripts.
-
-
-### Extending The Browser
+You can use this to customize new browser instances for your specific needs.
+The extension function is called for every new browser instance, and can change
+properties, bind methods, register event listeners, etc.
 
 ```js
 Browser.extend(function(browser) {
@@ -279,7 +283,6 @@ browser.getCookie({ name: 'session',
 value of the cookie.  If true, it returns an object with all the cookie
 properties: `name`, `value`, `domain`, `path`, `expires`, `httpOnly` and
 `secure`.
-
 
 #### browser.cookies
 
@@ -738,6 +741,10 @@ Emitted when this window is closed.
 
 Emitted when the event loop goes empty.
 
+#### error (error)
+
+Error when loading a resource, or evaluating JavaScript.
+
 #### evaluated (code, result, filename)
 
 Emitted after JavaScript code is evaluated.
@@ -752,6 +759,10 @@ Emitted whenever a DOM event is fired on the target element, document or window.
 #### focus (element)
 
 Emitted whenever an element receives the focus.
+
+#### idle ()
+
+Event loop is idle.
 
 #### inactive (window)
 
@@ -811,6 +822,18 @@ Emitted after receiving the response (excluding redirects).
 The first argument is the request object, the second argument is the response
 object.  See [Resources](#resources) for more details.
 
+#### serverEvent ()
+
+Browser received server initiated event (e.g. `EventSource` message).
+
+#### setInterval (function, interval)
+
+Event loop fired a `setInterval` event.
+
+#### setTimeout (function, delay)
+
+Event loop fired a `setTimeout` event.
+
 #### submit (url, target)
 
 Emitted whenever a form is submitted.
@@ -825,6 +848,10 @@ Emitted whenever a timeout (`setTimeout`) is fired.
 The first argument is the function or code to evaluate, the second argument is
 the delay in milliseconds.
 
+#### xhr (event, url)
+
+Called for each XHR event (`progress`, `abort`, `readystatechange`, `loadend`,
+etc).
 
 
 
@@ -952,7 +979,7 @@ pipeline of every browser instance, use `Browser.Resources.addHandler`.
 #### resources.dump(output?)
 
 Dumps the resources list to the output stream (defaults to standard output
-stream). 
+stream).
 
 #### resources.pipeline
 
@@ -1037,43 +1064,26 @@ browser.resources.request('DELETE',
 To see what your code is doing, you can use `console.log` and friends from both
 client-side scripts and your test code.
 
-If you want to disable console output from scripts, set `browser.silent = true`
-or once for all browser instances with `Browser.silent = true`.
+To see everything Zombie does (opening windows, loading URLs, firing events,
+etc), set the environment variable `DEBUG=zombie`.  Zombie uses the
+[debug](https://github.com/visionmedia/debug) module.  For example:
 
-For more details about what Zombie is doing (windows opened, requests made,
-event loop, etc), run with the environment variable `DEBUG=zombie`. Alternatively,
-you can enable debugging on the browser constructor function itself; i.e. `browser.debug()`
+```bash
+$ DEBUG=zombie mocha
+```
 
-Zombie uses the [debug](https://github.com/visionmedia/debug) module, so if your
-code also uses it, you can selectively control which modules should output debug
-information.
+You can also turn debugging on from your code (e.g. a specific test you're
+trying to troubleshoot) by calling `browser.debug()`.
 
 Some objects, like the browser, history, resources, tabs and windows also
-include `dump` method that will dump the current state to the console.
+include `dump` method that will dump the current state to the console, or an
+output stream of your choice.  For example:
 
+```js
+browser.dump();
+browser.dump(process.stderr);
+```
 
-
-
-## FAQ
-
-**Q:** Why won't Zombie work with [insert some web site]?
-
-**A:** Zombie was designed for testing, not for web scraping.  You can use it
-for whatever purpose you want, just to be clear:
-
-1. Zombie cannot scrape many popular web sites, that's known
-2. The core contributors are not concerned by that, not even a little
-
-
-**Q:** How do I find position/location/styling of element?
-
-**A:** Unlike a Web browser, Zombie doesn't visually render the HTML document.
-It gives you access to the DOM, but since it doesn't attempt to render and
-layout elements, it doesn't have information like position, location, etc.
-
-
-**Q:** Does Zombie handle XHR sync/document.write/CDATA?
-
-**A:** Those are some of the things we thought were good ideas in 1999.  It's
-time to let go and move on.
+If you want to disable console output from scripts, set `browser.silent = true`
+or once for all browser instances with `Browser.silent = true`.
 
