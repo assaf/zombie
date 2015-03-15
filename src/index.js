@@ -1220,11 +1220,6 @@ class Browser extends EventEmitter {
       return browser.visit(url).then(()=> browser);
   }
 
-  // Use this function to create a new Browser instance.
-  static create(options) {
-    return new Browser(options);
-  }
-
   // Allows you to make requests against a named domain and HTTP/S port, and
   // will route it to the test server running on localhost and unprivileged
   // port.

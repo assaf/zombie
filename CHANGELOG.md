@@ -21,6 +21,8 @@ REMOVED resources.mock/fail/delay, use Nock instead
 
 REMOVED protocol and bcat, no tests
 
+REMOVED Browser.create
+
 REMOVED Browser.dns and Browser.ports, switching to different implementation
 
 CHANGED Browser.debug -> browser.debug (per instance)
