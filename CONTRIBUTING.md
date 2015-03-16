@@ -40,8 +40,6 @@ Specifically:
 * We prefer explicit and verbose over crypted and terse
 * We shy away from clever code
 * We're opinionated and use two spaces for indentation
-* We understand that parentheses are optional in CoffeeScript, but are required to
-  read and understand the code
 * If it looks like Perl or SQL, it's wrong
 
 
@@ -50,20 +48,3 @@ Specifically:
 The documentation is written in [Github-flavored
 Markdown](https://github.com/vmg/sundown).
 
-The easiest way to review the documentation is by running the included server.
-It lets you refresh the browser to see your recent changes.
-
-```sh
-$ ./scripts/live &
-$ open http://localhost:3000
-```
-
-The documentation are also formatted to PDF and Mobi (Kindle).  You can generate
-these files yourself (requires `wkhtmltopdf` and `kindlegen`):
-
-```sh
-$ ./scripts/docs
-$ open html/index.html
-$ open html/zombie.pdf
-$ open html/zombie.html
-```
