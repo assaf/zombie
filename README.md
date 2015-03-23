@@ -180,7 +180,7 @@ do this:
 ```js
 Browser.localhost('example.com', 3000)
 browser.visit('/path', function() {
-  assert(broswer.location.href == 'http://example.com/path');
+  assert(browser.location.href == 'http://example.com/path');
 });
 ```
 
@@ -229,7 +229,7 @@ Browser.extend(function(browser) {
 
 To make life easier, Zombie introduces a set of convenience assertions that you
 can access directly from the browser object.  For example, to check that a page
-loaded successfuly:
+loaded successfully:
 
 ```js
 browser.assert.success();
@@ -307,7 +307,7 @@ The identifier is either the name of a cookie, or an object with the property
 `name` and the optional properties `domain` and `path`.
 
 ```js
-browser.assert.cookie('flash', 'Missing email addres');
+browser.assert.cookie('flash', 'Missing email address');
 ```
 
 #### assert.element(selection, message)
@@ -471,7 +471,7 @@ For example:
 ```js
 browser.assert.url('http://localhost/foo/bar');
 browser.assert.url(new RegExp('^http://localhost/foo/\\w+$'));
-browser.assert.url({ pathame: '/foo/bar' });
+browser.assert.url({ pathname: '/foo/bar' });
 browser.assert.url({ query: { name: 'joedoe' } });
 ```
 
@@ -958,7 +958,7 @@ request object and a callback, and must call that callback with one of:
 
 - No arguments to pass control to the next handler
 - An error to stop processing and return that error
-- `null` and the response objec to return that response
+- `null` and the response object to return that response
 
 Functions with three arguments deal with responses.  They are called with the
 request object, response object and a callback, and must call that callback with
