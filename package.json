@@ -69,8 +69,8 @@
     "gulp-util": "^3.0.4",
     "mocha": "^2.2.0",
     "morgan": "^1.5.2",
-    "multiparty": "^4.1.0",
-    "replay": "^2.0.0-0",
+    "multiparty": "^4.1.1",
+    "replay": "^2.0.4",
     "requirejs": "^2.1.15"
   },
   "repository": {
