@@ -13,12 +13,11 @@ describe('Authentication', function() {
     before(function() {
       brains.get('/auth/basic', function(req, res) {
         const auth = req.headers.authorization;
-        if (auth) {
-          if (auth == 'Basic dXNlcm5hbWU6cGFzczEyMw==')
-            res.send(`<html><body>${req.headers.authorization}</body></html>`);
-          else
-            res.status(401).send('Invalid credentials');
-        } else
+        if (auth && auth === 'Basic dXNlcm5hbWU6cGFzczEyMw==')
+          res.send(`<html><body>${req.headers.authorization}</body></html>`);
+        else if (auth)
+          res.status(401).send('Invalid credentials');
+        else
           res.status(401).send('Missing credentials');
       });
     });
@@ -68,7 +67,7 @@ describe('Authentication', function() {
     before(function() {
       brains.get('/auth/script', function(req, res) {
         const auth = req.headers.authorization;
-        if (auth) {
+        if (auth)
           res.send(`
           <html>
             <head>
@@ -78,7 +77,7 @@ describe('Authentication', function() {
             <body></body>
           </html>
           `);
-        } else
+        else
           res.status(401).send('No Credentials on the html page');
       });
 

@@ -40,14 +40,14 @@ describe('Tabs', function() {
   });
 
   it('should allow finding window by name', function() {
-    const window = browser.tabs['third'];
+    const window = browser.tabs.third;
     assert.equal(window.name, 'third');
   });
 
   it('should not index un-named windows', function() {
     assert(!browser.tabs['']);
-    assert(!browser.tabs[null]);
-    assert(!browser.tabs[undefined]);
+    assert(!browser.tabs.null);
+    assert(!browser.tabs.undefined);
   });
 
   it('should be able to select current tab by name', function() {
@@ -58,7 +58,7 @@ describe('Tabs', function() {
   it('should be able to select current tab by index', function() {
     browser.tabs.current = 2;
     assert.equal(browser.window.name, 'third');
-  })
+  });
 
   it('should be able to select current tab from window', function() {
     browser.tabs.current = browser.tabs[0];
@@ -68,7 +68,7 @@ describe('Tabs', function() {
   it('should provide index of currently selected tab', function() {
     browser.tabs.current = 'second';
     assert.equal(browser.tabs.index, 1);
-    browser.tabs.current = browser.tabs[2]
+    browser.tabs.current = browser.tabs[2];
     assert.equal(browser.tabs.index, 2);
   });
 
@@ -167,7 +167,7 @@ describe('Tabs', function() {
     });
   });
 
-    
+
   describe('closing window by index', function() {
     before(function() {
       browser.tabs.closeAll();

@@ -189,14 +189,14 @@ describe('Window', function() {
 
   describe('atob', function() {
     it('should decode base-64 string', function() {
-      const window = browser.open();
+      browser.open();
       browser.assert.evaluate('atob("SGVsbG8sIHdvcmxk")', 'Hello, world');
     });
   });
 
   describe('btoa', function() {
     it('should encode base-64 string', function() {
-      const window = browser.open();
+      browser.open();
       browser.assert.evaluate('btoa("Hello, world")', 'SGVsbG8sIHdvcmxk');
     });
   });
@@ -269,14 +269,13 @@ describe('Window', function() {
               </body>
             </html>
           `);
-        } else {
+        } else
           res.send(`
             <html>
               <head><title>Done</title></head>
               <body></body>
             </html>
           `);
-        }
       });
     });
 
@@ -297,7 +296,7 @@ describe('Window', function() {
     });
 
     it('should indicated that the last request was redirected', async function() {
-      await browser.visit('/windows/refresh?url=/windows/refreshed')
+      await browser.visit('/windows/refresh?url=/windows/refreshed');
       browser.assert.redirected();
     });
 
@@ -320,7 +319,7 @@ describe('Window', function() {
 
     afterEach(function() {
       browser.deleteCookies();
-    })
+    });
 
   });
 

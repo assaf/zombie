@@ -1,0 +1,20 @@
+{
+  parser: 'babel-eslint',
+  env: {
+    node: true,
+    es6:  true
+  },
+  // http://eslint.org/docs/rules/
+  rules: {
+    strict:               0,
+    curly:                [2, 'multi'],
+    quotes:               [2, 'single'],
+    eol-last:             [0],
+    no-mixed-requires:    [0],
+    no-underscore-dangle: [0],
+    no-multi-spaces:      0,
+    no-var:               1,
+    key-spacing:          0,
+    no-script-url:        0
+  }
+}

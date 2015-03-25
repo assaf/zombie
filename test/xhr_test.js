@@ -203,7 +203,7 @@ describe('XMLHttpRequest', function() {
     });
 
     it('responseText should be a string', function() {
-      assert.equal(typeof(browser.document.text), 'string');
+      assert.equal(typeof browser.document.text, 'string');
       assert.equal(browser.document.text, 'Text');
     });
   });
@@ -272,7 +272,7 @@ describe('XMLHttpRequest', function() {
     });
   });
 
-  
+
   describe('CORS', function() {
 
     before(function() {
@@ -438,7 +438,7 @@ describe('XMLHttpRequest', function() {
     });
 
     it('responseText should be error message', function() {
-        assert.equal(browser.document.responseText[4], "Internal Server Error");
+      assert.equal(browser.document.responseText[4], 'Internal Server Error');
     });
 
     it('should go through states 1 through 4', function() {

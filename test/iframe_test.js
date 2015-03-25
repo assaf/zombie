@@ -117,7 +117,7 @@ describe('IFrame', function() {
   describe('referer', function() {
     before(function() {
       brains.get('/iframe/show-referer', function(req, res) {
-        res.send(`<html><title>${req.headers['referer']}</title></html>`);
+        res.send(`<html><title>${req.headers.referer}</title></html>`);
       });
       brains.static('/iframe/referer', `
         <html>
@@ -286,7 +286,7 @@ describe('IFrame', function() {
         before(async function() {
           await browser.visit('/iframe/top');
           await browser.clickLink('new window');
-          browser.tabs.current = 0
+          browser.tabs.current = 0;
           await browser.clickLink('existing window');
         });
 

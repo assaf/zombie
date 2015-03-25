@@ -183,7 +183,7 @@ class EventQueue {
   // Add a function to the event queue, to be executed in order.
   enqueue(fn) {
     assert(this.queue, 'This browser has been destroyed');
-    assert(typeof(fn) === 'function', 'eventLoop.enqueue called without a function');
+    assert(typeof fn === 'function', 'eventLoop.enqueue called without a function');
 
     if (fn) {
       this.queue.push(fn);
@@ -232,13 +232,12 @@ class EventQueue {
       --this.expecting;
       // We can't cancel pending requests, but we can ignore the response if
       // window already closed
-      if (this.queue) {
+      if (this.queue)
         // This will get completion function to execute, e.g. to check a page
         // before meta tag refresh
         this.enqueue(()=> {
           callback(error, response);
         });
-      }
     });
   }
 
@@ -279,7 +278,7 @@ class EventQueue {
   setTimeout(fn, delay = 0) {
     assert(this.queue, 'This browser has been destroyed');
     if (!fn)
-      return;
+      return null;
 
     const handle = this.nextTimerHandle;
     ++this.nextTimerHandle;
@@ -302,7 +301,7 @@ class EventQueue {
   setInterval(fn, interval = 0) {
     assert(this.queue, 'This browser has been destroyed');
     if (!fn)
-      return;
+      return null;
 
     const handle = this.nextTimerHandle;
     ++this.nextTimerHandle;
@@ -411,7 +410,7 @@ module.exports = class EventLoop extends EventEmitter {
       }
 
       const activeWindow = eventLoop.active;
-      if (completionFunction && activeWindow.document.documentElement) {
+      if (completionFunction && activeWindow.document.documentElement)
         try {
           const waitFor   = Math.max(next - Date.now(), 0);
           // Event processed, are we ready to complete?
@@ -421,23 +420,7 @@ module.exports = class EventLoop extends EventEmitter {
         } catch (error) {
           done(error);
         }
-      }
-    }
-    eventLoop.on('tick', ontick);
 
-    // Fired when there are no more events to process
-    eventLoop.once('idle', done);
-
-    // Stop on first error reported (document load, script, etc)
-    // Event loop errors also propagated to the browser
-    eventLoop.browser.once('error', done);
-
-    // We gave up, could be result of slow response ...
-    function timeout() {
-      if (eventLoop.expected)
-        done(new Error('Timeout: did not get to load all resources on this page'));
-      else
-        done();
     }
 
     // The wait is over ...
@@ -450,6 +433,23 @@ module.exports = class EventLoop extends EventEmitter {
       --eventLoop.waiting;
       callback(error);
     }
+
+    // We gave up, could be result of slow response ...
+    function timeout() {
+      if (eventLoop.expected)
+        done(new Error('Timeout: did not get to load all resources on this page'));
+      else
+        done();
+    }
+
+    eventLoop.on('tick', ontick);
+
+    // Fired when there are no more events to process
+    eventLoop.once('idle', done);
+
+    // Stop on first error reported (document load, script, etc)
+    // Event loop errors also propagated to the browser
+    eventLoop.browser.once('error', done);
   }
 
 
@@ -523,11 +523,11 @@ module.exports = class EventLoop extends EventEmitter {
           event();
           this.emit('tick', 0);
           this.run();
-        } else if (this.expected > 0) {
+        } else if (this.expected > 0)
           // We're waiting for some events to come along, don't know when,
           // but they'll call run for us
           this.emit('tick', 0);
-        } else if (jsdomQueue.tail) {
+        else if (jsdomQueue.tail) {
           jsdomQueue.resume();
           this.run();
         } else {

@@ -3,12 +3,13 @@ const babel     = require('babel/register');
 
 babel({
   experimental: true,
-  loose:        'all',
+  loose:        'all'
 });
 
 
 const Bluebird  = require('bluebird');
 const Browser   = require('../../src');
+const Path      = require('path');
 const Replay    = require('replay');
 
 
@@ -16,7 +17,7 @@ const Replay    = require('replay');
 Browser.localhost('*.example.com', 3003);
 
 // Redirect all HTTP requests to localhost
-Replay.fixtures = __dirname + '/../replay';
+Replay.fixtures = Path.join(__dirname, '/../replay');
 Replay.networkAccess = true;
 Replay.localhost('*.example.com');
 

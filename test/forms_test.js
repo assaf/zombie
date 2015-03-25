@@ -1,8 +1,9 @@
 const assert  = require('assert');
 const brains  = require('./helpers/brains');
 const Browser = require('../src');
-const File    = require('fs')
 const Crypto  = require('crypto');
+const File    = require('fs');
+const Path    = require('path');
 
 
 describe('Forms', function() {
@@ -146,7 +147,7 @@ describe('Forms', function() {
             <div id="scary">${req.body.scary}</div>
             <div id="state">${req.body.state}</div>
             <div id="empty-text">${req.body.empty_text}</div>
-            <div id="empty-checkbox">${req.body.empty_checkbox || "nothing"}</div>
+            <div id="empty-checkbox">${req.body.empty_checkbox || 'nothing'}</div>
             <div id="unselected_state">${req.body.unselected_state}</div>
             <div id="hobbies">${JSON.stringify(req.body.hobbies)}</div>
             <div id="addresses">${JSON.stringify(req.body.addresses)}</div>
@@ -154,8 +155,8 @@ describe('Forms', function() {
             <div id="clicked">${req.body.button}</div>
             <div id="image_clicked">
               ${req.body.image}:
-              ${req.body["image.x"]}
-              ${req.body["image.y"]}
+              ${req.body['image.x']}
+              ${req.body['image.y']}
             </div>
           </body>
         </html>
@@ -375,7 +376,7 @@ describe('Forms', function() {
             break;
           }
           case 'click': {
-            clicked = target
+            clicked = target;
             break;
           }
         }
@@ -771,7 +772,7 @@ describe('Forms', function() {
       });
     });
 
-	  describe('unselect name using option selector', function() {
+    describe('unselect name using option selector', function() {
       before(async function() {
         await browser.visit('/forms/form');
         browser.selectOption('#hobbies-messy');
@@ -827,7 +828,7 @@ describe('Forms', function() {
       });
       it('should reset checkbox to original value', function() {
         browser.assert.elements('#field-hungry:checked', 0);
-      })
+      });
       it('should reset radio to original value', function() {
         browser.assert.elements('#field-scary:checked', 0);
         browser.assert.elements('#field-notscary:checked', 1);
@@ -845,7 +846,7 @@ describe('Forms', function() {
       });
       before(function(done) {
         browser.querySelector('form [type=reset]').addEventListener('click', function(event) {
-          eventType = event.type
+          eventType = event.type;
           done();
         });
         browser.querySelector('form [type=reset]').click();
@@ -1171,7 +1172,7 @@ describe('Forms', function() {
 
 
     describe('binary', function() {
-      const filename = __dirname + '/data/zombie.jpg';
+      const filename = Path.join(__dirname, '/data/zombie.jpg');
 
       before(async function() {
         await browser.visit('/forms/upload');
@@ -1332,11 +1333,11 @@ describe('Forms', function() {
       });
 
       it('should send content-length header', function() {
-        const [body, length] = browser.source.split(';');
+        const length = browser.source.split(';')[1];
         assert.equal(length, '9'); // text=bite
       });
       it('should have body with content of input field', function() {
-        const [body, length] = browser.source.split(';');
+        const body = browser.source.split(';')[0];
         assert.equal(body, 'bite');
       });
     });

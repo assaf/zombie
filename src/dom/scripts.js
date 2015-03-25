@@ -57,10 +57,10 @@ DOM.HTMLScriptElement._init = function() {
     const script    = this;
     const document  = script.ownerDocument;
 
-    if (script.src) {
+    if (script.src)
       // Script has a src attribute, load external resource.
       DOM.resourceLoader.load(script, script.src, script._eval);
-    } else {
+    else {
       const filename = script.id ?  `${document.URL}:#${script.id}` : `${document.URL}:script`;
       // Queue to be executed in order with all other scripts
       const executeInOrder = DOM.resourceLoader.enqueue(script, executeInlineScript, filename);

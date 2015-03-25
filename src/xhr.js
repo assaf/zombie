@@ -80,8 +80,8 @@ class XMLHttpRequest extends DOM.EventTarget {
     this._url       = URL.format(url);
 
     // Reset response status
-    this._response  = null;  
-    this._error     = null;  
+    this._response  = null;
+    this._error     = null;
 
     const request   = { method, headers, url: URL.format(url) };
     this._pending   = request;
@@ -210,18 +210,18 @@ class XMLHttpRequest extends DOM.EventTarget {
     return this._response && this._response.headers[name.toLowerCase()] || null;
   }
 
-  getAllResponseHeaders(header) {
+  getAllResponseHeaders() {
     // Returns all the response headers as a string, or null if no response has
     // been received. Note: For multipart requests, this returns the headers from
     // the current part of the request, not from the original channel.
-    if (this._response) {
+    if (this._response)
       // XHR's getAllResponseHeaders, against all reason, returns a multi-line
       // string.  See http://www.w3.org/TR/XMLHttpRequest/#the-getallresponseheaders-method
       return Object.keys(this._response.headers)
         .map(name => [name.toLowerCase(), this._response.headers[name]] )
         .map(pair => pair.join(': ') )
         .join('\n');
-    } else
+    else
       return null;
   }
 

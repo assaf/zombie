@@ -66,7 +66,7 @@ describe('Scripts', function() {
         before(function() {
           browser.visit('/script/living#/dead');
           function hashChanged() {
-            return browser.text('#main') == 'The Living Dead';
+            return browser.text('#main') === 'The Living Dead';
           }
           return browser.wait({ function: hashChanged });
         });
@@ -84,7 +84,7 @@ describe('Scripts', function() {
     describe('live events', function() {
       before(async function() {
         await browser.visit('/script/living/');
-        browser.fill('Email', 'armbiter@zombies')
+        browser.fill('Email', 'armbiter@zombies');
         browser.fill('Password', 'br41nz');
         await browser.pressButton('Sign Me Up');
       });
@@ -110,7 +110,7 @@ describe('Scripts', function() {
         assert.throws(function() {
           browser.evaluate('throw new Error("");');
         });
-      })
+      });
     });
   });
 

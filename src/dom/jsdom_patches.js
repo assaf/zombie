@@ -45,7 +45,7 @@ DOM.HTMLAnchorElement.prototype._eventDefaults.click = function(event) {
 // Attempt to load the image, this will trigger a 'load' event when succesful
 // jsdom seemed to only queue the 'load' event
 DOM.HTMLImageElement.prototype._attrModified = function(name, value, oldVal) {
-  if (name === 'src' && value != null) {
+  if (name === 'src' && value && value !== oldVal) {
     const src = DOM.resourceLoader.resolve(this._ownerDocument, value);
     if (this.src !== src)
       DOM.resourceLoader.load(this, value);
@@ -111,9 +111,9 @@ Object.defineProperty(DOM.CSSStyleDeclaration.prototype, 'opacity', {
   },
 
   set(opacity) {
-    if (opacity === null || opacity === undefined || opacity === '') {
+    if (opacity === null || opacity === undefined || opacity === '')
       this.removeProperty('opacity');
-    } else {
+    else {
       const value = parseFloat(opacity);
       if (isFinite(value))
         this._setProperty('opacity', value);
@@ -163,13 +163,12 @@ DOM.Document.prototype.raise = function(type, message, data) {
   // the end.
   const partial = [];
   // "RangeError: Maximum call stack size exceeded" doesn't have a stack trace
-  if (error.stack) {
+  if (error.stack)
     for (let line of error.stack.split('\n')) {
       if (~line.indexOf('contextify/lib/contextify.js'))
         break;
       partial.push(line);
     }
-  }
   partial.push(`    in ${document.location.href}`);
   error.stack = partial.join('\n');
 

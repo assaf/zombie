@@ -1,17 +1,17 @@
 // Browser assertions convenience.
 
-const assert        = require("assert");
-const { isRegExp }  = require("util");
-const URL           = require("url");
+const assert        = require('assert');
+const { isRegExp }  = require('util');
+const URL           = require('url');
 
 
 // Used to assert that actual matches expected value, where expected may be a function or a string.
 function assertMatch(actual, expected, message) {
-  if (isRegExp(expected)) {
+  if (isRegExp(expected))
     assert(expected.test(actual), message || `Expected '${actual}' to match ${expected}`);
-  } else if (typeof(expected) === "function") {
+  else if (typeof expected === 'function')
     assert(expected(actual), message);
-  } else
+  else
     assert.deepEqual(actual, expected, message);
 }
 
@@ -57,18 +57,18 @@ module.exports = class Assert {
   // object properties are tested against the actual URL (e.g. pathname, host,
   // query).
   url(expected, message) {
-    if (typeof(expected) === "string") {
+    if (typeof expected === 'string') {
       const absolute = URL.resolve(this.browser.location.href, expected);
       assertMatch(this.browser.location.href, absolute, message);
-    } else if (isRegExp(expected) || typeof(expected) === "function") {
+    } else if (isRegExp(expected) || typeof expected === 'function')
       assertMatch(this.browser.location.href, expected, message);
-    } else {
+    else {
       const url = URL.parse(this.browser.location.href, true);
       for (let key in expected) {
         let value = expected[key];
         // Gracefully handle default values, e.g. document.location.hash for
         // "/foo" is "" not null, not undefined.
-        let defaultValue = (key === "port") ? 80 : null;
+        let defaultValue = (key === 'port') ? 80 : null;
         assertMatch(url[key] || defaultValue, value || defaultValue, message);
       }
     }
@@ -90,7 +90,7 @@ module.exports = class Assert {
   // Assert that element matching selector exists.
   element(selector, message) {
     this.elements(selector, { exactly: 1 }, message);
-  } 
+  }
 
   // Assert how many elements matching selector exist.
   //
@@ -102,11 +102,11 @@ module.exports = class Assert {
   // If count is unspecified, defaults to at least one.
   elements(selector, count, message) {
     const elements = this.browser.queryAll(selector);
-    if (arguments.length == 1)  {
+    if (arguments.length === 1)
       this.elements(selector, { atLeast: 1});
-    } else if (Number.isInteger(count)) {
+    else if (Number.isInteger(count))
       this.elements(selector, { exactly: count }, message);
-    } else {
+    else {
       if (count.exactly)
         assert.equal(elements.length, count.exactly,
                      message || `Expected ${count.exactly} elements matching '${selector}', found ${elements.length}`);
@@ -126,7 +126,7 @@ module.exports = class Assert {
     for (let element of elements) {
       let classNames = element.className.split(/\s+/);
       assert(~classNames.indexOf(expected),
-             message || `Expected element '${selector}' to have class ${expected}, found ${classNames.join(", ")}`);
+             message || `Expected element '${selector}' to have class ${expected}, found ${classNames.join(', ')}`);
     }
   }
 
@@ -137,7 +137,7 @@ module.exports = class Assert {
     for (let element of elements) {
       let classNames = element.className.split(/\s+/);
       assert(classNames.indexOf(expected) === -1,
-             message || `Expected element '${selector}' to not have class ${expected}, found ${classNames.join(", ")}`);
+             message || `Expected element '${selector}' to not have class ${expected}, found ${classNames.join(', ')}`);
     }
   }
 
@@ -145,9 +145,9 @@ module.exports = class Assert {
   className(selector, expected, message) {
     const elements = this.browser.queryAll(selector);
     assert(elements.length, `Expected selector '${selector}' to return one or more elements`);
-    const array    = expected.split(/\s+/).sort().join(" ");
+    const array    = expected.split(/\s+/).sort().join(' ');
     for (let element of elements) {
-      let actual = element.className.split(/\s+/).sort().join(" ");
+      let actual = element.className.split(/\s+/).sort().join(' ');
       assertMatch(actual, array,
                   message || `Expected element '${selector}' to have class ${expected}, found ${actual}`);
     }
@@ -197,10 +197,10 @@ module.exports = class Assert {
     assert(elements.length, `Expected selector '${selector}' to return one or more elements`);
     const actual = elements
       .map(elem => elem.textContent)
-      .join("")
+      .join('')
       .trim()
-      .replace(/\s+/g, " ");
-    assertMatch(actual, expected || "", message);
+      .replace(/\s+/g, ' ');
+    assertMatch(actual, expected || '', message);
   }
 
 
@@ -214,10 +214,9 @@ module.exports = class Assert {
                    message || `Expected selector '${selector}' to return one element`);
       assert.equal(this.browser.activeElement, elements[0],
                    message || `Expected element '${selector}' to have the focus'`);
-    } else {
+    } else
       assert.equal(this.browser.activeElement, this.browser.body,
-                   message || "Expected no element to have focus");
-    }
+                   message || 'Expected no element to have focus');
   }
 
 
@@ -227,22 +226,20 @@ module.exports = class Assert {
   // asserts that the expression evaluates to (JS) true.
   evaluate(expression, expected, message) {
     const actual = this.browser.evaluate(expression);
-    if (arguments.length === 1) {
+    if (arguments.length === 1)
       assert(actual);
-    } else {
+    else
       assertMatch(actual, expected, message);
-    }
   }
 
   // Asserts that the global (window) property name has the expected value.
   global(name, expected, message) {
     const actual = this.browser.window[name];
-    if (arguments.length === 1) {
+    if (arguments.length === 1)
       assert(actual);
-    } else {
+    else
       assertMatch(actual, expected,
                   message || `Expected global ${name} to have the value '${expected}', found '${actual}'`);
-    }
   }
 
 };

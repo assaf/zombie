@@ -69,9 +69,11 @@ describe('XPath', function() {
 
     before(function() {
       const result = browser.xpath('//a');
-      let node;
-      while (node = result.iterateNext())
+      let node = result.iterateNext();
+      while (node) {
         anchors.push(node);
+        node = result.iterateNext();
+      }
     });
 
     it('should return eleven nodes', function() {
@@ -91,9 +93,11 @@ describe('XPath', function() {
 
     before(function() {
       const result = browser.xpath('//*[@id="post-2"]/h2');
-      let node;
-      while (node = result.iterateNext())
+      let node = result.iterateNext();
+      while (node) {
         nodes.push(node);
+        node = result.iterateNext();
+      }
     });
 
     it('should return one node', function() {

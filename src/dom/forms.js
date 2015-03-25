@@ -16,7 +16,11 @@ const Path  = require('path');
 // the full filename (`filename`) and the `read` method that returns the file
 // contents.
 function uploadedFile(filename) {
-  const file    = new String(Path.basename(filename)); // jshint ignore:line
+  const file = {
+    valueOf() {
+      return Path.basename(filename);
+    }
+  };
   file.filename = filename;
   file.mime     = Mime.lookup(filename);
   file.read     = function() {
@@ -33,69 +37,77 @@ DOM.HTMLFormElement.prototype.submit = function(button) {
   const document  = form.ownerDocument;
   const params    = {};
 
-  function process(index) {
-    const field = form.elements.item(index);
-    if (!field) {
-      submit();
+  function addFieldToParams(field) {
+    if (field.getAttribute('disabled'))
+      return;
+
+    const name = field.getAttribute('name');
+    if (!name)
+      return;
+
+    if (field.nodeName === 'SELECT') {
+      const selected = [...field.options]
+        .filter(option  => option.selected)
+        .map(options    => options.value);
+
+      if (field.multiple)
+        params[name] = (params[name] || []).concat(selected);
+      else {
+        const value = (selected.length > 0) ?
+          selected[0] :
+          (field.options.length && field.options[0].value);
+        params[name] = params[name] || [];
+        params[name].push(value);
+      }
       return;
     }
 
-    const name = field.getAttribute('name');
-    if (!field.getAttribute('disabled') && name) {
-      if (field.nodeName === 'SELECT') {
-        const selected = [...field.options]
-          .filter(option  => option.selected)
-          .map(options    => options.value);
-
-        if (field.multiple) {
-          params[name] = (params[name] || []).concat(selected);
-        } else {
-          const value = (selected.length > 0) ?
-            selected[0] :
-            (field.options.length && field.options[0].value);
-          params[name] = params[name] || [];
-          params[name].push(value);
-        }
-      } else if (field.nodeName === 'INPUT' && (field.type === 'checkbox' || field.type === 'radio')) {
-        if (field.checked) {
-          params[name] = params[name] || [];
-          params[name].push(field.value || '1');
-        }
-      } else if (field.nodeName === 'INPUT' && field.type === 'file') {
-        if (field.value) {
-          params[name] = params[name] || [];
-          params[name].push(uploadedFile(field.value));
-        }
-      } else if (field.nodeName === 'TEXTAREA' || field.nodeName === 'INPUT') {
-        if (field.type !== 'submit' && field.type !== 'image') {
-          params[name] = params[name] || [];
-          params[name].push(field.value || '');
-        }
+    if (field.nodeName === 'INPUT' && (field.type === 'checkbox' || field.type === 'radio')) {
+      if (field.checked) {
+        params[name] = params[name] || [];
+        params[name].push(field.value || '1');
       }
+      return;
     }
 
-    process(index + 1);
+    if (field.nodeName === 'INPUT' && field.type === 'file') {
+      if (field.value) {
+        params[name] = params[name] || [];
+        params[name].push(uploadedFile(field.value));
+      }
+      return;
+    }
+
+    if (field.nodeName === 'TEXTAREA' || field.nodeName === 'INPUT') {
+      if (field.type !== 'submit' && field.type !== 'image') {
+        params[name] = params[name] || [];
+        params[name].push(field.value || '');
+      }
+      return;
+    }
   }
 
-  function submit() {
-    // No triggering event, just get history to do the submission.
-    if (button && button.name) {
-      if (button.nodeName === 'INPUT' && button.type === 'image') {
-        params[button.name + '.x'] = params[button.name + '.x'] || [];
-        params[button.name + '.x'].push('0');
+  function addButtonToParams() {
+    if (button.nodeName === 'INPUT' && button.type === 'image') {
+      params[button.name + '.x'] = params[button.name + '.x'] || [];
+      params[button.name + '.x'].push('0');
 
-        params[button.name + '.y'] = params[button.name + '.y'] || [];
-        params[button.name + '.y'].push('0');
+      params[button.name + '.y'] = params[button.name + '.y'] || [];
+      params[button.name + '.y'].push('0');
 
-        if (button.value) {
-          params[button.name] = params[button.name] || [];
-          params[button.name].push(button.value);
-        }
-      } else {
+      if (button.value) {
         params[button.name] = params[button.name] || [];
         params[button.name].push(button.value);
       }
+    } else {
+      params[button.name] = params[button.name] || [];
+      params[button.name].push(button.value);
     }
+  }
+
+  function submit() {
+    if (button && button.name)
+      addButtonToParams();
 
     // Ask window to submit form, let it figure out how to handle this based on
     // the target attribute.
@@ -106,6 +118,16 @@ DOM.HTMLFormElement.prototype.submit = function(button) {
       params:   params,
       target:   form.getAttribute('target')
     });
+  }
+
+  function process(index) {
+    const field = form.elements.item(index);
+    if (!field) {
+      submit();
+      return;
+    }
+    addFieldToParams(field);
+    process(index + 1);
   }
 
   process(0);
@@ -134,14 +156,15 @@ DOM.HTMLFormElement.prototype._eventDefaults.submit = function(event) {
 
 // Default behavior for clicking on inputs.
 DOM.HTMLInputElement.prototype._eventDefaults =
-  Object.assign({}, DOM.HTMLElement.prototype._eventDefaults)
+  Object.assign({}, DOM.HTMLElement.prototype._eventDefaults);
+
 DOM.HTMLInputElement.prototype._eventDefaults.click = function(event) {
   const input = event.target;
 
   function change() {
-    const event = input.ownerDocument.createEvent('HTMLEvents');
-    event.initEvent('change', true, true);
-    input.dispatchEvent(event);
+    const changeEvent = input.ownerDocument.createEvent('HTMLEvents');
+    changeEvent.initEvent('change', true, true);
+    input.dispatchEvent(changeEvent);
   }
 
   switch (input.type) {
@@ -184,45 +207,47 @@ DOM.HTMLInputElement.prototype.click = function() {
 
   // First event we fire is click event
   function click() {
-    const event = input.ownerDocument.createEvent('HTMLEvents');
-    event.initEvent('click', true, true);
-    return input.dispatchEvent(event);
+    const clickEvent = input.ownerDocument.createEvent('HTMLEvents');
+    clickEvent.initEvent('click', true, true);
+    return input.dispatchEvent(clickEvent);
   }
 
   switch (input.type) {
     case 'checkbox': {
-      if (!input.getAttribute('readonly')) {
-        const original    = input.checked;
-        input.checked     = !original;
-        const checkResult = click();
-        if (checkResult === false)
-          input.checked = original;
-      }
+      if (input.getAttribute('readonly'))
+        break;
+
+      const original    = input.checked;
+      input.checked     = !original;
+      const checkResult = click();
+      if (checkResult === false)
+        input.checked = original;
       break;
     }
 
     case 'radio': {
-      if (!input.getAttribute('readonly')) {
-        if (input.checked) {
-          click();
-        } else {
-          const radios = input.ownerDocument.querySelectorAll(`input[type=radio][name='${this.getAttribute('name')}']`);
-          const checked = [...radios]
-            .filter(radio   => radio.checked && radio.form === this.form )
-            .map(radio  => {
-              radio.checked = false;
-            })[0];
+      if (input.getAttribute('readonly'))
+        break;
 
-          input.checked = true;
-          const radioResult = click();
-          if (radioResult === false) {
-            input.checked = false;
-            [...radios]
-              .filter(radio   => radio.form === input.form )
-              .forEach(radio  => {
-                radio.checked = (radio == checked);
-              });
-          }
+      if (input.checked)
+        click();
+      else {
+        const radios = input.ownerDocument.querySelectorAll(`input[type=radio][name='${this.getAttribute('name')}']`);
+        const checked = [...radios]
+          .filter(radio   => radio.checked && radio.form === this.form )
+          .map(radio  => {
+            radio.checked = false;
+          })[0];
+
+        input.checked = true;
+        const radioResult = click();
+        if (radioResult === false) {
+          input.checked = false;
+          [...radios]
+            .filter(radio   => radio.form === input.form )
+            .forEach(radio  => {
+              radio.checked = (radio === checked);
+            });
         }
       }
       break;
@@ -239,12 +264,11 @@ DOM.HTMLInputElement.prototype.click = function() {
 // Default behavior for form BUTTON: submit form.
 DOM.HTMLButtonElement.prototype._eventDefaults.click = function(event) {
   const button = event.target;
-  if (button.getAttribute('disabled')) {
-    return;
-  } else {
-    const form = button.form;
-    if (form)
-      return form._dispatchSubmitEvent(button);
-  }
+  if (button.getAttribute('disabled'))
+    return false;
+
+  const form = button.form;
+  if (form)
+    return form._dispatchSubmitEvent(button);
 };
 

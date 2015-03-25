@@ -32,7 +32,7 @@ describe('Node', function() {
       const bodyChild = browser.query('.body-child');
       assert.strictEqual(browser.document.body.contains(bodyChild), true);
     });
-  
+
     it('should be true for grandchild children', function() {
       const child = browser.query('.child');
       assert.strictEqual(browser.document.body.contains(child), true);
@@ -61,5 +61,5 @@ describe('Node', function() {
   after(function() {
     browser.destroy();
   });
-      
+
 });

@@ -121,11 +121,11 @@ describe('Browser events', function() {
 
   describe('closing a window', function() {
     before(function() {
-      browser.on('closed', function(window) {
-        events.close = window;
+      browser.on('closed', function(closedWindow) {
+        events.close = closedWindow;
       });
-      browser.on('inactive', function(window) {
-        events.inactive = window;
+      browser.on('inactive', function(inactiveWindow) {
+        events.inactive = inactiveWindow;
       });
       const window = browser.open({ name: 'close-test' });
       window.close();
@@ -176,7 +176,7 @@ describe('Browser events', function() {
       await browser.load('<html><body>Hello</body></html>');
 
       browser.on('event', function(event, target) {
-        if (event.type == 'click')
+        if (event.type === 'click')
           events.click = { event, target };
       });
 
@@ -231,7 +231,7 @@ describe('Browser events', function() {
     });
 
     it('should receive timeout event with the function', function() {
-      assert.equal(typeof(events.timeout.fn), 'function');
+      assert.equal(typeof events.timeout.fn, 'function');
     });
 
     it('should receive timeout event with the delay', function() {
@@ -257,7 +257,7 @@ describe('Browser events', function() {
     });
 
     it('should receive interval event with the function', function() {
-      assert.equal(typeof(events.interval.fn), 'function');
+      assert.equal(typeof events.interval.fn, 'function');
     });
 
     it('should receive interval event with the interval', function() {

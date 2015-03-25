@@ -1,3 +1,4 @@
+/*eslint no-loop-func:0 */
 const assert  = require('assert');
 const brains  = require('./helpers/brains');
 const Browser = require('../src');
@@ -14,7 +15,7 @@ describe('Compatibility with jQuery', function() {
   });
 
   for (let version of JQUERY_VERSIONS) {
-  
+
     describe(version, function() {
       before(function() {
         brains.static(`/compat/jquery-${version}`, `
@@ -144,7 +145,7 @@ describe('Compatibility with jQuery', function() {
       }
 
 
-      if (version > '1.9') {
+      if (version > '1.9')
 
         describe('live events', function() {
           before(function(done) {
@@ -164,7 +165,7 @@ describe('Compatibility with jQuery', function() {
           });
         });
 
-      } else if (version > '1.7') {
+      else if (version > '1.7')
 
         describe('live events', function() {
           before(function(done) {
@@ -181,7 +182,6 @@ describe('Compatibility with jQuery', function() {
           });
         });
 
-      }
 
       if (version > '1.7') {
 

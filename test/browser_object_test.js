@@ -1,7 +1,6 @@
 const assert  = require('assert');
 const brains  = require('./helpers/brains');
 const Browser = require('../src');
-const JSDOM   = require('jsdom');
 
 
 describe('Browser', function() {
@@ -55,7 +54,7 @@ describe('Browser', function() {
       it('should load external scripts', function() {
         const jQuery = browser.window.jQuery;
         assert(jQuery, 'window.jQuery not available');
-        assert.equal(typeof(jQuery.ajax), 'function');
+        assert.equal(typeof jQuery.ajax, 'function');
       });
       it('should run jQuery.onready', function() {
         browser.assert.text('title', 'Awesome');
@@ -75,31 +74,35 @@ describe('Browser', function() {
     describe('visit', function() {
 
       describe('successful', function() {
-        let browser;
+        let visitBrowser;
 
         before(async function() {
-          browser = await Browser.visit('/browser/scripted');
+          visitBrowser = await Browser.visit('/browser/scripted');
         });
 
         it('should resolve to browser object', function() {
-          assert(browser.visit && browser.wait);
+          assert(visitBrowser.visit && visitBrowser.wait);
         });
         it('should indicate success', function() {
-          browser.assert.success();
+          visitBrowser.assert.success();
         });
         it('should reset browser errors', function() {
-          assert.equal(browser.errors.length, 0);
+          assert.equal(visitBrowser.errors.length, 0);
+        });
+
+        after(function() {
+          visitBrowser.destroy();
         });
       });
 
       describe('with error', function() {
         let error;
-        let browser;
+        let visitBrowser;
 
         before(function(done) {
           Browser.visit('/browser/errored', function() {
-            error   = arguments[0];
-            browser = arguments[1];
+            error        = arguments[0];
+            visitBrowser = arguments[1];
             done();
           });
         });
@@ -108,11 +111,15 @@ describe('Browser', function() {
           assert(error.message && error.stack);
         });
         it('should indicate success', function() {
-          browser.assert.success();
+          visitBrowser.assert.success();
         });
         it('should set browser errors', function() {
-          assert.equal(browser.errors.length, 1);
-          assert.equal(browser.errors[0].message, 'Cannot read property \'wrong\' of undefined');
+          assert.equal(visitBrowser.errors.length, 1);
+          assert.equal(visitBrowser.errors[0].message, 'Cannot read property \'wrong\' of undefined');
+        });
+
+        after(function() {
+          visitBrowser.destroy();
         });
       });
 
@@ -191,10 +198,10 @@ describe('Browser', function() {
       });
 
       describe('missing resource', function() {
-        const browser = new Browser();
+        const imgBrowser = new Browser();
 
         before(async function() {
-          browser.features = 'img';
+          imgBrowser.features = 'img';
           brains.static('/browser/missing-resource', `
             <html>
               <body>
@@ -214,29 +221,29 @@ describe('Browser', function() {
           `);
 
           try {
-            await browser.visit('/browser/missing-resource');
+            await imgBrowser.visit('/browser/missing-resource');
             assert(false, 'Should have errored');
           } catch (callbackError) {
           }
         });
 
         it('should load document', function() {
-          assert(browser.body);
+          assert(imgBrowser.body);
         });
         it('should indicate successful loading', function() {
-          browser.assert.success();
+          imgBrowser.assert.success();
         });
         it('should indicate resource failed to load', function() {
-          const resource = browser.resources[1];
+          const resource = imgBrowser.resources[1];
           assert.equal(resource.response.statusCode, 404);
         });
         it('should fire error event on resource', function() {
-          browser.assert.evaluate('document.body.loaded', undefined);
-          browser.assert.evaluate('document.body.error', true);
+          imgBrowser.assert.evaluate('document.body.loaded', undefined);
+          imgBrowser.assert.evaluate('document.body.error', true);
         });
 
         after(function() {
-          browser.destroy();
+          imgBrowser.destroy();
         });
       });
     });
@@ -246,7 +253,7 @@ describe('Browser', function() {
 
       describe('successful', function() {
         it('should fire load event with document object', async function() {
-          var document;
+          let document;
           browser.once('loaded', function(arg) {
             document = arg;
           });
@@ -265,7 +272,7 @@ describe('Browser', function() {
 
       describe('error', function() {
         it('should fire onerror event with error', async function() {
-          var error;
+          let error;
           browser.once('error', function(arg) {
             error = arg;
           });
@@ -536,7 +543,7 @@ describe('Browser', function() {
 
       before(async function() {
         brains.static('/browser/popup', '<h1>Popup window</h1>');
-          
+
         browser.tabs.closeAll();
         await browser.visit('about:blank');
         window = browser.window.open('http://example.com/browser/popup', 'popup');
@@ -656,7 +663,7 @@ describe('Browser', function() {
     before(async function() {
       brains.static('/browser/living', '<html><script>dead = "almost"</script></html>');
       brains.static('/browser/dead', '<html><script>dead = "very"</script></html>');
-        
+
       await browser.visit('/browser/living');
       browser.setCookie({ name: 'foo', value: 'bar' });
       browser.localStorage('www.example.com').setItem('foo', 'bar');
@@ -671,7 +678,7 @@ describe('Browser', function() {
 
     it('should have two browser objects', function() {
       assert(forked && browser);
-      assert(browser != forked);
+      assert(browser !== forked);
     });
     it('should use same options', function() {
       assert.equal(browser.debug,       forked.debug);

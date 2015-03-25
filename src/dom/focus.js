@@ -78,7 +78,7 @@ INPUTS.forEach(function(elementType) {
   elementType.prototype._eventDefaults.blur = function(event) {
     const element     = event.target;
     const focusValue  = element._focusValue;
-    if (focusValue != element.value) { // null == undefined
+    if (focusValue !== element.value) { // null == undefined
       const change = element.ownerDocument.createEvent('HTMLEvents');
       change.initEvent('change', false, false);
       element.dispatchEvent(change);

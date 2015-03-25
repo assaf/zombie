@@ -235,7 +235,7 @@ describe('EventLoop', function() {
         browser.window.setInterval(function() {
           this.document.title += '.';
         }, 100);
-        await setImmediate; 
+        await setImmediate;
       });
 
       it('should not fire any timeout events', function() {

@@ -45,5 +45,5 @@ describe('Google map', function() {
   after(function() {
     browser.destroy();
   });
-      
+
 });

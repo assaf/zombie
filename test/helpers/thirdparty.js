@@ -1,4 +1,4 @@
-// Creates an Express server for testing 3rd party sites against thirdparty.test. 
+// Creates an Express server for testing 3rd party sites against thirdparty.test.
 // Exports a method that returns a promise that resolves to a live Express server.
 
 const Browser = require('../../src');

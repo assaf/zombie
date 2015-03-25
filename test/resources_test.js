@@ -2,6 +2,7 @@ const assert      = require('assert');
 const brains      = require('./helpers/brains');
 const Browser     = require('../src');
 const File        = require('fs');
+const Path        = require('path');
 const thirdParty  = require('./helpers/thirdparty');
 const Zlib        = require('zlib');
 
@@ -51,7 +52,7 @@ describe('Resources', function() {
     before(function() {
       brains.get('/resources/deflate', function(req, res) {
         res.setHeader('Transfer-Encoding', 'deflate');
-        const image = File.readFileSync(__dirname + '/data/zombie.jpg');
+        const image = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
         Zlib.deflate(image, function(error, buffer) {
           res.send(buffer);
         });
@@ -60,7 +61,7 @@ describe('Resources', function() {
 
     it('should uncompress deflated response with transfer-encoding', async function() {
       const response  = await browser.resources.get('http://example.com/resources/deflate');
-      const image     = File.readFileSync(__dirname + '/data/zombie.jpg');
+      const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, response.body);
     });
   });
@@ -70,7 +71,7 @@ describe('Resources', function() {
     before(function() {
       brains.get('/resources/deflate', function(req, res) {
         res.setHeader('Content-Encoding', 'deflate');
-        const image = File.readFileSync(__dirname + '/data/zombie.jpg');
+        const image = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
         Zlib.deflate(image, function(error, buffer) {
           res.send(buffer);
         });
@@ -79,7 +80,7 @@ describe('Resources', function() {
 
     it('should uncompress deflated response with content-encoding', async function() {
       const response  = await browser.resources.get('http://example.com/resources/deflate');
-      const image     = File.readFileSync(__dirname + '/data/zombie.jpg');
+      const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, response.body);
     });
   });
@@ -89,7 +90,7 @@ describe('Resources', function() {
     before(function() {
       brains.get('/resources/gzip', function(req, res) {
         res.setHeader('Transfer-Encoding', 'gzip');
-        const image = File.readFileSync(__dirname + '/data/zombie.jpg');
+        const image = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
         Zlib.gzip(image, function(error, buffer) {
           res.send(buffer);
         });
@@ -98,7 +99,7 @@ describe('Resources', function() {
 
     it('should uncompress gzipped response with transfer-encoding', async function() {
       const response  = await browser.resources.get('http://example.com/resources/gzip');
-      const image     = File.readFileSync(__dirname + '/data/zombie.jpg');
+      const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, response.body);
     });
   });
@@ -108,7 +109,7 @@ describe('Resources', function() {
     before(function() {
       brains.get('/resources/gzip', function(req, res) {
         res.setHeader('Content-Encoding', 'gzip');
-        const image = File.readFileSync(__dirname + '/data/zombie.jpg');
+        const image = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
         Zlib.gzip(image, function(error, buffer) {
           res.send(buffer);
         });
@@ -117,7 +118,7 @@ describe('Resources', function() {
 
     it('should uncompress gzipped response with content-encoding', async function() {
       const response  = await browser.resources.get('http://example.com/resources/gzip');
-      const image     = File.readFileSync(__dirname + '/data/zombie.jpg');
+      const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, response.body);
     });
   });
@@ -227,12 +228,10 @@ describe('Resources', function() {
           statusCode : 301
         };
 
-        if (request.url === 'http://example.com/fake') {
+        if (request.url === 'http://example.com/fake')
           callback(null, response);
-        }
-        else {
+        else
           callback();
-        }
       });
       browser.resources.length = 0;
       return browser.visit('/fake');

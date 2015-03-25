@@ -102,7 +102,7 @@ describe('EventSource', function() {
       });
     });
   });
-  
+
 
   after(function() {
     browser.destroy();

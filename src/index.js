@@ -256,22 +256,17 @@ class Browser extends EventEmitter {
   // Without a callback, this method returns a promise.
   wait(options, callback) {
     assert(this.window, new Error('No window open'));
-    if (arguments.length === 1 && typeof(options) === 'function')
+    if (arguments.length === 1 && typeof options === 'function')
       [callback, options] = [options, null];
-    assert(!callback || typeof(callback) === 'function', 'Second argument expected to be a callback function or null');
+    assert(!callback || typeof callback === 'function', 'Second argument expected to be a callback function or null');
 
     // Support all sort of shortcuts for options. Unofficial.
-    const duration = 
-      (typeof(options) === 'number') ? options :
-      (typeof(options) === 'string') ? options :
+    const duration =
+      (typeof options === 'number') ? options :
+      (typeof options === 'string') ? options :
       (options && options.duration || this.waitDuration || '5s');
     // Support 500 (ms) as well as "5s"
     const waitDuration = ms(duration.toString());
-
-    const completionFunction =
-      (typeof(options) === 'function') ? options :
-      (options && options.element) ? completionFromElement(options.element) :
-      (options && options.function);
 
     function completionFromElement(element) {
       return function(window) {
@@ -279,12 +274,16 @@ class Browser extends EventEmitter {
       };
     }
 
+    const completionFunction =
+      (typeof options === 'function') ? options :
+      (options && options.element) ? completionFromElement(options.element) :
+      (options && options.function);
+
     const { _eventLoop } = this;
-    if (callback) {
+    if (callback)
       _eventLoop.wait(waitDuration, completionFunction, callback);
-    } else {
+    else
       return Bluebird.promisify(_eventLoop.wait, _eventLoop)(waitDuration, completionFunction);
-    }
   }
 
 
@@ -296,20 +295,21 @@ class Browser extends EventEmitter {
   // Without a callback, this method returns a promise.
   waitForServer(options, callback) {
     assert(this.window, new Error('No window open'));
-    if (arguments.length === 1 && typeof(options) === 'function')
+    if (arguments.length === 1 && typeof options === 'function')
       [callback, options] = [options, null];
 
     if (callback) {
       this._eventLoop.once('serverEvent', ()=> {
         this.wait(options, callback);
       });
-    } else {
-      return new Bluebird((resolve)=> {
-        this._eventLoop.once('serverEvent', ()=> {
-          resolve(this.wait(options, null));
-        });
-      });
+      return null;
     }
+
+    return new Bluebird((resolve)=> {
+      this._eventLoop.once('serverEvent', ()=> {
+        resolve(this.wait(options, null));
+      });
+    });
   }
 
 
@@ -318,24 +318,25 @@ class Browser extends EventEmitter {
   _wait(options, callback) {
     if (callback) {
       this.wait(options, callback);
-    } else {
-      let promise = null;
-      const lazyResolve = ()=> {
-        if (!promise)
-          promise = this.wait(options, null);
-        return promise;
-      };
-      // Returns equivalent of a promise that only starts evaluating when you
-      // call then() or catch() on it.
-      return {
-        then(resolved, rejected) {
-          return lazyResolve().then(resolved, rejected);
-        },
-        catch(rejected) {
-          return lazyResolve().then(null, rejected);
-        },
-      };
+      return null;
     }
+
+    let promise = null;
+    const lazyResolve = ()=> {
+      if (!promise)
+        promise = this.wait(options, null);
+      return promise;
+    };
+    // Returns equivalent of a promise that only starts evaluating when you
+    // call then() or catch() on it.
+    return {
+      then(resolved, rejected) {
+        return lazyResolve().then(resolved, rejected);
+      },
+      catch(rejected) {
+        return lazyResolve().then(null, rejected);
+      }
+    };
   }
 
 
@@ -450,15 +451,14 @@ class Browser extends EventEmitter {
   text(selector = 'html', context = this.document) {
     assert(this.document, 'No window open');
 
-    if (this.document.documentElement) {
+    if (this.document.documentElement)
       return this.queryAll(selector, context)
         .map(elem => elem.textContent)
         .join('')
         .trim()
         .replace(/\s+/g, ' ');
-    } else {
+    else
       return (this.source ? this.source.toString : '');
-    }
   }
 
 
@@ -473,13 +473,12 @@ class Browser extends EventEmitter {
   html(selector = 'html', context = this.document) {
     assert(this.document, 'No window open');
 
-    if (this.document.documentElement) {
+    if (this.document.documentElement)
       return this.queryAll(selector, context)
         .map(elem => elem.outerHTML.trim())
         .join('');
-    } else {
+    else
       return (this.source ? this.source.toString : '');
-    }
   }
 
 
@@ -533,7 +532,7 @@ class Browser extends EventEmitter {
   //
   // Loads document from the specified URL, processes events and calls the callback, or returns a promise.
   visit(url, options, callback) {
-    if (arguments.length < 3 && typeof(options) === 'function')
+    if (arguments.length < 3 && typeof options === 'function')
       [options, callback] = [{}, options];
 
     const site = /^(https?:|file:)/i.test(this.site) ? this.site : `http://${this.site || 'localhost'}/`;
@@ -689,7 +688,7 @@ class Browser extends EventEmitter {
       if (label.textContent.trim() === selector) {
         // nLabel can either reference field or enclose it
         const forAttr = label.getAttribute('for');
-        return forAttr ? 
+        return forAttr ?
           this.document.getElementById(forAttr) :
           label.querySelector('input,textarea,select');
       }
@@ -1013,7 +1012,7 @@ class Browser extends EventEmitter {
   // httpOnly - True if cookie not accessible from JS
   setCookie(nameOrOptions, value) {
     const domain = this.location && this.location.hostname;
-    if (typeof(nameOrOptions) === 'string') {
+    if (typeof nameOrOptions === 'string')
       this.cookies.set({
         name:     nameOrOptions,
         value:    value || '',
@@ -1022,7 +1021,7 @@ class Browser extends EventEmitter {
         secure:   false,
         httpOnly: false
       });
-    } else {
+    else {
       assert(nameOrOptions.name, 'Missing cookie name');
       this.cookies.set({
         name:       nameOrOptions.name,
@@ -1172,7 +1171,7 @@ class Browser extends EventEmitter {
   //     browser.log('Opening page:', url);
   //     browser.log(function() { return 'Opening page: ' + url });
   log(...args) {
-    if (typeof(args[0]) === 'function')
+    if (typeof args[0] === 'function')
       args = [args[0]()];
     this.emit('log', format(...args));
   }
@@ -1214,7 +1213,7 @@ class Browser extends EventEmitter {
   // * url -- URL of page to open
   // * callback -- Called with error, browser
   static visit(url, options, callback) {
-    if (arguments.length === 2 && typeof(options) === 'function')
+    if (arguments.length === 2 && typeof options === 'function')
       [options, callback] = [null, options];
     const browser = new Browser(options);
     if (callback)
@@ -1258,7 +1257,7 @@ class Browser extends EventEmitter {
       this._debugEnabled = debug('zombie');
     }
     return this._debugEnabled;
-  } 
+  }
 
 }
 
@@ -1318,7 +1317,7 @@ Object.assign(Browser, {
   _debugEnabled: null,
 
   // Browser extensions;
-  _extensions: [],
+  _extensions: []
 
 });
 

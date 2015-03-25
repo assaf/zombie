@@ -73,7 +73,7 @@ server.get('/scripts/require.js', function(req, res) {
 });
 
 server.get('/scripts/*', function(req, res) {
-  const script = File.readFileSync(__dirname + '/../scripts/' + req.params[0]);
+  const script = File.readFileSync(Path.join(__dirname, '/../scripts/', req.params[0]));
   res.send(script);
 });
 

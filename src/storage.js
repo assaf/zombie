@@ -119,49 +119,49 @@ class Storage {
   get length() {
     return this._area.length;
   }
-  
+
   // ### storage.key(index) => String
   //
   // Returns the key at this position.
   key(index) {
     return this._area.key(index);
   }
-  
+
   // ### storage.getItem(key) => Object
   //
   // Returns item by key.
   getItem(key) {
     return this._area.get(key.toString());
   }
-  
+
   // ### storage.setItem(key, Object)
   //
   // Add item or change value of existing item.
   setItem(key, value) {
     this._area.set(this, key.toString(), value);
   }
-  
+
   // ### storage.removeItem(key)
   //
   // Remove item.
   removeItem(key) {
     this._area.remove(this, key.toString());
   }
-  
+
   // ### storage.clear()
   //
   // Remove all items.
   clear() {
     this._area.clear(this);
   }
-  
+
   // Dump to a string, useful for debugging.
   dump(output = process.stdout) {
     return this._area.dump(output);
   }
 
 }
-  
+
 
 
 
@@ -200,6 +200,7 @@ class Storages {
           return document._localStorage;
         }
       },
+
       sessionStorage: {
         get() {
           const { document } = this;
@@ -207,7 +208,7 @@ class Storages {
             document._sessionStorage = storages.session(document.location.host);
           return document._sessionStorage;
         }
-      },
+      }
     });
   }
 
@@ -250,7 +251,7 @@ class Storages {
     }
     return serialized.join(`\n`) + `\n`;
   }
-    
+
   // browser.loadStorage uses this
   load(serialized) {
     let storage = null;
@@ -265,11 +266,11 @@ class Storages {
           throw new Error('Must specify storage type using local: or session:');
       } else {
         const [domain, type] = item.split(' ');
-        if (type === 'local:') {
+        if (type === 'local:')
           storage = this.local(domain);
-        } else if (type === 'session:') {
+        else if (type === 'session:')
           storage = this.session(domain);
-        } else
+        else
           throw new Error(`Unkown storage type ${type}`);
       }
     }

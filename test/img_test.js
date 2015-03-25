@@ -15,7 +15,7 @@ describe('IMG', function() {
         </body>
       </html>`);
     brains.get('/image/zombie.jpg', function(req, res) {
-      res.setHeader('Content-Type','image/jpeg');
+      res.setHeader('Content-Type', 'image/jpeg');
       res.send(File.readFileSync(`${__dirname}/data/zombie.jpg`));
     });
     return brains.ready();
@@ -46,5 +46,5 @@ describe('IMG', function() {
   after(function() {
     browser.destroy();
   });
-      
+
 });

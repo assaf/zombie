@@ -30,12 +30,11 @@ module.exports = function createTabs(browser) {
     // Dump list of all open tabs to stdout or output stream.
     dump: {
       value(output = process.stdout) {
-        if (tabs.length === 0) {
+        if (tabs.length === 0)
           output.write('No open tabs.\n');
-        } else {
+        else
           for (let window of tabs)
             output.write(`Window ${window.name || 'unnamed'} open to ${window.location.href}\n`);
-        }
       }
     },
 

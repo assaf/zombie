@@ -35,6 +35,120 @@ const DOM           = require('./dom');
 const URL           = require('url');
 
 
+class Location {
+
+  constructor(history, url) {
+    this._history = history;
+    this._url = url || (history.current ? history.current.url : 'about:blank');
+  }
+
+  assign(url) {
+    this._history.assign(url);
+  }
+
+  replace(url) {
+    this._history.replace(url);
+  }
+
+  reload() {
+    this._history.reload();
+  }
+
+  toString() {
+    return this._url;
+  }
+
+  get hostname() {
+    return URL.parse(this._url).hostname;
+  }
+
+  set hostname(hostname) {
+    const newUrl = URL.parse(this._url);
+    if (newUrl.port)
+      newUrl.host = `${hostname}:${newUrl.port}`;
+    else
+      newUrl.host = hostname;
+    this.assign(URL.format(newUrl));
+  }
+
+  get href() {
+    return this._url;
+  }
+
+  set href(href) {
+    this.assign(URL.format(href));
+  }
+
+  get origin() {
+    return `${this.protocol}//${this.host}`;
+  }
+
+  get hash() {
+    return URL.parse(this._url).hash || '';
+  }
+
+  set hash(value) {
+    const url  = Object.assign(URL.parse(this._url), { hash: value });
+    this.assign(URL.format(url));
+  }
+
+  get host() {
+    return URL.parse(this._url).host || '';
+  }
+
+  set host(value) {
+    const url  = Object.assign(URL.parse(this._url), { host: value });
+    this.assign(URL.format(url));
+  }
+
+  get pathname() {
+    return URL.parse(this._url).pathname || '';
+  }
+
+  set pathname(value) {
+    const url  = Object.assign(URL.parse(this._url), { pathname: value });
+    this.assign(URL.format(url));
+  }
+
+  get port() {
+    return URL.parse(this._url).port || '';
+  }
+
+  set port(value) {
+    const url  = Object.assign(URL.parse(this._url), { port: value });
+    this.assign(URL.format(url));
+  }
+
+  get protocol() {
+    return URL.parse(this._url).protocol || '';
+  }
+
+  set protocol(value) {
+    const url  = Object.assign(URL.parse(this._url), { protocol: value });
+    this.assign(URL.format(url));
+  }
+
+  get search() {
+    return URL.parse(this._url).search || '';
+  }
+
+  set search(value) {
+    const url  = Object.assign(URL.parse(this._url), { search: value });
+    this.assign(URL.format(url));
+  }
+}
+
+
+// Returns true if the hash portion of the URL changed between the history entry
+// (entry) and the new URL we want to inspect (url).
+function hashChange(entry, url) {
+  if (!entry)
+    return false;
+  const [aBase, aHash] = url.split('#');
+  const [bBase, bHash] = entry.url.split('#');
+  return (aBase === bBase) && (aHash !== bHash);
+}
+
 // If window is not the top level window, return parent for creating new child
 // window, otherwise returns false.
 function parentFrom(window) {
@@ -352,124 +466,8 @@ class History {
 
 
   dump(output = process.stdout) {
-    for (let entry = this.first, i = 1; entry; entry = entry.next, ++i) {
+    for (let entry = this.first, i = 1; entry; entry = entry.next, ++i)
       output.write(`${i}: ${URL.format(entry.url)}\n`);
-    }
-  }
-}
-
-
-// Returns true if the hash portion of the URL changed between the history entry
-// (entry) and the new URL we want to inspect (url).
-function hashChange(entry, url) {
-  if (!entry)
-    return false;
-  const [aBase, aHash] = url.split('#');
-  const [bBase, bHash] = entry.url.split('#');
-  return (aBase === bBase) && (aHash !== bHash);
-}
-
-
-class Location {
-
-  constructor(history, url) {
-    this._history = history;
-    this._url = url || (history.current ? history.current.url : 'about:blank');
-  }
-
-  assign(url) {
-    this._history.assign(url);
-  }
-
-  replace(url) {
-    this._history.replace(url);
-  }
-
-  reload(force) { // jshint ignore:line
-    this._history.reload();
-  }
-
-  toString() {
-    return this._url;
-  }
-
-  get hostname() {
-    return URL.parse(this._url).hostname;
-  }
-
-  set hostname(hostname) {
-    const newUrl = URL.parse(this._url);
-    if (newUrl.port)
-      newUrl.host = `${hostname}:${newUrl.port}`;
-    else
-      newUrl.host = hostname;
-    this.assign(URL.format(newUrl));
-  }
-
-  get href() {
-    return this._url;
-  }
-
-  set href(href) {
-    this.assign(URL.format(href));
-  }
-
-  get origin() {
-    return `${this.protocol}//${this.host}`;
-  }
-
-  get hash() {
-    return URL.parse(this._url).hash || '';
-  }
-
-  set hash(value) {
-    const url  = Object.assign(URL.parse(this._url), { hash: value });
-    this.assign(URL.format(url));
-  }
-
-  get host() {
-    return URL.parse(this._url).host || '';
-  }
-
-  set host(value) {
-    const url  = Object.assign(URL.parse(this._url), { host: value });
-    this.assign(URL.format(url));
-  }
-
-  get pathname() {
-    return URL.parse(this._url).pathname || '';
-  }
-
-  set pathname(value) {
-    const url  = Object.assign(URL.parse(this._url), { pathname: value });
-    this.assign(URL.format(url));
-  }
-
-  get port() {
-    return URL.parse(this._url).port || '';
-  }
-
-  set port(value) {
-    const url  = Object.assign(URL.parse(this._url), { port: value });
-    this.assign(URL.format(url));
-  }
-
-  get protocol() {
-    return URL.parse(this._url).protocol || '';
-  }
-
-  set protocol(value) {
-    const url  = Object.assign(URL.parse(this._url), { protocol: value });
-    this.assign(URL.format(url));
-  }
-
-  get search() {
-    return URL.parse(this._url).search || '';
-  }
-
-  set search(value) {
-    const url  = Object.assign(URL.parse(this._url), { search: value });
-    this.assign(URL.format(url));
   }
 }
 

@@ -30,30 +30,30 @@ describe('Cookies', function() {
 
   before(function() {
     brains.get('/cookies', function(req, res) {
-      res.cookie('_name',     'value');
-      res.cookie('_expires1', '3s',       { expires: new Date(Date.now() + 3000) });
-      res.cookie('_expires2', '5s',       { 'Max-Age': 5000 });
-      res.cookie('_expires3', '0s',       { expires: new Date(Date.now() - 100) });
-      res.cookie('_path1',    'yummy',    { path: '/cookies' });
-      res.cookie('_path2',    'yummy',    { path: '/cookies/sub' });
-      res.cookie('_path3',    'wrong',    { path: '/wrong' });
-      res.cookie('_path4',    'yummy',    { path: '/' });
-      res.cookie('_domain1',  'here',     { domain: '.example.com' });
-      res.cookie('_domain2',  'not here', { domain: 'not.example.com' });
-      res.cookie('_domain3',  'wrong',    { domain: 'notexample.com' });
-      res.cookie('_multiple', 'specific', { path: '/cookies' });
-      res.cookie('_multiple', 'general',  { path: '/' });
-      res.cookie('_http_only','value',    { httpOnly: true });
-      res.cookie('_dup',      'one',      { path: '/' });
+      res.cookie('_name',       'value');
+      res.cookie('_expires1',   '3s',       { expires: new Date(Date.now() + 3000) });
+      res.cookie('_expires2',   '5s',       { 'Max-Age': 5000 });
+      res.cookie('_expires3',   '0s',       { expires: new Date(Date.now() - 100) });
+      res.cookie('_path1',      'yummy',    { path: '/cookies' });
+      res.cookie('_path2',      'yummy',    { path: '/cookies/sub' });
+      res.cookie('_path3',      'wrong',    { path: '/wrong' });
+      res.cookie('_path4',      'yummy',    { path: '/' });
+      res.cookie('_domain1',    'here',     { domain: '.example.com' });
+      res.cookie('_domain2',    'not here', { domain: 'not.example.com' });
+      res.cookie('_domain3',    'wrong',    { domain: 'notexample.com' });
+      res.cookie('_multiple',   'specific', { path: '/cookies' });
+      res.cookie('_multiple',   'general',  { path: '/' });
+      res.cookie('_http_only',  'value',    { httpOnly: true });
+      res.cookie('_dup',        'one',      { path: '/' });
       res.send('<html></html>');
     });
 
-    brains.get('/cookies/invalid', function(req,res) {
+    brains.get('/cookies/invalid', function(req, res) {
       res.setHeader('Set-Cookie', 'invalid');
       res.send('<html></html>');
     });
 
-    brains.get('/cookies/echo', function(req,res) {
+    brains.get('/cookies/echo', function(req, res) {
       const cookies = Object.keys(req.cookies).map((key)=> {
         const value = req.cookies[key];
         return `${key}=${value}`;
@@ -61,7 +61,7 @@ describe('Cookies', function() {
       res.send(cookies);
     });
 
-    brains.get('/cookies/empty', function(req,res) {
+    brains.get('/cookies/empty', function(req, res) {
       res.send('');
    });
   });
@@ -115,7 +115,7 @@ describe('Cookies', function() {
       assert.throws(function() {
         assert.equal(browser.getCookie('no-domain'));
       }, 'No domain specified and no open page');
-      
+
     });
   });
 
@@ -283,7 +283,7 @@ describe('Cookies', function() {
         });
         it('should not include httpOnly cookies', function() {
           for (let key in pairs)
-            assert(key != '_http_only');
+            assert(key !== '_http_only');
         });
       });
     });
