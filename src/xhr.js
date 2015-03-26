@@ -2,8 +2,9 @@
 // See http://www.w3.org/TR/XMLHttpRequest/#the-abort()-method
 
 
-const DOM = require('./dom');
-const URL = require('url');
+const DOM   = require('./dom');
+const URL   = require('url');
+const Utils = require('jsdom/lib/jsdom/utils');
 
 
 class XMLHttpRequest extends DOM.EventTarget {
@@ -59,7 +60,7 @@ class XMLHttpRequest extends DOM.EventTarget {
     const headers = {};
 
     // Normalize the URL and check security
-    url = URL.parse(URL.resolve(this._window.location.href, url));
+    url = URL.parse(Utils.resolveHref(this._window.location.href, url));
     // Don't consider port if they are standard for http and https
     if ((url.protocol === 'https:' && url.port === '443') ||
         (url.protocol === 'http:'  && url.port === '80'))

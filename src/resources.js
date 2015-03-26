@@ -21,6 +21,7 @@ const Path        = require('path');
 const QS          = require('querystring');
 const request     = require('request');
 const URL         = require('url');
+const Utils       = require('jsdom/lib/jsdom/utils');
 const Zlib        = require('zlib');
 
 
@@ -269,19 +270,15 @@ Resources.addHandler = function(handler) {
 // It turns relative URLs into absolute URLs based on the current document URL
 // or base element, or if no document open, based on browser.site property.
 //
-// Also handles file: URLs and creates query string from request.params for
+// Also creates query string from request.params for
 // GET/HEAD/DELETE requests.
 Resources.normalizeURL = function(req, next) {
-  if (/^file:/.test(req.url))
-    // File URLs are special, need to handle missing slashes and not attempt
-    // to parse (downcases path)
-    req.url = req.url.replace(/^file:\/{1,3}/, 'file:///');
-  else if (this.document)
+  if (this.document)
   // Resolve URL relative to document URL/base, or for new browser, using
   // Browser.site
     req.url = DOM.resourceLoader.resolve(this.document, req.url);
   else
-    req.url = URL.resolve(this.site || 'http://localhost', req.url);
+    req.url = Utils.resolveHref(this.site || 'http://localhost', req.url);
 
   if (req.params) {
     const { method } = req;
@@ -442,10 +439,10 @@ Resources.handleHTTPResponse = function(req, res, next) {
   if ((statusCode === 301 || statusCode === 307) &&
       (req.method === 'GET' || req.method === 'HEAD'))
     // Do not follow POST redirects automatically, only GET/HEAD
-    redirectUrl = URL.resolve(req.url, res.headers.location || '');
+    redirectUrl = Utils.resolveHref(req.url, res.headers.location || '');
   else if (statusCode === 302 || statusCode === 303)
     // Follow redirect using GET (e.g. after form submission)
-    redirectUrl = URL.resolve(req.url, res.headers.location || '');
+    redirectUrl = Utils.resolveHref(req.url, res.headers.location || '');
 
   if (redirectUrl) {
 

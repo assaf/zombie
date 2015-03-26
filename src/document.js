@@ -9,6 +9,7 @@ const EventSource             = require('eventsource');
 const WebSocket               = require('ws');
 const XMLHttpRequest          = require('./xhr');
 const URL                     = require('url');
+const Utils                   = require('jsdom/lib/jsdom/utils');
 
 
 // File access, not implemented yet
@@ -51,7 +52,7 @@ class DOMURL {
   constructor(url, base) {
     assert(url != null, new DOM.DOMException('Failed to construct \'URL\': Invalid URL'));
     if (base)
-      url = URL.resolve(base, url);
+      url = Utils.resolveHref(base, url);
     const parsed = URL.parse(url || 'about:blank');
     const origin = parsed.protocol && parsed.hostname && `${parsed.protocol}//${parsed.hostname}`;
     Object.defineProperties(this, {
@@ -491,7 +492,7 @@ module.exports = function loadDocument(args) {
   let { url } = args;
   if (url && browser.site) {
     const site  = /^(https?:|file:)/i.test(browser.site) ? browser.site : `http://${browser.site}`;
-    url   = URL.resolve(site, URL.parse(URL.format(url)));
+    url   = Utils.resolveHref(site, URL.format(url));
   }
   url     = url || 'about:blank';
 

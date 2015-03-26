@@ -313,7 +313,7 @@ describe('History', function() {
     });
 
     describe('open from file system', function() {
-      const FILE_URL = encodeURI(`file://${__dirname}/data/index.html`).toLowerCase();
+      const FILE_URL = encodeURI(`file://${__dirname}/data/index.html`);
 
       before(function() {
         return browser.visit(FILE_URL);
@@ -328,6 +328,30 @@ describe('History', function() {
       it('should load document', function() {
         const title = browser.html('title');
         assert(~title.indexOf('Insanely fast, headless full-stack testing using Node.js'));
+      });
+      it('should set window location', function() {
+        assert.equal(browser.window.location.href, FILE_URL);
+      });
+      it('should set document location', function() {
+        assert.equal(browser.document.location.href, FILE_URL);
+      });
+    });
+
+    // Node has a bug that causes the root path element to be lowercased which
+    // causes problems when loading files from the file system.
+    // See https://github.com/joyent/node/pull/14146
+    describe('open from file system with capitalized root', function() {
+      const FILE_URL = 'file:///Users/foo/index.html';
+
+      before(function (done) {
+        browser.visit(FILE_URL, function () {
+          // Ignore errors -- the file isn't real...
+          done();
+        });
+      });
+
+      it('should change location URL', function() {
+        browser.assert.url(FILE_URL);
       });
       it('should set window location', function() {
         assert.equal(browser.window.location.href, FILE_URL);

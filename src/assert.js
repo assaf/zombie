@@ -3,6 +3,7 @@
 const assert        = require('assert');
 const { isRegExp }  = require('util');
 const URL           = require('url');
+const Utils         = require('jsdom/lib/jsdom/utils');
 
 
 // Used to assert that actual matches expected value, where expected may be a function or a string.
@@ -58,7 +59,7 @@ module.exports = class Assert {
   // query).
   url(expected, message) {
     if (typeof expected === 'string') {
-      const absolute = URL.resolve(this.browser.location.href, expected);
+      const absolute = Utils.resolveHref(this.browser.location.href, expected);
       assertMatch(this.browser.location.href, absolute, message);
     } else if (isRegExp(expected) || typeof expected === 'function')
       assertMatch(this.browser.location.href, expected, message);
@@ -182,7 +183,7 @@ module.exports = class Assert {
       const matchedRegexp = matchingText.filter(element => url.test(element.href));
       assert(matchedRegexp.length, message || `Expected at least one link matching the given text and URL`);
     } else {
-      const absolute    = URL.resolve(this.browser.location.href, url);
+      const absolute    = Utils.resolveHref(this.browser.location.href, url);
       const matchedURL  = matchingText.filter(element => element.href === absolute);
       assert(matchedURL.length, message || `Expected at least one link matching the given text and URL`);
     }
