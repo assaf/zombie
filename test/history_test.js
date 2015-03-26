@@ -337,6 +337,30 @@ describe('History', function() {
       });
     });
 
+    // Node has a bug that causes the root path element to be lowercased which
+    // causes problems when loading files from the file system.
+    // See https://github.com/joyent/node/pull/14146
+    describe('open from file system with capitalized root', function() {
+      const FILE_URL = 'file:///Users/foo/index.html';
+
+      before(function (done) {
+        browser.visit(FILE_URL, function () {
+          // Ignore errors -- the file isn't real...
+          done();
+        });
+      });
+
+      it('should change location URL', function() {
+        browser.assert.url(FILE_URL);
+      });
+      it('should set window location', function() {
+        assert.equal(browser.window.location.href, FILE_URL);
+      });
+      it('should set document location', function() {
+        assert.equal(browser.document.location.href, FILE_URL);
+      });
+    });
+
     describe('change pathname', function() {
       before(()=> browser.visit('/'));
       before(function(done) {

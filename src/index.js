@@ -19,6 +19,7 @@ const Storages          = require('./storage');
 const Tough             = require('tough-cookie');
 const { Cookie }        = Tough;
 const URL               = require('url');
+const Utils             = require('jsdom/lib/jsdom/utils');
 
 
 // Version number.  We get this from package.json.
@@ -536,7 +537,7 @@ class Browser extends EventEmitter {
       [options, callback] = [{}, options];
 
     const site = /^(https?:|file:)/i.test(this.site) ? this.site : `http://${this.site || 'localhost'}/`;
-    url = URL.resolve(site, URL.parse(URL.format(url)));
+    url = Utils.resolveHref(site, URL.format(url));
 
     if (this.window)
       this.tabs.close(this.window);
