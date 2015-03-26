@@ -1,3 +1,8 @@
+## Version 3.1.1 2015-03-26
+
+FIXED file URLs not resolving correctly #886 (Jeffrey Jagoda)
+
+
 ## Version 3.1.0 2015-03-15
 
 3.1 is the first official release of Zombie 3.x.  It is a major upgrade from
