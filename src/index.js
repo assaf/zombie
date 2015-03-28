@@ -30,8 +30,6 @@ const BROWSER_OPTIONS  = ['features', 'headers', 'waitDuration',
                           'proxy', 'referrer', 'silent', 'site', 'strictSSL', 'userAgent',
                           'maxRedirects', 'language', 'runScripts', 'localAddress'];
 
-// Supported browser features.
-const BROWSER_FEATURES  = ['scripts', 'css', 'img', 'iframe'];
 // These features are set on/off by default.
 // Note that default values are actually prescribed where they are used,
 // by calling hasFeature with name and default
@@ -141,10 +139,10 @@ class Browser extends EventEmitter {
 
     // Logging navigation
     this
-      .on('link', (url, target)=> {
+      .on('link', (url)=> {
         this._debug('Follow link to %s', url);
       })
-      .on('submit', (url, target)=> {
+      .on('submit', (url)=> {
         this._debug('Submit form to %s', url);
       });
 
@@ -599,6 +597,7 @@ class Browser extends EventEmitter {
       if (link && link.tagName === 'A')
         return link;
     } catch (error) {
+      /* eslint no-empty:0 */
     }
     for (let elem of [...this.querySelectorAll('body a')]) {
       if (elem.textContent.trim() === selector)

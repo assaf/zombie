@@ -260,7 +260,7 @@ function setupWindow(window, args) {
   // -- Opening and closing --
 
   // Open one window from another.
-  window.open = function(url, name, features) { // jshint unused:false
+  window.open = function(url, name) {
     url = url && DOM.resourceLoader.resolve(document, url);
     return browser.tabs.open({ name: name, url: url, opener: window });
   };

@@ -210,10 +210,9 @@ Utils.resolveHref = function (baseUrl, href) {
   const original = URL.parse(href);
   const resolved = URL.parse(jsdomResolveHref(baseUrl, href));
 
-  if (!pattern.test(protocol) && pattern.test(original.protocol) && !original.host && resolved.host) {
+  if (!pattern.test(protocol) && pattern.test(original.protocol) && !original.host && resolved.host)
     return URL.format(original);
-  }
-
-  return URL.format(resolved);
+  else
+    return URL.format(resolved);
 };
 

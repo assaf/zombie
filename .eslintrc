@@ -16,5 +16,9 @@
     no-var:               1,
     key-spacing:          0,
     no-script-url:        0
+  },
+  globals: {
+    escape:   true,
+    unescape: true
   }
 }

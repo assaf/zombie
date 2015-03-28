@@ -398,7 +398,7 @@ module.exports = class EventLoop extends EventEmitter {
     // The timer fires when we waited long enough, we need timeoutOn to tell if
     // the next event is past the wait duration and there's no point in waiting
     // further
-    const timer     = global.setTimeout(timeout, waitDuration);
+    const timer     = global.setTimeout(timeout, waitDuration);  // eslint-disable-line no-use-before-define
     const timeoutOn = Date.now() + waitDuration;
 
     // Fired after every event, decide if we want to stop waiting

@@ -9,7 +9,7 @@ const Utils         = require('jsdom/lib/jsdom/utils');
 // Used to assert that actual matches expected value, where expected may be a function or a string.
 function assertMatch(actual, expected, message) {
   if (isRegExp(expected))
-    assert(expected.test(actual), message || `Expected '${actual}' to match ${expected}`);
+    assert(expected.test(actual), message || `Expected "${actual}" to match "${expected}"`);
   else if (typeof expected === 'function')
     assert(expected(actual), message);
   else
@@ -34,7 +34,7 @@ module.exports = class Assert {
   cookie(identifier, expected = null, message = null) {
     const actual = this.browser.getCookie(identifier);
     assertMatch(actual, expected,
-                message || `Expected cookie ${JSON.stringify(identifier)} to have the value '${expected}', found '${actual}'`);
+                message || `Expected cookie ${JSON.stringify(identifier)} to have the value "${expected}", found "${actual}"`);
   }
 
   // Asserts that browser was redirected when retrieving the current page.
@@ -81,7 +81,7 @@ module.exports = class Assert {
   // Assert the named attribute of the selected element(s) has the expected value.
   attribute(selector, name, expected = null, message = null) {
     const elements = this.browser.queryAll(selector);
-    assert(elements.length, `Expected selector '${selector}' to return one or more elements`);
+    assert(elements.length, `Expected selector "${selector}" to return one or more elements`);
     for (let element of elements) {
       let actual = element.getAttribute(name);
       assertMatch(actual, expected, message);
@@ -110,47 +110,47 @@ module.exports = class Assert {
     else {
       if (count.exactly)
         assert.equal(elements.length, count.exactly,
-                     message || `Expected ${count.exactly} elements matching '${selector}', found ${elements.length}`);
+                     message || `Expected ${count.exactly} elements matching "${selector}", found ${elements.length}`);
       if (count.atLeast)
         assert(elements.length >= count.atLeast,
-               message || `Expected at least ${count.atLeast} elements matching '${selector}', found only ${elements.length}`);
+               message || `Expected at least ${count.atLeast} elements matching "${selector}", found only ${elements.length}`);
       if (count.atMost)
         assert(elements.length <= count.atMost,
-               message || `Expected at most ${count.atMost} elements matching '${selector}', found ${elements.length}`);
+               message || `Expected at most ${count.atMost} elements matching "${selector}", found ${elements.length}`);
     }
   }
 
   // Asserts the selected element(s) has the expected CSS class.
   hasClass(selector, expected, message) {
     const elements = this.browser.queryAll(selector);
-    assert(elements.length, `Expected selector '${selector}' to return one or more elements`);
+    assert(elements.length, `Expected selector "${selector}" to return one or more elements`);
     for (let element of elements) {
       let classNames = element.className.split(/\s+/);
       assert(~classNames.indexOf(expected),
-             message || `Expected element '${selector}' to have class ${expected}, found ${classNames.join(', ')}`);
+             message || `Expected element "${selector}" to have class "${expected}", found "${classNames.join(', ')}"`);
     }
   }
 
   // Asserts the selected element(s) doest not have the expected CSS class.
   hasNoClass(selector, expected, message) {
     const elements = this.browser.queryAll(selector);
-    assert(elements.length, `Expected selector '${selector}' to return one or more elements`);
+    assert(elements.length, `Expected selector "${selector}" to return one or more elements`);
     for (let element of elements) {
       let classNames = element.className.split(/\s+/);
       assert(classNames.indexOf(expected) === -1,
-             message || `Expected element '${selector}' to not have class ${expected}, found ${classNames.join(', ')}`);
+             message || `Expected element "${selector}" to not have class "${expected}", found "${classNames.join(', ')}"`);
     }
   }
 
   // Asserts the selected element(s) has the expected class names.
   className(selector, expected, message) {
     const elements = this.browser.queryAll(selector);
-    assert(elements.length, `Expected selector '${selector}' to return one or more elements`);
+    assert(elements.length, `Expected selector "${selector}" to return one or more elements`);
     const array    = expected.split(/\s+/).sort().join(' ');
     for (let element of elements) {
       let actual = element.className.split(/\s+/).sort().join(' ');
       assertMatch(actual, array,
-                  message || `Expected element '${selector}' to have class ${expected}, found ${actual}`);
+                  message || `Expected element "${selector}" to have class "${expected}", found "${actual}"`);
     }
   }
 
@@ -158,18 +158,18 @@ module.exports = class Assert {
   // property.
   style(selector, style, expected = null, message = null) {
     const elements = this.browser.queryAll(selector);
-    assert(elements.length, `Expected selector '${selector}' to return one or more elements`);
+    assert(elements.length, `Expected selector "${selector}" to return one or more elements`);
     for (let element of elements) {
       let actual = element.style.getPropertyValue(style);
       assertMatch(actual, expected,
-                  message || `Expected element '${selector}' to have style ${style} value of ${expected}, found ${actual}`);
+                  message || `Expected element "${selector}" to have style ${style} value of "${expected}", found "${actual}"`);
     }
   }
 
   // Asserts that selected input field (text field, text area, etc) has the expected value.
   input(selector, expected = null, message = null) {
     const elements = this.browser.queryAll(selector);
-    assert(elements.length, `Expected selector '${selector}' to return one or more elements`);
+    assert(elements.length, `Expected selector "${selector}" to return one or more elements`);
     for (let element of elements)
       assertMatch(element.value, expected, message);
   }
@@ -177,7 +177,7 @@ module.exports = class Assert {
   // Asserts that a link exists with the given text and URL.
   link(selector, text, url, message) {
     const elements = this.browser.queryAll(selector);
-    assert(elements.length, message || `Expected selector '${selector}' to return one or more elements`);
+    assert(elements.length, message || `Expected selector "${selector}" to return one or more elements`);
     const matchingText = elements.filter(element => element.textContent.trim() === text);
     if (isRegExp(url)) {
       const matchedRegexp = matchingText.filter(element => url.test(element.href));
@@ -195,7 +195,7 @@ module.exports = class Assert {
   // You can also call this with a regular expression, or a function.
   text(selector, expected, message) {
     const elements = this.browser.queryAll(selector);
-    assert(elements.length, `Expected selector '${selector}' to return one or more elements`);
+    assert(elements.length, `Expected selector "${selector}" to return one or more elements`);
     const actual = elements
       .map(elem => elem.textContent)
       .join('')
@@ -212,9 +212,9 @@ module.exports = class Assert {
     if (selector) {
       const elements = this.browser.queryAll(selector);
       assert.equal(elements.length, 1,
-                   message || `Expected selector '${selector}' to return one element`);
+                   message || `Expected selector "${selector}" to return one element`);
       assert.equal(this.browser.activeElement, elements[0],
-                   message || `Expected element '${selector}' to have the focus'`);
+                   message || `Expected element "${selector}" to have the focus'`);
     } else
       assert.equal(this.browser.activeElement, this.browser.body,
                    message || 'Expected no element to have focus');
@@ -240,7 +240,7 @@ module.exports = class Assert {
       assert(actual);
     else
       assertMatch(actual, expected,
-                  message || `Expected global ${name} to have the value '${expected}', found '${actual}'`);
+                  message || `Expected global ${name} to have the value "${expected}", found "${actual}"`);
   }
 
 };

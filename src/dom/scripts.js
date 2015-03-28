@@ -5,17 +5,6 @@ const DOM = require('./index');
 
 // -- Patches to JSDOM --
 
-// If you're using CoffeeScript, you get client-side support.
-try {
-  const CoffeeScript = require('coffee-script');
-  DOM.languageProcessors.coffeescript = function(element, code, filename) {
-    this.javascript(element, CoffeeScript.compile(code), filename);
-  };
-} catch (error) {
-  // Oh, well
-}
-
-
 // If JSDOM encounters a JS error, it fires on the element.  We expect it to be
 // fires on the Window.  We also want better stack traces.
 DOM.languageProcessors.javascript = function(element, buffer, filename) {

@@ -29,7 +29,7 @@ module.exports = class Cookies extends Array {
   // Returns all cookies that match the identifier (name, domain and path).
   // This is used for retrieving cookies.
   select(identifier) {
-    let cookies = this.filter(cookie => cookie.TTL() > 0);
+    let cookies = this.filter(cookie => cookie.TTL() > 0); // eslint-disable-line new-cap
     if (identifier.name)
       cookies = cookies.filter(cookie => cookie.key === identifier.name);
     if (identifier.path)
@@ -64,7 +64,7 @@ module.exports = class Cookies extends Array {
       .filter(c   => c.path === cookie.path)
       .filter(c   => c.key === cookie.key)
       .forEach(c  => this.delete(c));
-    if (cookie.TTL() > 0)
+    if (cookie.TTL() > 0) // eslint-disable-line new-cap
       this.push(cookie);
   }
 
@@ -102,7 +102,7 @@ module.exports = class Cookies extends Array {
           .filter(c   => c.path === cookie.path)
           .filter(c   => c.key === cookie.key)
           .forEach(c  => this.delete(c));
-        if (cookie.TTL() > 0)
+        if (cookie.TTL() > 0) // eslint-disable-line new-cap
           this.push(cookie);
       });
   }
