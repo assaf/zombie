@@ -96,47 +96,63 @@ function formData(name, value) {
 // Find the charset= value of the meta tag
 const MATCH_CHARSET = /<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"']*([^\s"'\/>]*)/i;
 
-function dumpResource(output, resource) {
-  const { request, response, error, target } = resource;
-  // Write summary request/response header
-  if (response) {
-    const elapsed = response.time - request.time;
-    output.write(`${request.method} ${response.url} - ${response.statusCode} ${response.statusText} - ${elapsed}ms\n`);
-  } else
-    output.write(`${request.method} ${request.url}\n`);
 
-  // Tell us which element/document is loading this.
-  if (target instanceof DOM.Document)
-    output.write('  Loaded as HTML document\n');
-  else if (target && target.id)
-    output.write(`  Loading by element #${target.id}\n`);
-  else if (target)
-    output.write(`  Loading as ${target.tagName} element\n`);
+class Resource {
 
-  // If response, write out response headers and sample of document entity
-  // If error, write out the error message
-  // Otherwise, indicate this is a pending request
-  if (response) {
-    if (response.redirects)
-      output.write(`  Followed ${response.redirects} redirects\n`);
-    for (let name in response.headers) {
-      let value = response.headers[name];
-      output.write(`  ${name}: ${value}\n`);
-    }
-    output.write('\n');
-    const sample = response.body
-      .slice(0, 250)
-      .toString('utf8')
-      .split('\n')
-      .map(line => `  ${line}`)
-      .join('\n');
-    output.write(sample);
-  } else if (error)
-    output.write(`  Error: ${error.message}\n`);
-  else
-    output.write(`  Pending since ${new Date(request.time)}\n`);
-  // Keep them separated
-  output.write('\n\n');
+  constructor({ request, target }) {
+    this.request  = request;
+    this.target   = target;
+    this.error    = null;
+    this.response = null;
+  }
+
+  get url() {
+    return (this.response && this.response.url) || this.request.url;
+  }
+
+  dump(output) {
+    const { request, response, error, target } = this;
+    // Write summary request/response header
+    if (response) {
+      const elapsed = response.time - request.time;
+      output.write(`${request.method} ${this.url} - ${response.statusCode} ${response.statusText} - ${elapsed}ms\n`);
+    } else
+      output.write(`${request.method} ${this.url}\n`);
+
+    // Tell us which element/document is loading this.
+    if (target instanceof DOM.Document)
+      output.write('  Loaded as HTML document\n');
+    else if (target && target.id)
+      output.write(`  Loading by element #${target.id}\n`);
+    else if (target)
+      output.write(`  Loading as ${target.tagName} element\n`);
+
+    // If response, write out response headers and sample of document entity
+    // If error, write out the error message
+    // Otherwise, indicate this is a pending request
+    if (response) {
+      if (response.redirects)
+        output.write(`  Followed ${response.redirects} redirects\n`);
+      for (let name in response.headers) {
+        let value = response.headers[name];
+        output.write(`  ${name}: ${value}\n`);
+      }
+      output.write('\n');
+      const sample = response.body
+        .slice(0, 250)
+        .toString('utf8')
+        .split('\n')
+        .map(line => `  ${line}`)
+        .join('\n');
+      output.write(sample);
+    } else if (error)
+      output.write(`  Error: ${error.message}\n`);
+    else
+      output.write(`  Pending since ${new Date(request.time)}\n`);
+    // Keep them separated
+    output.write('\n\n');
+  }
+
 }
 
 
@@ -192,10 +208,10 @@ class Resources extends Array {
       localAddress: this.browser.localAddress || 0
     };
 
-    const resource = {
+    const resource = new Resource({
       request:    req,
       target:     options.target
-    };
+    });
     this.push(resource);
     this.browser.emit('request', req);
 
@@ -205,7 +221,6 @@ class Resources extends Array {
           resource.error = error;
           reject(error);
         } else {
-          res.url           = res.url || req.url;
           res.statusCode    = res.statusCode || 200;
           res.statusText    = HTTP.STATUS_CODES[res.statusCode] || 'Unknown';
           res.headers       = res.headers || {};
@@ -252,7 +267,7 @@ class Resources extends Array {
     if (this.length === 0)
       output.write('No resources\n');
     else
-      this.forEach(resource => dumpResource(output, resource));
+      this.forEach(resource => resource.dump(output));
   }
 
   // Add a request/response handler.  This handler will only be used by this
