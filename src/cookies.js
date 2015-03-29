@@ -87,8 +87,8 @@ module.exports = class Cookies extends Array {
   // path       - Set from pathname
   update(httpHeader, domain, path) {
     // One Set-Cookie is a string, multiple is an array
-    const cookies = isArray(httpHeader) ? httpHeader : [httpHeader];
-    cookies
+    const headers = isArray(httpHeader) ? httpHeader : [httpHeader];
+    headers
       .map(cookie => Cookie.parse(cookie))
       .filter(cookie => cookie)
       .forEach(cookie => {

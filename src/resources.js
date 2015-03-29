@@ -11,18 +11,46 @@
 //   protocols or support new headers
 
 
+const _           = require('lodash');
 const assert      = require('assert');
 const Bluebird    = require('bluebird');
 const DOM         = require('./dom');
 const File        = require('fs');
+const { Headers } = require('./fetch');
 const HTTP        = require('http');
 const iconv       = require('iconv-lite');
+const { isArray } = require('util');
 const Path        = require('path');
 const QS          = require('querystring');
 const Request     = require('request');
 const URL         = require('url');
 const Utils       = require('jsdom/lib/jsdom/utils');
 const Zlib        = require('zlib');
+
+
+
+
+/*
+class Request {
+
+  constructor(input, init) {
+    if (input instanceof Request) {
+      this.url      = input.url;
+      this.method   = input.method;
+      this.headers  = input.headers.clone();
+
+    } else if (typeof input === 'string' || input instanceof String) {
+      this.url      = URL.parse(input);
+    }
+
+    if (init.body != null) {
+      if ()
+    }
+  }
+
+}
+*/
+
 
 
 // Called to execute the next response handler.
@@ -133,10 +161,8 @@ class Resource {
     if (response) {
       if (response.redirects)
         output.write(`  Followed ${response.redirects} redirects\n`);
-      for (let name in response.headers) {
-        let value = response.headers[name];
+      for (let [name, value] of response.headers)
         output.write(`  ${name}: ${value}\n`);
-      }
       output.write('\n');
       const sample = response.body
         .slice(0, 250)
@@ -199,7 +225,7 @@ class Resources extends Array {
     const req = {
       method:     method.toUpperCase(),
       url:        url,
-      headers:    options.headers || {},
+      headers:    new Headers(options.headers),
       params:     options.params,
       body:       options.body,
       time:       Date.now(),
@@ -223,7 +249,6 @@ class Resources extends Array {
         } else {
           res.statusCode    = res.statusCode || 200;
           res.statusText    = HTTP.STATUS_CODES[res.statusCode] || 'Unknown';
-          res.headers       = res.headers || {};
           res.redirects     = res.redirects || 0;
           res.time          = Date.now();
           resource.response = res;
@@ -308,12 +333,13 @@ class Resources extends Array {
   // Also creates query string from request.params for
   // GET/HEAD/DELETE requests.
   static normalizeURL(req, next) {
-    if (this.document)
+    const browser = this;
+    if (browser.document)
     // Resolve URL relative to document URL/base, or for new browser, using
     // Browser.site
-      req.url = DOM.resourceLoader.resolve(this.document, req.url);
+      req.url = DOM.resourceLoader.resolve(browser.document, req.url);
     else
-      req.url = Utils.resolveHref(this.site || 'http://localhost', req.url);
+      req.url = Utils.resolveHref(browser.site || 'http://localhost', req.url);
 
     if (req.params) {
       const { method } = req;
@@ -336,34 +362,28 @@ class Resources extends Array {
   //
   // It also normalizes all headers by down-casing the header names.
   static mergeHeaders(req, next) {
-    // Header names are down-cased and over-ride default
-    const headers = {
-      'user-agent':       this.userAgent
-    };
+    const browser = this;
+    if (browser.headers)
+      _.each(browser.headers, (value, name)=> {
+        req.headers.append(name, browser.headers[name]);
+      });
+    if (!req.headers.has('User-Agent'))
+      req.headers.set('User-Agent', browser.userAgent);
 
-    // Merge custom headers from browser first, followed by request.
-    for (let name in this.headers)
-      headers[name.toLowerCase()] = this.headers[name];
-    if (req.headers)
-      for (let name in req.headers)
-        headers[name.toLowerCase()] = req.headers[name];
-
+    // Always pass Host: from request URL
     const { host } = URL.parse(req.url);
-
-    // Depends on URL, don't allow over-ride.
-    headers.host = host;
+    req.headers.set('Host', host);
 
     // HTTP Basic authentication
     const authenticate = { host, username: null, password: null };
-    this.emit('authenticate', authenticate);
+    browser.emit('authenticate', authenticate);
     const { username, password } = authenticate;
     if (username && password) {
-      this.log(`Authenticating as ${username}:${password}`);
+      browser.log(`Authenticating as ${username}:${password}`);
       const base64 = new Buffer(`${username}:${password}`).toString('base64');
-      headers.authorization = `Basic ${base64}`;
+      req.headers.set('authorization',  `Basic ${base64}`);
     }
 
-    req.headers = headers;
     next();
   }
 
@@ -379,8 +399,8 @@ class Resources extends Array {
 
     const { headers } = req;
     // These methods support document body.  Create body or multipart.
-    headers['content-type'] = headers['content-type'] || 'application/x-www-form-urlencoded';
-    const mimeType = headers['content-type'].split(';')[0];
+    headers.set('content-type', headers.get('content-type') || 'application/x-www-form-urlencoded');
+    const mimeType = headers.get('content-type').split(';')[0];
     if (req.body) {
       next();
       return;
@@ -390,7 +410,7 @@ class Resources extends Array {
     switch (mimeType) {
       case 'application/x-www-form-urlencoded': {
         req.body = QS.stringify(params);
-        headers['content-length'] = req.body.length;
+        headers.set('content-length', req.body.length);
         next();
         break;
       }
@@ -398,12 +418,13 @@ class Resources extends Array {
       case 'multipart/form-data': {
         if (Object.keys(params).length === 0) {
           // Empty parameters, can't use multipart
-          headers['content-type'] = 'text/plain';
+          headers.set('content-type', 'text/plain');
           req.body = '';
         } else {
 
           const boundary = `${new Date().getTime()}.${Math.random()}`;
-          headers['content-type'] += `; boundary=${boundary}`;
+          const withBoundary = headers.get('content-type') + `; boundary=${boundary}`;
+          headers.set('content-type', withBoundary);
           req.multipart = Object.keys(params)
             .reduce((parts, name)=> {
               const values = params[name]
@@ -432,6 +453,7 @@ class Resources extends Array {
   // Used to perform HTTP request (also supports file: resources).  This is always
   // the last request handler.
   static makeHTTPRequest(req, next) {
+    const browser = this;
     const { protocol, hostname, pathname } = URL.parse(req.url);
     if (protocol === 'file:') {
 
@@ -461,16 +483,16 @@ class Resources extends Array {
     } else {
 
       // We're going to use cookies later when recieving response.
-      const { cookies } = this;
-      req.headers.cookie = cookies.serialize(hostname, pathname);
+      const { cookies } = browser;
+      req.headers.append('Cookie', cookies.serialize(hostname, pathname));
 
       const request = new Request({
         method:         req.method,
         uri:            req.url,
-        headers:        req.headers,
+        headers:        req.headers.toObject(),
         body:           req.body,
         multipart:      req.multipart,
-        proxy:          this.proxy,
+        proxy:          browser.proxy,
         jar:            false,
         followRedirect: false,
         encoding:       null,
@@ -483,10 +505,23 @@ class Resources extends Array {
         buffers.push(buffer);
       });
       request.on('complete', (response)=> {
+
+        // Request returns an object where property name is header name,
+        // property value is either header value, or an array if header sent
+        // multiple times (e.g. `Set-Cookie`).
+        const arrayOfHeaders = _.reduce(response.headers, (headers, value, name)=> {
+          if (isArray(value))
+            for (let item of value)
+              headers.push([name, item]);
+          else
+            headers.push([name, value]);
+          return headers;
+        }, []);
+
         next(null, {
           url:          req.url,
           statusCode:   response.statusCode,
-          headers:      response.headers,
+          headers:      new Headers(arrayOfHeaders),
           body:         Buffer.concat(buffers),
           redirects:    response.redirects || 0
         });
@@ -497,8 +532,9 @@ class Resources extends Array {
   }
 
 
-  static handleHTTPResponse(req, res, next) {
-    res.headers = res.headers || {};
+  static handleResponse(req, res, next) {
+    const browser = this;
+    res.headers = new Headers(res.headers);
 
     const { protocol, hostname, pathname } = URL.parse(req.url);
     if (protocol !== 'http:' && protocol !== 'https:') {
@@ -506,10 +542,9 @@ class Resources extends Array {
       return;
     }
 
-    // Set cookies from response
-    const setCookie = res.headers['set-cookie'];
-    if (setCookie)
-      this.cookies.update(setCookie, hostname, pathname);
+    // Set cookies from response: call update() with array of headers
+    const newCookies = res.headers.getAll('Set-Cookie');
+    browser.cookies.update(newCookies, hostname, pathname);
 
     // Number of redirects so far.
     let redirects   = req.redirects || 0;
@@ -521,28 +556,28 @@ class Resources extends Array {
     if ((statusCode === 301 || statusCode === 307) &&
         (req.method === 'GET' || req.method === 'HEAD'))
       // Do not follow POST redirects automatically, only GET/HEAD
-      redirectUrl = Utils.resolveHref(req.url, res.headers.location || '');
+      redirectUrl = Utils.resolveHref(req.url, res.headers.get('Location') || '');
     else if (statusCode === 302 || statusCode === 303)
       // Follow redirect using GET (e.g. after form submission)
-      redirectUrl = Utils.resolveHref(req.url, res.headers.location || '');
+      redirectUrl = Utils.resolveHref(req.url, res.headers.get('Location') || '');
 
     if (redirectUrl) {
 
       res.url = redirectUrl;
       // Handle redirection, make sure we're not caught in an infinite loop
       ++redirects;
-      if (redirects > this.maxRedirects) {
-        next(new Error(`More than ${this.maxRedirects} redirects, giving up`));
+      if (redirects > browser.maxRedirects) {
+        next(new Error(`More than ${browser.maxRedirects} redirects, giving up`));
         return;
       }
 
-      const redirectHeaders = Object.assign({}, req.headers);
+      const redirectHeaders = new Headers(req.headers);
       // This request is referer for next
-      redirectHeaders.referer = req.url;
+      redirectHeaders.set('Referer', req.url);
       // These headers exist in POST request, do not pass to redirect (GET)
-      delete redirectHeaders['content-type'];
-      delete redirectHeaders['content-length'];
-      delete redirectHeaders['content-transfer-encoding'];
+      redirectHeaders.delete('Content-Type');
+      redirectHeaders.delete('Content-Length');
+      redirectHeaders.delete('Content-Transfer-Encoding');
       // Redirect must follow the entire chain of handlers.
       const redirectRequest = {
         method:     'GET',
@@ -553,8 +588,8 @@ class Resources extends Array {
         time:       req.time,
         timeout:    req.timeout
       };
-      this.emit('redirect', req, res, redirectRequest);
-      this.resources._runPipeline(redirectRequest, next);
+      browser.emit('redirect', req, res, redirectRequest);
+      browser.resources._runPipeline(redirectRequest, next);
 
     } else {
       res.redirects = redirects;
@@ -565,8 +600,8 @@ class Resources extends Array {
 
   // Handle deflate and gzip transfer encoding.
   static decompressBody(req, res, next) {
-    const transferEncoding  = res.headers['transfer-encoding'];
-    const contentEncoding   = res.headers['content-encoding'];
+    const transferEncoding  = res.headers.get('Transfer-Encoding');
+    const contentEncoding   = res.headers.get('Content-Encoding');
     if (contentEncoding === 'deflate' || transferEncoding === 'deflate')
       Zlib.inflate(res.body, (error, buffer)=> {
         res.body = buffer;
@@ -590,7 +625,7 @@ class Resources extends Array {
     }
 
     // If Content-Type header specifies charset, use that
-    const contentType = res.headers['content-type'] || 'application/unknown';
+    const contentType = res.headers.get('Content-Type') || 'application/unknown';
     const [mimeType, ...typeOptions]  = contentType.split(/;\s*/);
     const [type, subtype]             = contentType.split(/\//, 2);
 
@@ -613,7 +648,7 @@ class Resources extends Array {
 
     // Otherwise, HTML documents only, pick charset from meta tag
     // Otherwise, HTML documents only, default charset in US is windows-1252
-    const isHTML = /html/.test(subtype) || /\bhtml\b/.test(req.headers.accept);
+    const isHTML = /html/.test(subtype) || /\bhtml\b/.test(req.headers.get('Accept'));
     if (!charset && isHTML) {
       const match = res.body.toString().match(MATCH_CHARSET);
       charset = match ? match[1] : 'windows-1252';
@@ -632,7 +667,7 @@ Resources.pipeline = [
   Resources.normalizeURL,
   Resources.mergeHeaders,
   Resources.createBody,
-  Resources.handleHTTPResponse,
+  Resources.handleResponse,
   Resources.decompressBody,
   Resources.decodeBody
 ];

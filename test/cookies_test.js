@@ -198,7 +198,7 @@ describe('Cookies', function() {
   // -- Sending and receiving --
 
 
-  describe('get cookies', function() {
+  describe('receive cookies', function() {
 
     before(function() {
       browser.deleteCookies();
@@ -303,7 +303,7 @@ describe('Cookies', function() {
   });
 
 
-  describe('get cookies and redirect', function() {
+  describe('receive cookies and redirect', function() {
     before(function() {
       brains.get('/cookies/redirect', function(req, res) {
         res.cookie('_expires4', '3s');  // expires: new Date(Date.now() + 3000), 'Path': '/'

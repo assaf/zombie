@@ -2,9 +2,10 @@
 // See http://www.w3.org/TR/XMLHttpRequest/#the-abort()-method
 
 
-const DOM   = require('./dom');
-const URL   = require('url');
-const Utils = require('jsdom/lib/jsdom/utils');
+const DOM         = require('./dom');
+const { Headers } = require('./fetch');
+const URL         = require('url');
+const Utils       = require('jsdom/lib/jsdom/utils');
 
 
 class XMLHttpRequest extends DOM.EventTarget {
@@ -57,7 +58,7 @@ class XMLHttpRequest extends DOM.EventTarget {
     if (!/^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method))
       throw new DOM.DOMException(DOM.SYNTAX_ERR, 'Unsupported HTTP method');
 
-    const headers = {};
+    const headers = new Headers();
 
     // Normalize the URL and check security
     url = URL.parse(Utils.resolveHref(this._window.location.href, url));
@@ -71,8 +72,8 @@ class XMLHttpRequest extends DOM.EventTarget {
     url.hostname = url.hostname || this._window.location.hostname;
     url.host = url.port ? `${url.hostname}:${url.port}` : url.hostname;
     if (url.host !== this._window.location.host) {
-      headers.origin = `${this._window.location.protocol}//${this._window.location.host}`;
-      this._cors = headers.origin;
+      headers.set('Origin', `${this._window.location.protocol}//${this._window.location.host}`);
+      this._cors = headers.get('Origin');
     }
     url.hash = null;
     if (user)
@@ -96,7 +97,7 @@ class XMLHttpRequest extends DOM.EventTarget {
     if (this.readyState !== XMLHttpRequest.OPENED)
       throw new DOM.DOMException(DOM.INVALID_STATE_ERR,  'Invalid state');
     const request = this._pending;
-    request.headers[header.toString().toLowerCase()] = value.toString();
+    request.headers.set(header, value);
   }
 
 
@@ -111,7 +112,7 @@ class XMLHttpRequest extends DOM.EventTarget {
     const request = this._pending;
     this._fire('loadstart');
 
-    request.headers['content-type'] = request.headers['content-type'] || 'text/plain';
+    request.headers.set('Content-Type', request.headers.get('Content-Type') || 'text/plain');
     // Make the actual request
     request.body    = data;
     request.timeout = this.timeout;
@@ -146,7 +147,7 @@ class XMLHttpRequest extends DOM.EventTarget {
 
       // CORS request, check origin, may lead to new error
       if (this._cors) {
-        const allowedOrigin = response.headers['access-control-allow-origin'];
+        const allowedOrigin = response.headers.get('Access-Control-Allow-Origin');
         if (!(allowedOrigin === '*' || allowedOrigin === this._cors)) {
           this._error = new DOM.DOMException(DOM.SECURITY_ERR, 'Cannot make request to different domain');
           this._browser.errors.push(this._error);
@@ -208,7 +209,7 @@ class XMLHttpRequest extends DOM.EventTarget {
     // Returns the string containing the text of the specified header, or null if
     // either the response has not yet been received or the header doesn't exist in
     // the response.
-    return this._response && this._response.headers[name.toLowerCase()] || null;
+    return this._response && this._response.headers.get(name) || null;
   }
 
   getAllResponseHeaders() {
@@ -218,10 +219,7 @@ class XMLHttpRequest extends DOM.EventTarget {
     if (this._response)
       // XHR's getAllResponseHeaders, against all reason, returns a multi-line
       // string.  See http://www.w3.org/TR/XMLHttpRequest/#the-getallresponseheaders-method
-      return Object.keys(this._response.headers)
-        .map(name => [name.toLowerCase(), this._response.headers[name]] )
-        .map(pair => pair.join(': ') )
-        .join('\n');
+      return this._response.headers.toString();
     else
       return null;
   }
