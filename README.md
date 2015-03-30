@@ -928,21 +928,16 @@ The request object consists of:
 - `time`        - Timestamp when request was made
 - `timeout`     - Request timeout (0 for no timeout)
 
-The response object consists of:
+The response object is based on the [Fetch API Response
+object](https://fetch.spec.whatwg.org/#response-class).  Note that the fetch API
+has the property `status`, whereas Node HTTP module uses `statusCode`.
 
-- `url`         - The actual URL of the resource; different from request URL if
-  there were any redirects
-- `statusCode`  - HTTP status code, eg 200
-- `statusText`  - HTTP static code as text, eg "OK"
-- `headers`     - All response headers
-- `body`        - The response body, may be `Buffer` or string, depending on the
-  content type encoding
-- `redirects`   - Number of redirects followed (0 if no redirects)
-- `time`        - Timestamp when response was completed
+To access the response document body as a Node buffer, use the following:
 
-Request for loading pages and scripts include the target DOM element or
-document. This is used internally, and may also give you more insight as to why
-a request is being made.
+```js
+// This promise resolves to a Node Buffer
+const bufferPromise = response.arrayBuffer().then(Buffer);
+```
 
 
 ### The Pipeline

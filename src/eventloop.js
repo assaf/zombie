@@ -192,6 +192,19 @@ class EventQueue {
   }
 
 
+  // Wait for completion.  Returns a completion function, event loop will remain
+  // active until the completion function is called;
+  waitForCompletion() {
+    ++this.expecting;
+    return ()=> {
+      --this.expecting;
+      setImmediate(()=> {
+        this.eventLoop.run();
+      });
+    };
+  }
+
+
   // Event loop uses this to grab event from top of the queue.
   dequeue() {
     assert(this.queue, 'This browser has been destroyed');
@@ -214,7 +227,7 @@ class EventQueue {
   // method   - Method (defaults to GET)
   // url      - URL (string)
   // options  - See below
-  // callback - Called with error, or null and response
+  // callback - Called with error, response
   //
   // Options:
   //   headers   - Name/value pairs of headers to send in request
@@ -226,19 +239,20 @@ class EventQueue {
   http(method, url, options, callback) {
     assert(this.queue, 'This browser has been destroyed');
 
-    // We're expecting to queue an event, event loop should wait
-    ++this.expecting;
-    this.browser.resources.request(method, url, options, (error, response)=> {
-      --this.expecting;
-      // We can't cancel pending requests, but we can ignore the response if
-      // window already closed
-      if (this.queue)
-        // This will get completion function to execute, e.g. to check a page
-        // before meta tag refresh
-        this.enqueue(()=> {
-          callback(error, response);
-        });
-    });
+    const done = this.waitForCompletion();
+    this.browser.resources
+      .request(method, url, options)
+      .then((response)=> {
+        // We can't cancel pending requests, but we can ignore the response if
+        // window already closed
+        if (this.queue)
+          // This will get completion function to execute, e.g. to check a page
+          // before meta tag refresh
+          this.enqueue(()=> {
+            callback(response);
+          });
+        done();
+      });
   }
 
   // Fire an error event.  Used by JSDOM patches.

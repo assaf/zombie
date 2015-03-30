@@ -505,7 +505,7 @@ describe('XMLHttpRequest', function() {
     });
 
     it('should capture error', function() {
-      assert.equal(browser.errors[0].message, 'Network error: socket hang up');
+      assert.equal(browser.errors[0].message, 'Network error');
     });
 
   });

@@ -84,15 +84,14 @@ describe('Browser events', function() {
 
     it('should receive resource redirects', function() {
       const [response, newRequest] = events.resource[1];
-      assert.equal(response.statusCode, 302);
-      assert.equal(response.url, 'http://example.com/browser-events/redirected');
-      assert.equal(newRequest.url, response.url);
+      assert.equal(response.status, 302);
+      assert.equal(newRequest.url, 'http://example.com/browser-events/redirected');
     });
 
     it('should receive resource responses', function() {
       const [request, response] = events.resource[2];
       assert.equal(request.url, 'http://example.com/browser-events/resource');
-      assert.equal(response.statusCode, 200);
+      assert.equal(response.status, 200);
       assert.equal(response.redirects, 1);
     });
 

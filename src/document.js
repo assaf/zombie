@@ -6,6 +6,7 @@ const browserFeatures         = require('jsdom/lib/jsdom/browser/documentfeature
 const Window                  = require('jsdom/lib/jsdom/browser/Window');
 const DOM                     = require('./dom');
 const EventSource             = require('eventsource');
+const iconv                   = require('iconv-lite');
 const WebSocket               = require('ws');
 const XMLHttpRequest          = require('./xhr');
 const URL                     = require('url');
@@ -385,7 +386,7 @@ DOM.Document.prototype.__defineSetter__('location', function(url) {
 
 
 // Help iframes talking with each other
-Window.prototype.postMessage = function(data) { // jshint unused:false
+Window.prototype.postMessage = function(data) {
   // Create the event now, but dispatch asynchronously
   const event = this.document.createEvent('MessageEvent');
   event.initEvent('message', false, false);
@@ -466,6 +467,32 @@ function getMetaRefreshURL(document) {
 }
 
 
+// Find the charset= value of the meta tag
+const MATCH_CHARSET = /<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"']*([^\s"'\/>]*)/i;
+
+function getHTMLFromResponseBody(buffer, contentType) {
+  const [mimeType, ...typeOptions]  = contentType.split(/;\s*/);
+  const subtype                     = contentType.split(/\//, 2)[1];
+
+  // Pick charset from content type
+  if (mimeType)
+    for (let typeOption of typeOptions) {
+      if (/^charset=/i.test(typeOption)) {
+        const charset = typeOption.split('=')[1];
+        return iconv.decode(buffer, charset);
+      }
+    }
+
+  // Otherwise, HTML documents only, pick charset from meta tag
+  // Otherwise, HTML documents only, default charset in US is windows-1252
+  const charsetInMetaTag = buffer.toString().match(MATCH_CHARSET);
+  if (charsetInMetaTag)
+    return iconv.decode(buffer, charsetInMetaTag[1]);
+  else
+    return iconv.decode(buffer, 'windows-1252');
+}
+
+
 // Load/create a new document.
 //
 // Named arguments:
@@ -501,7 +528,8 @@ module.exports = function loadDocument(args) {
 
   if (args.html) {
     window._eventQueue.enqueue(function() {
-      document.write(args.html); // jshint ignore:line
+      document._source = args.htnl;
+      document.write(args.html);
       document.close();
       browser.emit('loaded', document);
     });
@@ -510,92 +538,97 @@ module.exports = function loadDocument(args) {
 
   // Let's handle the specifics of each protocol
   const { protocol, pathname } = URL.parse(url);
-  switch (protocol) {
-    case 'about:': {
-      window._eventQueue.enqueue(function() {
-        document.close();
-        browser.emit('loaded', document);
-      });
-      break;
-    }
-
-    case 'javascript:': {
-      window._eventQueue.enqueue(function() {
-        document.close();
-        try {
-          window._evaluate(pathname, 'javascript:');
-          browser.emit('loaded', document);
-        } catch (error) {
-          browser.emit('error', error);
-        }
-      });
-      break;
-    }
-
-    default: {
-      const method    = (args.method || 'GET').toUpperCase();
-      // Proceeed to load resource ...
-      const headers   = args.headers || {};
-      // HTTP header Referer, but Document property referrer
-      headers.referer = headers.referer || args.referrer || browser.referrer || browser.referer || history.url || '';
-      // Tell the browser we're looking for an HTML document
-      headers.accept  = headers.accept || 'text/html,*/*';
-      // Forms require content type
-      if (method === 'POST')
-        headers['content-type'] = args.encoding || 'application/x-www-form-urlencoded';
-
-      window._eventQueue.http(method, url, { headers, params: args.params, target: document }, (error, response)=> {
-        if (response) {
-          history.updateLocation(window, response.url);
-          window._response    = response;
-        }
-
-        if (response && response.statusCode >= 400)
-          error = new Error(`Server returned status code ${response.statusCode} from ${url}`);
-        if (error) {
-
-          // 4xx/5xx we get an error with an HTTP response
-          // Error in body of page helps with debugging
-          const message = (response && response.body) || error.message || error;
-          document.write(`<html><body>${message}</body></html>`); //jshint ignore:line
-          document.close();
-          browser.emit('error', error);
-
-        } else {
-
-          document.write(response.body); //jshint ignore:line
-          document.close();
-
-          // Handle meta refresh.  Automatically reloads new location and counts
-          // as a redirect.
-          //
-          // If you need to check the page before refresh takes place, use this:
-          //   browser.wait({
-          //     function: function() {
-          //       return browser.query('meta[http-equiv="refresh"]');
-          //     }
-          //   });
-          const refreshURL = getMetaRefreshURL(document);
-          if (refreshURL)
-            // Allow completion function to run
-            window._eventQueue.enqueue(function() {
-              // Count a meta-refresh in the redirects count.
-              history.replace(refreshURL || document.location.href);
-              // This results in a new window getting loaded
-              const newWindow = history.current.window;
-              newWindow.addEventListener('load', function() {
-                newWindow._response.redirects++;
-              });
-            });
-          else if (document.documentElement)
-            browser.emit('loaded', document);
-          else
-            browser.emit('error', new Error(`Could not parse document at ${response.url}`));
-        }
-      });
-      break;
-    }
+  if (protocol === 'about:') {
+    window._eventQueue.enqueue(function() {
+      document.close();
+      browser.emit('loaded', document);
+    });
+    return document;
   }
 
+  if (protocol === 'javascript:') {
+    window._eventQueue.enqueue(function() {
+      document.close();
+      try {
+        window._evaluate(pathname, 'javascript:');
+        browser.emit('loaded', document);
+      } catch (error) {
+        browser.emit('error', error);
+      }
+    });
+    return document;
+  }
+
+  const method    = (args.method || 'GET').toUpperCase();
+  // Proceeed to load resource ...
+  const headers   = args.headers || {};
+  // HTTP header Referer, but Document property referrer
+  headers.referer = headers.referer || args.referrer || browser.referrer || browser.referer || history.url || '';
+  // Tell the browser we're looking for an HTML document
+  headers.accept  = headers.accept || 'text/html,*/*';
+  // Forms require content type
+  if (method === 'POST')
+    headers['content-type'] = args.encoding || 'application/x-www-form-urlencoded';
+
+  window._eventQueue.http(method, url, { headers, params: args.params, target: document }, async (response)=> {
+
+    if (response.type === 'error') {
+      document.write(`<html><body>Network Error</body></html>`);
+      document.close();
+      browser.emit('error', new DOM.DOMException(DOM.NETWORK_ERR));
+      return;
+    }
+
+    history.updateLocation(window, response._url);
+    window._response = response;
+
+    const done = window._eventQueue.waitForCompletion();
+    try {
+      const buffer      = await response._consume();
+      const contentType = response.headers.get('Content-Type') || '';
+      const html        = getHTMLFromResponseBody(buffer, contentType);
+      response.body     = html;
+      document.write(html);
+      document.close();
+
+      if (response.status >= 400)
+        throw new Error(`Server returned status code ${response.status} from ${url}`);
+
+    } catch (error) {
+      browser.emit(error);
+      return;
+    } finally {
+      done();
+    }
+
+    // Handle meta refresh.  Automatically reloads new location and counts
+    // as a redirect.
+    //
+    // If you need to check the page before refresh takes place, use this:
+    //   browser.wait({
+    //     function: function() {
+    //       return browser.query('meta[http-equiv="refresh"]');
+    //     }
+    //   });
+    const refreshURL = getMetaRefreshURL(document);
+    if (refreshURL)
+      // Allow completion function to run
+      window._eventQueue.enqueue(function() {
+        window._eventQueue.enqueue(function() {
+          // Count a meta-refresh in the redirects count.
+          history.replace(refreshURL || document.location.href);
+          // This results in a new window getting loaded
+          const newWindow = history.current.window;
+          newWindow.addEventListener('load', function() {
+            newWindow._response.redirects++;
+          });
+        });
+      });
+    else if (document.documentElement)
+      browser.emit('loaded', document);
+    else
+      browser.emit('error', new Error(`Could not parse document at ${response.url}`));
+
+  });
   return document;
 };

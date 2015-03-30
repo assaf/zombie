@@ -192,12 +192,18 @@ DOM.resourceLoader.load = function(element, href, callback) {
     // This guarantees that all scripts are executed in order, must add to the
     // JSDOM queue before we add to the Zombie event queue.
     const enqueued = this.enqueue(element, callback && callback.bind(element), url);
-    window._eventQueue.http('GET', url, { target: element }, (error, response)=> {
+    window._eventQueue.http('GET', url, { target: element }, (response)=> {
       // Since this is used by resourceLoader that doesn't check the response,
       // we're responsible to turn anything other than 2xx/3xx into an error
-      if (response && response.statusCode >= 400)
-        error = new Error(`Server returned status code ${response.statusCode} from ${url}`);
-      enqueued(error, response && response.body);
+      if (response.type === 'error')
+        enqueued(new Error('Network error'));
+      else if (response.status >= 400)
+        enqueued(new Error(`Server returned status code ${response.status} from ${url}`));
+      else
+        response._consume().then((buffer)=> {
+          response.body = buffer;
+          enqueued(null, buffer);
+        });
     });
   }
 };

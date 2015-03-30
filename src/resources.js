@@ -16,17 +16,14 @@ const assert      = require('assert');
 const Bluebird    = require('bluebird');
 const DOM         = require('./dom');
 const File        = require('fs');
+const Fetch       = require('./fetch');
 const { Headers } = require('./fetch');
-const HTTP        = require('http');
-const iconv       = require('iconv-lite');
 const { isArray } = require('util');
 const Path        = require('path');
 const QS          = require('querystring');
 const Request     = require('request');
 const URL         = require('url');
 const Utils       = require('jsdom/lib/jsdom/utils');
-const Zlib        = require('zlib');
-
 
 
 
@@ -85,10 +82,6 @@ function nextRequestHandler(browser, req, handlers, callback) {
       if (error)
         callback(error);
       else if (res) {
-        // If we get redirected and the final handler doesn't provide a
-        // URL (e.g.  mock response), then without this we end up with the
-        // original URL.
-        res.url = res.url || req.url;
         // Once we have a response, we switch to response processing,
         // otherwise we fall through and try to make HTTP request
         const responseHandlers = handlers.filter(fn => fn.length === 3);
@@ -121,10 +114,6 @@ function formData(name, value) {
 }
 
 
-// Find the charset= value of the meta tag
-const MATCH_CHARSET = /<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"']*([^\s"'\/>]*)/i;
-
-
 class Resource {
 
   constructor({ request, target }) {
@@ -143,7 +132,7 @@ class Resource {
     // Write summary request/response header
     if (response) {
       const elapsed = response.time - request.time;
-      output.write(`${request.method} ${this.url} - ${response.statusCode} ${response.statusText} - ${elapsed}ms\n`);
+      output.write(`${request.method} ${this.url} - ${response.status} ${response.statusText} - ${elapsed}ms\n`);
     } else
       output.write(`${request.method} ${this.url}\n`);
 
@@ -201,36 +190,22 @@ class Resources extends Array {
   // method    - Request method (GET, POST, etc)
   // url       - Request URL
   // options   - See below
-  // callback  - Called with error, or null and response
-  //
-  // Without callback, returns a promise.
   //
   // Options:
   //   headers   - Name/value pairs of headers to send in request
   //   params    - Parameters to pass in query string or document body
   //   body      - Request document body
   //   timeout   - Request timeout in milliseconds (0 or null for no timeout)
-  //
-  // Response contains:
-  //   url         - Actual resource URL (changed by redirects)
-  //   statusCode  - Status code
-  //   statusText  - HTTP status text ("OK", "Not Found" etc)
-  //   headers     - Response headers
-  //   body        - Response body
-  //   redirects   - Number of redirects followed
-  request(method, url, options = {}, callback = null) {
-    if (!callback && typeof options === 'function')
-      [options, callback] = [{}, options];
-
+  async request(method, url, options = {}) {
     const req = {
-      method:     method.toUpperCase(),
-      url:        url,
-      headers:    new Headers(options.headers),
-      params:     options.params,
-      body:       options.body,
-      time:       Date.now(),
-      timeout:    options.timeout || 0,
-      strictSSL:  this.browser.strictSSL,
+      method:       method.toUpperCase(),
+      url:          url,
+      headers:      new Headers(options.headers),
+      params:       options.params,
+      body:         options.body,
+      time:         Date.now(),
+      timeout:      options.timeout || 0,
+      strictSSL:    this.browser.strictSSL,
       localAddress: this.browser.localAddress || 0
     };
 
@@ -241,28 +216,19 @@ class Resources extends Array {
     this.push(resource);
     this.browser.emit('request', req);
 
-    const promise = new Bluebird((resolve, reject)=> {
+    return await new Bluebird((resolve)=> {
       this._runPipeline(req, (error, res)=> {
         if (error) {
-          resource.error = error;
-          reject(error);
+          resource.error    = error;
+          resource.response = Fetch.Response.error();
         } else {
-          res.statusCode    = res.statusCode || 200;
-          res.statusText    = HTTP.STATUS_CODES[res.statusCode] || 'Unknown';
-          res.redirects     = res.redirects || 0;
           res.time          = Date.now();
           resource.response = res;
-
           this.browser.emit('response', req, res);
-          resolve(resource.response);
         }
+        resolve(resource.response);
       });
     });
-
-    if (callback)
-      promise.done((res)=> callback(null, res), callback);
-    else
-      return promise;
   }
 
 
@@ -270,18 +236,16 @@ class Resources extends Array {
   //
   // url       - Request URL
   // options   - See request() method
-  // callback  - Called with error, or null and response
-  get(url, options, callback) {
-    return this.request('get', url, options, callback);
+  async get(url, options) {
+    return await this.request('get', url, options);
   }
 
   // POST request.
   //
   // url       - Request URL
   // options   - See request() method
-  // callback  - Called with error, or null and response
-  post(url, options, callback) {
-    return this.request('post', url, options, callback);
+  async post(url, options) {
+    return await this.request('post', url, options);
   }
 
 
@@ -454,30 +418,26 @@ class Resources extends Array {
   // the last request handler.
   static makeHTTPRequest(req, next) {
     const browser = this;
-    const { protocol, hostname, pathname } = URL.parse(req.url);
+    const { url } = req;
+    const { protocol, hostname, pathname } = URL.parse(url);
+
     if (protocol === 'file:') {
 
       // If the request is for a file:// descriptor, just open directly from the
       // file system rather than getting node's http (which handles file://
       // poorly) involved.
       if (req.method !== 'GET') {
-        next(null, { statusCode: 405 });
+        next(null, new Fetch.Response('', { url, status: 405 }));
         return;
       }
 
       const filename = Path.normalize(decodeURI(pathname));
       File.exists(filename, function(exists) {
-        if (exists)
-          File.readFile(filename, function(error, buffer) {
-            // Fallback with error -> callback
-            if (error) {
-              req.error = error;
-              next(error);
-            } else
-              next(null, { body: buffer });
-          });
-        else
-          next(null, { statusCode: 404 });
+        if (exists) {
+          const stream = File.createReadStream(filename);
+          next(null, new Fetch.Response(stream, { url, status: 200 }));
+        } else
+          next(null, new Fetch.Response('', { url, status: 404 }));
       });
 
     } else {
@@ -500,11 +460,8 @@ class Resources extends Array {
         localAddress:   req.localAddress || 0,
         timeout:        req.timeout || 0
       });
-      const buffers = [];
-      request.on('data', (buffer)=> {
-        buffers.push(buffer);
-      });
-      request.on('complete', (response)=> {
+      request.on('response', (response)=> {
+        request.pause();
 
         // Request returns an object where property name is header name,
         // property value is either header value, or an array if header sent
@@ -518,13 +475,12 @@ class Resources extends Array {
           return headers;
         }, []);
 
-        next(null, {
-          url:          req.url,
-          statusCode:   response.statusCode,
-          headers:      new Headers(arrayOfHeaders),
-          body:         Buffer.concat(buffers),
-          redirects:    response.redirects || 0
-        });
+        next(null, new Fetch.Response(response, {
+          url:        req.url,
+          status:     response.statusCode,
+          headers:    new Headers(arrayOfHeaders),
+          redirects:  req.redirects || 0
+        }));
       });
       request.on('error', next);
     }
@@ -532,41 +488,40 @@ class Resources extends Array {
   }
 
 
-  static handleResponse(req, res, next) {
-    const browser = this;
+  static handleHeaders(req, res, next) {
     res.headers = new Headers(res.headers);
+    next();
+  }
 
-    const { protocol, hostname, pathname } = URL.parse(req.url);
-    if (protocol !== 'http:' && protocol !== 'https:') {
-      next();
-      return;
-    }
-
+  static handleCookies(req, res, next) {
+    const browser = this;
     // Set cookies from response: call update() with array of headers
+    const { hostname, pathname } = URL.parse(req.url);
     const newCookies = res.headers.getAll('Set-Cookie');
     browser.cookies.update(newCookies, hostname, pathname);
+    next();
+  }
 
-    // Number of redirects so far.
-    let redirects   = req.redirects || 0;
-    let redirectUrl = null;
+
+  static handleRedirect(req, res, next) {
+    const browser = this;
 
     // Determine whether to automatically redirect and which method to use
     // based on the status code
-    const { statusCode } = res;
-    if ((statusCode === 301 || statusCode === 307) &&
+    const { status }  = res;
+    let redirectUrl   = null;
+    if ((status === 301 || status === 307) &&
         (req.method === 'GET' || req.method === 'HEAD'))
       // Do not follow POST redirects automatically, only GET/HEAD
       redirectUrl = Utils.resolveHref(req.url, res.headers.get('Location') || '');
-    else if (statusCode === 302 || statusCode === 303)
+    else if (status === 302 || status === 303)
       // Follow redirect using GET (e.g. after form submission)
       redirectUrl = Utils.resolveHref(req.url, res.headers.get('Location') || '');
 
     if (redirectUrl) {
 
-      res.url = redirectUrl;
       // Handle redirection, make sure we're not caught in an infinite loop
-      ++redirects;
-      if (redirects > browser.maxRedirects) {
+      if (res.redirects >= browser.maxRedirects) {
         next(new Error(`More than ${browser.maxRedirects} redirects, giving up`));
         return;
       }
@@ -581,9 +536,9 @@ class Resources extends Array {
       // Redirect must follow the entire chain of handlers.
       const redirectRequest = {
         method:     'GET',
-        url:        res.url,
+        url:        redirectUrl,
         headers:    redirectHeaders,
-        redirects:  redirects,
+        redirects:  res.redirects + 1,
         strictSSL:  req.strictSSL,
         time:       req.time,
         timeout:    req.timeout
@@ -591,85 +546,22 @@ class Resources extends Array {
       browser.emit('redirect', req, res, redirectRequest);
       browser.resources._runPipeline(redirectRequest, next);
 
-    } else {
-      res.redirects = redirects;
+    } else
       next();
-    }
-  }
-
-
-  // Handle deflate and gzip transfer encoding.
-  static decompressBody(req, res, next) {
-    const transferEncoding  = res.headers.get('Transfer-Encoding');
-    const contentEncoding   = res.headers.get('Content-Encoding');
-    if (contentEncoding === 'deflate' || transferEncoding === 'deflate')
-      Zlib.inflate(res.body, (error, buffer)=> {
-        res.body = buffer;
-        next(error);
-      });
-    else if (contentEncoding === 'gzip' || transferEncoding === 'gzip')
-      Zlib.gunzip(res.body, (error, buffer)=> {
-        res.body = buffer;
-        next(error);
-      });
-    else
-      next();
-  }
-
-
-  // This handler decodes the response body based on the response content type.
-  static decodeBody(req, res, next) {
-    if (!Buffer.isBuffer(res.body)) {
-      next();
-      return;
-    }
-
-    // If Content-Type header specifies charset, use that
-    const contentType = res.headers.get('Content-Type') || 'application/unknown';
-    const [mimeType, ...typeOptions]  = contentType.split(/;\s*/);
-    const [type, subtype]             = contentType.split(/\//, 2);
-
-    // Images, binary, etc keep response body a buffer
-    if (type && type !== 'text') {
-      next();
-      return;
-    }
-
-    let charset = null;
-
-    // Pick charset from content type
-    if (mimeType)
-      for (let typeOption of typeOptions) {
-        if (/^charset=/i.test(typeOption)) {
-          charset = typeOption.split('=')[1];
-          break;
-        }
-      }
-
-    // Otherwise, HTML documents only, pick charset from meta tag
-    // Otherwise, HTML documents only, default charset in US is windows-1252
-    const isHTML = /html/.test(subtype) || /\bhtml\b/.test(req.headers.get('Accept'));
-    if (!charset && isHTML) {
-      const match = res.body.toString().match(MATCH_CHARSET);
-      charset = match ? match[1] : 'windows-1252';
-    }
-
-    if (charset)
-      res.body = iconv.decode(res.body, charset);
-    next();
   }
 
 
 }
+
 
 // All browsers start out with this list of handler.
 Resources.pipeline = [
   Resources.normalizeURL,
   Resources.mergeHeaders,
   Resources.createBody,
-  Resources.handleResponse,
-  Resources.decompressBody,
-  Resources.decodeBody
+  Resources.handleHeaders,
+  Resources.handleCookies,
+  Resources.handleRedirect
 ];
 
 

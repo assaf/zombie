@@ -300,22 +300,37 @@ describe('Window', function() {
       browser.assert.redirected();
     });
 
-    it('should support testing the refresh page', async function() {
-      browser.visit('/windows/refresh');
+    describe('meta refresh page', function() {
 
-      function complete() {
-        return !!browser.query('meta');
-      }
+      before(async function() {
+        browser.visit('/windows/refresh');
 
-      await browser.wait({ function: complete });
-      browser.assert.url('http://example.com/windows/refresh');
-      // Check the refresh page.
-      browser.assert.text('title', 'Refresh');
-      // Continue with refresh.
-      await browser.wait();
-      browser.assert.url('http://example.com/windows/refresh');
-      browser.assert.text('title', 'Done');
+        function complete() {
+          return !!browser.query('meta');
+        }
+
+        await browser.wait({ function: complete });
+      });
+
+      it('should check completion function on original page', function() {
+        browser.assert.url('http://example.com/windows/refresh');
+        // Check the refresh page.
+        browser.assert.text('title', 'Refresh');
+      });
+
+      describe('continue', function() {
+        before(function() {
+          return browser.wait();
+        });
+
+        it('should continue to next page', function() {
+          browser.assert.url('http://example.com/windows/refresh');
+          browser.assert.text('title', 'Done');
+        });
+      });
+
     });
+
 
     afterEach(function() {
       browser.deleteCookies();

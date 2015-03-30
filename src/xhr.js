@@ -2,10 +2,11 @@
 // See http://www.w3.org/TR/XMLHttpRequest/#the-abort()-method
 
 
-const DOM         = require('./dom');
-const { Headers } = require('./fetch');
-const URL         = require('url');
-const Utils       = require('jsdom/lib/jsdom/utils');
+const DOM     = require('./dom');
+const Fetch   = require('./fetch');
+const ms      = require('ms');
+const URL     = require('url');
+const Utils   = require('jsdom/lib/jsdom/utils');
 
 
 class XMLHttpRequest extends DOM.EventTarget {
@@ -58,7 +59,7 @@ class XMLHttpRequest extends DOM.EventTarget {
     if (!/^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method))
       throw new DOM.DOMException(DOM.SYNTAX_ERR, 'Unsupported HTTP method');
 
-    const headers = new Headers();
+    const headers = new Fetch.Headers();
 
     // Normalize the URL and check security
     url = URL.parse(Utils.resolveHref(this._window.location.href, url));
@@ -115,11 +116,15 @@ class XMLHttpRequest extends DOM.EventTarget {
     request.headers.set('Content-Type', request.headers.get('Content-Type') || 'text/plain');
     // Make the actual request
     request.body    = data;
-    request.timeout = this.timeout;
 
-    this._window._eventQueue.http(request.method, request.url, request, (error, response)=> {
+    const timeout = setTimeout(function() {
+      request.timeout = true;
+    }, this.timeout || ms('2m'));
+
+    this._window._eventQueue.http(request.method, request.url, request, (response)=> {
       if (this._pending === request)
         this._pending = null;
+      clearTimeout(timeout);
 
       // Request aborted
       if (request.aborted) {
@@ -130,16 +135,21 @@ class XMLHttpRequest extends DOM.EventTarget {
         return;
       }
 
-      if (error) {
+      if (request.timedOut) {
         this._stateChanged(XMLHttpRequest.DONE);
         this._fire('progress');
-        if (error.code === 'ETIMEDOUT') {
-          this._error = new DOM.DOMException(DOM.TIMEOUT_ERR, 'The request timed out');
-          this._fire('timeout', this._error);
-        } else {
-          this._error = new DOM.DOMException(DOM.NETWORK_ERR, error.message);
-          this._fire('error', this._error);
-        }
+        this._error = new DOM.DOMException(DOM.TIMEOUT_ERR, 'The request timed out');
+        this._fire('timeout', this._error);
+        this._fire('loadend');
+        this._browser.errors.push(this._error);
+        return;
+      }
+
+      if (response.type === 'error') {
+        this._stateChanged(XMLHttpRequest.DONE);
+        this._fire('progress');
+        this._error = new DOM.DOMException(DOM.NETWORK_ERR);
+        this._fire('error', this._error);
         this._fire('loadend');
         this._browser.errors.push(this._error);
         return;
@@ -166,11 +176,16 @@ class XMLHttpRequest extends DOM.EventTarget {
       // transitions
       this._stateChanged(XMLHttpRequest.HEADERS_RECEIVED);
       this._stateChanged(XMLHttpRequest.LOADING);
-      this._stateChanged(XMLHttpRequest.DONE);
 
-      this._fire('progress');
-      this._fire('load');
-      this._fire('loadend');
+      response.text().then(text => {
+        this.responseText = text;
+        this._stateChanged(XMLHttpRequest.DONE);
+
+        this._fire('progress');
+        this._fire('load');
+        this._fire('loadend');
+      });
+
 
     });
     request.sent = true;
@@ -179,7 +194,7 @@ class XMLHttpRequest extends DOM.EventTarget {
 
   get status() {
     // Status code/headers available immediatly, 0 if request errored
-    return this._response ? this._response.statusCode :
+    return this._response ? this._response.status :
            this._error    ? 0 : null;
   }
 
@@ -187,17 +202,6 @@ class XMLHttpRequest extends DOM.EventTarget {
     // Status code/headers available immediatly, '' if request errored
     return this._response ? this._response.statusText :
            this._error    ? '' : null;
-  }
-
-  get responseText() {
-    // Response body available only after LOADING event, check for response
-    // since DONE event triggered in all cases
-    const hasBody = (this._response && this.readyState >= XMLHttpRequest.LOADING);
-    if (hasBody) {
-      const body = this._response.body;
-      return Buffer.isBuffer(body) ? body.toString() : body;
-    } else
-      return null;
   }
 
   get responseXML() {

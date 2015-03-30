@@ -2,6 +2,7 @@ const assert      = require('assert');
 const brains      = require('./helpers/brains');
 const Browser     = require('../src');
 const File        = require('fs');
+const Fetch       = require('../src/fetch');
 const Path        = require('path');
 const thirdParty  = require('./helpers/thirdparty');
 const Zlib        = require('zlib');
@@ -61,8 +62,9 @@ describe('Resources', function() {
 
     it('should uncompress deflated response with transfer-encoding', async function() {
       const response  = await browser.resources.get('http://example.com/resources/deflate');
+      const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
-      assert.deepEqual(image, response.body);
+      assert.deepEqual(image, body);
     });
   });
 
@@ -80,8 +82,9 @@ describe('Resources', function() {
 
     it('should uncompress deflated response with content-encoding', async function() {
       const response  = await browser.resources.get('http://example.com/resources/deflate');
+      const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
-      assert.deepEqual(image, response.body);
+      assert.deepEqual(image, body);
     });
   });
 
@@ -99,8 +102,9 @@ describe('Resources', function() {
 
     it('should uncompress gzipped response with transfer-encoding', async function() {
       const response  = await browser.resources.get('http://example.com/resources/gzip');
+      const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
-      assert.deepEqual(image, response.body);
+      assert.deepEqual(image, body);
     });
   });
 
@@ -118,8 +122,9 @@ describe('Resources', function() {
 
     it('should uncompress gzipped response with content-encoding', async function() {
       const response  = await browser.resources.get('http://example.com/resources/gzip');
+      const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
-      assert.deepEqual(image, response.body);
+      assert.deepEqual(image, body);
     });
   });
 
@@ -202,7 +207,7 @@ describe('Resources', function() {
   describe('addHandler', function() {
     before(function() {
       browser.resources.addHandler(function(request, callback) {
-        callback(null, { statusCode: 204, body: 'empty' });
+        callback(null, new Fetch.Response('empty', { status: 204 }));
       });
       return browser.visit('/resources/resource');
     });
@@ -221,25 +226,14 @@ describe('Resources', function() {
   describe('addHandler redirect', function () {
     before(function() {
       browser.resources.addHandler(function(request, callback) {
-        const response = {
-          headers : {
-            location : 'http://example.com/resources/resource'
-          },
-          statusCode : 301
-        };
-
-        if (request.url === 'http://example.com/fake')
-          callback(null, response);
-        else
+        if (request.url === 'http://example.com/fake') {
+          const redirect = Fetch.Response.redirect('http://example.com/resources/resource', 301);
+          callback(null, redirect);
+        } else
           callback();
       });
       browser.resources.length = 0;
       return browser.visit('/fake');
-    });
-
-    after(function() {
-      // Remove handler.
-      browser.resources.pipeline.pop();
     });
 
     it('should have a length', function() {
@@ -259,6 +253,12 @@ describe('Resources', function() {
       browser.assert.status(200);
       browser.assert.text('title', 'Awesome');
     });
+
+    after(function() {
+      // Remove handler.
+      browser.resources.pipeline.pop();
+    });
+
   });
 
 

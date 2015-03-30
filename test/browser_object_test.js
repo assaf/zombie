@@ -235,7 +235,7 @@ describe('Browser', function() {
         });
         it('should indicate resource failed to load', function() {
           const resource = imgBrowser.resources[1];
-          assert.equal(resource.response.statusCode, 404);
+          assert.equal(resource.response.status, 404);
         });
         it('should fire error event on resource', function() {
           imgBrowser.assert.evaluate('document.body.loaded', undefined);

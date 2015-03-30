@@ -38,7 +38,7 @@ describe('IMG', function() {
     assert.equal(browser.resources[1].response.url, 'http://example.com/image/zombie.jpg');
   });
 
-  it('should be the same as original file', function() {
+  it('should be the same as original file', async function() {
     assert.deepEqual(browser.resources[1].response.body, File.readFileSync(`${__dirname}/data/zombie.jpg`));
   });
 
