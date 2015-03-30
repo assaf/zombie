@@ -1,19 +1,8 @@
-// Retrieve resources (HTML pages, scripts, XHR, etc).
-//
-// If count is unspecified, defaults to at least one.
-//
-// Each browser has a resources objects that allows you to:
-// - Inspect the history of retrieved resources, useful for troubleshooting
-//   issues related to resource loading
-// - Request resources directly, but have Zombie handle cookies,
-//   authentication, etc
-// - Implement new mechanism for retrieving resources, for example, add new
-//   protocols or support new headers
+// Resource history and resource pipeline.
 
 
 const _           = require('lodash');
 const assert      = require('assert');
-const Bluebird    = require('bluebird');
 const DOM         = require('./dom');
 const File        = require('fs');
 const Fetch       = require('./fetch');
@@ -25,74 +14,6 @@ const Request     = require('request');
 const URL         = require('url');
 const Utils       = require('jsdom/lib/jsdom/utils');
 
-
-
-/*
-class Request {
-
-  constructor(input, init) {
-    if (input instanceof Request) {
-      this.url      = input.url;
-      this.method   = input.method;
-      this.headers  = input.headers.clone();
-
-    } else if (typeof input === 'string' || input instanceof String) {
-      this.url      = URL.parse(input);
-    }
-
-    if (init.body != null) {
-      if ()
-    }
-  }
-
-}
-*/
-
-
-
-// Called to execute the next response handler.
-function nextResponseHandler(browser, req, res, handlers, callback) {
-  const handler = handlers[0];
-  if (handler)
-
-    // Use the next response handler
-    try {
-      handler.call(browser, req, res, function(error, newResponse = res) {
-        if (error)
-          callback(error);
-        else
-          nextResponseHandler(browser, req, newResponse, handlers.slice(1), callback);
-      });
-    } catch (error) {
-      callback(error);
-    }
-
-  else
-    // Out of handlers, pass response back to request maker
-    callback(null, res);
-}
-
-// Called to execute the next request handler, when we have a request, pass
-// control to nextResponseHandler, and eventuall callback.
-function nextRequestHandler(browser, req, handlers, callback) {
-  const handler = handlers[0];
-  assert(handler && handler.length === 2, 'Expected 2 arguments request handler');
-  try {
-    handler.call(browser, req, function(error, res) {
-      if (error)
-        callback(error);
-      else if (res) {
-        // Once we have a response, we switch to response processing,
-        // otherwise we fall through and try to make HTTP request
-        const responseHandlers = handlers.filter(fn => fn.length === 3);
-        nextResponseHandler(browser, req, res, responseHandlers, callback);
-      } else
-        nextRequestHandler(browser, req, handlers.slice(1), callback);
-    });
-  } catch (error) {
-    callback(error);
-  }
-}
 
 
 function formData(name, value) {
@@ -171,8 +92,6 @@ class Resource {
 }
 
 
-
-
 // Each browser has a resources object that provides the means for retrieving
 // resources and a list of all retrieved resources.
 //
@@ -216,19 +135,17 @@ class Resources extends Array {
     this.push(resource);
     this.browser.emit('request', req);
 
-    return await new Bluebird((resolve)=> {
-      this._runPipeline(req, (error, res)=> {
-        if (error) {
-          resource.error    = error;
-          resource.response = Fetch.Response.error();
-        } else {
-          res.time          = Date.now();
-          resource.response = res;
-          this.browser.emit('response', req, res);
-        }
-        resolve(resource.response);
-      });
-    });
+    try {
+      const response    = await this._runPipeline(req);
+      response.time     = Date.now();
+      resource.response = response;
+      this.browser.emit('response', req, response);
+    } catch (error) {
+      this.browser._debug('Resource error', error.stack);
+      resource.error    = error;
+      resource.response = Fetch.Response.error();
+    }
+    return resource.response;
   }
 
 
@@ -268,15 +185,20 @@ class Resources extends Array {
   }
 
   // Processes the request using the pipeline.
-  _runPipeline(req, callback) {
+  async _runPipeline(request) {
     const { browser } = this;
-    const requestHandlers   = this.pipeline.filter(fn => fn.length === 2);
+    const requestHandlers   = this.pipeline.filter(fn => fn.length === 2).concat(Resources.makeHTTPRequest);
     const responseHandlers  = this.pipeline.filter(fn => fn.length === 3);
-    // Request handlers -> make HTTP request -> Response handlers
-    const handlersInOrder   = requestHandlers.concat(Resources.makeHTTPRequest).concat(responseHandlers);
 
-    // Start with first request handler
-    nextRequestHandler(browser, req, handlersInOrder, callback);
+    let response;
+    for (let requestHandler of requestHandlers) {
+      response = await requestHandler(browser, request);
+      if (response)
+        break;
+    }
+    for (let responseHandler of responseHandlers)
+      response = await responseHandler(browser, request, response);
+    return response;
   }
 
 
@@ -296,8 +218,7 @@ class Resources extends Array {
   //
   // Also creates query string from request.params for
   // GET/HEAD/DELETE requests.
-  static normalizeURL(req, next) {
-    const browser = this;
+  static normalizeURL(browser, req) {
     if (browser.document)
     // Resolve URL relative to document URL/base, or for new browser, using
     // Browser.site
@@ -314,8 +235,6 @@ class Resources extends Array {
         req.url = URL.format(uri);
       }
     }
-
-    next();
   }
 
 
@@ -325,8 +244,7 @@ class Resources extends Array {
   // the browser (user agent, authentication, etc).
   //
   // It also normalizes all headers by down-casing the header names.
-  static mergeHeaders(req, next) {
-    const browser = this;
+  static mergeHeaders(browser, req) {
     if (browser.headers)
       _.each(browser.headers, (value, name)=> {
         req.headers.append(name, browser.headers[name]);
@@ -347,35 +265,28 @@ class Resources extends Array {
       const base64 = new Buffer(`${username}:${password}`).toString('base64');
       req.headers.set('authorization',  `Basic ${base64}`);
     }
-
-    next();
   }
 
 
   // Depending on the content type, this handler will create a request body from
   // request.params, set request.multipart for uploads.
-  static createBody(req, next) {
+  static createBody(browser, req) {
     const { method } = req;
-    if (method !== 'POST' && method !== 'PUT') {
-      next();
+    if (method !== 'POST' && method !== 'PUT')
       return;
-    }
 
     const { headers } = req;
     // These methods support document body.  Create body or multipart.
     headers.set('content-type', headers.get('content-type') || 'application/x-www-form-urlencoded');
     const mimeType = headers.get('content-type').split(';')[0];
-    if (req.body) {
-      next();
+    if (req.body)
       return;
-    }
 
     const params = req.params || {};
     switch (mimeType) {
       case 'application/x-www-form-urlencoded': {
         req.body = QS.stringify(params);
         headers.set('content-length', req.body.length);
-        next();
         break;
       }
 
@@ -396,19 +307,16 @@ class Resources extends Array {
               return parts.concat(values);
             }, []);
         }
-        next();
         break;
       }
 
       case 'text/plain': {
         // XHR requests use this by default
-        next();
         break;
       }
 
       default: {
-        next(new Error(`Unsupported content type ${mimeType}`));
-        break;
+        throw new Error(`Unsupported content type ${mimeType}`);
       }
     }
   }
@@ -416,8 +324,7 @@ class Resources extends Array {
 
   // Used to perform HTTP request (also supports file: resources).  This is always
   // the last request handler.
-  static makeHTTPRequest(req, next) {
-    const browser = this;
+  static async makeHTTPRequest(browser, req) {
     const { url } = req;
     const { protocol, hostname, pathname } = URL.parse(url);
 
@@ -426,19 +333,16 @@ class Resources extends Array {
       // If the request is for a file:// descriptor, just open directly from the
       // file system rather than getting node's http (which handles file://
       // poorly) involved.
-      if (req.method !== 'GET') {
-        next(null, new Fetch.Response('', { url, status: 405 }));
-        return;
-      }
+      if (req.method !== 'GET')
+        return new Fetch.Response('', { url, status: 405 });
 
       const filename = Path.normalize(decodeURI(pathname));
-      File.exists(filename, function(exists) {
-        if (exists) {
-          const stream = File.createReadStream(filename);
-          next(null, new Fetch.Response(stream, { url, status: 200 }));
-        } else
-          next(null, new Fetch.Response('', { url, status: 404 }));
-      });
+      const exists   = File.existsSync(filename);
+      if (exists) {
+        const stream = File.createReadStream(filename);
+        return new Fetch.Response(stream, { url, status: 200 });
+      } else
+        return new Fetch.Response('', { url, status: 404 });
 
     } else {
 
@@ -460,52 +364,51 @@ class Resources extends Array {
         localAddress:   req.localAddress || 0,
         timeout:        req.timeout || 0
       });
-      request.on('response', (response)=> {
-        request.pause();
+      return new Promise(function(resolve, reject) {
+        request.on('response', (response)=> {
+          request.pause();
 
-        // Request returns an object where property name is header name,
-        // property value is either header value, or an array if header sent
-        // multiple times (e.g. `Set-Cookie`).
-        const arrayOfHeaders = _.reduce(response.headers, (headers, value, name)=> {
-          if (isArray(value))
-            for (let item of value)
-              headers.push([name, item]);
-          else
-            headers.push([name, value]);
-          return headers;
-        }, []);
+          // Request returns an object where property name is header name,
+          // property value is either header value, or an array if header sent
+          // multiple times (e.g. `Set-Cookie`).
+          const arrayOfHeaders = _.reduce(response.headers, (headers, value, name)=> {
+            if (isArray(value))
+              for (let item of value)
+                headers.push([name, item]);
+            else
+              headers.push([name, value]);
+            return headers;
+          }, []);
 
-        next(null, new Fetch.Response(response, {
-          url:        req.url,
-          status:     response.statusCode,
-          headers:    new Headers(arrayOfHeaders),
-          redirects:  req.redirects || 0
-        }));
+          resolve(new Fetch.Response(response, {
+            url:        req.url,
+            status:     response.statusCode,
+            headers:    new Headers(arrayOfHeaders),
+            redirects:  req.redirects || 0
+          }));
+        });
+        request.on('error', reject);
       });
-      request.on('error', next);
     }
 
   }
 
 
-  static handleHeaders(req, res, next) {
+  static handleHeaders(browser, req, res) {
     res.headers = new Headers(res.headers);
-    next();
+    return res;
   }
 
-  static handleCookies(req, res, next) {
-    const browser = this;
+  static handleCookies(browser, req, res) {
     // Set cookies from response: call update() with array of headers
     const { hostname, pathname } = URL.parse(req.url);
     const newCookies = res.headers.getAll('Set-Cookie');
     browser.cookies.update(newCookies, hostname, pathname);
-    next();
+    return res;
   }
 
 
-  static handleRedirect(req, res, next) {
-    const browser = this;
-
+  static handleRedirect(browser, req, res) {
     // Determine whether to automatically redirect and which method to use
     // based on the status code
     const { status }  = res;
@@ -521,10 +424,8 @@ class Resources extends Array {
     if (redirectUrl) {
 
       // Handle redirection, make sure we're not caught in an infinite loop
-      if (res.redirects >= browser.maxRedirects) {
-        next(new Error(`More than ${browser.maxRedirects} redirects, giving up`));
-        return;
-      }
+      if (res.redirects >= browser.maxRedirects)
+        throw new Error(`More than ${browser.maxRedirects} redirects, giving up`);
 
       const redirectHeaders = new Headers(req.headers);
       // This request is referer for next
@@ -544,10 +445,10 @@ class Resources extends Array {
         timeout:    req.timeout
       };
       browser.emit('redirect', req, res, redirectRequest);
-      browser.resources._runPipeline(redirectRequest, next);
+      return browser.resources._runPipeline(redirectRequest);
 
     } else
-      next();
+      return res;
   }
 
 

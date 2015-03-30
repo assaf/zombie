@@ -595,7 +595,7 @@ module.exports = function loadDocument(args) {
         throw new Error(`Server returned status code ${response.status} from ${url}`);
 
     } catch (error) {
-      browser.emit(error);
+      browser.emit('error', error);
       return;
     } finally {
       done();

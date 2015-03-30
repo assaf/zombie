@@ -204,33 +204,32 @@ describe('Resources', function() {
   });
 
 
-  describe('addHandler', function() {
+  describe('addHandler request', function() {
     before(function() {
-      browser.resources.addHandler(function(request, callback) {
-        callback(null, new Fetch.Response('empty', { status: 204 }));
+      browser.resources.addHandler(function(browser, request) {
+        return new Fetch.Response('empty', { status: 204 });
       });
       return browser.visit('/resources/resource');
-    });
-
-    after(function() {
-      // Remove handler.
-      browser.resources.pipeline.pop();
     });
 
     it('should call the handler and use its response', function() {
       browser.assert.status(204);
       browser.assert.text('body', 'empty');
     });
+
+    after(function() {
+      // Remove handler.
+      browser.resources.pipeline.pop();
+    });
   });
 
   describe('addHandler redirect', function () {
     before(function() {
-      browser.resources.addHandler(function(request, callback) {
-        if (request.url === 'http://example.com/fake') {
-          const redirect = Fetch.Response.redirect('http://example.com/resources/resource', 301);
-          callback(null, redirect);
-        } else
-          callback();
+      browser.resources.addHandler(function(b, request) {
+        if (request.url === 'http://example.com/fake')
+          return Fetch.Response.redirect('http://example.com/resources/resource', 301);
+        else
+          return null;
       });
       browser.resources.length = 0;
       return browser.visit('/fake');
@@ -259,6 +258,29 @@ describe('Resources', function() {
       browser.resources.pipeline.pop();
     });
 
+  });
+
+
+  describe('addHandler response', function() {
+    before(function() {
+      browser.resources.addHandler(async function(b, request, response) {
+        // TODO this will be better with resource.clone()
+        const newResponse = new Fetch.Response('Empty', { url: response.url, status: 200 });
+        newResponse.headers.set('X-Body', 'Marks Spot');
+        return newResponse;
+      });
+      return browser.visit('/resources/resource');
+    });
+
+    it('should call the handler and use its response', function() {
+      assert.equal(browser.response.headers.get('X-Body'), 'Marks Spot');
+      browser.assert.text('body', 'Empty');
+    });
+
+    after(function() {
+      // Remove handler.
+      browser.resources.pipeline.pop();
+    });
   });
 
 

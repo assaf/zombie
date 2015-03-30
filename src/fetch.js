@@ -18,6 +18,8 @@ function decompressStream(stream, headers) {
 }
 
 
+// Convert bodyInit argument into a stream / contentType pair we can use to
+// initialize a Response.
 function createStreamFromBodyInit(bodyInit) {
   if (!bodyInit)
     return {};

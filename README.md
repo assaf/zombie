@@ -949,27 +949,23 @@ content types, special handlers, etc.
 The pipeline consists of a set of handlers.  There are two types of handlers:
 
 Functions with two arguments deal with requests.  They are called with the
-request object and a callback, and must call that callback with one of:
-
-- No arguments to pass control to the next handler
-- An error to stop processing and return that error
-- `null` and the response object to return that response
+browser and request object.  They may modify the request object, and they may
+either return null (pass control to the next handler) or return the Response
+object, or return a promise that resolves to either outcome.
 
 Functions with three arguments deal with responses.  They are called with the
-request object, response object and a callback, and must call that callback with
-one of:
-
-- No arguments to pass control to the next handler
-- An error to stop processing and return that error
+browser, request and response objects.  They may modify the response object, and
+must return a Response object, either the same as the argument or a new Response
+object, either directly or through a promise.
 
 To add a new handle to the end of the pipeline:
 
 ```js
-browser.resources.addHandler(function(request, next) {
+browser.resources.addHandler(function(browser, request) {
   // Let's delay this request by 1/10th second
-  setTimeout(function() {
-    Resources.httpRequest(request, next);
-  }, Math.random() * 100);
+  return new Promise(function(resolve) {
+    setTimeout(resolve, 100);
+  });
 });
 ```
 
@@ -980,14 +976,11 @@ You can add handlers to all browsers via `Browser.Resources.addHandler`.  These
 handlers are automatically added to every new `browser.resources` instance.
 
 ```js
-Browser.Resources.addHandler(function(request, response, next) {
+Browser.Resources.addHandler(function(browser, request, response) {
   // Log the response body
   console.log('Response body: ' + response.body);
-  next();
 });
 ```
-
-When handlers are executed, `this` is set to the browser instance.
 
 
 ### Operating On Resources
