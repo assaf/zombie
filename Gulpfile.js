@@ -5,7 +5,7 @@ const File        = require('fs');
 const gulp        = require('gulp');
 const gutil       = require('gulp-util');
 const notify      = require('gulp-notify');
-const sourcemaps  = require("gulp-sourcemaps");
+const sourcemaps  = require('gulp-sourcemaps');
 const babel       = require('gulp-babel');
 
 
@@ -22,15 +22,12 @@ gulp.task('build', ['clean'], function() {
     .pipe(babel({
       experimental: true,
       loose:        'all',
-      optional:     [
-        'bluebirdCoroutines',
-        'runtime'
-      ]
+      optional:     [ 'runtime' ]
     }))
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('lib'))
     .pipe(notify({
-      message: "Zombie: built!",
+      message: 'Zombie: built!',
       onLast:  true
     }));
 });
