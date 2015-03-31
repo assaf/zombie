@@ -235,8 +235,6 @@ class Resources extends Array {
       return await new Promise(function(resolve, reject) {
         httpRequest
           .on('response', (response)=> {
-            httpRequest.pause();
-
             // Request returns an object where property name is header name,
             // property value is either header value, or an array if header sent
             // multiple times (e.g. `Set-Cookie`).

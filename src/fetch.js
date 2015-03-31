@@ -188,9 +188,13 @@ class Body {
     if (bodyInit instanceof Body) {
       this._stream = bodyInit._stream;
       this._setContentType(bodyInit.headers.get('Content-Type'));
-    } else if (bodyInit instanceof Stream.Readable)
-      this._stream = bodyInit;
-    else if (typeof bodyInit === 'string' || bodyInit instanceof String) {
+    } else if (bodyInit instanceof Stream.Readable) {
+      // Request + Replay start streaming immediately, so we need this trick to
+      // buffer HTTP responses; this is likely a bug in Replay
+      this._stream = new Stream.PassThrough();
+      this._stream.pause();
+      bodyInit.pipe(this._stream);
+    } else if (typeof bodyInit === 'string' || bodyInit instanceof String) {
       this._stream = new Stream.Readable();
       this._stream._read = function() {
         this.push(bodyInit);
@@ -270,7 +274,7 @@ class Body {
 
     // When Request has no body, _stream is typically null
     if (!this._stream)
-      return;
+      return null;
     // When Response has no body, we get stream that's no longer readable
     if (!this._stream.readable)
       return new Buffer('');

@@ -10,7 +10,6 @@ vary: Accept-Language
 server: mafe
 x-xss-protection: 1; mode=block
 x-frame-options: SAMEORIGIN
-transfer-encoding: chunked
 
 
 
