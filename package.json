@@ -14,7 +14,7 @@
     "José Valim <jose.valim@plataformatec.com.br> (http://blog.plataformatec.com.br/)"
   ],
   "engines": {
-    "node": "1.x"
+    "node": "^1.2.0"
   },
   "keywords": [
     "test",
