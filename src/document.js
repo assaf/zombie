@@ -143,6 +143,12 @@ function setupWindow(window, args) {
   window.UIEvent =        DOM.UIEvent;
   window.screen =         new Screen();
 
+  // Fetch API
+  window.fetch    = browser.resources.fetch.bind(browser.resources);
+  window.Request  = Fetch.Request;
+  window.Response = Fetch.Response;
+  window.FormData = Fetch.FormData;
+
   // Base-64 encoding/decoding
   window.atob = (string)=> new Buffer(string, 'base64').toString('utf8');
   window.btoa = (string)=> new Buffer(string, 'utf8').toString('base64');
