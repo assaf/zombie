@@ -553,8 +553,8 @@ describe('History', function() {
       return browser.visit('/history/referer');
     });
 
-    it('should be empty', function() {
-      browser.assert.text('title', '');
+    it('should be missing', function() {
+      browser.assert.text('title', 'undefined');
     });
   });
 
