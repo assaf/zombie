@@ -111,7 +111,7 @@ DOM.HTMLFormElement.prototype.submit = function(button) {
 
     // Ask window to submit form, let it figure out how to handle this based on
     // the target attribute.
-    document.window._submit({
+    document.defaultView._submit({
       url:      form.getAttribute('action') || document.location.href,
       method:   form.getAttribute('method') || 'GET',
       encoding: form.getAttribute('enctype'),

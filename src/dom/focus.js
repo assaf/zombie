@@ -28,7 +28,7 @@ function setFocus(document, element) {
       onfocus.initEvent('focus', false, false);
       element.dispatchEvent(onfocus);
       document._inFocus = element;
-      document.window.browser.emit('focus', element);
+      document.defaultView.browser.emit('focus', element);
     }
   }
 }

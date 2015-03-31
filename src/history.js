@@ -221,7 +221,7 @@ class History {
     args.browser = this.browser;
     args.history = this;
     const document  = loadDocument(args);
-    const window    = document.window;
+    const window    = document.defaultView;
     this.addEntry(window, args.url);
     return window;
   }
@@ -290,7 +290,7 @@ class History {
       args.referrer  = window.location.href;
     }
     const document  = loadDocument(args);
-    this.addEntry(document.window, document.location.href);
+    this.addEntry(document.defaultView, document.location.href);
   }
 
   // Returns current URL.
@@ -332,10 +332,10 @@ class History {
         name:     name,
         url:      url,
         parent:   parent,
-        referrer: this.current.window.document.referrer
+        referrer: this.current && this.current.window.document.referrer
       };
       const document = loadDocument(args);
-      this.addEntry(document.window, url);
+      this.addEntry(document.defaultView, url);
     }
   }
 
@@ -366,12 +366,12 @@ class History {
         parent:   parentFrom(this.current.window)
       };
       const document = loadDocument(args);
-      this.replaceEntry(document.window, url);
+      this.replaceEntry(document.defaultView, url);
     }
   }
 
   reload() {
-    const { window } = this.current.window;
+    const { window } = this.current;
     if (window) {
       const url   = window.location.href;
       const args  = {
@@ -383,7 +383,7 @@ class History {
         referrer: window.document.referrer
       };
       const document = loadDocument(args);
-      this.replaceEntry(document.window, url);
+      this.replaceEntry(document.defaultView, url);
     }
   }
 

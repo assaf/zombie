@@ -94,7 +94,7 @@ DOM.HTMLFrameElement.prototype.__defineGetter__('contentWindow', function() {
   if (!this._contentWindow) {
     const createHistory   = require('../history');
     const parentDocument  = this._ownerDocument;
-    const parentWindow    = parentDocument.window;
+    const parentWindow    = parentDocument.defaultView;
 
     // Need to bypass JSDOM's window/document creation and use ours
     const openWindow = createHistory(parentWindow.browser, (active)=> {

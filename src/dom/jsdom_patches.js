@@ -20,7 +20,7 @@ DOM.HTMLAnchorElement.prototype._eventDefaults.click = function(event) {
   if (!anchor.href)
     return;
 
-  const { window }  = anchor.ownerDocument;
+  const window      = anchor.ownerDocument.defaultView;
   const { browser } = window;
   // Decide which window to open this link in
   switch (anchor.target || '_self') {
@@ -129,8 +129,8 @@ Object.defineProperty(DOM.CSSStyleDeclaration.prototype, 'opacity', {
 const jsdomDispatchEvent = DOM.EventTarget.prototype.dispatchEvent;
 DOM.EventTarget.prototype.dispatchEvent = function(event) {
   // Could be node, window or document
-  const document    = this._ownerDocument || this.document || this;
-  const { window }  = document;
+  const document = this._ownerDocument || this.document || this;
+  const window   = document.defaultView;
   // Fail miserably on objects that don't have ownerDocument: nodes and XHR
   // request have those
   const { browser } = window;
@@ -159,8 +159,8 @@ DOM.Document.prototype.raise = function(type, message, data) {
   if (!error)
     return;
 
-  const document    = this;
-  const { window }  = document;
+  const document  = this;
+  const window    = document.defaultView;
   // Deconstruct the stack trace and strip the Zombie part of it
   // (anything leading to this file).  Add the document location at
   // the end.
@@ -184,7 +184,7 @@ DOM.Document.prototype.raise = function(type, message, data) {
 // browser.wait.
 DOM.resourceLoader.load = function(element, href, callback) {
   const document      = element.ownerDocument;
-  const { window }    = document;
+  const window        = document.defaultView;
   const tagName       = element.tagName.toLowerCase();
   const loadResource  = document.implementation._hasFeature('FetchExternalResources', tagName);
   const url           = DOM.resourceLoader.resolve(document, href);

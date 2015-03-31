@@ -80,6 +80,7 @@ class DOMURL {
 
 }
 
+let id = 0;
 
 function setupWindow(window, args) {
   const { document }          = window;
@@ -88,16 +89,18 @@ function setupWindow(window, args) {
 
   let   closed        = false;
 
+  Object.defineProperty(window, '_id', { value: ++id });
+
   // Access to browser
   Object.defineProperty(window, 'browser', {
     value:      browser,
     enumerable: true
   });
 
-  window.name = args.name || '';
+  window.name     = args.name || '';
 
   // If this was opened from another window
-  window.opener   = opener;
+  window.opener   = opener && opener._globalProxy;
   // Frames provide their own parent reference
   window._parent  = (parent || window);
   window._top     = (parent || window).top;
@@ -274,15 +277,15 @@ function setupWindow(window, args) {
     enumerable: true
   });
 
-  // Destroy all the history (and all its windows), frames, and Contextify
+  // Used by window.close() and also from history.destroy/replace/etc
   // global.
   window._destroy = function() {
     // We call history.destroy which calls destroy on all windows, so need to
     // avoid infinite loop.
     if (closed)
       return;
-
     closed = true;
+
     // Close all frames first
     for (let i = 0; i < window._length; ++i)
       if (window[i])
@@ -302,7 +305,6 @@ function setupWindow(window, args) {
     if (browser._windowInScope === opener || browser._windowInScope === null) {
       // Only parent window gets the close event
       browser.emit('closed', window);
-      window._destroy();
       history.destroy(); // do this last to prevent infinite loop
     } else
       browser.log('Scripts may not close windows that were not opened by script');
@@ -348,15 +350,15 @@ function setupWindow(window, args) {
   /// Actual history, see location getter/setter
   window._history = history;
 
+  // Read/write access to window.location
   Object.defineProperty(window, 'location', {
     get() {
-      return document.location
+      return document.location;
     },
     set(url) {
       history.assign(url);
     }
   });
-
 
 
   // Form submission uses this
@@ -410,7 +412,7 @@ Window.prototype.postMessage = function(data) {
 
 // Change location
 DOM.Document.prototype.__defineSetter__('location', function(url) {
-  this.window.location = url;
+  this.defaultView.location = url;
 });
 
 
@@ -436,7 +438,7 @@ function createDocument(args) {
   if (browser.hasFeature('iframe', true))
     features.FetchExternalResources.push('iframe');
 
-  const window = new Window({
+  const window  = new Window({
     parsingMode:  'html',
     contentType:  'text/html',
     url:          args.url,
@@ -444,10 +446,6 @@ function createDocument(args) {
   });
   const document = window.document;
   browserFeatures.applyDocumentFeatures(document, features);
-  Object.defineProperty(document, 'window', {
-    value:      window,
-    enumerable: true
-  });
   setupWindow(window, args);
 
   // Give event handler chance to register listeners.
@@ -551,8 +549,8 @@ function buildRequest(args) {
 
 // Parse HTML response and setup document
 async function parseResponse({ browser, history, document, response }) {
-  const { window }  = document;
-  const done        = window._eventQueue.waitForCompletion();
+  const window = document.defaultView;
+  const done   = window._eventQueue.waitForCompletion();
 
   try {
     window._request   = response.request;
@@ -628,7 +626,7 @@ module.exports = function loadDocument(args) {
   assert(history && history.reload, 'Missing parameter history');
 
   const document = createDocument(Object.assign({ url }, args));
-  const window   = document.window;
+  const window   = document.defaultView;
 
   if (html) {
     window._eventQueue.enqueue(function() {

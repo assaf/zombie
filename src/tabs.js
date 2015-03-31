@@ -1,11 +1,22 @@
 // Tab management.
 
+const _             = require('lodash');
 const createHistory = require('./history');
 
 
 module.exports = function createTabs(browser) {
   const tabs = [];
   let current = null;
+
+  function indexOf(window) {
+    if (!window)
+      return -1;
+    return tabs.map(tab => tab._id).indexOf(window._id);
+  }
+
+  function sameWindow(a, b) {
+    return a && b && a._id === b._id;
+  }
 
   Object.defineProperties(tabs, {
 
@@ -14,11 +25,11 @@ module.exports = function createTabs(browser) {
       get() {
         return current;
       },
-      set(window) {
-        window = tabs.find(window) || window;
-        if (!~tabs.indexOf(window))
+      set(indexOrWindow) {
+        const window = tabs.find(indexOrWindow) || indexOrWindow;
+        if (indexOf(window) < 0)
           return;
-        if (window && window !== current) {
+        if (!sameWindow(current, window)) {
           if (current)
             browser.emit('inactive', current);
           current = window;
@@ -30,11 +41,12 @@ module.exports = function createTabs(browser) {
     // Dump list of all open tabs to stdout or output stream.
     dump: {
       value(output = process.stdout) {
-        if (tabs.length === 0)
+        if (tabs.length === 0) {
           output.write('No open tabs.\n');
-        else
-          for (let window of tabs)
-            output.write(`Window ${window.name || 'unnamed'} open to ${window.location.href}\n`);
+          return;
+        }
+        for (let tab of tabs)
+          output.write(`Window ${tab.name || 'unnamed'} open to ${tab.location.href}\n`);
       }
     },
 
@@ -82,12 +94,11 @@ module.exports = function createTabs(browser) {
         }
 
         function focus(window) {
-          if (window && window !== active) {
-            const index = tabs.indexOf(active);
-            if (~index)
+          if (!sameWindow(window, active)) {
+            const index = indexOf(active);
+            if (index >= 0)
               tabs[index] = window;
-            if (current === active)
-              tabs.current = window;
+            tabs.current = window;
             active = window;
           }
           browser._eventLoop.setActiveWindow(window);
@@ -99,7 +110,7 @@ module.exports = function createTabs(browser) {
     // Index of currently selected tab.
     index: {
       get() {
-        return this.indexOf(current);
+        return indexOf(current);
       }
     },
 
@@ -109,10 +120,7 @@ module.exports = function createTabs(browser) {
       value(name) {
         if (tabs.propertyIsEnumerable(name))
           return tabs[name];
-        for (let window of this)
-          if (window.name === name)
-            return window;
-        return null;
+        return _.find(this, { name });
       }
     },
 
@@ -125,7 +133,7 @@ module.exports = function createTabs(browser) {
           window = current;
         else
           window = this.find(window) || window;
-        if (~this.indexOf(window))
+        if (indexOf(window) >= 0)
           window.close();
       }
     },
@@ -133,9 +141,8 @@ module.exports = function createTabs(browser) {
     // Closes all open tabs/windows.
     closeAll: {
       value() {
-        const windows = this.slice(0);
-        for (let window of windows)
-          window.close();
+        for (let tab of this.slice(0))
+          tab.close();
       }
     }
 
@@ -144,14 +151,16 @@ module.exports = function createTabs(browser) {
   // We're notified when window is closed (by any means), and take that tab out
   // of circulation.
   browser.on('closed', function(window) {
-    const index = tabs.indexOf(window);
-    if (~index) {
+    const index = indexOf(window);
+    if (index >= 0) {
       browser.emit('inactive', window);
+
       tabs.splice(index, 1);
       if (tabs.propertyIsEnumerable(window.name))
         delete tabs[window.name];
+
       // If we closed the currently open tab, need to select another window.
-      if (window === current) {
+      if (sameWindow(window, current)) {
         // Don't emit inactive event for closed window.
         if (index > 0)
           current = tabs[index - 1];

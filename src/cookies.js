@@ -112,7 +112,7 @@ module.exports = class Cookies extends Array {
 
 // Returns name=value pairs
 DOM.HTMLDocument.prototype.__defineGetter__('cookie', function() {
-  const { cookies } = this.window.browser;
+  const { cookies } = this.defaultView.browser;
   return cookies
     .select({ domain: this.location.hostname, path: this.location.pathname })
     .filter(cookie => !cookie.httpOnly)
@@ -123,6 +123,6 @@ DOM.HTMLDocument.prototype.__defineGetter__('cookie', function() {
 // Accepts serialized form (same as Set-Cookie header) and updates cookie from
 // new values.
 DOM.HTMLDocument.prototype.__defineSetter__('cookie', function(cookie) {
-  const { cookies } = this.window.browser;
+  const { cookies } = this.defaultView.browser;
   cookies.update(cookie.toString(), this.location.hostname, this.location.pathname);
 });

@@ -14,9 +14,9 @@ DOM.languageProcessors.javascript = function(element, buffer, filename) {
     return;
 
   // Surpress JavaScript validation and execution
-  const document    = element.ownerDocument;
-  const { window }  = document;
-  const browser     = window.top.browser;
+  const document = element.ownerDocument;
+  const window   = document.defaultView;
+  const browser  = window.top.browser;
   if (browser && !browser.runScripts)
     return;
 

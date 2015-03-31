@@ -25,7 +25,7 @@ describe('Tabs', function() {
   });
 
 
-  it('should have on tab for each open window', function() {
+  it('should have one tab for each open window', function() {
     assert.equal(browser.tabs.length, 5);
   });
 
@@ -73,7 +73,7 @@ describe('Tabs', function() {
   });
 
 
-  describe('selecting new tab', function() {
+  describe('selecting new tab (1)', function() {
     before(function(done) {
       browser.tabs.closeAll();
       browser.open({ name: 'first' });
@@ -91,7 +91,7 @@ describe('Tabs', function() {
   });
 
 
-  describe('selecting new tab', function() {
+  describe('selecting new tab (2)', function() {
     before(function(done) {
       browser.tabs.closeAll();
       browser.open({ name: 'first'} );
@@ -130,9 +130,9 @@ describe('Tabs', function() {
     describe('and different URL', function() {
       let third;
 
-      before(function(done) {
+      before(async function() {
         third = browser.tabs.open({ name: 'third', url: 'http://example.com/tabs' });
-        browser.wait(done);
+        await browser.wait();
       });
 
       it('should reuse open tab', function() {

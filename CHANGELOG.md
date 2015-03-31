@@ -28,6 +28,8 @@ https://github.com/assaf/zombie/blob/fetch-api/src/resources.js#L123-L137
 
 FIXES empty `cookie` and `referer` header no longer sent #881
 
+REMOVED `document.window`, use `document.defaultView` instead
+
  694 passing (23s)
   12 pending
 
