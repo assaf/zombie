@@ -92,8 +92,8 @@ class Browser extends EventEmitter {
       .on('response', (request, response)=> {
         this._debug('%s %s => %s', request.method, response.url, response.status);
       })
-      .on('redirect', (request, response, redirectRequest)=> {
-        this._debug('%s %s => %s %s', request.method, request.url, response.status, redirectRequest.url);
+      .on('redirect', (request, response)=> {
+        this._debug('%s %s => %s %s', request.method, request.url, response.status, response.headers.get('Location'));
       })
       .on('loaded', (document)=> {
         this._debug('Loaded document %s', document.location.href);
@@ -1140,14 +1140,20 @@ class Browser extends EventEmitter {
     this._debug = Browser._enableDebugging();
   }
 
-  // Get Responce associated with currently open window
+  // Get Request associated with currently open window
+  get request() {
+    return this.window && this.window._request || null;
+  }
+
+  // Get Response associated with currently open window
   get response() {
-    return (this.window && this.window._response);
+    return this.window && this.window._response || null;
   }
 
   // Get the status code of the response associated with this window
   get status() {
-    return this.response && this.response.status || 0;
+    const { response } = this;
+    return response ? response.status : 0;
   }
 
   get statusCode() {
@@ -1162,12 +1168,14 @@ class Browser extends EventEmitter {
 
   // Returns true if the last response followed a redirect
   get redirected() {
-    return this.response ? this.response.redirects > 0 : null;
+    const { request } = this;
+    return request ? (request._redirectCount > 0) : false;
   }
 
   // Get the source HTML for the last response
   get source() {
-    return this.response && this.response.body;
+    const { response } = this;
+    return response ? response.body : null;
   }
 
 

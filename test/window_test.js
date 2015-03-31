@@ -255,8 +255,16 @@ describe('Window', function() {
       `);
       brains.get('/windows/refresh', function(req, res) {
         // Don't refresh page more than once
-        const refresh = !req.headers.referer.endsWith('/windows/refresh');
-        if (refresh) {
+        const referrer  = req.headers.referer;
+        const refreshed = referrer && referrer.endsWith('/windows/refresh');
+        if (refreshed)
+          res.send(`
+            <html>
+              <head><title>Done</title></head>
+              <body></body>
+            </html>
+          `);
+        else {
           const value = req.query.url ? `1; url=${req.query.url}` : '1'; // Refresh to URL or reload self
           res.send(`
             <html>
@@ -269,13 +277,7 @@ describe('Window', function() {
               </body>
             </html>
           `);
-        } else
-          res.send(`
-            <html>
-              <head><title>Done</title></head>
-              <body></body>
-            </html>
-          `);
+        }
       });
     });
 

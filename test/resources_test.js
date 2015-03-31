@@ -178,35 +178,9 @@ describe('Resources', function() {
   });
 
 
-  describe('request options', function() {
-    const requests = [];
-
-    before(function() {
-      brains.redirect('/resources/three-oh-one', '/resources/resource', 301);
-
-      // Capture all requests that flow through the pipeline.
-      browser.on('request', function(request) {
-        requests.push(request);
-      });
-      browser.on('redirect', function(request, response, newRequest) {
-        requests.push(newRequest);
-      });
-      return browser.visit('/resources/three-oh-one');
-    });
-
-    it('should include strictSSL in options for all requests', function() {
-      // There will be at least the initial request and a second request to
-      // follow the redirect.
-      assert(requests.length >= 2);
-      for (let request of requests)
-        assert.strictEqual(request.strictSSL, browser.strictSSL);
-    });
-  });
-
-
   describe('addHandler request', function() {
     before(function() {
-      browser.resources.addHandler(function(browser, request) {
+      browser.resources.addHandler(function(b, request) {
         return new Fetch.Response('empty', { status: 204 });
       });
       return browser.visit('/resources/resource');

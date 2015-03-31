@@ -65,13 +65,13 @@ describe('Browser events', function() {
       brains.static('/browser-events/redirected', '<html>Very well then</html>');
 
       browser.on('request', function(request) {
-        events.resource.push([request]);
+        events.resource.push([request.url]);
       });
-      browser.on('redirect', function(request, response, newRequest) {
-        events.resource.push([response, newRequest]);
+      browser.on('redirect', function(request, response) {
+        events.resource.push([request.url, response.url, response.status]);
       });
       browser.on('response', function(request, response) {
-        events.resource.push([request, response]);
+        events.resource.push([request.url, response.url, response.status]);
       });
 
       return browser.visit('/browser-events/resource');
@@ -79,20 +79,21 @@ describe('Browser events', function() {
 
     it('should receive resource requests', function() {
       const [request] = events.resource[0];
-      assert.equal(request.url, 'http://example.com/browser-events/resource');
+      assert.equal(request, 'http://example.com/browser-events/resource');
     });
 
     it('should receive resource redirects', function() {
-      const [response, newRequest] = events.resource[1];
-      assert.equal(response.status, 302);
-      assert.equal(newRequest.url, 'http://example.com/browser-events/redirected');
+      const [request, response, status] = events.resource[1];
+      assert.equal(request, 'http://example.com/browser-events/resource');
+      assert.equal(response, 'http://example.com/browser-events/resource');
+      assert.equal(status, 302);
     });
 
     it('should receive resource responses', function() {
-      const [request, response] = events.resource[2];
-      assert.equal(request.url, 'http://example.com/browser-events/resource');
-      assert.equal(response.status, 200);
-      assert.equal(response.redirects, 1);
+      const [request, response, status] = events.resource[2];
+      assert.equal(request, 'http://example.com/browser-events/redirected');
+      assert.equal(response, 'http://example.com/browser-events/redirected');
+      assert.equal(status, 200);
     });
 
   });

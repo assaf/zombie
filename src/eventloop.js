@@ -223,25 +223,15 @@ class EventQueue {
 
   // Makes an HTTP request.
   //
-  // Parameters are:
-  // method   - Method (defaults to GET)
-  // url      - URL (string)
-  // options  - See below
-  // callback - Called with error, response
-  //
-  // Options:
-  //   headers   - Name/value pairs of headers to send in request
-  //   params    - Parameters to pass in query string or document body
-  //   body      - Request document body
-  //   timeout   - Request timeout in milliseconds (0 or null for no timeout)
-  //
-  // Calls callback with response error or null and response object.
-  http(method, url, options, callback) {
+  // request  - Request object
+  // target   - Target element / document
+  // callback - Called with Response object
+  http(request, target, callback) {
     assert(this.queue, 'This browser has been destroyed');
 
     const done = this.waitForCompletion();
     this.browser.resources
-      .request(method, url, options)
+      .request(request, target)
       .then((response)=> {
         // We can't cancel pending requests, but we can ignore the response if
         // window already closed

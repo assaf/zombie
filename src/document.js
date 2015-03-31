@@ -3,14 +3,16 @@
 const assert                  = require('assert');
 const { browserAugmentation } = require('jsdom/lib/jsdom/browser');
 const browserFeatures         = require('jsdom/lib/jsdom/browser/documentfeatures');
-const Window                  = require('jsdom/lib/jsdom/browser/Window');
+const Fetch                   = require('./fetch');
 const DOM                     = require('./dom');
 const EventSource             = require('eventsource');
 const iconv                   = require('iconv-lite');
-const WebSocket               = require('ws');
-const XMLHttpRequest          = require('./xhr');
+const QS                      = require('querystring');
 const URL                     = require('url');
 const Utils                   = require('jsdom/lib/jsdom/utils');
+const WebSocket               = require('ws');
+const Window                  = require('jsdom/lib/jsdom/browser/Window');
+const XMLHttpRequest          = require('./xhr');
 
 
 // File access, not implemented yet
@@ -449,8 +451,7 @@ function createDocument(args) {
 }
 
 
-
-
+// Get refresh URL from <meta> tag
 function getMetaRefreshURL(document) {
   const refresh = document.querySelector('meta[http-equiv="refresh"]');
   if (refresh) {
@@ -470,9 +471,12 @@ function getMetaRefreshURL(document) {
 // Find the charset= value of the meta tag
 const MATCH_CHARSET = /<meta(?!\s*(?:name|value)\s*=)[^>]*?charset\s*=[\s"']*([^\s"'\/>]*)/i;
 
+// Extract HTML from response with the proper encoding:
+// - If content type header indicates charset use that
+// - Otherwise, look for <meta> tag with charset in body
+// - Otherwise, browsers default to windows-1252 encoding
 function getHTMLFromResponseBody(buffer, contentType) {
   const [mimeType, ...typeOptions]  = contentType.split(/;\s*/);
-  const subtype                     = contentType.split(/\//, 2)[1];
 
   // Pick charset from content type
   if (mimeType)
@@ -490,6 +494,50 @@ function getHTMLFromResponseBody(buffer, contentType) {
     return iconv.decode(buffer, charsetInMetaTag[1]);
   else
     return iconv.decode(buffer, 'windows-1252');
+}
+
+
+// Builds and returns a new Request, adding form parameters to URL (GET) or
+// request body (POST).
+function buildRequest({ method, url, referrer, headers, encoding, params }) {
+  headers = new Fetch.Headers(headers);
+
+  // HTTP header Referer, but Document property referrer
+  if (referrer && !headers.has('Referer'))
+    headers.set('Referer', referrer);
+  if (!headers.has('Accept'))
+    headers.set('Accept', 'text/html,*/*');
+
+  if (/^GET|HEAD|DELETE$/i.test(method)) {
+    if (params) {
+      // These methods use query string parameters instead
+      const uri = URL.parse(url, true);
+      Object.assign(uri.query, params);
+      url = URL.format(uri);
+    }
+    return new Fetch.Request(url, { method, headers });
+  }
+
+  const mimeType = (encoding || '').split(';')[0];
+  // Default mime type, but can also be specified in form encoding
+  if (mimeType === '' || mimeType === 'application/x-www-form-urlencoded') {
+    const urlEncoded = QS.stringify(params || {});
+    headers.set('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
+    return new Fetch.Request(url, { method, headers, body: urlEncoded });
+  }
+
+  if (mimeType === 'multipart/form-data') {
+    const form = new Fetch.FormData();
+    if (params)
+      Object.keys(params).forEach((name)=> {
+        params[name].forEach((value)=> {
+          form.append(name, value);
+        });
+      });
+    return new Fetch.Request(url, { method, headers, body: form });
+  }
+
+  throw new TypeError(`Unsupported content type ${mimeType}`);
 }
 
 
@@ -521,7 +569,7 @@ module.exports = function loadDocument(args) {
     const site  = /^(https?:|file:)/i.test(browser.site) ? browser.site : `http://${browser.site}`;
     url   = Utils.resolveHref(site, URL.format(url));
   }
-  url     = url || 'about:blank';
+  url = url || 'about:blank';
 
   const document = createDocument(Object.assign({ url }, args));
   const window   = document.parentWindow;
@@ -559,19 +607,13 @@ module.exports = function loadDocument(args) {
     return document;
   }
 
-  const method    = (args.method || 'GET').toUpperCase();
-  // Proceeed to load resource ...
-  const headers   = args.headers || {};
-  // HTTP header Referer, but Document property referrer
-  headers.referer = headers.referer || args.referrer || browser.referrer || browser.referer || history.url || '';
-  // Tell the browser we're looking for an HTML document
-  headers.accept  = headers.accept || 'text/html,*/*';
-  // Forms require content type
-  if (method === 'POST')
-    headers['content-type'] = args.encoding || 'application/x-www-form-urlencoded';
+  const referrer  = args.referrer || browser.referrer || browser.referer || history.url;
+  const request   = buildRequest({ method: args.method, url, referrer, headers: args.headers, params: args.params, encoding: args.encoding });
+  window._request = request;
 
-  window._eventQueue.http(method, url, { headers, params: args.params, target: document }, async (response)=> {
+  window._eventQueue.http(request, document, async (response)=> {
 
+    window._response = response;
     if (response.type === 'error') {
       document.write(`<html><body>Network Error</body></html>`);
       document.close();
@@ -579,11 +621,9 @@ module.exports = function loadDocument(args) {
       return;
     }
 
-    history.updateLocation(window, response._url);
-    window._response = response;
-
     const done = window._eventQueue.waitForCompletion();
     try {
+      history.updateLocation(window, response._url);
       const buffer      = await response._consume();
       const contentType = response.headers.get('Content-Type') || '';
       const html        = getHTMLFromResponseBody(buffer, contentType);
@@ -620,7 +660,7 @@ module.exports = function loadDocument(args) {
           // This results in a new window getting loaded
           const newWindow = history.current.window;
           newWindow.addEventListener('load', function() {
-            newWindow._response.redirects++;
+            ++newWindow._request._redirectCount;
           });
         });
       });

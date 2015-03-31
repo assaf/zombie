@@ -29,15 +29,17 @@ class XMLHttpRequest extends DOM.EventTarget {
 
   // Aborts the request if it has already been sent.
   abort() {
-    // Tell any pending request it has been aborted.
     const request = this._pending;
-    if (this.readyState === XMLHttpRequest.UNSENT || (this.readyState === XMLHttpRequest.OPENED && !request.sent)) {
+    const sent    = !!request;
+    if (this.readyState === XMLHttpRequest.UNSENT || (this.readyState === XMLHttpRequest.OPENED && !sent)) {
       this.readyState = XMLHttpRequest.UNSENT;
       return;
     }
-
     // Tell any pending request it has been aborted.
     request.aborted = true;
+    this._response  = null;
+    this._error     = null;
+    this._pending   = null;
   }
 
 
@@ -53,10 +55,10 @@ class XMLHttpRequest extends DOM.EventTarget {
     this.abort();
 
     // Check supported HTTP method
-    method = method.toUpperCase();
-    if (/^(CONNECT|TRACE|TRACK)$/.test(method))
+    this._method = method.toUpperCase();
+    if (/^(CONNECT|TRACE|TRACK)$/.test(this._method))
       throw new DOM.DOMException(DOM.SECURITY_ERR, 'Unsupported HTTP method');
-    if (!/^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(method))
+    if (!/^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(this._method))
       throw new DOM.DOMException(DOM.SYNTAX_ERR, 'Unsupported HTTP method');
 
     const headers = new Fetch.Headers();
@@ -81,13 +83,9 @@ class XMLHttpRequest extends DOM.EventTarget {
       url.auth = `${user}:${password}`;
     // Used for logging requests
     this._url       = URL.format(url);
+    this._headers   = headers;
 
     // Reset response status
-    this._response  = null;
-    this._error     = null;
-
-    const request   = { method, headers, url: URL.format(url) };
-    this._pending   = request;
     this._stateChanged(XMLHttpRequest.OPENED);
   }
 
@@ -97,8 +95,7 @@ class XMLHttpRequest extends DOM.EventTarget {
   setRequestHeader(header, value) {
     if (this.readyState !== XMLHttpRequest.OPENED)
       throw new DOM.DOMException(DOM.INVALID_STATE_ERR,  'Invalid state');
-    const request = this._pending;
-    request.headers.set(header, value);
+    this._headers.set(header, value);
   }
 
 
@@ -110,18 +107,19 @@ class XMLHttpRequest extends DOM.EventTarget {
     if (this.readyState !== XMLHttpRequest.OPENED)
       throw new DOM.DOMException(DOM.INVALID_STATE_ERR,  'Invalid state');
 
-    const request = this._pending;
+    const request = new Fetch.Request(this._url, {
+      method:   this._method,
+      headers:  this._headers,
+      body:     data
+    });
+    this._pending = request;
     this._fire('loadstart');
 
-    request.headers.set('Content-Type', request.headers.get('Content-Type') || 'text/plain');
-    // Make the actual request
-    request.body    = data;
-
     const timeout = setTimeout(function() {
-      request.timeout = true;
+      request.timedOut = true;
     }, this.timeout || ms('2m'));
 
-    this._window._eventQueue.http(request.method, request.url, request, (response)=> {
+    this._window._eventQueue.http(request, this, (response)=> {
       if (this._pending === request)
         this._pending = null;
       clearTimeout(timeout);

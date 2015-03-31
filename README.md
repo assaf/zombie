@@ -827,15 +827,9 @@ This event is emitted when the document is still empty, before parsing any HTML.
 
 Emitted when a new window is opened.
 
-#### redirect (request, response, redirectRequest)
+#### redirect (request, response)
 
 Emitted when following a redirect.
-
-The first argument is the request, the second argument is the response that
-caused the redirect, and the third argument is the new request to follow the
-redirect.  See [Resources](#resources) for more details.
-
-The URL of the new resource to retrieve is given by `response.url`.
 
 #### request (request)
 
@@ -917,16 +911,8 @@ Each resource provides four properties:
 - `target`    - The target element or document (when loading HTML page, script,
   etc)
 
-The request object consists of:
-
-- `method`      - HTTP method, e.g. "GET"
-- `url`         - The requested URL
-- `headers`     - All request headers
-- `body`        - The request body can be `Buffer` or string; only applies to
-  POST and PUT methods
-- `multipart`  - Used instead of a body to support file upload
-- `time`        - Timestamp when request was made
-- `timeout`     - Request timeout (0 for no timeout)
+The request object is based on the [Fetch API Request
+object](https://fetch.spec.whatwg.org/#request-class).
 
 The response object is based on the [Fetch API Response
 object](https://fetch.spec.whatwg.org/#response-class).  Note that the fetch API

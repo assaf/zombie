@@ -17,7 +17,8 @@ server.use(bodyParser.json());
 server.use(bodyParser.text());
 server.use(cookieParser());
 server.use(function(req, res, next) {
-  if (req.method === 'POST' && req.headers['content-type'].search('multipart/') === 0) {
+  const contentType = req.headers['content-type'];
+  if (req.method === 'POST' && contentType && contentType.search('multipart/') === 0) {
 
     const form = new Multiparty.Form();
     form.parse(req, function(error, fields, files) {

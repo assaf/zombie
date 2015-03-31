@@ -2,6 +2,7 @@
 
 
 const DOM   = require('./index');
+const Fetch = require('../fetch');
 const Utils = require('jsdom/lib/jsdom/utils');
 const URL   = require('url');
 
@@ -192,7 +193,8 @@ DOM.resourceLoader.load = function(element, href, callback) {
     // This guarantees that all scripts are executed in order, must add to the
     // JSDOM queue before we add to the Zombie event queue.
     const enqueued = this.enqueue(element, callback && callback.bind(element), url);
-    window._eventQueue.http('GET', url, { target: element }, (response)=> {
+    const request = new Fetch.Request(url);
+    window._eventQueue.http(request, element, (response)=> {
       // Since this is used by resourceLoader that doesn't check the response,
       // we're responsible to turn anything other than 2xx/3xx into an error
       if (response.type === 'error')
