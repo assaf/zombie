@@ -44,7 +44,7 @@ module.exports = class Assert {
 
   // Assert that the last page load returned the expected status code.
   status(code, message) {
-    assert.equal(this.browser.statusCode, code, message);
+    assert.equal(this.browser.status, code, message);
   }
 
   // Assert that the last page load returned status code 200.

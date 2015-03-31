@@ -1,3 +1,29 @@
+## Version 3.2.0 2015-04-01
+
+ADDED preliminary support for the Fetch API (https://fetch.spec.whatwg.org/)
+
+CHANGED the resources implementation to use the Fetch API.  Pay attention to the
+following breaking changes:
+
+* To retrieve a resource, call `browser.resources.fetch`; the `request/get/post`
+  methods are gone
+* When checking on resources, the request and response objects are based on
+  `Request`, `Response` and `Headers` as defined by the Fetch API
+* In particular, Fetch (as well as XHR) has a `status` flag, whereas Node API
+  has a `statusCode` in its HTTP API; Zombie is transitioning to use `status`
+  everywhere to better mimic browser
+* The pipeline implementation has changed as well: handlers are now called with
+  reference to browser, use Fetch `Request` and `Response` objects, and can
+  return an object or a promise, but no longer use callbacks
+
+This actually makes the code simpler and easier to read, no seriously, try some
+`async/await` for yourself. For example:
+
+https://github.com/assaf/zombie/blob/fetch-api/src/resources.js#L123-L137
+
+FIXES empty `cookie` and `referer` header no longer sent #881
+
+
 ## Version 3.1.1 2015-03-26
 
 FIXED file URLs not resolving correctly #886 (Jeffrey Jagoda)
