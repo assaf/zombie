@@ -179,6 +179,7 @@ class XMLHttpRequest extends DOM.EventTarget {
       this._stateChanged(XMLHttpRequest.HEADERS_RECEIVED);
       this._stateChanged(XMLHttpRequest.LOADING);
 
+      const done = this._window._eventQueue.waitForCompletion();
       response.text().then(text => {
         this.responseText = text;
         this._stateChanged(XMLHttpRequest.DONE);
@@ -186,6 +187,7 @@ class XMLHttpRequest extends DOM.EventTarget {
         this._fire('progress');
         this._fire('load');
         this._fire('loadend');
+        done();
       });
 
 
