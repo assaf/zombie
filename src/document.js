@@ -114,6 +114,7 @@ function setupWindow(window, args) {
   emptySet.namedItem = ()=> undefined;
   window.navigator = {
     appName:        'Zombie',
+    appVersion:     browser.constructor.VERSION,
     cookieEnabled:  true,
     javaEnabled:    ()=> false,
     language:       browser.language,

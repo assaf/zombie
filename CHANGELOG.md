@@ -26,7 +26,9 @@ This actually makes the code simpler and easier to read, no seriously, try some
 
 https://github.com/assaf/zombie/blob/fetch-api/src/resources.js#L123-L137
 
-FIXES empty `cookie` and `referer` header no longer sent #881
+FIXED empty `cookie` and `referer` header no longer sent #881
+
+FIXED added `navigator.appVersion` #885
 
 REMOVED `document.window`, use `document.defaultView` instead
 
