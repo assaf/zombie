@@ -302,7 +302,7 @@ class Request extends Body {
   constructor(input, init) {
     let bodyInit = null;
 
-    if (input instanceof Request && input.body) {
+    if (input instanceof Request && input._stream) {
       if (input._bodyUsed)
         throw new TypeError('Request body already used');
       bodyInit        = input;

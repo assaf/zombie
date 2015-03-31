@@ -61,7 +61,7 @@ describe('Resources', function() {
     });
 
     it('should uncompress deflated response with transfer-encoding', async function() {
-      const response  = await browser.resources.get('http://example.com/resources/deflate');
+      const response  = await browser.resources.fetch('http://example.com/resources/deflate');
       const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, body);
@@ -81,7 +81,7 @@ describe('Resources', function() {
     });
 
     it('should uncompress deflated response with content-encoding', async function() {
-      const response  = await browser.resources.get('http://example.com/resources/deflate');
+      const response  = await browser.resources.fetch('http://example.com/resources/deflate');
       const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, body);
@@ -101,7 +101,7 @@ describe('Resources', function() {
     });
 
     it('should uncompress gzipped response with transfer-encoding', async function() {
-      const response  = await browser.resources.get('http://example.com/resources/gzip');
+      const response  = await browser.resources.fetch('http://example.com/resources/gzip');
       const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, body);
@@ -121,7 +121,7 @@ describe('Resources', function() {
     });
 
     it('should uncompress gzipped response with content-encoding', async function() {
-      const response  = await browser.resources.get('http://example.com/resources/gzip');
+      const response  = await browser.resources.fetch('http://example.com/resources/gzip');
       const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, body);
@@ -223,6 +223,9 @@ describe('Resources', function() {
 
     it('should follow the redirect', function() {
       browser.assert.redirected();
+    });
+
+    it('should retrieve second page', function() {
       browser.assert.status(200);
       browser.assert.text('title', 'Awesome');
     });

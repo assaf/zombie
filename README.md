@@ -908,8 +908,6 @@ Each resource provides four properties:
 - `request`   - The request object
 - `response`  - The resource object (if received)
 - `error`     - The error received instead of response
-- `target`    - The target element or document (when loading HTML page, script,
-  etc)
 
 The request object is based on the [Fetch API Request
 object](https://fetch.spec.whatwg.org/#request-class).
@@ -975,89 +973,39 @@ If you need to retrieve or operate on resources directly, you can do that as
 well, using all the same features available to Zombie, including cookies,
 authentication, etc.
 
-#### resources.addHandler(handler)
+#### resources.fetch(input, init)
 
-Adds a handler to the pipeline of this browser instance.  To add a handler to the
-pipeline of every browser instance, use `Browser.Resources.addHandler`.
+Retrieves a resource and returns a promise.  Based on the [Fetch
+API](https://fetch.spec.whatwg.org/#fetch-method).
+
+For example:
+
+```js
+browser.resources
+  .fetch('http://some.service')
+  .then(function(response) {
+    console.log('Status:', response.status);
+    return response.text();
+  })
+  .then(function(text) {
+    console.log('Body:', text);
+  });
+
+browser.resources.fetch('http://some.service', { method: 'DELETE' });
+```
 
 #### resources.dump(output?)
 
 Dumps the resources list to the output stream (defaults to standard output
 stream).
 
+#### resources.addHandler(handler)
+
+Adds a handler to the pipeline of this browser instance.  To add a handler to the
+pipeline of every browser instance, use `Browser.Resources.addHandler`.
+
 #### resources.pipeline
 
 Returns the current pipeline (array of handlers) for this browser instance.
 
-#### resources.get(url, callback)
-
-Retrieves a resource with the given URL and passes response to the callback.
-
-For example:
-
-```js
-browser.resources.get('http://some.service', function(error, response) {
-  console.log(response.statusText);
-  console.log(response.body);
-});
-```
-
-#### resources.post(url, options, callback)
-
-Posts a document to the resource with the given URL and passes the response to
-the callback.
-
-Supported options are:
-
-- `body`- Request document body
-- `headers` - Headers to include in the request
-- `params` - Parameters to pass in the document body
-- `timeout` - Request timeout in milliseconds (0 or `null` for no timeout)
-
-For example:
-
-```js
-const params  = {
-  'count': 5
-};
-browser.resources.post(
-  'http://some.service',
-   { params: params },
-   function(error, response) {
-  . . .
-});
-
-const headers = {
-  'Content-Type': 'application/x-www-form-urlencoded'
-};
-browser.resources.post(
-  'http://some.service',
-   { headers: headers, body: 'count=5' },
-   function(error, response) {
-   . . .
-});
-```
-
-
-#### resources.request(method, url, options, callback)
-
-Makes an HTTP request to the resource and passes the response to the callback.
-
-Supported options are:
-
-- `body`- Request document body
-- `headers` - Headers to include in the request
-- `params` - Parameters to pass in the query string (`GET`, `DELETE`) or
-  document body (`POST`, `PUT`)
-- `timeout` - Request timeout in milliseconds (0 or `null` for no timeout)
-
-For example:
-
-```js
-browser.resources.request('DELETE',
-                          'http://some.service',
-                          function(error) {
-  . . .
-});
-```
 

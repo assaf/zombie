@@ -609,18 +609,18 @@ module.exports = function loadDocument(args) {
 
   const referrer  = args.referrer || browser.referrer || browser.referer || history.url;
   const request   = buildRequest({ method: args.method, url, referrer, headers: args.headers, params: args.params, encoding: args.encoding });
-  window._request = request;
 
-  window._eventQueue.http(request, document, async (response)=> {
+  window._eventQueue.http(request, async (error, response)=> {
 
-    window._response = response;
-    if (response.type === 'error') {
+    if (error) {
       document.write(`<html><body>Network Error</body></html>`);
       document.close();
       browser.emit('error', new DOM.DOMException(DOM.NETWORK_ERR));
       return;
     }
 
+    window._request   = response.request;
+    window._response  = response;
     const done = window._eventQueue.waitForCompletion();
     try {
       history.updateLocation(window, response._url);

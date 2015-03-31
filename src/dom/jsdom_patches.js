@@ -194,10 +194,10 @@ DOM.resourceLoader.load = function(element, href, callback) {
     // JSDOM queue before we add to the Zombie event queue.
     const enqueued = this.enqueue(element, callback && callback.bind(element), url);
     const request = new Fetch.Request(url);
-    window._eventQueue.http(request, element, (response)=> {
+    window._eventQueue.http(request, (error, response)=> {
       // Since this is used by resourceLoader that doesn't check the response,
       // we're responsible to turn anything other than 2xx/3xx into an error
-      if (response.type === 'error')
+      if (error)
         enqueued(new Error('Network error'));
       else if (response.status >= 400)
         enqueued(new Error(`Server returned status code ${response.status} from ${url}`));

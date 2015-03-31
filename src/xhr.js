@@ -115,14 +115,27 @@ class XMLHttpRequest extends DOM.EventTarget {
     this._pending = request;
     this._fire('loadstart');
 
-    const timeout = setTimeout(function() {
-      request.timedOut = true;
-    }, this.timeout || ms('2m'));
-
-    this._window._eventQueue.http(request, this, (response)=> {
+    const timeout = setTimeout(()=> {
       if (this._pending === request)
         this._pending = null;
+      request.timedOut = true;
+
+      this._stateChanged(XMLHttpRequest.DONE);
+      this._fire('progress');
+      this._error = new DOM.DOMException(DOM.TIMEOUT_ERR, 'The request timed out');
+      this._fire('timeout', this._error);
+      this._fire('loadend');
+      this._browser.errors.push(this._error);
+    }, this.timeout || ms('2m'));
+
+    this._window._eventQueue.http(request, (error, response)=> {
+      // Request already timed-out, nothing to do
+      if (request.timedOut)
+        return;
       clearTimeout(timeout);
+
+      if (this._pending === request)
+        this._pending = null;
 
       // Request aborted
       if (request.aborted) {
@@ -133,17 +146,8 @@ class XMLHttpRequest extends DOM.EventTarget {
         return;
       }
 
-      if (request.timedOut) {
-        this._stateChanged(XMLHttpRequest.DONE);
-        this._fire('progress');
-        this._error = new DOM.DOMException(DOM.TIMEOUT_ERR, 'The request timed out');
-        this._fire('timeout', this._error);
-        this._fire('loadend');
-        this._browser.errors.push(this._error);
-        return;
-      }
-
-      if (response.type === 'error') {
+      // If not aborted, then we look at networking error
+      if (error) {
         this._stateChanged(XMLHttpRequest.DONE);
         this._fire('progress');
         this._error = new DOM.DOMException(DOM.NETWORK_ERR);

@@ -9,7 +9,6 @@ const Fetch       = require('./fetch');
 const { Headers } = require('./fetch');
 const { isArray } = require('util');
 const Path        = require('path');
-const QS          = require('querystring');
 const Request     = require('request');
 const URL         = require('url');
 const Utils       = require('jsdom/lib/jsdom/utils');
@@ -17,9 +16,8 @@ const Utils       = require('jsdom/lib/jsdom/utils');
 
 class Resource {
 
-  constructor({ request, target }) {
+  constructor({ request }) {
     this.request  = request;
-    this.target   = target;
     this.error    = null;
     this.response = null;
   }
@@ -29,21 +27,13 @@ class Resource {
   }
 
   dump(output) {
-    const { request, response, error, target } = this;
+    const { request, response, error } = this;
     // Write summary request/response header
     if (response) {
       const elapsed = response.time - request.time;
       output.write(`${request.method} ${this.url} - ${response.status} ${response.statusText} - ${elapsed}ms\n`);
     } else
       output.write(`${request.method} ${this.url}\n`);
-
-    // Tell us which element/document is loading this.
-    if (target instanceof DOM.Document)
-      output.write('  Loaded as HTML document\n');
-    else if (target && target.id)
-      output.write(`  Loading by element #${target.id}\n`);
-    else if (target)
-      output.write(`  Loading as ${target.tagName} element\n`);
 
     // If response, write out response headers and sample of document entity
     // If error, write out the error message
@@ -84,19 +74,9 @@ class Resources extends Array {
   }
 
 
-  // Make an HTTP request (also supports file: protocol).
-  //
-  // method    - Request method (GET, POST, etc)
-  // url       - Request URL
-  // options   - See below
-  //
-  // Options:
-  //   headers   - Name/value pairs of headers to send in request
-  //   params    - Parameters to pass in query string or document body
-  //   body      - Request document body
-  //   timeout   - Request timeout in milliseconds (0 or null for no timeout)
-  async request(request, target) {
-    const resource = new Resource({ request, target });
+  async fetch(input, init) {
+    const request   = new Fetch.Request(input, init);
+    const resource  = new Resource({ request });
     this.push(resource);
     this.browser.emit('request', request);
 
@@ -104,30 +84,20 @@ class Resources extends Array {
       const response = await this._runPipeline(request);
       if (response) {
         response.time     = Date.now();
+        response.request  = request;
         resource.response = response;
-      } else
+        this.browser.emit('response', request, response);
+        return response;
+      } else {
         resource.response = Fetch.Resource.error();
+        throw new TypeError('No response');
+      }
     } catch (error) {
-      console.error(error.stack)
       this.browser._debug('Resource error', error.stack);
       resource.error    = error;
       resource.response = Fetch.Response.error();
+      throw new TypeError(error.message);
     }
-    this.browser.emit('response', request, resource.response);
-    return resource.response;
-  }
-
-
-  // GET request.
-  async get(request) {
-    request = new Fetch.Request(request, { method: 'GET' });
-    return await this.request(request);
-  }
-
-  // POST request.
-  async post(request) {
-    request = new Fetch.Request(request, { method: 'POST' });
-    return await this.request(request);
   }
 
 

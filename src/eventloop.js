@@ -224,14 +224,15 @@ class EventQueue {
   // Makes an HTTP request.
   //
   // request  - Request object
-  // target   - Target element / document
-  // callback - Called with Response object
-  http(request, target, callback) {
+  // callback - Called with Response object to process the response
+  //
+  // Because the callback is added to the queue, we can't use promises
+  http(request, callback) {
     assert(this.queue, 'This browser has been destroyed');
 
     const done = this.waitForCompletion();
     this.browser.resources
-      .request(request, target)
+      .fetch(request)
       .then((response)=> {
         // We can't cancel pending requests, but we can ignore the response if
         // window already closed
@@ -239,10 +240,14 @@ class EventQueue {
           // This will get completion function to execute, e.g. to check a page
           // before meta tag refresh
           this.enqueue(()=> {
-            callback(response);
+            callback(null, response);
           });
-        done();
-      });
+      })
+      .catch((error)=> {
+        if (this.queue)
+          callback(error);
+      })
+      .then(done);
   }
 
   // Fire an error event.  Used by JSDOM patches.
