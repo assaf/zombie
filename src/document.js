@@ -499,26 +499,29 @@ function getHTMLFromResponseBody(buffer, contentType) {
 
 // Builds and returns a new Request, adding form parameters to URL (GET) or
 // request body (POST).
-function buildRequest({ method, url, referrer, headers, encoding, params }) {
-  headers = new Fetch.Headers(headers);
+function buildRequest(args) {
+  const { browser, method, params } = args;
+  const site  = /^(https?:|file:)/i.test(browser.site) ? browser.site : `http://${browser.site || 'locahost'}`;
+  const url   = Utils.resolveHref(site, URL.format(args.url));
+
+  const headers = new Fetch.Headers(args.headers);
 
   // HTTP header Referer, but Document property referrer
+  const referrer = args.referrer || browser.referrer || browser.referer || args.history.url;
   if (referrer && !headers.has('Referer'))
     headers.set('Referer', referrer);
   if (!headers.has('Accept'))
     headers.set('Accept', 'text/html,*/*');
 
   if (/^GET|HEAD|DELETE$/i.test(method)) {
-    if (params) {
+    const uri = URL.parse(url, true);
+    if (params)
       // These methods use query string parameters instead
-      const uri = URL.parse(url, true);
       Object.assign(uri.query, params);
-      url = URL.format(uri);
-    }
-    return new Fetch.Request(url, { method, headers });
+    return new Fetch.Request(URL.format(uri), { method, headers });
   }
 
-  const mimeType = (encoding || '').split(';')[0];
+  const mimeType = (args.encoding || '').split(';')[0];
   // Default mime type, but can also be specified in form encoding
   if (mimeType === '' || mimeType === 'application/x-www-form-urlencoded') {
     const urlEncoded = QS.stringify(params || {});
@@ -541,105 +544,28 @@ function buildRequest({ method, url, referrer, headers, encoding, params }) {
 }
 
 
-// Load/create a new document.
-//
-// Named arguments:
-// browser   - The browser (required)
-// history   - Window history (required)
-// url       - URL of document to open (defaults to "about:blank")
-// method    - HTTP method (defaults to "GET")
-// encoding  - Request content type (forms use this)
-// params    - Additional request parameters
-// html      - Create document with this content instead of loading from URL
-// name      - Window name
-// referrer  - HTTP referer header
-// parent    - Parent document (for frames)
-// opener    - Opening window (for window.open)
-// target    - Target window name (for form.submit)
-//
-// Returns a new document with a new window.  The document contents is loaded
-// asynchronously, and will trigger a loaded/error event.
-module.exports = function loadDocument(args) {
-  const { browser, history } = args;
-  assert(browser && browser.visit, 'Missing parameter browser');
-  assert(history && history.reload, 'Missing parameter history');
+// Parse HTML response and setup document
+async function parseResponse({ browser, history, document, response }) {
+  const window = document.parentWindow;
+  const done = window._eventQueue.waitForCompletion();
 
-  let { url } = args;
-  if (url && browser.site) {
-    const site  = /^(https?:|file:)/i.test(browser.site) ? browser.site : `http://${browser.site}`;
-    url   = Utils.resolveHref(site, URL.format(url));
-  }
-  url = url || 'about:blank';
-
-  const document = createDocument(Object.assign({ url }, args));
-  const window   = document.parentWindow;
-
-  if (args.html) {
-    window._eventQueue.enqueue(function() {
-      document._source = args.htnl;
-      document.write(args.html);
-      document.close();
-      browser.emit('loaded', document);
-    });
-    return document;
-  }
-
-  // Let's handle the specifics of each protocol
-  const { protocol, pathname } = URL.parse(url);
-  if (protocol === 'about:') {
-    window._eventQueue.enqueue(function() {
-      document.close();
-      browser.emit('loaded', document);
-    });
-    return document;
-  }
-
-  if (protocol === 'javascript:') {
-    window._eventQueue.enqueue(function() {
-      document.close();
-      try {
-        window._evaluate(pathname, 'javascript:');
-        browser.emit('loaded', document);
-      } catch (error) {
-        browser.emit('error', error);
-      }
-    });
-    return document;
-  }
-
-  const referrer  = args.referrer || browser.referrer || browser.referer || history.url;
-  const request   = buildRequest({ method: args.method, url, referrer, headers: args.headers, params: args.params, encoding: args.encoding });
-
-  window._eventQueue.http(request, async (error, response)=> {
-
-    if (error) {
-      document.write(`<html><body>Network Error</body></html>`);
-      document.close();
-      browser.emit('error', new DOM.DOMException(DOM.NETWORK_ERR));
-      return;
-    }
-
+  try {
     window._request   = response.request;
     window._response  = response;
-    const done = window._eventQueue.waitForCompletion();
-    try {
-      history.updateLocation(window, response._url);
-      const buffer      = await response._consume();
-      const contentType = response.headers.get('Content-Type') || '';
-      const html        = getHTMLFromResponseBody(buffer, contentType);
-      response.body     = html;
-      document.write(html);
-      document.close();
+    history.updateLocation(window, response._url);
 
-      if (response.status >= 400)
-        throw new Error(`Server returned status code ${response.status} from ${url}`);
+    const buffer      = await response._consume();
+    const contentType = response.headers.get('Content-Type') || '';
+    const html        = getHTMLFromResponseBody(buffer, contentType);
+    response.body     = html;
+    document.write(html);
+    document.close();
 
-    } catch (error) {
-      browser.emit('error', error);
-      return;
-    } finally {
-      done();
-    }
+    if (response.status >= 400)
+      throw new Error(`Server returned status code ${response.status} from ${response.url}`);
+    if (!document.documentElement)
+      throw new Error(`Could not parse document at ${response.url}`);
+    browser.emit('loaded', document);
 
     // Handle meta refresh.  Automatically reloads new location and counts
     // as a redirect.
@@ -664,11 +590,83 @@ module.exports = function loadDocument(args) {
           });
         });
       });
-    else if (document.documentElement)
+
+  } catch (error) {
+    browser.emit('error', error);
+  } finally {
+    done();
+  }
+}
+
+
+// Load/create a new document.
+//
+// Named arguments:
+// browser   - The browser (required)
+// history   - Window history (required)
+// url       - URL of document to open (defaults to "about:blank")
+// method    - HTTP method (defaults to "GET")
+// encoding  - Request content type (forms use this)
+// params    - Additional request parameters
+// html      - Create document with this content instead of loading from URL
+// name      - Window name
+// referrer  - HTTP referer header
+// parent    - Parent document (for frames)
+// opener    - Opening window (for window.open)
+// target    - Target window name (for form.submit)
+//
+// Returns a new document with a new window.  The document contents is loaded
+// asynchronously, and will trigger a loaded/error event.
+module.exports = function loadDocument(args) {
+  const { browser, history, html, url } = args;
+  assert(browser && browser.visit, 'Missing parameter browser');
+  assert(history && history.reload, 'Missing parameter history');
+
+  const document = createDocument(Object.assign({ url }, args));
+  const window   = document.parentWindow;
+
+  if (html) {
+    window._eventQueue.enqueue(function() {
+      document.write(html);
+      document.close();
       browser.emit('loaded', document);
-    else
-      browser.emit('error', new Error(`Could not parse document at ${response.url}`));
+    });
+    return document;
+  }
+
+  // Let's handle the specifics of each protocol
+  if (!url || url.startsWith('about:')) {
+    window._eventQueue.enqueue(function() {
+      document.close();
+      browser.emit('loaded', document);
+    });
+    return document;
+  }
+
+  if (url.startsWith('javascript:')) {
+    window._eventQueue.enqueue(function() {
+      document.close();
+      try {
+        window._evaluate(url.slice(11), 'javascript:');
+        browser.emit('loaded', document);
+      } catch (error) {
+        browser.emit('error', error);
+      }
+    });
+    return document;
+  }
+
+  const request = buildRequest(args);
+  window._eventQueue.http(request, async (error, response)=> {
+    if (error) {
+      document.write(`<html><body>${error.message}</body></html>`);
+      document.close();
+      browser.emit('error', error);
+    } else
+      parseResponse({ browser, history, document, response });
 
   });
   return document;
 };
+
+
