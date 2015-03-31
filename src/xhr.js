@@ -9,9 +9,13 @@ const URL     = require('url');
 const Utils   = require('jsdom/lib/jsdom/utils');
 
 
+const { DOMException } = DOM;
+
+
 class XMLHttpRequest extends DOM.EventTarget {
 
   constructor(window) {
+    super();
     this._window      = window;
     this._browser     = window.browser;
     // Pending request
@@ -49,7 +53,7 @@ class XMLHttpRequest extends DOM.EventTarget {
   // openRequest()has already been called) is the equivalent of calling abort().
   open(method, url, useAsync, user, password) { // jshint ignore:line
     if (useAsync === false)
-      throw new DOM.DOMException(DOM.NOT_SUPPORTED_ERR, 'Zombie does not support synchronous XHR requests');
+      throw new DOMException(DOMException.NOT_SUPPORTED_ERR, 'Zombie does not support synchronous XHR requests');
 
     // Abort any pending request.
     this.abort();
@@ -57,9 +61,9 @@ class XMLHttpRequest extends DOM.EventTarget {
     // Check supported HTTP method
     this._method = method.toUpperCase();
     if (/^(CONNECT|TRACE|TRACK)$/.test(this._method))
-      throw new DOM.DOMException(DOM.SECURITY_ERR, 'Unsupported HTTP method');
+      throw new DOMException(DOMException.SECURITY_ERR, 'Unsupported HTTP method');
     if (!/^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(this._method))
-      throw new DOM.DOMException(DOM.SYNTAX_ERR, 'Unsupported HTTP method');
+      throw new DOMException(DOMException.SYNTAX_ERR, 'Unsupported HTTP method');
 
     const headers = new Fetch.Headers();
 
@@ -71,7 +75,7 @@ class XMLHttpRequest extends DOM.EventTarget {
       delete url.port;
 
     if (!/^https?:$/i.test(url.protocol))
-      throw new DOM.DOMException(DOM.NOT_SUPPORTED_ERR, 'Only HTTP/S protocol supported');
+      throw new DOMException(DOMException.NOT_SUPPORTED_ERR, 'Only HTTP/S protocol supported');
     url.hostname = url.hostname || this._window.location.hostname;
     url.host = url.port ? `${url.hostname}:${url.port}` : url.hostname;
     if (url.host !== this._window.location.host) {
@@ -94,7 +98,7 @@ class XMLHttpRequest extends DOM.EventTarget {
   // after open(), but before send().
   setRequestHeader(header, value) {
     if (this.readyState !== XMLHttpRequest.OPENED)
-      throw new DOM.DOMException(DOM.INVALID_STATE_ERR,  'Invalid state');
+      throw new DOMException(DOMException.INVALID_STATE_ERR,  'Invalid state');
     this._headers.set(header, value);
   }
 
@@ -105,7 +109,7 @@ class XMLHttpRequest extends DOM.EventTarget {
   send(data) {
     // Request must be opened.
     if (this.readyState !== XMLHttpRequest.OPENED)
-      throw new DOM.DOMException(DOM.INVALID_STATE_ERR,  'Invalid state');
+      throw new DOMException(DOMException.INVALID_STATE_ERR,  'Invalid state');
 
     const request = new Fetch.Request(this._url, {
       method:   this._method,
@@ -122,7 +126,7 @@ class XMLHttpRequest extends DOM.EventTarget {
 
       this._stateChanged(XMLHttpRequest.DONE);
       this._fire('progress');
-      this._error = new DOM.DOMException(DOM.TIMEOUT_ERR, 'The request timed out');
+      this._error = new DOMException(DOMException.TIMEOUT_ERR, 'The request timed out');
       this._fire('timeout', this._error);
       this._fire('loadend');
       this._browser.errors.push(this._error);
@@ -141,7 +145,7 @@ class XMLHttpRequest extends DOM.EventTarget {
       if (request.aborted) {
         this._stateChanged(XMLHttpRequest.DONE);
         this._fire('progress');
-        this._error = new DOM.DOMException(DOM.ABORT_ERR, 'Request aborted');
+        this._error = new DOMException(DOMException.ABORT_ERR, 'Request aborted');
         this._fire('abort', this._error);
         return;
       }
@@ -150,7 +154,7 @@ class XMLHttpRequest extends DOM.EventTarget {
       if (error) {
         this._stateChanged(XMLHttpRequest.DONE);
         this._fire('progress');
-        this._error = new DOM.DOMException(DOM.NETWORK_ERR);
+        this._error = new DOMException(DOMException.NETWORK_ERR);
         this._fire('error', this._error);
         this._fire('loadend');
         this._browser.errors.push(this._error);
@@ -161,7 +165,7 @@ class XMLHttpRequest extends DOM.EventTarget {
       if (this._cors) {
         const allowedOrigin = response.headers.get('Access-Control-Allow-Origin');
         if (!(allowedOrigin === '*' || allowedOrigin === this._cors)) {
-          this._error = new DOM.DOMException(DOM.SECURITY_ERR, 'Cannot make request to different domain');
+          this._error = new DOMException(DOMException.SECURITY_ERR, 'Cannot make request to different domain');
           this._browser.errors.push(this._error);
           this._stateChanged(XMLHttpRequest.DONE);
           this._fire('progress');

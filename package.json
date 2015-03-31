@@ -1,8 +1,8 @@
 {
   "name": "zombie",
-  "version": "3.1.1",
+  "version": "4.0.0",
   "publishConfig": {
-    "tag": "latest"
+    "tag": "next"
   },
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "https://www.npmjs.com/package/zombie",
@@ -13,6 +13,9 @@
     "Damian Janowski",
     "José Valim <jose.valim@plataformatec.com.br> (http://blog.plataformatec.com.br/)"
   ],
+  "engines": {
+    "node": "1.x"
+  },
   "keywords": [
     "test",
     "tests",
@@ -46,7 +49,7 @@
     "debug": "^2.0",
     "eventsource": "^0.1",
     "iconv-lite": "^0.4",
-    "jsdom": "3.1.2",
+    "jsdom": "4.1.0",
     "lodash": "^3.6.0",
     "mime": "^1.2",
     "ms": "^0.7",

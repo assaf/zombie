@@ -115,7 +115,8 @@ describe('Browser', function() {
         });
         it('should set browser errors', function() {
           assert.equal(visitBrowser.errors.length, 1);
-          assert.equal(visitBrowser.errors[0].message, 'Cannot read property \'wrong\' of undefined');
+          const { message } = visitBrowser.errors[0];
+          assert(/Cannot read property 'wrong'/.test(message));
         });
 
         after(function() {
@@ -279,10 +280,11 @@ describe('Browser', function() {
           browser.location = '/browser/errored';
           try {
             await browser.wait();
-          } catch (error) { }
+          } catch (error) {
+          }
 
           assert(error.message && error.stack);
-          assert.equal(error.message, 'Cannot read property \'wrong\' of undefined');
+          assert(/Cannot read property 'wrong'/.test(error.message));
         });
       });
 

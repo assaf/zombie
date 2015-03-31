@@ -257,11 +257,11 @@ describe('Scripts', function() {
       });
 
       it('should pass error to callback', function() {
-        assert.equal(error.message, 'Unexpected end of input');
+        assert(/Unexpected end of input/.test(error.message));
       });
 
       it('should propagate error to window', function() {
-        assert.equal(browser.error.message, 'Unexpected end of input');
+        assert(/Unexpected end of input/.test(browser.error.message));
       });
     });
 
@@ -278,11 +278,11 @@ describe('Scripts', function() {
       });
 
       it('should pass error to callback', function() {
-        assert.equal(error.message, 'Cannot read property \'bar\' of undefined');
+        assert(/Cannot read property 'bar'/.test(error.message));
       });
 
       it('should propagate error to window', function() {
-        assert.equal(browser.error.message, 'Cannot read property \'bar\' of undefined');
+        assert(/Cannot read property 'bar'/.test(browser.error.message));
       });
     });
   });
@@ -505,7 +505,7 @@ describe('Scripts', function() {
   describe('on- event handler (string)', function() {
     before(async function() {
       brains.static('/script/on-event/string', `
-        <form onsubmit='document.title = event.eventType; return false'>
+        <form onsubmit='document.title = event.type; return false'>
           <button>Submit</button>
         </form>
       `);
@@ -518,7 +518,7 @@ describe('Scripts', function() {
     });
 
     it('should have access to window.event', function() {
-      browser.assert.text('title', 'HTMLEvents');
+      browser.assert.text('title', 'submit');
     });
   });
 
@@ -531,7 +531,7 @@ describe('Scripts', function() {
         </form>
         <script>
           document.getElementsByTagName('form')[0].onsubmit = function(event) {
-            document.title = event.eventType;
+            document.title = event.type;
             event.preventDefault();
           }
         </script>
@@ -545,7 +545,7 @@ describe('Scripts', function() {
     });
 
     it('should have access to window.event', function() {
-      browser.assert.text('title', 'HTMLEvents');
+      browser.assert.text('title', 'submit');
     });
   });
 

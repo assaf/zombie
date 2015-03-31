@@ -314,7 +314,7 @@ describe('XMLHttpRequest', function() {
       });
 
       it('should capture error', function() {
-        assert.equal(browser.errors[0].message, 'Security error: Cannot make request to different domain');
+        assert.equal(browser.errors[0].toString(), 'SecurityError');
       });
     });
 
@@ -505,7 +505,7 @@ describe('XMLHttpRequest', function() {
     });
 
     it('should capture error', function() {
-      assert.equal(browser.errors[0].message, 'Network error');
+      assert.equal(browser.errors[0].toString(), 'NetworkError');
     });
 
   });

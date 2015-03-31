@@ -1,18 +1,18 @@
 // Exports a function for creating/loading new documents.
 
-const assert                  = require('assert');
-const { browserAugmentation } = require('jsdom/lib/jsdom/browser');
-const browserFeatures         = require('jsdom/lib/jsdom/browser/documentfeatures');
-const Fetch                   = require('./fetch');
-const DOM                     = require('./dom');
-const EventSource             = require('eventsource');
-const iconv                   = require('iconv-lite');
-const QS                      = require('querystring');
-const URL                     = require('url');
-const Utils                   = require('jsdom/lib/jsdom/utils');
-const WebSocket               = require('ws');
-const Window                  = require('jsdom/lib/jsdom/browser/Window');
-const XMLHttpRequest          = require('./xhr');
+const assert          = require('assert');
+const browserFeatures = require('jsdom/lib/jsdom/browser/documentfeatures');
+const Fetch           = require('./fetch');
+const DOM             = require('./dom');
+const EventSource     = require('eventsource');
+const iconv           = require('iconv-lite');
+const QS              = require('querystring');
+const URL             = require('url');
+const Utils           = require('jsdom/lib/jsdom/utils');
+const VM              = require('vm');
+const WebSocket       = require('ws');
+const Window          = require('jsdom/lib/jsdom/browser/Window');
+const XMLHttpRequest  = require('./xhr');
 
 
 // File access, not implemented yet
@@ -53,7 +53,8 @@ class Screen {
 class DOMURL {
 
   constructor(url, base) {
-    assert(url != null, new DOM.DOMException('Failed to construct \'URL\': Invalid URL'));
+    if (url == null)
+       throw new TypeError('Failed to construct \'URL\': Invalid URL');
     if (base)
       url = Utils.resolveHref(base, url);
     const parsed = URL.parse(url || 'about:blank');
@@ -82,7 +83,6 @@ class DOMURL {
 
 function setupWindow(window, args) {
   const { document }          = window;
-  const global                = window.getGlobal();
   const { browser, history }  = args;
   const { parent, opener }    = args;
 
@@ -96,17 +96,11 @@ function setupWindow(window, args) {
 
   window.name = args.name || '';
 
-  // If this is an iframe within a parent window
-  if (parent) {
-    window.parent = parent;
-    window.top    = parent.top;
-  } else {
-    window.parent = global;
-    window.top    = global;
-  }
-
   // If this was opened from another window
   window.opener   = opener;
+  // Frames provide their own parent reference
+  window._parent  = (parent || window);
+  window._top     = (parent || window).top;
 
   window.console = browser.console;
 
@@ -198,9 +192,9 @@ function setupWindow(window, args) {
       browser._windowInScope = window;
       let result;
       if (typeof code === 'string' || code instanceof String)
-        result = global.run(code, filename);
+        result = VM.runInContext(code, window, { filename });
       else if (code)
-        result = code.call(global);
+        result = code.call(window);
       browser.emit('evaluated', code, result, filename);
       return result;
     } catch (error) {
@@ -290,12 +284,12 @@ function setupWindow(window, args) {
 
     closed = true;
     // Close all frames first
-    for (let i = 0; i < window.length; ++i)
-      window[i].close();
+    for (let i = 0; i < window._length; ++i)
+      if (window[i])
+        window[i].close();
     // kill event queue, document and window.
     eventQueue.destroy();
     document.close();
-    window.dispose();
   };
 
   // window.close actually closes the tab, and disposes of all windows in the history.
@@ -354,6 +348,16 @@ function setupWindow(window, args) {
   /// Actual history, see location getter/setter
   window._history = history;
 
+  Object.defineProperty(window, 'location', {
+    get() {
+      return document.location
+    },
+    set(url) {
+      history.assign(url);
+    }
+  });
+
+
 
   // Form submission uses this
   window._submit = function(formArgs) {
@@ -382,17 +386,6 @@ function setupWindow(window, args) {
 }
 
 
-// Change location, bypass JSDOM history
-Window.prototype.__defineSetter__('location', function(url) {
-  return this._history.assign(url);
-});
-
-// Change location
-DOM.Document.prototype.__defineSetter__('location', function(url) {
-  this.parentWindow.location = url;
-});
-
-
 // Help iframes talking with each other
 Window.prototype.postMessage = function(data) {
   // Create the event now, but dispatch asynchronously
@@ -408,13 +401,17 @@ Window.prototype.postMessage = function(data) {
   // version of the object returned by getGlobal, they are not the same object
   // ie, _windowInScope.foo == _windowInScope.getGlobal().foo, but
   // _windowInScope != _windowInScope.getGlobal()
-  event.source = (this.browser._windowInScope || this).getGlobal();
+  event.source = (this.browser._windowInScope || this);
   const origin = event.source.location;
   event.origin = URL.format({ protocol: origin.protocol, host: origin.host });
   this.dispatchEvent(event);
 };
 
 
+// Change location
+DOM.Document.prototype.__defineSetter__('location', function(url) {
+  this.window.location = url;
+});
 
 
 // Creates an returns a new document attached to the window.
@@ -439,12 +436,14 @@ function createDocument(args) {
   if (browser.hasFeature('iframe', true))
     features.FetchExternalResources.push('iframe');
 
-  // Based on JSDOM.jsdom but skips the document.write
-  // Calling document.write twice leads to strange results
-  const dom       = browserAugmentation(DOM, { parsingMode: 'html' });
-  const document  = new dom.HTMLDocument({ url: args.url, referrer: args.referrer, parsingMode: 'html' });
+  const window = new Window({
+    parsingMode:  'html',
+    contentType:  'text/html',
+    url:          args.url,
+    referrer:     args.referrer
+  });
+  const document = window.document;
   browserFeatures.applyDocumentFeatures(document, features);
-  const window    = document.parentWindow;
   Object.defineProperty(document, 'window', {
     value:      window,
     enumerable: true
@@ -552,8 +551,8 @@ function buildRequest(args) {
 
 // Parse HTML response and setup document
 async function parseResponse({ browser, history, document, response }) {
-  const window = document.parentWindow;
-  const done = window._eventQueue.waitForCompletion();
+  const { window }  = document;
+  const done        = window._eventQueue.waitForCompletion();
 
   try {
     window._request   = response.request;
@@ -629,7 +628,7 @@ module.exports = function loadDocument(args) {
   assert(history && history.reload, 'Missing parameter history');
 
   const document = createDocument(Object.assign({ url }, args));
-  const window   = document.parentWindow;
+  const window   = document.window;
 
   if (html) {
     window._eventQueue.enqueue(function() {

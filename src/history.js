@@ -152,7 +152,7 @@ function hashChange(entry, url) {
 // If window is not the top level window, return parent for creating new child
 // window, otherwise returns false.
 function parentFrom(window) {
-  if (window.parent !== window.getGlobal())
+  if (window.parent !== window)
     return window.parent;
 }
 
@@ -221,7 +221,7 @@ class History {
     args.browser = this.browser;
     args.history = this;
     const document  = loadDocument(args);
-    const window    = document.parentWindow;
+    const window    = document.window;
     this.addEntry(window, args.url);
     return window;
   }
@@ -290,7 +290,7 @@ class History {
       args.referrer  = window.location.href;
     }
     const document  = loadDocument(args);
-    this.addEntry(document.parentWindow, document.location.href);
+    this.addEntry(document.window, document.location.href);
   }
 
   // Returns current URL.
@@ -335,7 +335,7 @@ class History {
         referrer: this.current.window.document.referrer
       };
       const document = loadDocument(args);
-      this.addEntry(document.parentWindow, url);
+      this.addEntry(document.window, url);
     }
   }
 
@@ -366,7 +366,7 @@ class History {
         parent:   parentFrom(this.current.window)
       };
       const document = loadDocument(args);
-      this.replaceEntry(document.parentWindow, url);
+      this.replaceEntry(document.window, url);
     }
   }
 
@@ -383,7 +383,7 @@ class History {
         referrer: window.document.referrer
       };
       const document = loadDocument(args);
-      this.replaceEntry(document.parentWindow, url);
+      this.replaceEntry(document.window, url);
     }
   }
 

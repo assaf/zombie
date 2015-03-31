@@ -1,6 +1,10 @@
-## Version 3.2.0 2015-04-01
+## Version 4.0.0 2015-04-01
+
+Version 4.0 requires io.js
 
 ADDED preliminary support for the Fetch API (https://fetch.spec.whatwg.org/)
+
+CHANGED upgraded to JSDOM 4.1
 
 CHANGED the resources implementation to use the Fetch API.  Pay attention to the
 following breaking changes:
@@ -22,6 +26,9 @@ This actually makes the code simpler and easier to read, no seriously, try some
 https://github.com/assaf/zombie/blob/fetch-api/src/resources.js#L123-L137
 
 FIXES empty `cookie` and `referer` header no longer sent #881
+
+ 694 passing (23s)
+  12 pending
 
 
 ## Version 3.1.1 2015-03-26
