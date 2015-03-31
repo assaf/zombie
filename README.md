@@ -1,6 +1,10 @@
 # Zombie.js
 ### Insanely fast, headless full-stack testing using Node.js
 
+**Zombie 4.x** is tested with [io.js](https://iojs.org/en/index.html), but may
+also work with Node 0.12.  Use Zombie 3.1.x if you need to use Node 0.10.
+
+
 ## The Bite
 
 If you're going to write an insanely fast, headless browser, how can you not
