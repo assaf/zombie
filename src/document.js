@@ -80,7 +80,6 @@ class DOMURL {
 
 }
 
-let id = 0;
 
 function setupWindow(window, args) {
   const { document }          = window;
@@ -88,8 +87,6 @@ function setupWindow(window, args) {
   const { parent, opener }    = args;
 
   let   closed        = false;
-
-  Object.defineProperty(window, '_id', { value: ++id });
 
   // Access to browser
   Object.defineProperty(window, 'browser', {
@@ -301,9 +298,11 @@ function setupWindow(window, args) {
   window.close = function() {
     if (parent || closed)
       return;
+
     // Only opener window can close window; any code that's not running from
     // within a window's context can also close window.
     if (browser._windowInScope === opener || browser._windowInScope === null) {
+      browser.tabs._closed(window);
       // Only parent window gets the close event
       browser.emit('closed', window);
       history.destroy(); // do this last to prevent infinite loop

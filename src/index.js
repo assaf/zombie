@@ -55,6 +55,7 @@ class Browser extends EventEmitter {
     this.resources  = new Resources(this);
     // Open tabs.
     this.tabs       = new Tabs(this);
+
     // The browser event loop.
     this._eventLoop = new EventLoop(this);
 
