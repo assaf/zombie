@@ -648,7 +648,7 @@ describe('Browser', function() {
           describe('and close browser', function() {
             it('should close all window', function() {
               assert.equal(browser.tabs.length, 1);
-              browser.close();
+              browser.window.close();
               assert.equal(browser.tabs.length, 0);
             });
           });

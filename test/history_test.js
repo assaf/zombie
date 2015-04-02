@@ -89,7 +89,7 @@ describe('History', function() {
     let window;
 
     before(function() {
-      browser.close();
+      browser.window.close();
       window = browser.open();
     });
 

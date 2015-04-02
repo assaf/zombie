@@ -510,14 +510,12 @@ class Browser extends EventEmitter {
     return this.document && this.document.activeElement;
   }
 
-  // Close the currently open tab, or the tab opened to the specified window.
-  close(window) {
-    this.tabs.close(window);
-  }
-
-  // done
+  // Close all windows, clean state, etc.  This doesn't do anything the garbage
+  // collector doesn't already do, so you don't need to call this.
   //
-  // Close all windows, clean state. You're going to need to call this to free up memory.
+  // But because it destroys the browser state, it's quite useful for detecting
+  // weird behavior bugs, e.g. an event loop that keeps running.  That's why
+  // the test suite uses this method.
   destroy() {
     if (this.tabs) {
       this.tabs.closeAll();

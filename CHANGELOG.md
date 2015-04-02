@@ -1,4 +1,4 @@
-## Version 4.0.4 2015-04-02
+## Version 4.0.5 2015-04-02
 
 Version 4.0 requires io.js, see:
 https://github.com/tmpvar/jsdom/blob/master/Changelog.md#400
@@ -33,6 +33,9 @@ FIXED empty `cookie` and `referer` header no longer sent #881
 FIXED added `navigator.appVersion` #885
 
 REMOVED `document.window`, use `document.defaultView` instead
+
+REMOVED `browser.close` confusing method name, use `browser.window.close` if you
+really need to close the window.
 
  694 passing (23s)
   12 pending

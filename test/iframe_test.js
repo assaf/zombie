@@ -139,7 +139,7 @@ describe('IFrame', function() {
     });
 
     after(function() {
-      return browser.close();
+      return browser.window.close();
     });
   });
 
@@ -183,7 +183,7 @@ describe('IFrame', function() {
       });
 
       after(function() {
-        browser.close();
+        browser.window.close();
       });
     });
 
@@ -204,7 +204,7 @@ describe('IFrame', function() {
       });
 
       after(function() {
-        browser.close();
+        browser.window.close();
       });
     });
 
@@ -229,7 +229,7 @@ describe('IFrame', function() {
       });
 
       after(function() {
-        browser.close();
+        browser.window.close();
       });
     });
 
@@ -255,7 +255,7 @@ describe('IFrame', function() {
       });
 
       after(function() {
-        browser.close();
+        browser.window.close();
       });
     });
 
@@ -278,7 +278,7 @@ describe('IFrame', function() {
         });
 
         after(function() {
-          browser.close();
+          browser.window.close();
         });
       });
 
@@ -301,7 +301,7 @@ describe('IFrame', function() {
         });
 
         after(function() {
-          browser.close();
+          browser.window.close();
         });
       });
     });

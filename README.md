@@ -47,10 +47,6 @@ describe('User visits signup page', function() {
       browser.assert.text('title', 'Welcome To Brains Depot');
     });
   });
-
-  after(function() {
-    browser.destroy();
-  });
 });
 ```
 
@@ -89,10 +85,6 @@ describe('User visits signup page', function() {
     it('should see welcome page', function() {
       browser.assert.text('title', 'Welcome To Brains Depot');
     });
-  });
-
-  after(function() {
-    browser.destroy();
   });
 
 });
@@ -653,14 +645,6 @@ window with the document from '/bar'.  If you then navigate back in history, the
 first tab would be the window with the document '/foo'.
 
 The following operations are used for managing tabs:
-
-#### browser.close(window)
-
-Closes the tab with the given window.
-
-#### browser.close()
-
-Closes the currently open tab.
 
 #### browser.tabs
 

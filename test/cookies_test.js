@@ -80,7 +80,7 @@ describe('Cookies', function() {
     it('should find cookie by name', function() {
       browser.visit('http://example.com/');
       assert.equal(browser.getCookie('foo'), 'partial domain');
-      browser.close();
+      browser.window.close();
     });
 
     it('should find cookie with most specific domain', function() {
@@ -138,7 +138,7 @@ describe('Cookies', function() {
       });
 
       after(function() {
-        browser.close();
+        browser.window.close();
       });
     });
 
@@ -190,7 +190,7 @@ describe('Cookies', function() {
     });
 
     after(function() {
-      browser.close();
+      browser.window.close();
     });
   });
 
