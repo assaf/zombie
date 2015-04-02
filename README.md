@@ -113,6 +113,7 @@ Well, that was easy.
 * [Debugging](#debugging)
 * [Events](#events)
 * [Resources](#resources)
+* [Pipeline](#pipeline)
 
 
 
@@ -145,11 +146,16 @@ You can use this to set the HTTP Referer header.
 
 #### browser.resources
 
-Access to history of retrieved resources.  Also provides methods for retrieving
-resources and managing the resource pipeline.  When things are not going your
-way, try calling `browser.resources.dump()`.
+Access to history of retrieved resources.  See [Resources](#resources) for
+detailed discussion.
 
-See [Resources](#resources) for detailed discussion.
+#### browser.pipeline
+
+Access to the pipeline for making requests and processing responses.  Use this
+to add new request/response handlers the pipeline for a single browser instance,
+or use `Pipeline.addHandler` to modify all instances.  See
+[Pipeline](#pipeline).
+
 
 #### browser.tabs
 
@@ -897,21 +903,20 @@ any of the following:
 - Request resources directly, but have Zombie handle cookies, authentication,
   etc
 - Implement new mechanism for retrieving resources, for example, add new
-  protocols or support new headers
+  protocols or support new headers (see [Pipeline](#pipeline))
 
 
 ### The Resources List
 
-Each browser provides access to its resources list through `browser.resources`.
+Each browser provides access to the list of resources loaded by the currently
+open window via `browser.resources`.  You can iterate over this list just like
+any JavaScript array.
 
-The resources list is an array of all resources requested by the browser.  You
-can iterate and manipulate it just like any other JavaScript array.
-
-Each resource provides four properties:
+Each resource provides three properties:
 
 - `request`   - The request object
 - `response`  - The resource object (if received)
-- `error`     - The error received instead of response
+- `error`     - The error generated (no response)
 
 The request object is based on the [Fetch API Request
 object](https://fetch.spec.whatwg.org/#request-class).
@@ -920,15 +925,51 @@ The response object is based on the [Fetch API Response
 object](https://fetch.spec.whatwg.org/#response-class).  Note that the fetch API
 has the property `status`, whereas Node HTTP module uses `statusCode`.
 
+#### browser.fetch(input, init)
+
+You can use the browser directly to make requests against external resources.
+These requests will share the same cookies, authentication and other browser
+settings (also pipline).
+
+The `fetch` method is based on the [Fetch
+API](https://fetch.spec.whatwg.org/#fetch-method).
+
+For example:
+
+```
+browser.fetch(url)
+  .then(function(response) {
+    console.log('Status code:', response.status);
+    if (response.status === 200)
+      return response.text();
+  })
+  .then(function(text) {
+    console.log('Document:', text);
+  })
+  .catch(function(error) {
+    console.log('Network error');
+  });
+```
+
 To access the response document body as a Node buffer, use the following:
 
 ```js
-// This promise resolves to a Node Buffer
-const bufferPromise = response.arrayBuffer().then(Buffer);
+response.arrayBuffer()
+  .then(Buffer) // arrayBuffer -> Buffer
+  .then(function(buffer) {
+    assert( Buffer.isBuffer(buffer) );
+  });
 ```
 
+#### resources.dump(output?)
 
-### The Pipeline
+Dumps the resources list to the output stream (defaults to standard output
+stream).
+
+
+
+
+## Pipeline
 
 Zombie uses a pipeline to operate on resources.  You can extend that pipeline
 with your own set of handlers, for example, to support additional protocols,
@@ -949,7 +990,7 @@ object, either directly or through a promise.
 To add a new handle to the end of the pipeline:
 
 ```js
-browser.resources.addHandler(function(browser, request) {
+browser.pipeline.addHandler(function(browser, request) {
   // Let's delay this request by 1/10th second
   return new Promise(function(resolve) {
     setTimeout(resolve, 100);
@@ -957,59 +998,13 @@ browser.resources.addHandler(function(browser, request) {
 });
 ```
 
-If you need anything more complicated, you can access the pipeline directly via
-`browser.resources.pipeline`.
-
-You can add handlers to all browsers via `Browser.Resources.addHandler`.  These
-handlers are automatically added to every new `browser.resources` instance.
+You can add handlers to all browsers via `Pipeline.addHandler`.  These
+handlers are automatically added to every new `browser.pipeline` instance.
 
 ```js
-Browser.Resources.addHandler(function(browser, request, response) {
+Pipeline.addHandler(function(browser, request, response) {
   // Log the response body
   console.log('Response body: ' + response.body);
 });
 ```
-
-
-### Operating On Resources
-
-If you need to retrieve or operate on resources directly, you can do that as
-well, using all the same features available to Zombie, including cookies,
-authentication, etc.
-
-#### resources.fetch(input, init)
-
-Retrieves a resource and returns a promise.  Based on the [Fetch
-API](https://fetch.spec.whatwg.org/#fetch-method).
-
-For example:
-
-```js
-browser.resources
-  .fetch('http://some.service')
-  .then(function(response) {
-    console.log('Status:', response.status);
-    return response.text();
-  })
-  .then(function(text) {
-    console.log('Body:', text);
-  });
-
-browser.resources.fetch('http://some.service', { method: 'DELETE' });
-```
-
-#### resources.dump(output?)
-
-Dumps the resources list to the output stream (defaults to standard output
-stream).
-
-#### resources.addHandler(handler)
-
-Adds a handler to the pipeline of this browser instance.  To add a handler to the
-pipeline of every browser instance, use `Browser.Resources.addHandler`.
-
-#### resources.pipeline
-
-Returns the current pipeline (array of handlers) for this browser instance.
-
 

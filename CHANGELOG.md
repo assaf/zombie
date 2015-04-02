@@ -1,30 +1,32 @@
-## Version 4.0.3 2015-03-31
+## Version 4.0.4 2015-04-02
 
 Version 4.0 requires io.js, see:
 https://github.com/tmpvar/jsdom/blob/master/Changelog.md#400
 
 ADDED preliminary support for the Fetch API (https://fetch.spec.whatwg.org/)
 
+ADDED you can use the `browser.fetch` to retrieve any resources, using the
+cookies, pipeline and all other browser settings
+
 CHANGED upgraded to JSDOM 4.1
 
-CHANGED the resources implementation to use the Fetch API.  Pay attention to the
-following breaking changes:
+CHANGED use `browser.status` instead of `browser.statusCode` (HTML APIs use
+`status` and `statusText`)
 
-* To retrieve a resource, call `browser.resources.fetch`; the `request/get/post`
-  methods are gone
-* When checking on resources, the request and response objects are based on
-  `Request`, `Response` and `Headers` as defined by the Fetch API
-* In particular, Fetch (as well as XHR) has a `status` flag, whereas Node API
-  has a `statusCode` in its HTTP API; Zombie is transitioning to use `status`
-  everywhere to better mimic browser
-* The pipeline implementation has changed as well: handlers are now called with
-  reference to browser, use Fetch `Request` and `Response` objects, and can
-  return an object or a promise, but no longer use callbacks
+CHANGED `browser.resources` is now just an array of all resources requested when
+processing the currently open window.  Resources no longer shared by all
+windows, and other features (pipeline configuration, fetch resources) moved
+elsewhere.
 
-This actually makes the code simpler and easier to read, no seriously, try some
-`async/await` for yourself. For example:
+CHANGED separated pipeline from resources.  Use `browser.pipeline.addHandler` to
+add request/response handler to the browser instance, or `Pipeline.addHandler`
+to add handler to all new instances.
 
-https://github.com/assaf/zombie/blob/fetch-api/src/resources.js#L123-L137
+CHANGED pipeline API changed as well.  Request handler called with browser
+instance and Fetch `Request` object, can return null or a Fetch `Response`
+object.  Response handler called with browser instance, request and response
+object, should return same or new response object.  Handlers no longer using
+callbacks, if you need asynchronous behavior, return a promise.
 
 FIXED empty `cookie` and `referer` header no longer sent #881
 

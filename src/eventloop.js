@@ -231,7 +231,7 @@ class EventQueue {
     assert(this.queue, 'This browser has been destroyed');
 
     const done = this.waitForCompletion();
-    this.browser.resources
+    this.window
       .fetch(request)
       .then((response)=> {
         // We can't cancel pending requests, but we can ignore the response if

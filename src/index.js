@@ -13,8 +13,8 @@ const File              = require('fs');
 const Mime              = require('mime');
 const ms                = require('ms');
 const Path              = require('path');
+const Pipeline          = require('./pipeline');
 const reroute           = require('./reroute');
-const Resources         = require('./resources');
 const Storages          = require('./storage');
 const Tough             = require('tough-cookie');
 const { Cookie }        = Tough;
@@ -51,10 +51,10 @@ class Browser extends EventEmitter {
     this.console    = new Console(this);
     // Start with no this referrer.
     this.referrer   = null;
-    // All the resources loaded by this browser.
-    this.resources  = new Resources(this);
     // Open tabs.
     this.tabs       = new Tabs(this);
+    // New pipeline for this browser.
+    this.pipeline   = new Pipeline(this);
 
     // The browser event loop.
     this._eventLoop = new EventLoop(this);
@@ -1133,12 +1133,16 @@ class Browser extends EventEmitter {
   }
 
 
-  // Debugging
+  // Resources
   // ---------
 
-  // Enable debugging.  You can do this in code instead of setting DEBUG environment variable.
-  debug() {
-    this._debug = Browser._enableDebugging();
+  fetch(input, init) {
+    return this.pipeline._fetch(input, init);
+  }
+
+  // Returns all resources loaded by currently open window.
+  get resources() {
+    return this.window && this.window.resources;
   }
 
   // Get Request associated with currently open window
@@ -1178,6 +1182,16 @@ class Browser extends EventEmitter {
     const { response } = this;
     return response ? response.body : null;
   }
+
+
+  // Debugging
+  // ---------
+
+  // Enable debugging.  You can do this in code instead of setting DEBUG environment variable.
+  debug() {
+    this._debug = Browser._enableDebugging();
+  }
+
 
 
   // Zombie can spit out messages to help you figure out what's going on as your code executes.
@@ -1283,7 +1297,7 @@ class Browser extends EventEmitter {
 Object.assign(Browser, {
 
   Assert,
-  Resources,
+  Pipeline,
   VERSION,
 
   // -- These defaults are used in any new browser instance --

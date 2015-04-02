@@ -33,7 +33,6 @@ describe('Resources', function() {
 
   describe('as array', function() {
     before(function() {
-      browser.resources.length = 0;
       return browser.visit('/resources/resource');
     });
 
@@ -61,7 +60,7 @@ describe('Resources', function() {
     });
 
     it('should uncompress deflated response with transfer-encoding', async function() {
-      const response  = await browser.resources.fetch('http://example.com/resources/deflate');
+      const response  = await browser.fetch('http://example.com/resources/deflate');
       const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, body);
@@ -81,7 +80,7 @@ describe('Resources', function() {
     });
 
     it('should uncompress deflated response with content-encoding', async function() {
-      const response  = await browser.resources.fetch('http://example.com/resources/deflate');
+      const response  = await browser.fetch('http://example.com/resources/deflate');
       const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, body);
@@ -101,7 +100,7 @@ describe('Resources', function() {
     });
 
     it('should uncompress gzipped response with transfer-encoding', async function() {
-      const response  = await browser.resources.fetch('http://example.com/resources/gzip');
+      const response  = await browser.fetch('http://example.com/resources/gzip');
       const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, body);
@@ -121,7 +120,7 @@ describe('Resources', function() {
     });
 
     it('should uncompress gzipped response with content-encoding', async function() {
-      const response  = await browser.resources.fetch('http://example.com/resources/gzip');
+      const response  = await browser.fetch('http://example.com/resources/gzip');
       const body      = await response.arrayBuffer().then(Buffer);
       const image     = File.readFileSync(Path.join(__dirname, '/data/zombie.jpg'));
       assert.deepEqual(image, body);
@@ -180,7 +179,7 @@ describe('Resources', function() {
 
   describe('addHandler request', function() {
     before(function() {
-      browser.resources.addHandler(function(b, request) {
+      browser.pipeline.addHandler(function(browser, request) { // eslint-disable-line
         return new Fetch.Response('empty', { status: 204 });
       });
       return browser.visit('/resources/resource');
@@ -193,13 +192,13 @@ describe('Resources', function() {
 
     after(function() {
       // Remove handler.
-      browser.resources.pipeline.pop();
+      browser.pipeline.pop();
     });
   });
 
   describe('addHandler redirect', function () {
     before(function() {
-      browser.resources.addHandler(function(b, request) {
+      browser.pipeline.addHandler(function(b, request) {
         if (request.url === 'http://example.com/fake')
           return Fetch.Response.redirect('http://example.com/resources/resource', 301);
         else
@@ -232,7 +231,7 @@ describe('Resources', function() {
 
     after(function() {
       // Remove handler.
-      browser.resources.pipeline.pop();
+      browser.pipeline.pop();
     });
 
   });
@@ -240,7 +239,7 @@ describe('Resources', function() {
 
   describe('addHandler response', function() {
     before(function() {
-      browser.resources.addHandler(async function(b, request, response) {
+      browser.pipeline.addHandler(async function(b, request, response) {
         // TODO this will be better with resource.clone()
         const newResponse = new Fetch.Response('Empty', { url: response.url, status: 200 });
         newResponse.headers.set('X-Body', 'Marks Spot');
@@ -256,7 +255,7 @@ describe('Resources', function() {
 
     after(function() {
       // Remove handler.
-      browser.resources.pipeline.pop();
+      browser.pipeline.pop();
     });
   });
 

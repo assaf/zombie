@@ -7,6 +7,7 @@ const DOM             = require('./dom');
 const EventSource     = require('eventsource');
 const iconv           = require('iconv-lite');
 const QS              = require('querystring');
+const Resources       = require('./resources');
 const URL             = require('url');
 const Utils           = require('jsdom/lib/jsdom/utils');
 const VM              = require('vm');
@@ -104,6 +105,9 @@ function setupWindow(window, args) {
 
   window.console = browser.console;
 
+  // All the resources loaded by this window.
+  window.resources = new Resources(window);
+
   // javaEnabled, present in browsers, not in spec Used by Google Analytics see
   /// https://developer.mozilla.org/en/DOM/window.navigator.javaEnabled
   const emptySet = [];
@@ -139,10 +143,10 @@ function setupWindow(window, args) {
   window.screen =         new Screen();
 
   // Fetch API
-  window.fetch    = browser.resources.fetch.bind(browser.resources);
-  window.Request  = Fetch.Request;
-  window.Response = Fetch.Response;
-  window.FormData = Fetch.FormData;
+  window.fetch =          window.resources._fetch.bind(window.resources);
+  window.Request =        Fetch.Request;
+  window.Response =       Fetch.Response;
+  window.FormData =       Fetch.FormData;
 
   // Base-64 encoding/decoding
   window.atob = (string)=> new Buffer(string, 'base64').toString('utf8');
