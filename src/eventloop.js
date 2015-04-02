@@ -369,6 +369,7 @@ module.exports = class EventLoop extends EventEmitter {
   // running   - True when inside a run loop
   // waiting   - Counts in-progess calls to wait (waiters?)
   constructor(browser) {
+    super();
     this.browser  = browser;
     this.active   = null;
     this.running  = false;

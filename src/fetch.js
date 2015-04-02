@@ -187,7 +187,7 @@ class Body {
   constructor(bodyInit) {
     if (bodyInit instanceof Body) {
       this._stream = bodyInit._stream;
-      this._setContentType(bodyInit.headers.get('Content-Type'));
+      this._contentType = bodyInit.headers.get('Content-Type');
     } else if (bodyInit instanceof Stream.Readable) {
       // Request + Replay start streaming immediately, so we need this trick to
       // buffer HTTP responses; this is likely a bug in Replay
@@ -200,23 +200,18 @@ class Body {
         this.push(bodyInit);
         this.push(null);
       };
-      this._setContentType('text/plain;charset=UTF-8');
+      this._contentType = 'text/plain;charset=UTF-8';
     } else if (bodyInit instanceof FormData && bodyInit.length) {
       const boundary = `${new Date().getTime()}.${Math.random()}`;
-      this._setContentType(`multipart/form-data;boundary=${boundary}`);
+      this._contentType = `multipart/form-data;boundary=${boundary}`;
       this._stream   = bodyInit._asStream(boundary);
     } else if (bodyInit instanceof FormData)
-      this._setContentType('text/plain;charset=UTF-8');
+      this._contentType = 'text/plain;charset=UTF-8';
     else if (bodyInit)
       throw new TypeError('This body type not yet supported');
 
     this._bodyUsed  = false;
     this.body       = null;
-  }
-
-  _setContentType(contentType) {
-    if (contentType && !this.headers.has('Content-Type'))
-      this.headers.set('Content-Type', contentType);
   }
 
   get bodyUsed() {
@@ -304,6 +299,7 @@ class Body {
 class Request extends Body {
 
   constructor(input, init) {
+    const method = ((init ? init.method : input.method) || 'GET').toUpperCase();
     let bodyInit = null;
 
     if (input instanceof Request && input._stream) {
@@ -313,6 +309,13 @@ class Request extends Body {
       input._bodyUsed = true;
     }
 
+    if (init && init.body) {
+      if (method === 'GET' || method === 'HEAD')
+        throw new TypeError('Cannot include body with GET/HEAD request');
+      bodyInit = init.body;
+    }
+    super(bodyInit);
+
     if (typeof input === 'string' || input instanceof String)
       this.url = URL.format(input);
     else if (input instanceof Request)
@@ -320,22 +323,16 @@ class Request extends Body {
     if (!this.url)
       throw new TypeError('Input must be string or another Request');
 
-    this.method   = ((init ? init.method : input.method) || 'GET').toUpperCase();
+    this.method   = method;
     this.headers  = new Headers(init ? init.headers : input.headers);
-
-    if (init && init.body) {
-      if (this.method === 'GET' || this.method === 'HEAD')
-        throw new TypeError('Cannot include body with GET/HEAD request');
-      bodyInit = init.body;
-    }
+    if (this._contentType && !this.headers.has('Content-Type'))
+      this.headers.set('Content-Type', this._contentType);
 
     // Default redirect is follow, also treat manual as follow
     this.redirect = init && init.redirect;
     if (this.redirect !== 'error')
       this.redirect = 'follow';
     this._redirectCount = 0;
-
-    super(bodyInit);
   }
 
   // -- From Request interface --
@@ -356,6 +353,7 @@ class Request extends Body {
 class Response extends Body {
 
   constructor(bodyInit, responseInit) {
+    super(bodyInit);
     if (responseInit) {
       if (responseInit.status < 200 || responseInit.status > 599)
         throw new RangeError(`Status code ${responseInit.status} not in range`);
@@ -374,8 +372,8 @@ class Response extends Body {
       this.statusText = '';
       this.headers    = new Headers();
     }
-
-    super(bodyInit);
+    if (this._contentType && !this.headers.has('Content-Type'))
+      this.headers.set('Content-Type', this._contentType);
   }
 
   get url() {

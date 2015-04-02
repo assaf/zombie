@@ -429,17 +429,17 @@ function createDocument(args) {
     ProcessExternalResources: [],
     MutationEvents:           '2.0'
   };
-  if (browser.hasFeature('scripts', true)) {
+  if (args.browser.hasFeature('scripts', true)) {
     features.FetchExternalResources.push('script');
     features.ProcessExternalResources.push('script');
   }
-  if (browser.hasFeature('css', false)) {
+  if (args.browser.hasFeature('css', false)) {
     features.FetchExternalResources.push('css');
     features.FetchExternalResources.push('link');
   }
-  if (browser.hasFeature('img', false))
+  if (args.browser.hasFeature('img', false))
     features.FetchExternalResources.push('img');
-  if (browser.hasFeature('iframe', true))
+  if (args.browser.hasFeature('iframe', true))
     features.FetchExternalResources.push('iframe');
 
   const window  = new Window({
@@ -448,12 +448,12 @@ function createDocument(args) {
     url:          args.url,
     referrer:     args.referrer
   });
-  const document = window.document;
+  const { document } = window;
   browserFeatures.applyDocumentFeatures(document, features);
   setupWindow(window, args);
 
   // Give event handler chance to register listeners.
-  browser.emit('loading', document);
+  args.browser.emit('loading', document);
   return document;
 }
 

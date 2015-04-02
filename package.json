@@ -66,7 +66,7 @@
     "eslint": "^0.18.0",
     "express": "^4.12.3",
     "gulp": "^3.8.10",
-    "gulp-babel": "^4.0.1",
+    "gulp-babel": "^5.0.0",
     "gulp-exec": "^2.1.1",
     "gulp-notify": "^2.0.1",
     "gulp-sourcemaps": "^1.5.1",
@@ -75,7 +75,7 @@
     "morgan": "^1.5.2",
     "multiparty": "^4.1.1",
     "replay": "^2.0.4",
-    "requirejs": "^2.1.15"
+    "requirejs": "^2.1.17"
   },
   "repository": {
     "type": "git",

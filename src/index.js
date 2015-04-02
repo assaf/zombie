@@ -44,6 +44,7 @@ const MOUSE_EVENT_NAMES = ['mousedown', 'mousemove', 'mouseup'];
 class Browser extends EventEmitter {
 
   constructor(options = {}) {
+    super();
     // Used for assertions
     this.assert     = new Assert(this);
     this.cookies    = new Cookies();

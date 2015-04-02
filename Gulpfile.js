@@ -19,11 +19,7 @@ gulp.task('build', ['clean'], function() {
   return gulp
     .src('src/**/*.js')
     .pipe(sourcemaps.init())
-    .pipe(babel({
-      experimental: true,
-      loose:        'all',
-      optional:     [ 'runtime' ]
-    }))
+    .pipe(babel())
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('lib'))
     .pipe(notify({
