@@ -396,7 +396,7 @@ class Browser extends EventEmitter {
       return [selector];
     if (selector) {
       const elements = context.querySelectorAll(selector);
-      return [...elements];
+      return Array.from(elements);
     } else
       return [];
   }
@@ -599,7 +599,7 @@ class Browser extends EventEmitter {
     } catch (error) {
       /* eslint no-empty:0 */
     }
-    for (let elem of [...this.querySelectorAll('body a')]) {
+    for (let elem of Array.from(this.querySelectorAll('body a'))) {
       if (elem.textContent.trim() === selector)
         return elem;
     }
@@ -785,7 +785,7 @@ class Browser extends EventEmitter {
     assert(!field.getAttribute('disabled'), 'This SELECT field is disabled');
     assert(!field.getAttribute('readonly'), 'This SELECT field is readonly');
 
-    const options = [...field.options];
+    const options = Array.from(field.options);
     for (let option of options) {
       if (option.value === value)
         return option;
@@ -908,12 +908,12 @@ class Browser extends EventEmitter {
         return button;
     } catch (error) {
     }
-    for (let elem of [...this.querySelectorAll('button')]) {
+    for (let elem of Array.from(this.querySelectorAll('button'))) {
       if (elem.textContent.trim() === selector)
         return elem;
     }
 
-    const inputs = [...this.querySelectorAll('input[type=submit],button')];
+    const inputs = Array.from(this.querySelectorAll('input[type=submit],button'));
     for (let input of inputs) {
       if (input.name === selector)
         return input;
