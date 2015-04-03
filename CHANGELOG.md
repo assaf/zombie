@@ -1,4 +1,4 @@
-## Version 4.0.5 2015-04-02
+## Version 4.0.5 2015-04-03
 
 Version 4.0 requires io.js, see:
 https://github.com/tmpvar/jsdom/blob/master/Changelog.md#400
