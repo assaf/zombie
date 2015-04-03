@@ -46,7 +46,7 @@ DOM.HTMLFormElement.prototype.submit = function(button) {
       return;
 
     if (field.nodeName === 'SELECT') {
-      const selected = [...field.options]
+      const selected = Array.from(field.options)
         .filter(option  => option.selected)
         .map(options    => options.value);
 
@@ -233,7 +233,7 @@ DOM.HTMLInputElement.prototype.click = function() {
         click();
       else {
         const radios = input.ownerDocument.querySelectorAll(`input[type=radio][name='${this.getAttribute('name')}']`);
-        const checked = [...radios]
+        const checked = Array.from(radios)
           .filter(radio   => radio.checked && radio.form === this.form )
           .map(radio  => {
             radio.checked = false;
@@ -243,7 +243,7 @@ DOM.HTMLInputElement.prototype.click = function() {
         const radioResult = click();
         if (radioResult === false) {
           input.checked = false;
-          [...radios]
+          Array.from(radios)
             .filter(radio   => radio.form === input.form )
             .forEach(radio  => {
               radio.checked = (radio === checked);

@@ -177,7 +177,7 @@ class EventQueue {
   // Any events expected in the future?
   get expected() {
     return !!(this.expecting ||
-              [...this.window.frames].filter(frame => frame._eventQueue.expected).length);
+              Array.from(this.window.frames).filter(frame => frame._eventQueue.expected).length);
   }
 
   // Add a function to the event queue, to be executed in order.
@@ -212,7 +212,7 @@ class EventQueue {
     const fn = this.queue.shift();
     if (fn)
       return fn;
-    for (let frame of [...this.window.frames]) {
+    for (let frame of Array.from(this.window.frames)) {
       let childFn = frame._eventQueue.dequeue();
       if (childFn)
         return childFn;
@@ -332,7 +332,7 @@ class EventQueue {
   // Returns the timestamp of the next timer event
   get next() {
     const timers  = this.timers.map(timer => timer.next);
-    const frames  = [...this.window.frames].map(frame => frame._eventQueue.next);
+    const frames  = Array.from(this.window.frames).map(frame => frame._eventQueue.next);
     return timers.concat(frames).sort()[0] || Infinity;
   }
 
