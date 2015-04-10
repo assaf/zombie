@@ -1,4 +1,4 @@
-## Version 4.0.5 2015-04-03
+## Version 4.0.6 2015-04-10
 
 Version 4.0 requires io.js, see:
 https://github.com/tmpvar/jsdom/blob/master/Changelog.md#400
@@ -37,7 +37,7 @@ REMOVED `document.window`, use `document.defaultView` instead
 REMOVED `browser.close` confusing method name, use `browser.window.close` if you
 really need to close the window.
 
- 694 passing (23s)
+ 694 passing (21s)
   12 pending
 
 
