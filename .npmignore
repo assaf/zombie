@@ -1,5 +1,6 @@
+.babelrc
 .changes
-.jshintrc
+.eslintrc
 .travis.yml
 npm-debug.log
 Gulpfile
