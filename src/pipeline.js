@@ -176,10 +176,10 @@ class Pipeline extends Array {
             // property value is either header value, or an array if header sent
             // multiple times (e.g. `Set-Cookie`).
             const arrayOfHeaders = _.reduce(response.headers, (headers, value, name)=> {
-              if (isArray(value))
+              if (isArray(value)) {
                 for (let item of value)
                   headers.push([name, item]);
-              else
+              } else
                 headers.push([name, value]);
               return headers;
             }, []);

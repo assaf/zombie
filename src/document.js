@@ -486,13 +486,14 @@ function getHTMLFromResponseBody(buffer, contentType) {
   const [mimeType, ...typeOptions]  = contentType.split(/;\s*/);
 
   // Pick charset from content type
-  if (mimeType)
+  if (mimeType) {
     for (let typeOption of typeOptions) {
       if (/^charset=/i.test(typeOption)) {
         const charset = typeOption.split('=')[1];
         return iconv.decode(buffer, charset);
       }
     }
+  }
 
   // Otherwise, HTML documents only, pick charset from meta tag
   // Otherwise, HTML documents only, default charset in US is windows-1252

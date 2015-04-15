@@ -9,6 +9,10 @@ const { Cookie }  = Tough;
 // Lists all available cookies.
 module.exports = class Cookies extends Array {
 
+  constructor() {
+    super();
+  }
+
   // Used to dump state to console (debugging)
   dump(output = process.stdout) {
     for (let cookie of this.sort(Tough.cookieCompare))

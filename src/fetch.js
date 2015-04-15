@@ -23,13 +23,10 @@ class Headers {
 
   constructor(init) {
     this._headers = [];
-    if (init instanceof Headers)
+    if (init instanceof Headers || init instanceof Array) {
       for (let [name, value] of init)
         this.append(name, value);
-    else if (init instanceof Array)
-      for (let [name, value] of init)
-        this.append(name, value);
-    else if (init instanceof Object)
+    } else if (init instanceof Object)
       _.each(init, (value, name)=> {
         this.append(name, value);
       });
@@ -48,8 +45,8 @@ class Headers {
 
   get(name) {
     const caseInsensitive = name.toLowerCase();
-    const header = _.find(this._headers, header => header[0] === caseInsensitive);
-    return header ? header[1] : null;
+    const namedHeader = _.find(this._headers, header => header[0] === caseInsensitive);
+    return namedHeader ? namedHeader[1] : null;
   }
 
   getAll(name) {
@@ -61,8 +58,8 @@ class Headers {
 
   has(name) {
     const caseInsensitive = name.toLowerCase();
-    const header = _.find(this._headers, header => header[0] === caseInsensitive);
-    return !!header;
+    const namedHeader = _.find(this._headers, header => header[0] === caseInsensitive);
+    return !!namedHeader;
   }
 
   set(name, value) {

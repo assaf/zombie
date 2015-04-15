@@ -166,12 +166,13 @@ DOM.Document.prototype.raise = function(type, message, data) {
   // the end.
   const partial = [];
   // "RangeError: Maximum call stack size exceeded" doesn't have a stack trace
-  if (error.stack)
+  if (error.stack) {
     for (let line of error.stack.split('\n')) {
       if (~line.indexOf('contextify/lib/contextify.js'))
         break;
       partial.push(line);
     }
+  }
   partial.push(`    in ${document.location.href}`);
   error.stack = partial.join('\n');
 
