@@ -229,7 +229,7 @@ function setupWindow(window, args) {
   // Constructor for EventSource, URL is relative to document's.
   window.EventSource = function(url) {
     url = DOM.resourceLoader.resolve(document, url);
-    const eventSource = new EventSource(url);
+    const eventSource = new EventSource(url, { headers: { Cookie: window.cookies } });
     eventQueue.addEventSource(eventSource);
     return eventSource;
   };
