@@ -6,8 +6,10 @@ also work with Node 0.12.  Use Zombie 3.1.x if you need to use Node 0.10.
 
 [![NPM](https://img.shields.io/npm/v/zombie.svg?style=flat-square&label=latest)](https://www.npmjs.com/package/zombie) 
 [![Changelog](https://img.shields.io/badge/see-CHANGELOG-red.svg?style=flat-square)](https://github.com/assaf/zombie/blob/master/CHANGELOG.md)
+<img width="16" src="data:image/gif;base64,R0lGODlhAQABAPAAAP">
 ![Node](https://img.shields.io/node/v/zombie.svg?style=flat-square&label=io.js)
 [![Travis.ci](https://img.shields.io/travis/assaf/zombie.svg?style=flat-square)](https://travis-ci.org/assaf/zombie)
+<img width="16" src="data:image/gif;base64,R0lGODlhAQABAPAAAP">
 [![JS.ORG](https://img.shields.io/badge/js.org-zombie-ffb400.svg?style=flat-square)](http://js.org)
 
 
