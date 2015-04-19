@@ -2,7 +2,9 @@
 
 Upgraded to JSDOM 5.0.1
 
-ADDED expose Browser.Request, Browser.Response and Browser.Headers
+ADDED expose Browser.Request/Response/Headers
+
+CHANGED use regexp instead of startsWith
 
  694 passing (22s)
   12 pending
