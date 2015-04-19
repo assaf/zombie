@@ -22,6 +22,7 @@ DOM.languageProcessors.javascript = function(element, buffer, filename) {
 
   // This may be called without code, e.g. script element that has no body yet
   try {
+    window.document._currentScript = element;
     window._evaluate(code, filename);
   } catch (error) {
     if (error.hasOwnProperty('stack')) {
@@ -30,6 +31,8 @@ DOM.languageProcessors.javascript = function(element, buffer, filename) {
       document.raise('error', error.message, { exception: cast });
     } else
       document.raise('error', error.message, { exception: error });
+  } finally {
+    window.document._currentScript = null;
   }
 };
 

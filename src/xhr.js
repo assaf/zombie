@@ -10,12 +10,18 @@ const Utils   = require('jsdom/lib/jsdom/utils');
 
 
 const { DOMException } = DOM;
+const { EventTarget }  = DOM;
 
 
-class XMLHttpRequest extends DOM.EventTarget {
+class XMLHttpRequest {
+//class XMLHttpRequest extends EventTarget {
 
   constructor(window) {
-    super();
+    //super();
+    EventTarget.call(this);
+    for (let method in EventTarget.prototype)
+      this[method] = EventTarget.prototype[method];
+
     this._window      = window;
     this._browser     = window.browser;
     // Pending request
