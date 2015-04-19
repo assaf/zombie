@@ -1,6 +1,7 @@
 // For handling JavaScript, mostly improvements to JSDOM
 
-const DOM = require('./index');
+const DOM             = require('./index');
+const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
 
 
 // -- Patches to JSDOM --
@@ -51,11 +52,11 @@ DOM.HTMLScriptElement._init = function() {
 
     if (script.src)
       // Script has a src attribute, load external resource.
-      DOM.resourceLoader.load(script, script.src, script._eval);
+      resourceLoader.load(script, script.src, script._eval);
     else {
       const filename = script.id ?  `${document.URL}:#${script.id}` : `${document.URL}:script`;
       // Queue to be executed in order with all other scripts
-      const executeInOrder = DOM.resourceLoader.enqueue(script, executeInlineScript, filename);
+      const executeInOrder = resourceLoader.enqueue(script, filename, executeInlineScript);
       // There are two scenarios:
       // - script element added to existing document, we should evaluate it
       //   immediately

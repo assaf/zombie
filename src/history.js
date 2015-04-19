@@ -29,10 +29,10 @@
 //   window = history(url: url, name: name)
 
 
-const assert        = require('assert');
-const loadDocument  = require('./document');
-const DOM           = require('./dom');
-const URL           = require('url');
+const assert          = require('assert');
+const loadDocument    = require('./document');
+const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
+const URL             = require('url');
 
 
 class Location {
@@ -307,7 +307,7 @@ class History {
     let parent  = null;
 
     if (this.current) {
-      url     = DOM.resourceLoader.resolve(this.current.window.document, url);
+      url     = resourceLoader.resolveResourceUrl(this.current.window.document, url);
       name    = this.current.window.name;
       parent  = parentFrom(this.current.window);
     }
@@ -345,7 +345,7 @@ class History {
     let name = '';
 
     if (this.current) {
-      url = DOM.resourceLoader.resolve(this.current.window.document, url);
+      url = resourceLoader.resolveResourceUrl(this.current.window.document, url);
       name = this.current.window.name;
     }
 
@@ -445,7 +445,7 @@ class History {
 
   // This method is available from Location.
   pushState(state, title, url = this.url) {
-    url = DOM.resourceLoader.resolve(this.current.window.document, url);
+    url = resourceLoader.resolveResourceUrl(this.current.window.document, url);
     // TODO: check same origin
     this.addEntry(this.current.window, url, state || {});
     this.updateLocation(this.current.window, url);
@@ -453,7 +453,7 @@ class History {
 
   // This method is available from Location.
   replaceState(state, title, url = this.url) {
-    url = DOM.resourceLoader.resolve(this.current.window.document, url);
+    url = resourceLoader.resolveResourceUrl(this.current.window.document, url);
     // TODO: check same origin
     this.replaceEntry(this.current.window, url, state || {});
     this.updateLocation(this.current.window, url);

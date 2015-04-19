@@ -1,14 +1,14 @@
-const _             = require('lodash');
-const assert        = require('assert');
-const DOM           = require('./dom');
-const Fetch         = require('./fetch');
-const File          = require('fs');
-const { Headers }   = require('./fetch');
-const { isArray }   = require('util');
-const Path          = require('path');
-const Request       = require('request');
-const URL           = require('url');
-const Utils         = require('jsdom/lib/jsdom/utils');
+const _               = require('lodash');
+const assert          = require('assert');
+const Fetch           = require('./fetch');
+const File            = require('fs');
+const { Headers }     = require('./fetch');
+const { isArray }     = require('util');
+const Path            = require('path');
+const Request         = require('request');
+const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
+const URL             = require('url');
+const Utils           = require('jsdom/lib/jsdom/utils');
 
 
 // Pipeline is sequence of request/response handlers that are used to prepare a
@@ -89,7 +89,7 @@ class Pipeline extends Array {
     if (browser.document)
     // Resolve URL relative to document URL/base, or for new browser, using
     // Browser.site
-      request.url = DOM.resourceLoader.resolve(browser.document, request.url);
+      request.url = resourceLoader.resolveResourceUrl(browser.document, request.url);
     else
       request.url = Utils.resolveHref(browser.site || 'http://localhost', request.url);
   }

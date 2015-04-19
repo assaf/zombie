@@ -1,7 +1,8 @@
 // Support for iframes.
 
 
-const DOM = require('./index');
+const DOM             = require('./index');
+const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
 
 
 function loadFrame(frame) {
@@ -105,7 +106,7 @@ DOM.HTMLFrameElement.prototype.__defineGetter__('contentWindow', function() {
     const src = this.src.trim() === '' ? 'about:blank' : this.src;
     this._contentWindow = openWindow({
       name:     this.name,
-      url:      DOM.resourceLoader.resolve(parentDocument, src),
+      url:      resourceLoader.resolveResourceUrl(parentDocument, src),
       parent:   parentWindow,
       referrer: parentWindow.location.href
     });

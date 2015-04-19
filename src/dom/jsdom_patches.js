@@ -1,10 +1,11 @@
 // Fix things that JSDOM doesn't do quite right.
 
 
-const DOM   = require('./index');
-const Fetch = require('../fetch');
-const Utils = require('jsdom/lib/jsdom/utils');
-const URL   = require('url');
+const DOM             = require('./index');
+const Fetch           = require('../fetch');
+const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
+const Utils           = require('jsdom/lib/jsdom/utils');
+const URL             = require('url');
 
 
 DOM.HTMLDocument.prototype.__defineGetter__('scripts', function() {
@@ -49,9 +50,9 @@ DOM.HTMLAnchorElement.prototype._eventDefaults.click = function(event) {
 // jsdom seemed to only queue the 'load' event
 DOM.HTMLImageElement.prototype._attrModified = function(name, value, oldVal) {
   if (name === 'src' && value && value !== oldVal) {
-    const src = DOM.resourceLoader.resolve(this._ownerDocument, value);
+    const src = resourceLoader.resolveResourceUrl(this._ownerDocument, value);
     if (this.src !== src)
-      DOM.resourceLoader.load(this, value);
+      resourceLoader.load(this, value);
   }
 };
 
@@ -183,17 +184,17 @@ DOM.Document.prototype.raise = function(type, message, data) {
 // Fix resource loading to keep track of in-progress requests. Need this to wait
 // for all resources (mainly JavaScript) to complete loading before terminating
 // browser.wait.
-DOM.resourceLoader.load = function(element, href, callback) {
+resourceLoader.load = function(element, href, callback) {
   const document      = element.ownerDocument;
   const window        = document.defaultView;
   const tagName       = element.tagName.toLowerCase();
   const loadResource  = document.implementation._hasFeature('FetchExternalResources', tagName);
-  const url           = DOM.resourceLoader.resolve(document, href);
+  const url           = resourceLoader.resolveResourceUrl(document, href);
 
   if (loadResource) {
     // This guarantees that all scripts are executed in order, must add to the
     // JSDOM queue before we add to the Zombie event queue.
-    const enqueued = this.enqueue(element, callback && callback.bind(element), url);
+    const enqueued = this.enqueue(element, url, callback && callback.bind(element));
     const request = new Fetch.Request(url);
     window._eventQueue.http(request, (error, response)=> {
       // Since this is used by resourceLoader that doesn't check the response,

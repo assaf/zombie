@@ -7,6 +7,7 @@ const DOM             = require('./dom');
 const EventSource     = require('eventsource');
 const iconv           = require('iconv-lite');
 const QS              = require('querystring');
+const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
 const Resources       = require('./resources');
 const URL             = require('url');
 const Utils           = require('jsdom/lib/jsdom/utils');
@@ -158,7 +159,7 @@ function setupWindow(window, args) {
 
   // Web sockets
   window.WebSocket = function(url, protocol) {
-    url = DOM.resourceLoader.resolve(document, url);
+    url = resourceLoader.resolveResourceUrl(document, url);
     const origin = `${window.location.protocol}//${window.location.host}`;
     return new WebSocket(url, { origin, protocol });
   };
@@ -228,7 +229,7 @@ function setupWindow(window, args) {
 
   // Constructor for EventSource, URL is relative to document's.
   window.EventSource = function(url) {
-    url = DOM.resourceLoader.resolve(document, url);
+    url = resourceLoader.resolveResourceUrl(document, url);
     const eventSource = new EventSource(url);
     eventQueue.addEventSource(eventSource);
     return eventSource;
@@ -269,7 +270,7 @@ function setupWindow(window, args) {
 
   // Open one window from another.
   window.open = function(url, name) {
-    url = url && DOM.resourceLoader.resolve(document, url);
+    url = url && resourceLoader.resolveResourceUrl(document, url);
     return browser.tabs.open({ name: name, url: url, opener: window });
   };
 
@@ -367,7 +368,7 @@ function setupWindow(window, args) {
 
   // Form submission uses this
   window._submit = function(formArgs) {
-    const url     = DOM.resourceLoader.resolve(document, formArgs.url);
+    const url     = resourceLoader.resolveResourceUrl(document, formArgs.url);
     const target  = formArgs.target || '_self';
     browser.emit('submit', url, target);
     // Figure out which history is going to handle this
@@ -565,7 +566,7 @@ async function parseResponse({ browser, history, document, response }) {
     const contentType = response.headers.get('Content-Type') || '';
     const html        = getHTMLFromResponseBody(buffer, contentType);
     response.body     = html;
-    document.write(html);
+    document.write(html || '<html></html>');
     document.close();
 
     if (response.status >= 400)
