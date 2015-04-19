@@ -643,7 +643,7 @@ module.exports = function loadDocument(args) {
   }
 
   // Let's handle the specifics of each protocol
-  if (!url || url.startsWith('about:')) {
+  if (!url || /^about:/.test(url)) {
     window._eventQueue.enqueue(function() {
       document.close();
       browser.emit('loaded', document);
@@ -651,7 +651,7 @@ module.exports = function loadDocument(args) {
     return document;
   }
 
-  if (url.startsWith('javascript:')) {
+  if (/^javascript:/.test(url)) {
     window._eventQueue.enqueue(function() {
       document.close();
       try {
