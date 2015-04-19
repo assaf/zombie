@@ -66,14 +66,14 @@ class Headers {
     const caseInsensitive = name.toLowerCase();
     const castValue       = String(value).replace(/\r\n/g, '');
     let   replaced        = false;
-    this._headers = this._headers.reduce((headers, [name, value])=> {
-      if (name !== caseInsensitive)
-        headers.push([name, value]);
+    this._headers = this._headers.reduce((memo, header)=> {
+      if (header[0] !== caseInsensitive)
+        memo.push(header);
       else if (!replaced) {
-        headers.push([name, castValue]);
+        memo.push([header[0], castValue]);
         replaced = true;
       }
-      return headers;
+      return memo;
     }, []);
 
     if (!replaced)
@@ -108,7 +108,7 @@ class FormData {
     this._entries = [];
   }
 
-  append(name, value, filename) {
+  append(name, value /*, filename*/) {
     // TODO add support for files
     this._entries.push([name, value]);
   }
@@ -123,8 +123,8 @@ class FormData {
   }
 
   get(name) {
-    const entry = _.find(this._entries, entry => entry[0] === name);
-    return entry ? entry[1] : null;
+    const namedEntry = _.find(this._entries, entry => entry[0] === name);
+    return namedEntry ? namedEntry[1] : null;
   }
 
   getAll(name) {
@@ -134,8 +134,8 @@ class FormData {
   }
 
   has(name) {
-    const entry = _.find(this._entries, entry => entry[0] === name);
-    return !!entry;
+    const namedEntry = _.find(this._entries, entry => entry[0] === name);
+    return !!namedEntry;
   }
 
   [Symbol.iterator]() {
@@ -228,7 +228,7 @@ class Body {
   }
 
   async formData() {
-    const buffer      = await this._consume();
+    await this._consume();
     const contentType = this.headers.get('Content-Type') || '';
     const mimeType    = contentType.split(';')[0];
     switch (mimeType) {

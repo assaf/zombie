@@ -9,6 +9,7 @@ const DOM               = require('./dom');
 const { EventEmitter }  = require('events');
 const EventLoop         = require('./eventloop');
 const { format }        = require('util');
+const Fetch             = require('./fetch');
 const File              = require('fs');
 const Mime              = require('mime');
 const ms                = require('ms');
@@ -28,7 +29,7 @@ const VERSION = require(`${__dirname}/../package.json`).version;
 // Browser options you can set when creating new browser, or on browser instance.
 const BROWSER_OPTIONS  = ['features', 'headers', 'waitDuration',
                           'proxy', 'referrer', 'silent', 'site', 'strictSSL', 'userAgent',
-                          'maxRedirects', 'language', 'runScripts', 'localAddress'];
+                          'language', 'runScripts', 'localAddress'];
 
 // These features are set on/off by default.
 // Note that default values are actually prescribed where they are used,
@@ -1290,67 +1291,67 @@ class Browser extends EventEmitter {
     return this._debugEnabled;
   }
 
-}
 
+  // -- Static properties --
 
-Object.assign(Browser, {
+  static VERSION  = VERSION
 
-  Assert,
-  Pipeline,
-  VERSION,
+  static Assert   = Assert
+  static Pipeline = Pipeline
+  static Headers  = Fetch.Headers
+  static Request  = Fetch.Request
+  static Response = Fetch.Response
+
 
   // -- These defaults are used in any new browser instance --
 
   // Which features are enabled.
-  features: DEFAULT_FEATURES,
-
-  // Tells the browser how many redirects to follow before aborting a request. Defaults to 5
-  maxRedirects: 5,
+  static features = DEFAULT_FEATURES
 
   // Proxy URL.
   //
   // Example
   //   Browser.proxy = 'http://myproxy:8080'
-  proxy: null,
+  static proxy = null
 
   // If true, supress `console.log` output from scripts (ignored when DEBUG=zombie)
-  silent: false,
+  static silent = false
 
   // You can use visit with a path, and it will make a request relative to this host/URL.
-  site: null,
+  static site = null
 
   // Check SSL certificates against CA.  False by default since you're likely
   // testing with a self-signed certificate.
-  strictSSL: false,
+  static strictSSL = false
 
   // Sets the outgoing IP address in case there is more than on available.
   // Defaults to 0.0.0.0 which should select default interface
-  localAddress: '0.0.0.0',
+  static localAddress = '0.0.0.0'
 
   // User agent string sent to server.
-  userAgent: `Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/${VERSION}`,
+  static userAgent = `Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/${VERSION}`
 
   // Navigator language code
-  language: 'en-US',
+  static language = 'en-US'
 
   // Default time to wait (visit, wait, etc).
-  waitDuration: '5s',
+  static waitDuration = '5s'
 
   // Indicates whether or not to validate and execute JavaScript, default true.
-  runScripts: true,
+  static runScripts = true
+
 
   // -- Internal properties --
 
   // Debug instance.  Create new instance when enabling debugging with Zombie.debug
-  _debug: debug('zombie'),
+  static _debug = debug('zombie')
 
   // Set after calling _enableDebugging
-  _debugEnabled: null,
+  static _debugEnabled = null
 
   // Browser extensions;
-  _extensions: []
-
-});
+  static _extensions = []
+}
 
 
 module.exports = Browser;

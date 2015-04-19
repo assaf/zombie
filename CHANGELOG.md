@@ -1,5 +1,11 @@
-## Version 4.0.8 2015-04-16
+## Version 4.0.8 2015-04-19
 
+Upgraded to JSDOM 5.0.1
+
+ADDED expose Browser.Request, Browser.Response and Browser.Headers
+
+ 694 passing (22s)
+  12 pending
 
 
 ## Version 4.0.7 2015-04-10
