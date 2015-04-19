@@ -1,4 +1,4 @@
-# Zombie.js
+# Zombie.js [![JS.ORG](https://img.shields.io/badge/js.org-zombie-ffb400.svg?style=flat-square)](http://js.org)
 ### Insanely fast, headless full-stack testing using Node.js
 
 **Zombie 4.x** is tested with [io.js](https://iojs.org/en/index.html), but may
