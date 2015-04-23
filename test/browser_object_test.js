@@ -225,6 +225,7 @@ describe('Browser', function() {
             await imgBrowser.visit('/browser/missing-resource');
             assert(false, 'Should have errored');
           } catch (callbackError) {
+            assert(true);
           }
         });
 
@@ -281,6 +282,7 @@ describe('Browser', function() {
           try {
             await browser.wait();
           } catch (error) {
+            assert(true);
           }
 
           assert(error.message && error.stack);

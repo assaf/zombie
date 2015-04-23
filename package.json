@@ -67,6 +67,7 @@
     "express": "^4.12.3",
     "gulp": "^3.8.10",
     "gulp-babel": "^5.1.0",
+    "gulp-eslint": "^0.9.0",
     "gulp-exec": "^2.1.1",
     "gulp-notify": "^2.0.1",
     "gulp-sourcemaps": "^1.5.2",

@@ -1,5 +1,6 @@
 const assert      = require('assert');
 const del         = require('del');
+const eslint      = require('gulp-eslint');
 const exec        = require('gulp-exec');
 const File        = require('fs');
 const gulp        = require('gulp');
@@ -9,13 +10,21 @@ const sourcemaps  = require('gulp-sourcemaps');
 const babel       = require('gulp-babel');
 
 
-
 // gulp -> gulp watch
 gulp.task('default', ['watch']);
 
 
+// gulp lint -> errors if code dirty
+gulp.task('lint', function () {
+  return gulp.src([ 'js/**/*.js', 'test/*.js' ])
+    .pipe(eslint())
+    .pipe(eslint.formatEach())
+    .pipe(eslint.failOnError());
+});
+
+
 // gulp build -> compile coffee script
-gulp.task('build', ['clean'], function() {
+gulp.task('build', ['clean', 'lint'], function() {
   return gulp
     .src('src/**/*.js')
     .pipe(sourcemaps.init())
