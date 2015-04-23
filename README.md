@@ -188,8 +188,9 @@ do this:
 ```js
 Browser.localhost('example.com', 3000)
 browser.visit('/path', function() {
-  assert(browser.location.href == 'http://example.com/path');
+  console.log(browser.location.href);
 });
+=> 'http://example.com/path'
 ```
 
 The first time you call `Browser.localhost`, if you didn't specify
