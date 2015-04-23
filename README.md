@@ -121,14 +121,11 @@ Well, that was easy.
 
 ## Installing
 
-To install Zombie.js you will need [io.js](https://iojs.org/) or
-[Node.js](http://nodejs.org/) 0.10/0.12, and the [C++ toolchain and
-Python](https://github.com/TooTallNate/node-gyp).
+To install Zombie.js you will need [io.js](https://iojs.org/):
 
 ```bash
 $ npm install zombie --save-dev
 ```
-
 
 
 
