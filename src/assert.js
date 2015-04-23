@@ -194,13 +194,7 @@ module.exports = class Assert {
   //
   // You can also call this with a regular expression, or a function.
   text(selector, expected, message) {
-    const elements = this.browser.queryAll(selector);
-    assert(elements.length, `Expected selector "${selector}" to return one or more elements`);
-    const actual = elements
-      .map(elem => elem.textContent)
-      .join('')
-      .trim()
-      .replace(/\s+/g, ' ');
+    const actual = this.browser.text(selector);
     assertMatch(actual, expected || '', message);
   }
 
