@@ -1,3 +1,13 @@
+## Version 4.0.9 2015-04-25
+
+Upgraded to JSDOM 5.1.0
+
+FIXED assertion errors not propagating our of wait callback
+
+ 694 passing (22s)
+  12 pending
+
+
 ## Version 4.0.8 2015-04-19
 
 Upgraded to JSDOM 5.0.1

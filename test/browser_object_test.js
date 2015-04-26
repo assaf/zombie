@@ -248,6 +248,7 @@ describe('Browser', function() {
           imgBrowser.destroy();
         });
       });
+
     });
 
 

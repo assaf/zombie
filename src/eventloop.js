@@ -441,7 +441,15 @@ module.exports = class EventLoop extends EventEmitter {
       eventLoop.browser.removeListener('error', done);
 
       --eventLoop.waiting;
-      callback(error);
+      try {
+        callback(error);
+      } catch (error) {
+        // If callback makes an assertion that fails, we end here.
+        // If we throw error synchronously, it gets swallowed.
+        setImmediate(function() {
+          throw error;
+        });
+      }
     }
 
     // We gave up, could be result of slow response ...
