@@ -49,12 +49,12 @@
     "debug": "^2.1",
     "eventsource": "^0.1.6",
     "iconv-lite": "^0.4.8",
-    "jsdom": "5.1.0",
+    "jsdom": "5.2.0",
     "lodash": "^3.7.0",
     "mime": "^1.3.4",
     "ms": "^0.7.1",
     "request": "^2.55.0",
-    "tough-cookie": "^0.13.0",
+    "tough-cookie": "^1.1.0",
     "ws": "^0.7.1"
   },
   "devDependencies": {
@@ -67,7 +67,7 @@
     "express": "^4.12.3",
     "gulp": "^3.8.10",
     "gulp-babel": "^5.1.0",
-    "gulp-eslint": "^0.10.0",
+    "gulp-eslint": "^0.11.1",
     "gulp-exec": "^2.1.1",
     "gulp-notify": "^2.0.1",
     "gulp-sourcemaps": "^1.5.2",
@@ -75,7 +75,7 @@
     "mocha": "^2.2.4",
     "morgan": "^1.5.2",
     "multiparty": "^4.1.1",
-    "replay": "^2.0.4",
+    "replay": "^2.0.5",
     "requirejs": "^2.1.17"
   },
   "repository": {
