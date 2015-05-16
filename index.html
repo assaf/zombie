@@ -6,7 +6,7 @@
     <title>Zombie by assaf</title>
 
     <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
     <script src="javascripts/scale.fix.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
@@ -44,8 +44,8 @@
 <img width="12">
 <a href="http://js.org"><img src="https://img.shields.io/badge/js.org-zombie-ffb400.svg?style=flat-square" alt="JS.ORG"></a></p>
 
-<p><strong>Zombie 4.x</strong> is tested to work with <a href="https://iojs.org/en/index.html">io.js</a>.
-For Node compatibility, consider using Zombie 3.x.</p>
+<p><strong>Zombie 4.x</strong> is tested to work with <a href="https://iojs.org/en/index.html">io.js 1.6 or later</a>.
+If you need to use Node 0.12 or earlier, consider using Zombie 2.x.</p>
 
 <h2>
 <a id="the-bite" class="anchor" href="#the-bite" aria-hidden="true"><span class="octicon octicon-link"></span></a>The Bite</h2>
@@ -149,9 +149,7 @@ describe(<span class="pl-s"><span class="pl-pds">'</span>User visits signup page
 <h2>
 <a id="installing" class="anchor" href="#installing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installing</h2>
 
-<p>To install Zombie.js you will need <a href="https://iojs.org/">io.js</a> or
-<a href="http://nodejs.org/">Node.js</a> 0.10/0.12, and the <a href="https://github.com/TooTallNate/node-gyp">C++ toolchain and
-Python</a>.</p>
+<p>To install Zombie.js you will need <a href="https://iojs.org/">io.js</a>:</p>
 
 <div class="highlight highlight-bash"><pre>$ npm install zombie --save-dev</pre></div>
 
@@ -219,8 +217,9 @@ do this:</p>
 
 <div class="highlight highlight-js"><pre>Browser.localhost(<span class="pl-s"><span class="pl-pds">'</span>example.com<span class="pl-pds">'</span></span>, <span class="pl-c1">3000</span>)
 browser.visit(<span class="pl-s"><span class="pl-pds">'</span>/path<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>() {
-  assert(browser.<span class="pl-c1">location</span>.<span class="pl-c1">href</span> <span class="pl-k">==</span> <span class="pl-s"><span class="pl-pds">'</span>http://example.com/path<span class="pl-pds">'</span></span>);
-});</pre></div>
+  <span class="pl-en">console</span><span class="pl-c1">.log</span>(browser.<span class="pl-c1">location</span>.<span class="pl-c1">href</span>);
+});
+<span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>http://example.com/path<span class="pl-pds">'</span></span></pre></div>
 
 <p>The first time you call <code>Browser.localhost</code>, if you didn't specify
 <code>Browser.site</code>, it will set it to the hostname (in the above example,
