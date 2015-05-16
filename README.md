@@ -9,8 +9,8 @@
 <img width="12" src="data:image/gif;base64,R0lGODlhAQABAPAAAP">
 [![JS.ORG](https://img.shields.io/badge/js.org-zombie-ffb400.svg?style=flat-square)](http://js.org)
 
-**Zombie 4.x** is tested to work with [io.js](https://iojs.org/en/index.html).
-For Node compatibility, consider using Zombie 3.x.
+**Zombie 4.x** is tested to work with [io.js 1.6 or later](https://iojs.org/en/index.html).
+If you need to use Node 0.12 or earlier, consider using Zombie 2.x.
 
 
 
