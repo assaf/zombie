@@ -108,13 +108,13 @@ module.exports = class Assert {
     else if (Number.isInteger(count))
       this.elements(selector, { exactly: count }, message);
     else {
-      if (count.exactly)
+      if (Number.isInteger(count.exactly))
         assert.equal(elements.length, count.exactly,
                      message || `Expected ${count.exactly} elements matching "${selector}", found ${elements.length}`);
-      if (count.atLeast)
+      if (Number.isInteger(count.atLeast))
         assert(elements.length >= count.atLeast,
                message || `Expected at least ${count.atLeast} elements matching "${selector}", found only ${elements.length}`);
-      if (count.atMost)
+      if (Number.isInteger(count.atMost))
         assert(elements.length <= count.atMost,
                message || `Expected at most ${count.atMost} elements matching "${selector}", found ${elements.length}`);
     }
