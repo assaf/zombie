@@ -1,5 +1,6 @@
 const brains  = require('./helpers/brains');
 const Browser = require('../src');
+const assert  = require('assert');
 
 
 describe('Browser assert', function() {
@@ -7,6 +8,35 @@ describe('Browser assert', function() {
 
   before(function() {
     return brains.ready();
+  });
+
+  describe('elements', function () {
+    before(function() {
+      brains.static('/assert/elements', `
+        <div id="elem">
+          <div class="item"></div>
+          <div class="item"></div>
+        </div>
+      `);
+    });
+
+    before(function () {
+      return browser.visit('/assert/elements');
+    });
+
+    it('should default test {exactly: 1} when no parameter given', function () {
+      browser.assert.elements('#elem');
+    });
+
+    it('should test {exactly: n} when integer given', function () {
+      browser.assert.elements('.item', 2);
+    });
+
+    it('should fail when 0 given and an element was found', function () {
+      assert.throws(function () {
+        browser.assert.elements('#elem', 0);
+      });
+    });
   });
 
 
