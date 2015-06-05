@@ -644,7 +644,7 @@ class Browser extends EventEmitter {
   //
   // Save history to a text string.  You can use this to load the data later on using `browser.loadHistory`.
   saveHistory() {
-    this.window.history.save();
+    return this.window.history.save();
   }
 
   // browser.loadHistory(String)
@@ -1109,7 +1109,7 @@ class Browser extends EventEmitter {
   // Save local/session storage to a text string.  You can use this to load the data later on using
   // `browser.loadStorage`.
   saveStorage() {
-    this._storages.save();
+    return this._storages.save();
   }
 
   // Load local/session stroage from a text string (e.g. previously created using `browser.saveStorage`.
