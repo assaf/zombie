@@ -1,3 +1,11 @@
+## Version 4.0.11 2015-06-12
+
+Upgraded to JSDOM 5.3.0.
+
+ 697 passing (24s)
+  12 pending
+
+
 ## Version 4.0.10 2015-04-29
 
 Upgraded to JSDOM 5.2.0 and tough-cookie 1.1.0
