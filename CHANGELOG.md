@@ -10,7 +10,7 @@ Upgraded to JSDOM 5.2.0 and tough-cookie 1.1.0
 
 Upgraded to JSDOM 5.1.0
 
-FIXED assertion errors not propagating our of wait callback
+FIXED assertion errors not propagating out of wait callback
 
  694 passing (22s)
   12 pending

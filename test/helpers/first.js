@@ -1,7 +1,3 @@
-// Enable ES6/7 before loading the Browser
-require('babel/register')();
-
-
 const Bluebird  = require('bluebird');
 const Browser   = require('../../src');
 const Path      = require('path');
