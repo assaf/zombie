@@ -282,7 +282,7 @@ describe('Browser', function() {
           browser.location = '/browser/errored';
           try {
             await browser.wait();
-          } catch (error) {
+          } catch (ignore) {
             assert(true);
           }
 
