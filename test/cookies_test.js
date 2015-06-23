@@ -72,8 +72,8 @@ describe('Cookies', function() {
   describe('getCookie', function() {
     before(function() {
       browser.deleteCookies();
-      browser.setCookie({ name: 'foo', domain: '.example.com',    value: 'partial domain' });
       browser.setCookie({ name: 'foo', domain: 'www.example.com', value: 'full domain' });
+      browser.setCookie({ name: 'foo', domain: '.example.com',    value: 'partial domain' });
       browser.setCookie({ name: 'foo', domain: '.example.com',    path: '/bar', value: 'full path' });
     });
 
