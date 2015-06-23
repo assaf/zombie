@@ -43,23 +43,35 @@ class Pipeline extends Array {
   }
 
   _runPipeline(request) {
-    const browser           = this._browser;
-    const requestHandlers   = this.filter(fn => fn.length === 2).concat(Pipeline.makeHTTPRequest);
-    const responseHandlers  = this.filter(fn => fn.length === 3);
+    return this
+      ._getOriginalResponse(request)
+      .then((response)=> {
+        return this._prepareResponse(request, response);
+      });
+  }
+
+  _getOriginalResponse(request) {
+    const browser         = this._browser;
+    const requestHandlers = this.filter(fn => fn.length === 2).concat(Pipeline.makeHTTPRequest);
 
     return Bluebird
-      .reduce(requestHandlers, function(lastResponse, handler) {
-        return lastResponse || handler(browser, request);
+      .reduce(requestHandlers, function(lastResponse, requestHandler) {
+        return lastResponse || requestHandler(browser, request);
       }, null)
       .then(function(response) {
         assert(response && response.hasOwnProperty('statusText'), 'Request handler must return a response');
+        return response;
+      });
+  }
 
-        return Bluebird
-          .reduce(responseHandlers, function(lastResponse, handler) {
-            return handler(browser, request, lastResponse);
-          }, response);
+  _prepareResponse(request, originalResponse) {
+    const browser           = this._browser;
+    const responseHandlers  = this.filter(fn => fn.length === 3);
 
-      })
+    return Bluebird
+      .reduce(responseHandlers, function(lastResponse, responseHandler) {
+        return responseHandler(browser, request, lastResponse);
+      }, originalResponse)
       .then(function(response) {
         assert(response && response.hasOwnProperty('statusText'), 'Response handler must return a response');
         return response;

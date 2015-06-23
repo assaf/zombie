@@ -27,7 +27,7 @@ class Headers {
       for (let [name, value] of init)
         this.append(name, value);
     else if (init instanceof Object)
-      _.each(init, (value, name)=> {
+      _.each(init, function(value, name) {
         this.append(name, value);
       });
   }
@@ -66,7 +66,7 @@ class Headers {
     const caseInsensitive = name.toLowerCase();
     const castValue       = String(value).replace(/\r\n/g, '');
     let   replaced        = false;
-    this._headers = this._headers.reduce((memo, header)=> {
+    this._headers = this._headers.reduce(function(memo, header) {
       if (header[0] !== caseInsensitive)
         memo.push(header);
       else if (!replaced) {
@@ -220,6 +220,8 @@ class Body {
       ._consume()
       .then((buffer)=> {
         this.body = buffer;
+      })
+      .then(()=> {
         const arrayBuffer = new Uint8Array(this.body.length);
         for (let i = 0; i < this.body.length; ++i)
           arrayBuffer[i] = this.body[i];
@@ -234,6 +236,9 @@ class Body {
   formData() {
     return this
       ._consume()
+      .then((buffer)=> {
+        this.body = buffer;
+      })
       .then(()=> {
 
         const contentType = this.headers.get('Content-Type') || '';
@@ -258,6 +263,8 @@ class Body {
       ._consume()
       .then((buffer)=> {
         this.body = buffer.toString('utf-8');
+      })
+      .then(()=> {
         return JSON.parse(this.body);
       });
   }
@@ -267,6 +274,8 @@ class Body {
       ._consume()
       .then((buffer)=> {
         this.body = buffer.toString();
+      })
+      .then(()=> {
         return this.body;
       });
   }
@@ -288,18 +297,16 @@ class Body {
 
     const decompressed = decompressStream(this._stream, this.headers);
 
-    return new Promise((resolve)=> {
+    return new Promise(function(resolve, reject) {
       const buffers = [];
       decompressed
-        .on('data', (buffer)=> {
+        .on('data', function(buffer) {
           buffers.push(buffer);
         })
-        .on('end', ()=> {
+        .on('end', function() {
           resolve(Buffer.concat(buffers));
         })
-        .on('error', ()=> {
-          resolve(Buffer.concat(buffers));
-        })
+        .on('error', reject)
         .resume();
     });
   }

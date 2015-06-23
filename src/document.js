@@ -554,13 +554,12 @@ function buildRequest(args) {
 
 // Parse HTML response and setup document
 function parseResponse({ browser, history, document, response }) {
-  const window = document.defaultView;
-  const done   = window._eventQueue.waitForCompletion();
-
+  const window      = document.defaultView;
   window._request   = response.request;
   window._response  = response;
   history.updateLocation(window, response._url);
 
+  const done = window._eventQueue.waitForCompletion();
   response
     ._consume()
     .then(function(body) {
@@ -571,11 +570,14 @@ function parseResponse({ browser, history, document, response }) {
       document.write(html || '<html></html>');
       document.close();
 
+      browser.emit('loaded', document);
       if (response.status >= 400)
         throw new Error(`Server returned status code ${response.status} from ${response.url}`);
       if (!document.documentElement)
         throw new Error(`Could not parse document at ${response.url}`);
-      browser.emit('loaded', document);
+
+    })
+    .then(function() {
 
       // Handle meta refresh.  Automatically reloads new location and counts
       // as a redirect.
