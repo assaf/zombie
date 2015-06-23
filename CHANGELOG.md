@@ -1,3 +1,11 @@
+## Version 4.0.12 2015-06-23
+
+Work around some Babel.js bugs.
+
+697 passing (24s)
+  12 pending
+
+
 ## Version 4.0.11 2015-06-12
 
 Upgraded to JSDOM 5.3.0.

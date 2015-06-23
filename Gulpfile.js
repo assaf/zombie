@@ -24,7 +24,7 @@ gulp.task('lint', function () {
 
 
 // gulp build -> compile coffee script
-gulp.task('build', ['clean', 'lint'], function() {
+gulp.task('build', ['clean'], function() {
   return gulp
     .src('src/**/*.js')
     .pipe(sourcemaps.init())

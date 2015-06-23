@@ -553,57 +553,59 @@ function buildRequest(args) {
 
 
 // Parse HTML response and setup document
-async function parseResponse({ browser, history, document, response }) {
+function parseResponse({ browser, history, document, response }) {
   const window = document.defaultView;
   const done   = window._eventQueue.waitForCompletion();
 
-  try {
-    window._request   = response.request;
-    window._response  = response;
-    history.updateLocation(window, response._url);
+  window._request   = response.request;
+  window._response  = response;
+  history.updateLocation(window, response._url);
 
-    const buffer      = await response._consume();
-    const contentType = response.headers.get('Content-Type') || '';
-    const html        = getHTMLFromResponseBody(buffer, contentType);
-    response.body     = html;
-    document.write(html || '<html></html>');
-    document.close();
+  response
+    ._consume()
+    .then(function(body) {
 
-    if (response.status >= 400)
-      throw new Error(`Server returned status code ${response.status} from ${response.url}`);
-    if (!document.documentElement)
-      throw new Error(`Could not parse document at ${response.url}`);
-    browser.emit('loaded', document);
+      const contentType = response.headers.get('Content-Type') || '';
+      const html        = getHTMLFromResponseBody(body, contentType);
+      response.body     = html;
+      document.write(html || '<html></html>');
+      document.close();
 
-    // Handle meta refresh.  Automatically reloads new location and counts
-    // as a redirect.
-    //
-    // If you need to check the page before refresh takes place, use this:
-    //   browser.wait({
-    //     function: function() {
-    //       return browser.query('meta[http-equiv="refresh"]');
-    //     }
-    //   });
-    const refreshURL = getMetaRefreshURL(document);
-    if (refreshURL)
-      // Allow completion function to run
-      window._eventQueue.enqueue(function() {
+      if (response.status >= 400)
+        throw new Error(`Server returned status code ${response.status} from ${response.url}`);
+      if (!document.documentElement)
+        throw new Error(`Could not parse document at ${response.url}`);
+      browser.emit('loaded', document);
+
+      // Handle meta refresh.  Automatically reloads new location and counts
+      // as a redirect.
+      //
+      // If you need to check the page before refresh takes place, use this:
+      //   browser.wait({
+      //     function: function() {
+      //       return browser.query('meta[http-equiv="refresh"]');
+      //     }
+      //   });
+      const refreshURL = getMetaRefreshURL(document);
+      if (refreshURL)
+        // Allow completion function to run
         window._eventQueue.enqueue(function() {
-          // Count a meta-refresh in the redirects count.
-          history.replace(refreshURL || document.location.href);
-          // This results in a new window getting loaded
-          const newWindow = history.current.window;
-          newWindow.addEventListener('load', function() {
-            ++newWindow._request._redirectCount;
+          window._eventQueue.enqueue(function() {
+            // Count a meta-refresh in the redirects count.
+            history.replace(refreshURL || document.location.href);
+            // This results in a new window getting loaded
+            const newWindow = history.current.window;
+            newWindow.addEventListener('load', function() {
+              ++newWindow._request._redirectCount;
+            });
           });
         });
-      });
 
-  } catch (error) {
-    browser.emit('error', error);
-  } finally {
-    done();
-  }
+    })
+    .catch(function(error) {
+      browser.emit('error', error);
+    })
+    .then(done);
 }
 
 
@@ -665,7 +667,7 @@ module.exports = function loadDocument(args) {
   }
 
   const request = buildRequest(args);
-  window._eventQueue.http(request, async (error, response)=> {
+  window._eventQueue.http(request, (error, response)=> {
     if (error) {
       document.write(`<html><body>${error.message}</body></html>`);
       document.close();

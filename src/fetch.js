@@ -215,51 +215,66 @@ class Body {
     return this._bodyUsed;
   }
 
-  async arrayBuffer() {
-    this.body         = await this._consume();
-    const arrayBuffer = new Uint8Array(this.body.length);
-    for (let i = 0; i < this.body.length; ++i)
-      arrayBuffer[i] = this.body[i];
-    return arrayBuffer;
+  arrayBuffer() {
+    return this
+      ._consume()
+      .then((buffer)=> {
+        this.body = buffer;
+        const arrayBuffer = new Uint8Array(this.body.length);
+        for (let i = 0; i < this.body.length; ++i)
+          arrayBuffer[i] = this.body[i];
+        return arrayBuffer;
+      });
   }
 
-  async blob() {
+  blob() {
     throw new Error('Not implemented yet');
   }
 
-  async formData() {
-    await this._consume();
-    const contentType = this.headers.get('Content-Type') || '';
-    const mimeType    = contentType.split(';')[0];
-    switch (mimeType) {
-      case 'multipart/form-data': {
-        throw new Error('Not implemented yet');
-      }
-      case 'application/x-www-form-urlencoded': {
-        throw new Error('Not implemented yet');
-      }
-      default: {
-        throw new TypeError(`formData does not support MIME type ${mimeType}`);
-      }
-    }
+  formData() {
+    return this
+      ._consume()
+      .then(()=> {
+
+        const contentType = this.headers.get('Content-Type') || '';
+        const mimeType    = contentType.split(';')[0];
+        switch (mimeType) {
+          case 'multipart/form-data': {
+            throw new Error('Not implemented yet');
+          }
+          case 'application/x-www-form-urlencoded': {
+            throw new Error('Not implemented yet');
+          }
+          default: {
+            throw new TypeError(`formData does not support MIME type ${mimeType}`);
+          }
+        }
+
+      });
   }
 
-  async json() {
-    const buffer  = await this._consume();
-    this.body     = buffer.toString('utf-8');
-    return JSON.parse(this.body);
+  json() {
+    return this
+      ._consume()
+      .then((buffer)=> {
+        this.body = buffer.toString('utf-8');
+        return JSON.parse(this.body);
+      });
   }
 
-  async text() {
-    const buffer      = await this._consume();
-    this.body         = buffer.toString();
-    return this.body;
+  text() {
+    return this
+      ._consume()
+      .then((buffer)=> {
+        this.body = buffer.toString();
+        return this.body;
+      });
   }
 
 
   // -- Implementation details --
 
-  async _consume() {
+  _consume() {
     if (this._bodyUsed)
       throw new TypeError('Body already consumed');
     this._bodyUsed = true;
@@ -273,7 +288,7 @@ class Body {
 
     const decompressed = decompressStream(this._stream, this.headers);
 
-    return await new Promise((resolve)=> {
+    return new Promise((resolve)=> {
       const buffers = [];
       decompressed
         .on('data', (buffer)=> {

@@ -1,5 +1,6 @@
 const _               = require('lodash');
 const assert          = require('assert');
+const Bluebird        = require('bluebird');
 const Fetch           = require('./fetch');
 const File            = require('fs');
 const { Headers }     = require('./fetch');
@@ -22,41 +23,47 @@ class Pipeline extends Array {
       this.push(handler);
   }
 
-  async _fetch(input, init) {
+  _fetch(input, init) {
     const request   = new Fetch.Request(input, init);
     const browser   = this._browser;
     browser.emit('request', request);
 
-    try {
-
-      const response    = await this._runPipeline(request);
-      response.time     = Date.now();
-      response.request  = request;
-      browser.emit('response', request, response);
-      return response;
-
-    } catch (error) {
-      browser._debug('Resource error', error.stack);
-      throw new TypeError(error.message);
-    }
+    return this
+      ._runPipeline(request)
+      .then(function(response) {
+        response.time     = Date.now();
+        response.request  = request;
+        browser.emit('response', request, response);
+        return response;
+      })
+      .catch(function(error) {
+        browser._debug('Resource error', error.stack);
+        throw new TypeError(error.message);
+      });
   }
 
-  async _runPipeline(request) {
+  _runPipeline(request) {
     const browser           = this._browser;
     const requestHandlers   = this.filter(fn => fn.length === 2).concat(Pipeline.makeHTTPRequest);
     const responseHandlers  = this.filter(fn => fn.length === 3);
 
-    let response;
-    for (let requestHandler of requestHandlers) {
-      response = await requestHandler(browser, request);
-      if (response)
-        break;
-    }
-    for (let responseHandler of responseHandlers) {
-      response = await responseHandler(browser, request, response);
-      assert(response, 'Response handler must return a response');
-    }
-    return response;
+    return Bluebird
+      .reduce(requestHandlers, function(lastResponse, handler) {
+        return lastResponse || handler(browser, request);
+      }, null)
+      .then(function(response) {
+        assert(response && response.hasOwnProperty('statusText'), 'Request handler must return a response');
+
+        return Bluebird
+          .reduce(responseHandlers, function(lastResponse, handler) {
+            return handler(browser, request, lastResponse);
+          }, response);
+
+      })
+      .then(function(response) {
+        assert(response && response.hasOwnProperty('statusText'), 'Response handler must return a response');
+        return response;
+      });
   }
 
 
@@ -129,7 +136,7 @@ class Pipeline extends Array {
 
   // Used to perform HTTP request (also supports file: resources).  This is always
   // the last request handler.
-  static async makeHTTPRequest(browser, request) {
+  static makeHTTPRequest(browser, request) {
     const { url } = request;
     const { protocol, hostname, pathname } = URL.parse(url);
 
@@ -149,51 +156,55 @@ class Pipeline extends Array {
       } else
         return new Fetch.Response('', { url, status: 404 });
 
-    } else {
-
-      // We're going to use cookies later when recieving response.
-      const { cookies }   = browser;
-      const cookieHeader  = cookies.serialize(hostname, pathname);
-      if (cookieHeader)
-        request.headers.append('Cookie', cookieHeader);
-
-      const buffer      = /^GET|HEAD$/.test(request.method) ? null : await request._consume();
-      const httpRequest = new Request({
-        method:         request.method,
-        uri:            request.url,
-        headers:        request.headers.toObject(),
-        proxy:          browser.proxy,
-        body:           buffer,
-        jar:            false,
-        followRedirect: false,
-        strictSSL:      browser.strictSSL,
-        localAddress:   browser.localAddress || 0
-      });
-      return await new Promise(function(resolve, reject) {
-        httpRequest
-          .on('response', (response)=> {
-            // Request returns an object where property name is header name,
-            // property value is either header value, or an array if header sent
-            // multiple times (e.g. `Set-Cookie`).
-            const arrayOfHeaders = _.reduce(response.headers, (headers, value, name)=> {
-              if (isArray(value))
-                for (let item of value)
-                  headers.push([name, item]);
-              else
-                headers.push([name, value]);
-              return headers;
-            }, []);
-
-            resolve(new Fetch.Response(response, {
-              url:        request.url,
-              status:     response.statusCode,
-              headers:    new Headers(arrayOfHeaders)
-            }));
-          })
-          .on('error', reject);
-      });
     }
 
+    // We're going to use cookies later when recieving response.
+    const { cookies }   = browser;
+    const cookieHeader  = cookies.serialize(hostname, pathname);
+    if (cookieHeader)
+      request.headers.append('Cookie', cookieHeader);
+
+    const consumeBody = /^POST|PUT/.test(request.method) && request._consume() || Promise.resolve(null);
+    return consumeBody
+      .then(function(body) {
+
+        const httpRequest = new Request({
+          method:         request.method,
+          uri:            request.url,
+          headers:        request.headers.toObject(),
+          proxy:          browser.proxy,
+          body,
+          jar:            false,
+          followRedirect: false,
+          strictSSL:      browser.strictSSL,
+          localAddress:   browser.localAddress || 0
+        });
+
+        return new Promise(function(resolve, reject) {
+          httpRequest
+            .on('response', (response)=> {
+              // Request returns an object where property name is header name,
+              // property value is either header value, or an array if header sent
+              // multiple times (e.g. `Set-Cookie`).
+              const arrayOfHeaders = _.reduce(response.headers, (headers, value, name)=> {
+                if (isArray(value))
+                  for (let item of value)
+                    headers.push([name, item]);
+                else
+                  headers.push([name, value]);
+                return headers;
+              }, []);
+
+              resolve(new Fetch.Response(response, {
+                url:        request.url,
+                status:     response.statusCode,
+                headers:    new Headers(arrayOfHeaders)
+              }));
+            })
+            .on('error', reject);
+        });
+
+      });
   }
 
 
@@ -212,7 +223,7 @@ class Pipeline extends Array {
     return response;
   }
 
-  static async handleRedirect(browser, request, response) {
+  static handleRedirect(browser, request, response) {
     const { status }  = response;
     if (status === 301 || status === 302 || status === 303 || status === 307 || status === 308) {
       if (request.redirect === 'error')
@@ -237,7 +248,7 @@ class Pipeline extends Array {
       // This request is referer for next
       request.headers.set('Referer', request.url);
       request.url = Utils.resolveHref(request.url, location);
-      return await browser.pipeline._runPipeline(request);
+      return browser.pipeline._runPipeline(request);
     } else
       return response;
   }

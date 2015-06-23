@@ -66,21 +66,23 @@ class Resources extends Array {
   }
 
 
-  async _fetch(input, init) {
+  _fetch(input, init) {
     const pipeline  = this._browser.pipeline;
     const request   = new Fetch.Request(input, init);
     const resource  = new Resource({ request });
     this.push(resource);
 
-    try {
-      const response    = await pipeline._fetch(request);
-      resource.response = response;
-      return response;
-    } catch (error) {
-      resource.error    = error;
-      resource.response = Fetch.Response.error();
-      throw error;
-    }
+    return pipeline
+      ._fetch(request)
+      .then(function(response) {
+        resource.response = response;
+        return response;
+      })
+      .catch(function(error) {
+        resource.error    = error;
+        resource.response = Fetch.Response.error();
+        throw error;
+      });
   }
 
 
