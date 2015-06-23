@@ -39,9 +39,9 @@
   "main": "lib",
   "scripts": {
     "build": "gulp build",
-    "test": "mocha && gulp lint",
-    "prepublish": "gulp build",
-    "postpublish": "gulp tag"
+    "test": "gulp lint && mocha",
+    "prepublish": "npm test && gulp build",
+    "postpublish": "git push"
   },
   "dependencies": {
     "babel-runtime": "5.6.4",
