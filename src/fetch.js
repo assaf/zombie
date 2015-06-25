@@ -158,13 +158,15 @@ class FormData {
           const buffer = value.read();
           this.push(`Content-Disposition: form-data; name=\"${name}\"; filename=\"${value}\"\r\n`);
           this.push(`Content-Type: ${value.mime || 'application/octet-stream'}\r\n`);
-          this.push(`Content-Length: ${buffer.length}\r\n\r\n`);
+          this.push(`Content-Length: ${buffer.length}\r\n`);
+          this.push(`\r\n`);
           this.push(buffer);
         } else {
           const text = value.toString('utf-8');
           this.push(`Content-Disposition: form-data; name=\"${name}\"\r\n`);
-          this.push(`Content-Type: text/plain; charset=utf8\r\n\r\n`);
-          this.push(`Content-Length: ${text.length}\r\n\r\n`);
+          this.push(`Content-Type: text/plain; charset=utf8\r\n`);
+          this.push(`Content-Length: ${text.length}\r\n`);
+          this.push(`\r\n`);
           this.push(text);
         }
         this.push('\r\n');

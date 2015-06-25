@@ -1,3 +1,11 @@
+## Version 4.0.13 2015-06-25
+
+FIXED Multipart submission breaks for simple values
+
+697 passing (24s)
+  12 pending
+
+
 ## Version 4.0.12 2015-06-23
 
 Work around some Babel.js bugs.
