@@ -880,6 +880,22 @@ etc).
 
 
 
+## Authentication
+
+Zombie supports HTTP basic access authentication. To provide the login credentials:
+
+```js
+browser.on('authenticate', function(authentication) {
+  authentication.username = 'myusername';
+  authentication.password = 'mypassword';
+});
+
+browser.visit('/mypage');
+```
+
+
+
+
 ## Resources
 
 Zombie can retrieve with resources - HTML pages, scripts, XHR requests - over
