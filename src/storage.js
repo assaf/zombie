@@ -37,7 +37,7 @@ class StorageEvent extends DOM.Event {
 class StorageArea {
 
   constructor() {
-    this._items     = {};
+    this._items     = new Map()
     this._storages  = [];
   }
 
@@ -54,48 +54,50 @@ class StorageArea {
 
   // Return number of key/value pairs.
   get length() {
-    return Object.keys(this._items).length;
+    return this._items.size;
   }
 
   // Get key by ordinal position.
   key(index) {
-    return Object.keys(this._items)[index];
+    const iterator = this._items.keys();
+    let   next = iterator.next();
+    for (let i = 0; i < index; ++i)
+      next = iterator.next();
+    return next.value;
   }
 
   // Get value from key
   get(key) {
-    return this._items[key] || null;
+    return this._items.has(key) ? this._items.get(key) : null;
   }
 
   // Set the value of a key. We also need the source storage (so we don't send
   // it a storage event).
   set(source, key, value) {
-    const oldValue = this._items[key];
-    this._items[key] = value;
+    const oldValue = this._items.get(key);
+    this._items.set(key, value);
     this._fire(source, key, oldValue, value);
   }
 
   // Remove the value at the key. We also need source storage (see set above).
   remove(source, key) {
-    const oldValue = this._items[key];
-    delete this._items[key];
+    const oldValue = this._items.get(key);
+    this._items.delete(key);
     this._fire(source, key, oldValue);
   }
 
   // Remove all values. We also need source storage (see set above).
   clear(source) {
-    this._items = {};
+    this._items.clear();
     this._fire(source);
   }
 
   get pairs() {
-    return Object.keys(this._items).map(key => [key, this._items[key]] );
+    return [...this._items];
   }
 
   toString() {
-    return Object.keys(this._items)
-      .map(key => `${key} = ${this._items[key]}` )
-      .join('\n');
+    return this._items.toString();
   }
 
   // Associate local/sessionStorage and window with this storage area. Used when firing events.
@@ -169,22 +171,22 @@ class Storage {
 class Storages {
 
   constructor() {
-    this._locals    = {};
-    this._sessions  = {};
+    this._locals    = new Map();
+    this._sessions  = new Map();
   }
 
   // Return local Storage based on the document origin (hostname/port).
   local(host) {
-    if (!this._locals[host])
-      this._locals[host] = new StorageArea();
-    return new Storage(this._locals[host]);
+    if (!this._locals.has(host))
+      this._locals.set(host, new StorageArea());
+    return new Storage(this._locals.get(host));
   }
 
   // Return session Storage based on the document origin (hostname/port).
   session(host) {
-    if (!this._sessions[host])
-      this._sessions[host] = new StorageArea();
-    return new Storage(this._sessions[host]);
+    if (!this._sessions.has(host))
+      this._sessions.set(host, new StorageArea());
+    return new Storage(this._sessions.get(host));
   }
 
   // Extend window with local/session storage support.
@@ -214,14 +216,12 @@ class Storages {
 
   // Used to dump state to console (debuggin)
   dump(output = process.stdout) {
-    for (let domain of this._locals) {
-      let area = this._locals[domain];
+    for (let [domain, area] of this._locals) {
       output.write(`${domain} local:\n`);
       for (let [name, value] of area.pairs)
         output.write(`  ${name} = ${value}\n`);
     }
-    for (let domain of this._sessions) {
-      let area = this._sessions[domain];
+    for (let [domain, area] of this._sessions) {
       output.push(`${domain} session:\n`);
       for (let [name, value] of area.pairs)
         output.write(`  ${name} = ${value}\n`);
@@ -231,8 +231,7 @@ class Storages {
   // browser.saveStorage uses this
   save() {
     const serialized = [`# Saved on ${new Date().toISOString()}`];
-    for (let domain of this._locals) {
-      let area = this._locals[domain];
+    for (let [domain, area] of this._locals) {
       let pairs = area.pairs;
       if (pairs.length) {
         serialized.push(`${domain} local:`);
@@ -240,8 +239,7 @@ class Storages {
           serialized.push(`  ${escape(name)} = ${escape(value)}`);
       }
     }
-    for (let domain of this._sessions) {
-      let area = this._sessions[domain];
+    for (let [domain, area] of this._sessions) {
       let pairs = area.pairs;
       if (pairs.length) {
         serialized.push(`${domain} session:`);

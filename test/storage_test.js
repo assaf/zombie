@@ -25,7 +25,7 @@ describe('Window', function() {
         assert.equal(storage.length, 0);
       });
       it('should handle key() with no key', function() {
-        assert(!storage.key(1));
+        assert(!storage.key(10));
       });
       it('should handle getItem() with no item', function() {
         assert.equal(storage.getItem('nosuch'), null);

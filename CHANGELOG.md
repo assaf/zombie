@@ -1,3 +1,13 @@
+## Version 4.1.0 2015-08-21
+
+FIXED using properties instead of attributes whenever possible
+
+FIXED storage should use Map instead of object literal
+
+697 passing (23s)
+  12 pending
+
+
 ## Version 4.0.13 2015-06-25
 
 FIXED Multipart submission breaks for simple values
