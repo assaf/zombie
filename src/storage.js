@@ -214,13 +214,13 @@ class Storages {
 
   // Used to dump state to console (debuggin)
   dump(output = process.stdout) {
-    for (let domain of this._locals) {
+    for (let domain of Object.keys(this._locals)) {
       let area = this._locals[domain];
       output.write(`${domain} local:\n`);
       for (let [name, value] of area.pairs)
         output.write(`  ${name} = ${value}\n`);
     }
-    for (let domain of this._sessions) {
+    for (let domain of Object.keys(this._sessions)) {
       let area = this._sessions[domain];
       output.push(`${domain} session:\n`);
       for (let [name, value] of area.pairs)
@@ -231,7 +231,7 @@ class Storages {
   // browser.saveStorage uses this
   save() {
     const serialized = [`# Saved on ${new Date().toISOString()}`];
-    for (let domain of this._locals) {
+    for (let domain of Object.keys(this._locals)) {
       let area = this._locals[domain];
       let pairs = area.pairs;
       if (pairs.length) {
@@ -240,7 +240,7 @@ class Storages {
           serialized.push(`  ${escape(name)} = ${escape(value)}`);
       }
     }
-    for (let domain of this._sessions) {
+    for (let domain of Object.keys(this._sessions)) {
       let area = this._sessions[domain];
       let pairs = area.pairs;
       if (pairs.length) {
