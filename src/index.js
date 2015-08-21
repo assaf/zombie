@@ -720,8 +720,8 @@ class Browser extends EventEmitter {
   fill(selector, value) {
     const field = this.field(selector);
     assert(field && (field.tagName === 'TEXTAREA' || (field.tagName === 'INPUT')), `No INPUT matching '${selector}'`);
-    assert(!field.getAttribute('disabled'), 'This INPUT field is disabled');
-    assert(!field.getAttribute('readonly'), 'This INPUT field is readonly');
+    assert(!field.disabled, 'This INPUT field is disabled');
+    assert(!field.readonly, 'This INPUT field is readonly');
 
     // Switch focus to field, change value and emit the input event (HTML5)
     field.focus();
@@ -735,8 +735,8 @@ class Browser extends EventEmitter {
   _setCheckbox(selector, value) {
     const field = this.field(selector);
     assert(field && field.tagName === 'INPUT' && field.type === 'checkbox', `No checkbox INPUT matching '${selector}'`);
-    assert(!field.getAttribute('disabled'), 'This INPUT field is disabled');
-    assert(!field.getAttribute('readonly'), 'This INPUT field is readonly');
+    assert(!field.disabled, 'This INPUT field is disabled');
+    assert(!field.readonly, 'This INPUT field is readonly');
 
     if (field.checked ^ value)
       field.click();
@@ -783,8 +783,8 @@ class Browser extends EventEmitter {
   _findOption(selector, value) {
     const field = this.field(selector);
     assert(field && field.tagName === 'SELECT', `No SELECT matching '${selector}'`);
-    assert(!field.getAttribute('disabled'), 'This SELECT field is disabled');
-    assert(!field.getAttribute('readonly'), 'This SELECT field is readonly');
+    assert(!field.disabled, 'This SELECT field is disabled');
+    assert(!field.readonly, 'This SELECT field is readonly');
 
     const options = Array.from(field.options);
     for (let option of options) {
@@ -825,9 +825,9 @@ class Browser extends EventEmitter {
   // Returns this.
   selectOption(selector) {
     const option = this.query(selector);
-    if (option && !option.getAttribute('selected')) {
+    if (option && !option.selected) {
       const select = this.xpath('./ancestor::select', option).iterateNext();
-      option.setAttribute('selected', 'selected');
+      option.selected = true;
       select.focus();
       this.fire(select, 'change', false);
     }
@@ -857,10 +857,10 @@ class Browser extends EventEmitter {
   // Returns this.
   unselectOption(selector) {
     const option = this.query(selector);
-    if (option && option.getAttribute('selected')) {
+    if (option && option.selected) {
       const select = this.xpath('./ancestor::select', option).iterateNext();
       assert(select.multiple, 'Cannot unselect in single select');
-      option.removeAttribute('selected');
+      option.selected = false;
       select.focus();
       this.fire(select, 'change', false);
     }
@@ -936,7 +936,7 @@ class Browser extends EventEmitter {
   pressButton(selector, callback) {
     const button = this.button(selector);
     assert(button, `No BUTTON '${selector}'`);
-    assert(!button.getAttribute('disabled'), 'This button is disabled');
+    assert(!button.disabled, 'This button is disabled');
     button.focus();
     return this.fire(button, 'click', callback);
   }

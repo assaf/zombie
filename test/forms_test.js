@@ -612,17 +612,17 @@ describe('Forms', function() {
 
     describe('enclosed in label using option label', function() {
       before(function() {
-        browser.select('Looks', 'Bloody');
+        browser.select('Looks', 'Clean');
       });
 
       it('should set value', function() {
-        browser.assert.input('#field-looks', 'blood');
+        browser.assert.input('#field-looks', 'clean');
       });
-      it('should select first option', function() {
+      it('should select second option', function() {
         const select      = browser.querySelector('#field-looks');
         const options     = Array.prototype.slice.call(select.options);
-        const isSelected  = options.map((option)=> !!option.getAttribute('selected'));
-        assert.deepEqual(isSelected, [true, false, false]);
+        const isSelected  = options.map((option)=> !!option.selected);
+        assert.deepEqual(isSelected, [false, true, false]);
       });
       it('should fire change event', function() {
         assert.equal(changed.id, 'field-looks');
@@ -640,7 +640,7 @@ describe('Forms', function() {
       it('should select second option', function() {
         const select      = browser.querySelector('#field-state');
         const options     = Array.prototype.slice.call(select.options);
-        const isSelected  = options.map((option)=> !!option.getAttribute('selected'));
+        const isSelected  = options.map((option)=> !!option.selected);
         assert.deepEqual(isSelected, [false, true, false]);
       });
       it('should fire change event', function() {
@@ -659,7 +659,7 @@ describe('Forms', function() {
       it('should select second option', function() {
         const select      = browser.querySelector('#field-months');
         const options     = Array.prototype.slice.call(select.options);
-        const isSelected  = options.map((option)=> !!option.getAttribute('selected'));
+        const isSelected  = options.map((option)=> !!option.selected);
         assert.deepEqual(isSelected, [false, true, false, false]);
       });
       it('should fire change event', function() {
@@ -678,7 +678,7 @@ describe('Forms', function() {
       it('should select second option', function() {
         const select      = browser.querySelector('#field-kills');
         const options     = Array.prototype.slice.call(select.options);
-        const isSelected  = options.map((option)=> !!option.getAttribute('selected'));
+        const isSelected  = options.map((option)=> !!option.selected);
         assert.deepEqual(isSelected, [false, false, true]);
       });
       it('should fire change event', function() {
@@ -695,7 +695,7 @@ describe('Forms', function() {
         const field2 = browser.querySelector('#field-kills');
         browser.fill(field1, 'something');
         field2.addEventListener('focus', ()=> done());
-        browser.select(field2, 'Five');
+        browser.select(field2, 'Seventeen');
       });
 
       it('should fire focus event on selected field', function() {
@@ -712,7 +712,7 @@ describe('Forms', function() {
         const field2 = browser.querySelector('#field-kills');
         browser.fill(field1, 'something');
         field1.addEventListener('blur', ()=> done());
-        browser.select(field2, 'Five');
+        browser.select(field2, 'Seventeen');
       });
 
       it('should fire blur event on previous field', function() {
@@ -742,7 +742,7 @@ describe('Forms', function() {
       it('should select first and second options', function() {
         const select      = browser.querySelector('#field-hobbies');
         const options     = Array.prototype.slice.call(select.options);
-        const isSelected  = options.map((option)=> !!option.getAttribute('selected'));
+        const isSelected  = options.map((option)=> !!option.selected);
         assert.deepEqual(isSelected, [true, false, true]);
       });
       it('should fire change event', function() {
@@ -767,7 +767,7 @@ describe('Forms', function() {
       it('should unselect items', function() {
         const select      = browser.querySelector('#field-hobbies');
         const options     = Array.prototype.slice.call(select.options);
-        const isSelected  = options.map((option)=> !!option.getAttribute('selected'));
+        const isSelected  = options.map((option)=> !!option.selected);
         assert.deepEqual(isSelected, [true, false, false]);
       });
     });
