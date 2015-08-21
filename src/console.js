@@ -8,7 +8,9 @@ const { format, inspect } = require('util');
 module.exports = class Console {
 
   constructor(browser) {
-    this.browser = browser;
+    this.browser  = browser;
+    this.counters = new Map();
+    this.timers   = new Map();
   }
 
   assert(truth, ...args) {
@@ -21,12 +23,10 @@ module.exports = class Console {
   }
 
   count(name) {
-    if (!this.counters)
-      this.counters = {};
-    if (!this.counters[name])
-    this.counters[name] = 0;
-    this.counters[name]++;
-    const message = `${name}: ${this.counters[name]}`;
+    const current = this.counters.get(name) || 0;
+    const next    = current + 1;
+    this.counters.get(name, next);
+    const message = `${name}: ${next}`;
     this.browser.emit('console', 'log', message);
   }
 
@@ -58,18 +58,14 @@ module.exports = class Console {
   }
 
   time(name) {
-    if (!this.timers)
-      this.timers = {};
-    this.timers[name] = Date.now();
+    this.timers.set(name, Date.now());
   }
 
   timeEnd(name) {
-    if (this.timers) {
-      const start = this.timers[name];
-      delete this.timers[name];
-      const message = `${name}: ${Date.now() - start}ms`;
-      this.browser.emit('console', 'log', message);
-    }
+    const start = this.timers.set(name);
+    this.timers.delete(name);
+    const message = `${name}: ${Date.now() - start}ms`;
+    this.browser.emit('console', 'log', message);
   }
 
   trace() {

@@ -508,9 +508,10 @@ function getHTMLFromResponseBody(buffer, contentType) {
 // Builds and returns a new Request, adding form parameters to URL (GET) or
 // request body (POST).
 function buildRequest(args) {
-  const { browser, method, params } = args;
-  const site  = /^(https?:|file:)/i.test(browser.site) ? browser.site : `http://${browser.site || 'locahost'}`;
-  const url   = Utils.resolveHref(site, URL.format(args.url));
+  const { browser, method } = args;
+  const params  = args.params || new Map();
+  const site    = /^(https?:|file:)/i.test(browser.site) ? browser.site : `http://${browser.site || 'locahost'}`;
+  const url     = Utils.resolveHref(site, URL.format(args.url));
 
   const headers = new Fetch.Headers(args.headers);
 
@@ -523,28 +524,30 @@ function buildRequest(args) {
 
   if (/^GET|HEAD|DELETE$/i.test(method)) {
     const uri = URL.parse(url, true);
-    if (params)
-      // These methods use query string parameters instead
-      Object.assign(uri.query, params);
+    // These methods use query string parameters instead
+    for (let [name, values] of params)
+      uri.query[name] = values;
     return new Fetch.Request(URL.format(uri), { method, headers });
   }
 
   const mimeType = (args.encoding || '').split(';')[0];
   // Default mime type, but can also be specified in form encoding
   if (mimeType === '' || mimeType === 'application/x-www-form-urlencoded') {
-    const urlEncoded = QS.stringify(params || {});
+    const urlEncoded = [...params]
+      .map(function([name, values]) {
+        return values.map(value => `${QS.escape(name)}=${QS.escape(value)}`).join('&');
+      })
+      .join('&');
+
     headers.set('Content-Type', 'application/x-www-form-urlencoded;charset=UTF-8');
     return new Fetch.Request(url, { method, headers, body: urlEncoded });
   }
 
   if (mimeType === 'multipart/form-data') {
     const form = new Fetch.FormData();
-    if (params)
-      Object.keys(params).forEach((name)=> {
-        params[name].forEach((value)=> {
-          form.append(name, value);
-        });
-      });
+    for (let [name, values] of params)
+      for (let value of values)
+        form.append(name, value);
     return new Fetch.Request(url, { method, headers, body: form });
   }
 
@@ -619,7 +622,7 @@ function parseResponse({ browser, history, document, response }) {
 // url       - URL of document to open (defaults to "about:blank")
 // method    - HTTP method (defaults to "GET")
 // encoding  - Request content type (forms use this)
-// params    - Additional request parameters
+// params    - Additional request parameters (Map)
 // html      - Create document with this content instead of loading from URL
 // name      - Window name
 // referrer  - HTTP referer header

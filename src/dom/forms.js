@@ -35,7 +35,13 @@ function uploadedFile(filename) {
 DOM.HTMLFormElement.prototype.submit = function(button) {
   const form      = this;
   const document  = form.ownerDocument;
-  const params    = {};
+  const params    = new Map();
+
+  function addFieldValues(fieldName, values) {
+    const current = (params.get(fieldName) || []);
+    const next    = current.concat(values);
+    params.set(fieldName, next);
+  }
 
   function addFieldToParams(field) {
     if (field.getAttribute('disabled'))
@@ -51,58 +57,48 @@ DOM.HTMLFormElement.prototype.submit = function(button) {
         .map(options    => options.value);
 
       if (field.multiple)
-        params[name] = (params[name] || []).concat(selected);
+        addFieldValues(name, selected);
       else {
         const value = (selected.length > 0) ?
           selected[0] :
           (field.options.length && field.options[0].value);
-        params[name] = params[name] || [];
-        params[name].push(value);
+        addFieldValues(name, [ value ]);
       }
       return;
     }
 
     if (field.nodeName === 'INPUT' && (field.type === 'checkbox' || field.type === 'radio')) {
       if (field.checked) {
-        params[name] = params[name] || [];
-        params[name].push(field.value || '1');
+        const value   = field.value || '1';
+        addFieldValues(name, [ value ]);
       }
       return;
     }
 
     if (field.nodeName === 'INPUT' && field.type === 'file') {
       if (field.value) {
-        params[name] = params[name] || [];
-        params[name].push(uploadedFile(field.value));
+        const value   = uploadedFile(field.value);
+        addFieldValues(name, [ value ]);
       }
       return;
     }
 
     if (field.nodeName === 'TEXTAREA' || field.nodeName === 'INPUT') {
-      if (field.type !== 'submit' && field.type !== 'image') {
-        params[name] = params[name] || [];
-        params[name].push(field.value || '');
-      }
+      if (field.type !== 'submit' && field.type !== 'image')
+        addFieldValues(name, [ field.value ]);
       return;
     }
   }
 
   function addButtonToParams() {
     if (button.nodeName === 'INPUT' && button.type === 'image') {
-      params[button.name + '.x'] = params[button.name + '.x'] || [];
-      params[button.name + '.x'].push('0');
+      addFieldValues(button.name + '.x', [ '0' ]);
+      addFieldValues(button.name + '.y', [ '0' ]);
 
-      params[button.name + '.y'] = params[button.name + '.y'] || [];
-      params[button.name + '.y'].push('0');
-
-      if (button.value) {
-        params[button.name] = params[button.name] || [];
-        params[button.name].push(button.value);
-      }
-    } else {
-      params[button.name] = params[button.name] || [];
-      params[button.name].push(button.value);
-    }
+      if (button.value)
+        addFieldValues(button.name, [ button.value ]);
+    } else
+      addFieldValues(button.name, [ button.value ]);
   }
 
   function submit() {

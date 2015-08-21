@@ -15,7 +15,7 @@ const Net     = require('net');
 //
 // key   - Source host name or wildcard (e.g. "example.com", "*.example.com")
 // value - Object that maps source port to target port
-const routing = {};
+const routing = new Map();
 
 // Flip this from enableRerouting() so we only inject our code into
 // Socket.connect once.
@@ -32,7 +32,7 @@ let   enabled = false;
 //     *.example.com
 //             *.com
 function findTargetPort(hostname, port) {
-  const route = routing[hostname];
+  const route = routing.get(hostname);
   if (route)
     return route[port];
 
@@ -70,8 +70,8 @@ module.exports = function addRoute(source, target) {
   assert(source, 'Expected source address of the form "host:port" or just "host"');
   const sourceHost    = source.split(':')[0];
   const sourcePort    = source.split(':')[1] || 80;
-  const route         = routing[sourceHost] || {};
-  routing[sourceHost] = route;
+  const route         = routing.get(sourceHost) || {};
+  routing.set(sourceHost, route);
   if (!route[sourcePort])
     route[sourcePort] = target;
   assert(route[sourcePort] === target,
