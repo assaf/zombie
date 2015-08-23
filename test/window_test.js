@@ -353,6 +353,48 @@ describe('Window', function() {
   });
 
 
+  describe('getSelection', function(){
+    before(function() {
+      brains.static('/windows/getSelection', `
+        <html>
+          <head>
+            <title>Whatever</title>
+          </head>
+          <body>
+            <h1>Hello World</h1>
+            <script>
+              function logSelection() {
+                  console.log(window.getSelection().toString());
+              }
+            </script>
+            <button id="a-button" onclick="logSelection()"/>Log Selection</button>
+          </body>
+        </html>
+      `);
+      return brains.ready();
+    });
+
+    before(function(){
+      return browser.visit('/windows/getSelection');
+    });
+
+    it('should not result in a browser error', function() {
+      browser.click('#a-button');
+      assert.equal(browser.errors.length, 0);
+    });
+
+    it('should not throw an error when evaluated directly', async function() {
+      try {
+        browser.evaluate('window.getSelection();');
+      }
+      catch (error) {
+        throw new Error(error);
+      }
+    });
+
+  });
+
+
   after(function() {
     browser.destroy();
   });
