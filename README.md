@@ -936,7 +936,7 @@ has the property `status`, whereas Node HTTP module uses `statusCode`.
 
 You can use the browser directly to make requests against external resources.
 These requests will share the same cookies, authentication and other browser
-settings (also pipline).
+settings (also pipeline).
 
 The `fetch` method is based on the [Fetch
 API](https://fetch.spec.whatwg.org/#fetch-method).
