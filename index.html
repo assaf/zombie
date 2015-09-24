@@ -7,7 +7,6 @@
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/github-light.css">
-    <script src="javascripts/scale.fix.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -16,18 +15,17 @@
   <body>
     <div class="wrapper">
       <header>
-        <h1 class="header">Zombie</h1>
-        <p class="header">Insanely fast, full-stack, headless browser testing using node.js</p>
+        <h1>Zombie</h1>
+        <p>Insanely fast, full-stack, headless browser testing using node.js</p>
+
+        <p class="view"><a href="https://github.com/assaf/zombie">View the Project on GitHub <small>assaf/zombie</small></a></p>
+
 
         <ul>
-          <li class="download"><a class="buttons" href="https://github.com/assaf/zombie/zipball/master">Download ZIP</a></li>
-          <li class="download"><a class="buttons" href="https://github.com/assaf/zombie/tarball/master">Download TAR</a></li>
-          <li><a class="buttons github" href="https://github.com/assaf/zombie">View On GitHub</a></li>
+          <li><a href="https://github.com/assaf/zombie/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/assaf/zombie/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/assaf/zombie">View On <strong>GitHub</strong></a></li>
         </ul>
-
-        <p class="header">This project is maintained by <a class="header name" href="https://github.com/assaf">assaf</a></p>
-
-
       </header>
       <section>
         <h1>
@@ -58,7 +56,7 @@ a simulated environment.  No browser required.</p>
 
 <p>Let's try to sign up to a page and see what happens:</p>
 
-<div class="highlight highlight-js"><pre><span class="pl-k">const</span> Browser <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>zombie<span class="pl-pds">'</span></span>);
+<div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">Browser</span> <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>zombie<span class="pl-pds">'</span></span>);
 
 <span class="pl-c">// We're going to make requests to http://example.com/signup</span>
 <span class="pl-c">// Which will be routed to our test server localhost:3000</span>
@@ -66,7 +64,7 @@ Browser.localhost(<span class="pl-s"><span class="pl-pds">'</span>example.com<sp
 
 describe(<span class="pl-s"><span class="pl-pds">'</span>User visits signup page<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>() {
 
-  <span class="pl-k">const</span> browser <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Browser</span>();
+  <span class="pl-k">const</span> <span class="pl-c1">browser</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Browser</span>();
 
   before(<span class="pl-k">function</span>(<span class="pl-smi">done</span>) {
     browser.visit(<span class="pl-s"><span class="pl-pds">'</span>/signup<span class="pl-pds">'</span></span>, done);
@@ -82,11 +80,11 @@ describe(<span class="pl-s"><span class="pl-pds">'</span>User visits signup page
     });
 
     it(<span class="pl-s"><span class="pl-pds">'</span>should be successful<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>() {
-      browser<span class="pl-c1">.assert</span>.success();
+      browser.assert.success();
     });
 
     it(<span class="pl-s"><span class="pl-pds">'</span>should see welcome page<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>() {
-      browser<span class="pl-c1">.assert</span>.<span class="pl-c1">text</span>(<span class="pl-s"><span class="pl-pds">'</span>title<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Welcome To Brains Depot<span class="pl-pds">'</span></span>);
+      browser.assert.<span class="pl-c1">text</span>(<span class="pl-s"><span class="pl-pds">'</span>title<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Welcome To Brains Depot<span class="pl-pds">'</span></span>);
     });
   });
 });</pre></div>
@@ -95,7 +93,7 @@ describe(<span class="pl-s"><span class="pl-pds">'</span>User visits signup page
 framework, but Zombie will work with other testing frameworks.  Since Mocha
 supports promises, we can also write the test like this:</p>
 
-<div class="highlight highlight-js"><pre><span class="pl-k">const</span> Browser <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>zombie<span class="pl-pds">'</span></span>);
+<div class="highlight highlight-source-js"><pre><span class="pl-k">const</span> <span class="pl-c1">Browser</span> <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>zombie<span class="pl-pds">'</span></span>);
 
 <span class="pl-c">// We're going to make requests to http://example.com/signup</span>
 <span class="pl-c">// Which will be routed to our test server localhost:3000</span>
@@ -103,7 +101,7 @@ Browser.localhost(<span class="pl-s"><span class="pl-pds">'</span>example.com<sp
 
 describe(<span class="pl-s"><span class="pl-pds">'</span>User visits signup page<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>() {
 
-  <span class="pl-k">const</span> browser <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Browser</span>();
+  <span class="pl-k">const</span> <span class="pl-c1">browser</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Browser</span>();
 
   before(<span class="pl-k">function</span>() {
     <span class="pl-k">return</span> browser.visit(<span class="pl-s"><span class="pl-pds">'</span>/signup<span class="pl-pds">'</span></span>);
@@ -119,11 +117,11 @@ describe(<span class="pl-s"><span class="pl-pds">'</span>User visits signup page
     });
 
     it(<span class="pl-s"><span class="pl-pds">'</span>should be successful<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>() {
-      browser<span class="pl-c1">.assert</span>.success();
+      browser.assert.success();
     });
 
     it(<span class="pl-s"><span class="pl-pds">'</span>should see welcome page<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>() {
-      browser<span class="pl-c1">.assert</span>.<span class="pl-c1">text</span>(<span class="pl-s"><span class="pl-pds">'</span>title<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Welcome To Brains Depot<span class="pl-pds">'</span></span>);
+      browser.assert.<span class="pl-c1">text</span>(<span class="pl-s"><span class="pl-pds">'</span>title<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Welcome To Brains Depot<span class="pl-pds">'</span></span>);
     });
   });
 
@@ -151,7 +149,7 @@ describe(<span class="pl-s"><span class="pl-pds">'</span>User visits signup page
 
 <p>To install Zombie.js you will need <a href="https://iojs.org/">io.js</a>:</p>
 
-<div class="highlight highlight-bash"><pre>$ npm install zombie --save-dev</pre></div>
+<div class="highlight highlight-source-shell"><pre>$ npm install zombie --save-dev</pre></div>
 
 <h2>
 <a id="browser" class="anchor" href="#browser" aria-hidden="true"><span class="octicon octicon-link"></span></a>Browser</h2>
@@ -197,7 +195,7 @@ window at a time.</p>
 <p>The <code>proxy</code> option takes a URL so you can tell Zombie what protocol, host and
 port to use. Also supports Basic authentication, e.g.:</p>
 
-<div class="highlight highlight-js"><pre>browser.proxy <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>http://me:secret@myproxy:8080<span class="pl-pds">'</span></span></pre></div>
+<div class="highlight highlight-source-js"><pre>browser.proxy <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>http://me:secret@myproxy:8080<span class="pl-pds">'</span></span></pre></div>
 
 <h4>
 <a id="browsererrors" class="anchor" href="#browsererrors" aria-hidden="true"><span class="octicon octicon-link"></span></a>browser.errors</h4>
@@ -215,9 +213,9 @@ route it to the test server running on localhost and unprivileged port.</p>
 traffic from port 80 to the test server that's listening on port 3000, you can
 do this:</p>
 
-<div class="highlight highlight-js"><pre>Browser.localhost(<span class="pl-s"><span class="pl-pds">'</span>example.com<span class="pl-pds">'</span></span>, <span class="pl-c1">3000</span>)
+<div class="highlight highlight-source-js"><pre>Browser.localhost(<span class="pl-s"><span class="pl-pds">'</span>example.com<span class="pl-pds">'</span></span>, <span class="pl-c1">3000</span>)
 browser.visit(<span class="pl-s"><span class="pl-pds">'</span>/path<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>() {
-  <span class="pl-en">console</span><span class="pl-c1">.log</span>(browser.<span class="pl-c1">location</span>.<span class="pl-c1">href</span>);
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(browser.<span class="pl-c1">location</span>.<span class="pl-c1">href</span>);
 });
 <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>http://example.com/path<span class="pl-pds">'</span></span></pre></div>
 
@@ -230,7 +228,7 @@ test case.</p>
 <p>You can use wildcards to map domains and all hosts within these domains, and you
 can specify the source port to map protocols other than HTTP.  For example:</p>
 
-<div class="highlight highlight-js"><pre><span class="pl-c">// HTTP requests for example.test www.example.test will be answered by localhost</span>
+<div class="highlight highlight-source-js"><pre><span class="pl-c">// HTTP requests for example.test www.example.test will be answered by localhost</span>
 <span class="pl-c">// server running on port 3000</span>
 Browser.localhost(<span class="pl-s"><span class="pl-pds">'</span>*.example.test<span class="pl-pds">'</span></span>, <span class="pl-c1">3000</span>);
 <span class="pl-c">// HTTPS requests will be answered by localhost server running on port 3001</span>
@@ -247,12 +245,12 @@ library.  It does not affect other processes running on your machine.</p>
 The extension function is called for every new browser instance, and can change
 properties, bind methods, register event listeners, etc.</p>
 
-<div class="highlight highlight-js"><pre>Browser.extend(<span class="pl-k">function</span>(<span class="pl-smi">browser</span>) {
+<div class="highlight highlight-source-js"><pre>Browser.extend(<span class="pl-k">function</span>(<span class="pl-smi">browser</span>) {
   browser.on(<span class="pl-s"><span class="pl-pds">'</span>console<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">level</span>, <span class="pl-smi">message</span>) {
-    logger<span class="pl-c1">.log</span>(message);
+    logger.<span class="pl-c1">log</span>(message);
   });
   browser.on(<span class="pl-s"><span class="pl-pds">'</span>log<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">level</span>, <span class="pl-smi">message</span>) {
-    logger<span class="pl-c1">.log</span>(message);
+    logger.<span class="pl-c1">log</span>(message);
   });
 });</pre></div>
 
@@ -263,9 +261,9 @@ properties, bind methods, register event listeners, etc.</p>
 can access directly from the browser object.  For example, to check that a page
 loaded successfully:</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.success();
-browser<span class="pl-c1">.assert</span>.<span class="pl-c1">text</span>(<span class="pl-s"><span class="pl-pds">'</span>title<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>My Awesome Site<span class="pl-pds">'</span></span>);
-browser<span class="pl-c1">.assert</span>.element(<span class="pl-s"><span class="pl-pds">'</span>#main<span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.success();
+browser.assert.<span class="pl-c1">text</span>(<span class="pl-s"><span class="pl-pds">'</span>title<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>My Awesome Site<span class="pl-pds">'</span></span>);
+browser.assert.element(<span class="pl-s"><span class="pl-pds">'</span>#main<span class="pl-pds">'</span></span>);</pre></div>
 
 <p>These assertions are available from the <code>browser</code> object since they operate on a
 particular browser instance -- generally dependent on the currently open window,
@@ -315,12 +313,12 @@ don't worry about these messages.</p>
 
 <p>Fails if no element found.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.attribute(<span class="pl-s"><span class="pl-pds">'</span>form<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>method<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>post<span class="pl-pds">'</span></span>);
-browser<span class="pl-c1">.assert</span>.attribute(<span class="pl-s"><span class="pl-pds">'</span>form<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>action<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>/customer/new<span class="pl-pds">'</span></span>);
+<div class="highlight highlight-source-js"><pre>browser.assert.attribute(<span class="pl-s"><span class="pl-pds">'</span>form<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>method<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>post<span class="pl-pds">'</span></span>);
+browser.assert.attribute(<span class="pl-s"><span class="pl-pds">'</span>form<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>action<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>/customer/new<span class="pl-pds">'</span></span>);
 <span class="pl-c">// Disabled with no attribute value, i.e. &lt;button disabled&gt;</span>
-browser<span class="pl-c1">.assert</span>.attribute(<span class="pl-s"><span class="pl-pds">'</span>button<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>disabled<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>);
+browser.assert.attribute(<span class="pl-s"><span class="pl-pds">'</span>button<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>disabled<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>);
 <span class="pl-c">// No disabled attribute i.e. &lt;button&gt;</span>
-browser<span class="pl-c1">.assert</span>.attribute(<span class="pl-s"><span class="pl-pds">'</span>button<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>disabled<span class="pl-pds">'</span></span>, <span class="pl-c1">null</span>);</pre></div>
+browser.assert.attribute(<span class="pl-s"><span class="pl-pds">'</span>button<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>disabled<span class="pl-pds">'</span></span>, <span class="pl-c1">null</span>);</pre></div>
 
 <h4>
 <a id="assertclassnameselection-classname-message" class="anchor" href="#assertclassnameselection-classname-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.className(selection, className, message)</h4>
@@ -330,7 +328,7 @@ space-separated list of class names.</p>
 
 <p>Fails if no element found.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.<span class="pl-c1">className</span>(<span class="pl-s"><span class="pl-pds">'</span>form input[name=email]<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>has-error<span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.<span class="pl-c1">className</span>(<span class="pl-s"><span class="pl-pds">'</span>form input[name=email]<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>has-error<span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="assertcookieidentifier-expected-message" class="anchor" href="#assertcookieidentifier-expected-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.cookie(identifier, expected, message)</h4>
@@ -341,7 +339,7 @@ space-separated list of class names.</p>
 <p>The identifier is either the name of a cookie, or an object with the property
 <code>name</code> and the optional properties <code>domain</code> and <code>path</code>.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.<span class="pl-c1">cookie</span>(<span class="pl-s"><span class="pl-pds">'</span>flash<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Missing email address<span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.<span class="pl-c1">cookie</span>(<span class="pl-s"><span class="pl-pds">'</span>flash<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Missing email address<span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="assertelementselection-message" class="anchor" href="#assertelementselection-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.element(selection, message)</h4>
@@ -350,9 +348,9 @@ space-separated list of class names.</p>
 
 <p>Fails if no element or more than one matching element are found.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.element(<span class="pl-s"><span class="pl-pds">'</span>form<span class="pl-pds">'</span></span>);
-browser<span class="pl-c1">.assert</span>.element(<span class="pl-s"><span class="pl-pds">'</span>form input[name=email]<span class="pl-pds">'</span></span>);
-browser<span class="pl-c1">.assert</span>.element(<span class="pl-s"><span class="pl-pds">'</span>form input[name=email].has-error<span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.element(<span class="pl-s"><span class="pl-pds">'</span>form<span class="pl-pds">'</span></span>);
+browser.assert.element(<span class="pl-s"><span class="pl-pds">'</span>form input[name=email]<span class="pl-pds">'</span></span>);
+browser.assert.element(<span class="pl-s"><span class="pl-pds">'</span>form input[name=email].has-error<span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="assertelementsselection-count-message" class="anchor" href="#assertelementsselection-count-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.elements(selection, count, message)</h4>
@@ -371,10 +369,10 @@ properties:</p>
 <code>exactly</code> - Expecting to find exactly that many elements</li>
 </ul>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.<span class="pl-c1">elements</span>(<span class="pl-s"><span class="pl-pds">'</span>form<span class="pl-pds">'</span></span>, <span class="pl-c1">1</span>);
-browser<span class="pl-c1">.assert</span>.<span class="pl-c1">elements</span>(<span class="pl-s"><span class="pl-pds">'</span>form input<span class="pl-pds">'</span></span>, <span class="pl-c1">3</span>);
-browser<span class="pl-c1">.assert</span>.<span class="pl-c1">elements</span>(<span class="pl-s"><span class="pl-pds">'</span>form input.has-error<span class="pl-pds">'</span></span>, { atLeast<span class="pl-k">:</span> <span class="pl-c1">1</span> });
-browser<span class="pl-c1">.assert</span>.<span class="pl-c1">elements</span>(<span class="pl-s"><span class="pl-pds">'</span>form input:not(.has-error)<span class="pl-pds">'</span></span>, { atMost<span class="pl-k">:</span> <span class="pl-c1">2</span> });</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.<span class="pl-c1">elements</span>(<span class="pl-s"><span class="pl-pds">'</span>form<span class="pl-pds">'</span></span>, <span class="pl-c1">1</span>);
+browser.assert.<span class="pl-c1">elements</span>(<span class="pl-s"><span class="pl-pds">'</span>form input<span class="pl-pds">'</span></span>, <span class="pl-c1">3</span>);
+browser.assert.<span class="pl-c1">elements</span>(<span class="pl-s"><span class="pl-pds">'</span>form input.has-error<span class="pl-pds">'</span></span>, { atLeast<span class="pl-k">:</span> <span class="pl-c1">1</span> });
+browser.assert.<span class="pl-c1">elements</span>(<span class="pl-s"><span class="pl-pds">'</span>form input:not(.has-error)<span class="pl-pds">'</span></span>, { atMost<span class="pl-k">:</span> <span class="pl-c1">2</span> });</pre></div>
 
 <h4>
 <a id="assertevaluateexpression-expected-message" class="anchor" href="#assertevaluateexpression-expected-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.evaluate(expression, expected, message)</h4>
@@ -386,8 +384,8 @@ browser<span class="pl-c1">.assert</span>.<span class="pl-c1">elements</span>(<s
 <p>With two/three arguments, asserts that the returned value matches the expected
 value.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.evaluate(<span class="pl-s"><span class="pl-pds">'</span>$(<span class="pl-pds">'</span></span>form<span class="pl-s"><span class="pl-pds">'</span>).data(<span class="pl-pds">'</span></span>valid<span class="pl-s"><span class="pl-pds">'</span>)<span class="pl-pds">'</span></span>);
-browser<span class="pl-c1">.assert</span>.evaluate(<span class="pl-s"><span class="pl-pds">'</span>$(<span class="pl-pds">'</span></span>form<span class="pl-s"><span class="pl-pds">'</span>).data(<span class="pl-pds">'</span></span>errors<span class="pl-s"><span class="pl-pds">'</span>).length<span class="pl-pds">'</span></span>, <span class="pl-c1">3</span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.evaluate(<span class="pl-s"><span class="pl-pds">'</span>$(<span class="pl-pds">'</span></span>form<span class="pl-s"><span class="pl-pds">'</span>).data(<span class="pl-pds">'</span></span>valid<span class="pl-s"><span class="pl-pds">'</span>)<span class="pl-pds">'</span></span>);
+browser.assert.evaluate(<span class="pl-s"><span class="pl-pds">'</span>$(<span class="pl-pds">'</span></span>form<span class="pl-s"><span class="pl-pds">'</span>).data(<span class="pl-pds">'</span></span>errors<span class="pl-s"><span class="pl-pds">'</span>).length<span class="pl-pds">'</span></span>, <span class="pl-c1">3</span>);</pre></div>
 
 <h4>
 <a id="assertglobalname-expected-message" class="anchor" href="#assertglobalname-expected-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.global(name, expected, message)</h4>
@@ -402,7 +400,7 @@ have other class names (unlike <code>assert.className</code>).</p>
 
 <p>Fails if no element found.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.hasClass(<span class="pl-s"><span class="pl-pds">'</span>form input[name=email]<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>has-error<span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.hasClass(<span class="pl-s"><span class="pl-pds">'</span>form input[name=email]<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>has-error<span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="asserthasfocusselection-message" class="anchor" href="#asserthasfocusselection-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.hasFocus(selection, message)</h4>
@@ -413,7 +411,7 @@ have other class names (unlike <code>assert.className</code>).</p>
 
 <p>Otherwise, fails if element not found, or if more than one element found.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.<span class="pl-c1">hasFocus</span>(<span class="pl-s"><span class="pl-pds">'</span>form input:nth-child(1)<span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.<span class="pl-c1">hasFocus</span>(<span class="pl-s"><span class="pl-pds">'</span>form input:nth-child(1)<span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="asserthasnoclassselection-classname-message" class="anchor" href="#asserthasnoclassselection-classname-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.hasNoClass(selection, className, message)</h4>
@@ -423,7 +421,7 @@ have other class names (unlike <code>assert.className</code>).</p>
 
 <p>Fails if no element found.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.hasNoClass(<span class="pl-s"><span class="pl-pds">'</span>form input<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>has-error<span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.hasNoClass(<span class="pl-s"><span class="pl-pds">'</span>form input<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>has-error<span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="assertinputselection-expected-message" class="anchor" href="#assertinputselection-expected-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.input(selection, expected, message)</h4>
@@ -433,7 +431,7 @@ the expected value.</p>
 
 <p>Fails if no element found.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.<span class="pl-c1">input</span>(<span class="pl-s"><span class="pl-pds">'</span>form input[name=text]<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Head Eater<span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.<span class="pl-c1">input</span>(<span class="pl-s"><span class="pl-pds">'</span>form input[name=text]<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Head Eater<span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="assertlinkselection-text-url-message" class="anchor" href="#assertlinkselection-text-url-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.link(selection, text, url, message)</h4>
@@ -446,7 +444,7 @@ The selector can be <code>a</code>, but a more specific selector is recommended.
 <p>Fails if no element is selected that also has the specified text content and
 URL.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.<span class="pl-c1">link</span>(<span class="pl-s"><span class="pl-pds">'</span>footer a<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Privacy Policy<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>/privacy<span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.<span class="pl-c1">link</span>(<span class="pl-s"><span class="pl-pds">'</span>footer a<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Privacy Policy<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>/privacy<span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="assertredirectedmessage" class="anchor" href="#assertredirectedmessage" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.redirected(message)</h4>
@@ -463,7 +461,7 @@ URL.</p>
 
 <p>Asserts the current page loaded with the expected status code.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.<span class="pl-c1">status</span>(<span class="pl-c1">404</span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.<span class="pl-c1">status</span>(<span class="pl-c1">404</span>);</pre></div>
 
 <h4>
 <a id="assertstyleselection-style-expected-message" class="anchor" href="#assertstyleselection-style-expected-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.style(selection, style, expected, message)</h4>
@@ -473,8 +471,8 @@ property.  For example:</p>
 
 <p>Fails if no element found, or element style does not match expected value.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.<span class="pl-c1">style</span>(<span class="pl-s"><span class="pl-pds">'</span>#show-hide.hidden<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>display<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>none<span class="pl-pds">'</span></span>);
-browser<span class="pl-c1">.assert</span>.<span class="pl-c1">style</span>(<span class="pl-s"><span class="pl-pds">'</span>#show-hide:not(.hidden)<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>display<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.<span class="pl-c1">style</span>(<span class="pl-s"><span class="pl-pds">'</span>#show-hide.hidden<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>display<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>none<span class="pl-pds">'</span></span>);
+browser.assert.<span class="pl-c1">style</span>(<span class="pl-s"><span class="pl-pds">'</span>#show-hide:not(.hidden)<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>display<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="asserttextselection-expected-message" class="anchor" href="#asserttextselection-expected-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.text(selection, expected, message)</h4>
@@ -483,7 +481,7 @@ browser<span class="pl-c1">.assert</span>.<span class="pl-c1">style</span>(<span
 
 <p>Fails if no element found that has that text content.</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.<span class="pl-c1">text</span>(<span class="pl-s"><span class="pl-pds">'</span>title<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>My Awesome Page<span class="pl-pds">'</span></span>);</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.<span class="pl-c1">text</span>(<span class="pl-s"><span class="pl-pds">'</span>title<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>My Awesome Page<span class="pl-pds">'</span></span>);</pre></div>
 
 <h4>
 <a id="asserturlurl-message" class="anchor" href="#asserturlurl-message" aria-hidden="true"><span class="octicon octicon-link"></span></a>assert.url(url, message)</h4>
@@ -501,10 +499,10 @@ browser<span class="pl-c1">.assert</span>.<span class="pl-c1">style</span>(<span
 
 <p>For example:</p>
 
-<div class="highlight highlight-js"><pre>browser<span class="pl-c1">.assert</span>.url(<span class="pl-s"><span class="pl-pds">'</span>http://localhost/foo/bar<span class="pl-pds">'</span></span>);
-browser<span class="pl-c1">.assert</span>.url(<span class="pl-k">new</span> <span class="pl-en">RegExp</span>(<span class="pl-s"><span class="pl-pds">'</span>^http://localhost/foo/<span class="pl-cce">\\</span>w+$<span class="pl-pds">'</span></span>));
-browser<span class="pl-c1">.assert</span>.url({ pathname<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>/foo/bar<span class="pl-pds">'</span></span> });
-browser<span class="pl-c1">.assert</span>.url({ query<span class="pl-k">:</span> { name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>joedoe<span class="pl-pds">'</span></span> } });</pre></div>
+<div class="highlight highlight-source-js"><pre>browser.assert.url(<span class="pl-s"><span class="pl-pds">'</span>http://localhost/foo/bar<span class="pl-pds">'</span></span>);
+browser.assert.url(<span class="pl-k">new</span> <span class="pl-en">RegExp</span>(<span class="pl-s"><span class="pl-pds">'</span>^http://localhost/foo/<span class="pl-cce">\\</span>w+$<span class="pl-pds">'</span></span>));
+browser.assert.url({ pathname<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>/foo/bar<span class="pl-pds">'</span></span> });
+browser.assert.url({ query<span class="pl-k">:</span> { name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>joedoe<span class="pl-pds">'</span></span> } });</pre></div>
 
 <h3>
 <a id="roll-your-own-assertions" class="anchor" href="#roll-your-own-assertions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Roll Your Own Assertions</h3>
@@ -514,17 +512,17 @@ prototype of <code>Browser.Assert</code>.</p>
 
 <p>For example:</p>
 
-<div class="highlight highlight-js"><pre><span class="pl-c">// Asserts the browser has the expected number of open tabs.</span>
+<div class="highlight highlight-source-js"><pre><span class="pl-c">// Asserts the browser has the expected number of open tabs.</span>
 <span class="pl-c1">Browser.Assert</span>.<span class="pl-c1">prototype</span>.<span class="pl-en">openTabs</span> <span class="pl-k">=</span> <span class="pl-k">function</span>(<span class="pl-smi">expected</span>, <span class="pl-smi">message</span>) {
   assert.equal(<span class="pl-v">this</span>.browser.tabs.<span class="pl-c1">length</span>, expected, message);
 };</pre></div>
 
 <p>Or application specific:</p>
 
-<div class="highlight highlight-js"><pre><span class="pl-c">// Asserts which links is highlighted in the navigation bar</span>
+<div class="highlight highlight-source-js"><pre><span class="pl-c">// Asserts which links is highlighted in the navigation bar</span>
 <span class="pl-c1">Browser.Assert</span>.<span class="pl-en">navigationOn</span> <span class="pl-k">=</span> <span class="pl-k">function</span>(<span class="pl-smi">linkText</span>) {
-  <span class="pl-v">this</span><span class="pl-c1">.assert</span>.element(<span class="pl-s"><span class="pl-pds">'</span>.navigation-bar<span class="pl-pds">'</span></span>);
-  <span class="pl-v">this</span><span class="pl-c1">.assert</span>.<span class="pl-c1">text</span>(<span class="pl-s"><span class="pl-pds">'</span>.navigation-bar a.highlighted<span class="pl-pds">'</span></span>, linkText);
+  <span class="pl-v">this</span>.assert.element(<span class="pl-s"><span class="pl-pds">'</span>.navigation-bar<span class="pl-pds">'</span></span>);
+  <span class="pl-v">this</span>.assert.<span class="pl-c1">text</span>(<span class="pl-s"><span class="pl-pds">'</span>.navigation-bar a.highlighted<span class="pl-pds">'</span></span>, linkText);
 };</pre></div>
 
 <h2>
@@ -539,10 +537,10 @@ domain.</p>
 
 <p>Consider this code:</p>
 
-<div class="highlight highlight-js"><pre>browser.setCookie(name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>session<span class="pl-pds">'</span></span>, domain<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>example.com<span class="pl-pds">'</span></span>, value<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>delicious<span class="pl-pds">'</span></span>);
+<div class="highlight highlight-source-js"><pre>browser.setCookie(name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>session<span class="pl-pds">'</span></span>, domain<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>example.com<span class="pl-pds">'</span></span>, value<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>delicious<span class="pl-pds">'</span></span>);
 browser.visit(<span class="pl-s"><span class="pl-pds">'</span>http://example.com<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>() {
-  <span class="pl-k">const</span> value <span class="pl-k">=</span> browser.getCookie(<span class="pl-s"><span class="pl-pds">'</span>session<span class="pl-pds">'</span></span>);
-  <span class="pl-en">console</span><span class="pl-c1">.log</span>(<span class="pl-s"><span class="pl-pds">'</span>Cookie<span class="pl-pds">'</span></span>, value);
+  <span class="pl-k">const</span> <span class="pl-c1">value</span> <span class="pl-k">=</span> browser.getCookie(<span class="pl-s"><span class="pl-pds">'</span>session<span class="pl-pds">'</span></span>);
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">'</span>Cookie<span class="pl-pds">'</span></span>, value);
 });</pre></div>
 
 <p>In order for the cookie to be set in this example, we need to specify the cookie
@@ -571,7 +569,7 @@ be more specific, the first argument can be an object with the properties
 
 <p>The following are equivalent:</p>
 
-<div class="highlight highlight-js"><pre>browser.getCookie(<span class="pl-s"><span class="pl-pds">'</span>session<span class="pl-pds">'</span></span>);
+<div class="highlight highlight-source-js"><pre>browser.getCookie(<span class="pl-s"><span class="pl-pds">'</span>session<span class="pl-pds">'</span></span>);
 browser.getCookie({ name<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>session<span class="pl-pds">'</span></span>,
                     domain<span class="pl-k">:</span> browser.<span class="pl-c1">location</span>.<span class="pl-c1">hostname</span>,
                     path<span class="pl-k">:</span> browser.<span class="pl-c1">location</span>.<span class="pl-c1">pathname</span> });</pre></div>
@@ -753,7 +751,7 @@ client-side scripts and your test code.</p>
 etc), set the environment variable <code>DEBUG=zombie</code>.  Zombie uses the
 <a href="https://github.com/visionmedia/debug">debug</a> module.  For example:</p>
 
-<div class="highlight highlight-bash"><pre>$ DEBUG=zombie mocha</pre></div>
+<div class="highlight highlight-source-shell"><pre>$ DEBUG=zombie mocha</pre></div>
 
 <p>You can also turn debugging on from your code (e.g. a specific test you're
 trying to troubleshoot) by calling <code>browser.debug()</code>.</p>
@@ -762,7 +760,7 @@ trying to troubleshoot) by calling <code>browser.debug()</code>.</p>
 include <code>dump</code> method that will dump the current state to the console, or an
 output stream of your choice.  For example:</p>
 
-<div class="highlight highlight-js"><pre>browser.<span class="pl-c1">dump</span>();
+<div class="highlight highlight-source-js"><pre>browser.<span class="pl-c1">dump</span>();
 browser.<span class="pl-c1">dump</span>(<span class="pl-c1">process</span>.stderr);</pre></div>
 
 <p>If you want to disable console output from scripts, set <code>browser.silent = true</code>
@@ -1010,7 +1008,7 @@ API</a>.</p>
 
 <p>To access the response document body as a Node buffer, use the following:</p>
 
-<div class="highlight highlight-js"><pre>response.arrayBuffer()
+<div class="highlight highlight-source-js"><pre>response.arrayBuffer()
   .then(Buffer) <span class="pl-c">// arrayBuffer -&gt; Buffer</span>
   .then(<span class="pl-k">function</span>(<span class="pl-smi">buffer</span>) {
     assert( Buffer.isBuffer(buffer) );
@@ -1043,7 +1041,7 @@ object, either directly or through a promise.</p>
 
 <p>To add a new handle to the end of the pipeline:</p>
 
-<div class="highlight highlight-js"><pre>browser.pipeline.addHandler(<span class="pl-k">function</span>(<span class="pl-smi">browser</span>, <span class="pl-smi">request</span>) {
+<div class="highlight highlight-source-js"><pre>browser.pipeline.addHandler(<span class="pl-k">function</span>(<span class="pl-smi">browser</span>, <span class="pl-smi">request</span>) {
   <span class="pl-c">// Let's delay this request by 1/10th second</span>
   <span class="pl-k">return</span> <span class="pl-k">new</span> <span class="pl-en">Promise</span>(<span class="pl-k">function</span>(<span class="pl-smi">resolve</span>) {
     <span class="pl-c1">setTimeout</span>(resolve, <span class="pl-c1">100</span>);
@@ -1053,16 +1051,17 @@ object, either directly or through a promise.</p>
 <p>You can add handlers to all browsers via <code>Pipeline.addHandler</code>.  These
 handlers are automatically added to every new <code>browser.pipeline</code> instance.</p>
 
-<div class="highlight highlight-js"><pre>Pipeline.addHandler(<span class="pl-k">function</span>(<span class="pl-smi">browser</span>, <span class="pl-smi">request</span>, <span class="pl-smi">response</span>) {
+<div class="highlight highlight-source-js"><pre>Pipeline.addHandler(<span class="pl-k">function</span>(<span class="pl-smi">browser</span>, <span class="pl-smi">request</span>, <span class="pl-smi">response</span>) {
   <span class="pl-c">// Log the response body</span>
-  <span class="pl-en">console</span><span class="pl-c1">.log</span>(<span class="pl-s"><span class="pl-pds">'</span>Response body: <span class="pl-pds">'</span></span> <span class="pl-k">+</span> response.<span class="pl-c1">body</span>);
+  <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">'</span>Response body: <span class="pl-pds">'</span></span> <span class="pl-k">+</span> response.<span class="pl-c1">body</span>);
 });</pre></div>
       </section>
       <footer>
-        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+        <p>This project is maintained by <a href="https://github.com/assaf">assaf</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
       </footer>
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-		
+    <script src="javascripts/scale.fix.js"></script>
+    
   </body>
 </html>
