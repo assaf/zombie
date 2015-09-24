@@ -937,6 +937,18 @@ the delay in milliseconds.</p>
 etc).</p>
 
 <h2>
+<a id="authentication" class="anchor" href="#authentication" aria-hidden="true"><span class="octicon octicon-link"></span></a>Authentication</h2>
+
+<p>Zombie supports HTTP basic access authentication. To provide the login credentials:</p>
+
+<div class="highlight highlight-source-js"><pre>browser.on(<span class="pl-s"><span class="pl-pds">'</span>authenticate<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">authentication</span>) {
+  authentication.username <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>myusername<span class="pl-pds">'</span></span>;
+  authentication.password <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>mypassword<span class="pl-pds">'</span></span>;
+});
+
+browser.visit(<span class="pl-s"><span class="pl-pds">'</span>/mypage<span class="pl-pds">'</span></span>);</pre></div>
+
+<h2>
 <a id="resources" class="anchor" href="#resources" aria-hidden="true"><span class="octicon octicon-link"></span></a>Resources</h2>
 
 <p>Zombie can retrieve with resources - HTML pages, scripts, XHR requests - over
@@ -985,7 +997,7 @@ has the property <code>status</code>, whereas Node HTTP module uses <code>status
 
 <p>You can use the browser directly to make requests against external resources.
 These requests will share the same cookies, authentication and other browser
-settings (also pipline).</p>
+settings (also pipeline).</p>
 
 <p>The <code>fetch</code> method is based on the <a href="https://fetch.spec.whatwg.org/#fetch-method">Fetch
 API</a>.</p>
