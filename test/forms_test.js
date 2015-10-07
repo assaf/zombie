@@ -313,7 +313,7 @@ describe('Forms', function() {
         const field1 = browser.querySelector('#field-email2');
         const field2 = browser.querySelector('#field-email3');
         browser.fill(field1, 'something');
-        field2.addEventListener('blur', ()=> done());
+        field1.addEventListener('blur', ()=> done());
         browser.fill(field2, 'else');
       });
 
@@ -563,9 +563,9 @@ describe('Forms', function() {
       before(function(done) {
         const field1 = browser.querySelector('#field-scary');
         const field2 = browser.querySelector('#field-notscary');
-        browser.choose(field1);
-        field2.addEventListener('focus', ()=> done());
         browser.choose(field2);
+        field1.addEventListener('focus', ()=> done());
+        browser.choose(field1);
       });
 
       it('should fire focus event on selected field', function() {

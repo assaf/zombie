@@ -93,6 +93,7 @@ describe('Tabs', function() {
 
   describe('selecting new tab (2)', function() {
     before(function(done) {
+      const browser = new Browser();
       browser.tabs.closeAll();
       browser.open({ name: 'first'} );
       browser.open({ name: 'second' });
