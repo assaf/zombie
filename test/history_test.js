@@ -182,13 +182,13 @@ describe('History', function() {
           await browser.visit('/');
           browser.history.pushState({ is: 'first' }, null, '/first');
           browser.history.pushState({ is: 'second' },   null, '/second');
-          browser.back();
           browser.window.addEventListener('popstate', function(event) {
             lastEvent = event;
-            done();
           });
+          browser.back();
           browser.history.forward();
           browser.wait().done();
+          done();
         });
 
         it('should fire popstate event', function() {
