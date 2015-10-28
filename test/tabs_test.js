@@ -92,12 +92,14 @@ describe('Tabs', function() {
 
 
   describe('selecting new tab (2)', function() {
+    let cb;
+
     before(function(done) {
       browser.tabs.closeAll();
       browser.open({ name: 'first'} );
       browser.open({ name: 'second' });
       browser.tabs.current = 1;
-      browser.tabs[1].addEventListener('blur', function() {
+      browser.tabs[1].addEventListener('blur', cb = function() {
         done();
       });
       browser.tabs.current = 0;
@@ -106,6 +108,10 @@ describe('Tabs', function() {
 
     it('should fire onblur event', function() {
       assert(true);
+    });
+
+    after(function () {
+      browser.tabs[1].removeEventListener('blur', cb);
     });
   });
 

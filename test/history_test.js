@@ -177,18 +177,18 @@ describe('History', function() {
 
       describe('go forwards', function() {
         let lastEvent;
+        let cb;
 
         before(async function(done) {
           await browser.visit('/');
           browser.history.pushState({ is: 'first' }, null, '/first');
           browser.history.pushState({ is: 'second' },   null, '/second');
           browser.back();
-          browser.window.addEventListener('popstate', function(event) {
+          browser.window.addEventListener('popstate', cb = function(event) {
             lastEvent = event;
-            done();
           });
           browser.history.forward();
-          browser.wait().done();
+          browser.wait().done(done);
         });
 
         it('should fire popstate event', function() {
@@ -196,6 +196,10 @@ describe('History', function() {
         });
         it('should include state', function() {
           assert.equal(lastEvent.state.is, 'second');
+        });
+
+        after(function () {
+          browser.window.removeEventListener('popstate', cb);
         });
       });
 

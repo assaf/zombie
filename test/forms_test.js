@@ -306,6 +306,8 @@ describe('Forms', function() {
     });
 
     describe('focus field (2)', function() {
+      let cb;
+
       before(function() {
         return browser.visit('/forms/form');
       });
@@ -313,12 +315,17 @@ describe('Forms', function() {
         const field1 = browser.querySelector('#field-email2');
         const field2 = browser.querySelector('#field-email3');
         browser.fill(field1, 'something');
-        field2.addEventListener('blur', ()=> done());
+        field2.addEventListener('blur', cb = ()=> done());
         browser.fill(field2, 'else');
       });
 
       it('should fire blur event on previous field', function() {
         assert(true);
+      });
+
+      after(function () {
+        const field2 = browser.querySelector('#field-email3');
+        field2.removeEventListener('blur', cb);
       });
     });
 
@@ -560,16 +567,23 @@ describe('Forms', function() {
     });
 
     describe('any radio button (1) ', function() {
+      let cb;
+
       before(function(done) {
         const field1 = browser.querySelector('#field-scary');
         const field2 = browser.querySelector('#field-notscary');
         browser.choose(field1);
-        field2.addEventListener('focus', ()=> done());
+        field2.addEventListener('focus', cb = ()=> done());
         browser.choose(field2);
       });
 
       it('should fire focus event on selected field', function() {
         assert(true);
+      });
+
+      after(function () {
+        const field2 = browser.querySelector('#field-notscary');
+        field2.removeEventListener('focus', cb);
       });
     });
 
