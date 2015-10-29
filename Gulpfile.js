@@ -25,8 +25,7 @@ gulp.task('lint', function () {
 
 // gulp build -> compile coffee script
 gulp.task('build', ['clean'], function() {
-  return gulp
-    .src('src/**/*.js')
+  return gulp.src('src/**/*.js')
     .pipe(sourcemaps.init())
     .pipe(babel())
     .pipe(sourcemaps.write('.'))
@@ -39,10 +38,8 @@ gulp.task('build', ['clean'], function() {
 
 
 // gulp clean -> clean generated files
-gulp.task('clean', function(done) {
-  del([
-    'lib'
-  ], done);
+gulp.task('clean', function() {
+  return del('lib/**');
 });
 
 

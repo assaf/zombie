@@ -1,3 +1,11 @@
+## Version 4.2.1 2015-10-28
+
+FIXED missing lib directory
+
+697 passing (27s)
+  12 pending
+
+
 ## Version 4.2.0 2015-10-28
 
 CHANGED updated to use Bluebird 3.x
