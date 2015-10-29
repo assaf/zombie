@@ -1,3 +1,11 @@
+## Version 4.2.0 2015-10-28
+
+CHANGED updated to use Bluebird 3.x
+
+697 passing (23s)
+  12 pending
+
+
 ## Version 4.1.0 2015-08-21
 
 FIXED using properties instead of attributes whenever possible

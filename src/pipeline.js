@@ -54,8 +54,7 @@ class Pipeline extends Array {
     const browser         = this._browser;
     const requestHandlers = this.filter(fn => fn.length === 2).concat(Pipeline.makeHTTPRequest);
 
-    return Bluebird
-      .reduce(requestHandlers, function(lastResponse, requestHandler) {
+    return Bluebird.reduce(requestHandlers, function(lastResponse, requestHandler) {
         return lastResponse || requestHandler(browser, request);
       }, null)
       .then(function(response) {
@@ -68,8 +67,7 @@ class Pipeline extends Array {
     const browser           = this._browser;
     const responseHandlers  = this.filter(fn => fn.length === 3);
 
-    return Bluebird
-      .reduce(responseHandlers, function(lastResponse, responseHandler) {
+    return Bluebird.reduce(responseHandlers, function(lastResponse, responseHandler) {
         return responseHandler(browser, request, lastResponse);
       }, originalResponse)
       .then(function(response) {

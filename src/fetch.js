@@ -1,6 +1,5 @@
 const _       = require('lodash');
 const HTTP    = require('http');
-const Promise = require('bluebird');
 const Stream  = require('stream');
 const URL     = require('url');
 const Zlib    = require('zlib');

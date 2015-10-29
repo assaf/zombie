@@ -285,7 +285,7 @@ class Browser extends EventEmitter {
     if (callback)
       _eventLoop.wait(waitDuration, completionFunction, callback);
     else
-      return Bluebird.promisify(_eventLoop.wait, _eventLoop)(waitDuration, completionFunction);
+      return Bluebird.promisify(_eventLoop.wait.bind(_eventLoop))(waitDuration, completionFunction);
   }
 
 
@@ -307,7 +307,7 @@ class Browser extends EventEmitter {
       return null;
     }
 
-    return new Bluebird((resolve)=> {
+    return new Promise((resolve)=> {
       this._eventLoop.once('serverEvent', ()=> {
         resolve(this.wait(options, null));
       });
