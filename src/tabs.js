@@ -117,7 +117,9 @@ module.exports = class Tabs extends Array {
 
   // Closes all open tabs/windows.
   closeAll() {
-    for (let tab of this.slice())
+    const tabs = this.slice();
+    this._current = null;
+    for (let tab of tabs)
       tab.close();
   }
 

@@ -313,7 +313,11 @@ describe('Forms', function() {
         const field1 = browser.querySelector('#field-email2');
         const field2 = browser.querySelector('#field-email3');
         browser.fill(field1, 'something');
-        field2.addEventListener('blur', ()=> done());
+        function onBlur() {
+          field2.removeEventListener('blur', onBlur);
+          done();
+        }
+        field2.addEventListener('blur', onBlur);
         browser.fill(field2, 'else');
       });
 
@@ -564,7 +568,11 @@ describe('Forms', function() {
         const field1 = browser.querySelector('#field-scary');
         const field2 = browser.querySelector('#field-notscary');
         browser.choose(field1);
-        field2.addEventListener('focus', ()=> done());
+        function onFocus() {
+          field2.removeEventListener('focus', onFocus);
+          done();
+        }
+        field2.addEventListener('focus', onFocus);
         browser.choose(field2);
       });
 

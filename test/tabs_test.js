@@ -111,10 +111,11 @@ describe('Tabs', function() {
 
 
   describe('opening window with same name', function() {
+
+    const browser = new Browser();
     let second;
 
     before(function() {
-      browser.tabs.closeAll();
       browser.open({ name: 'first' });
       browser.open({ name: 'second' });
       browser.open({ name: 'third' });
@@ -149,8 +150,10 @@ describe('Tabs', function() {
 
 
   describe('closing window by name', function() {
+
+    const browser = new Browser();
+
     before(function() {
-      browser.tabs.closeAll();
       browser.open({ name: 'first' });
       browser.open({ name: 'second' });
       browser.open({ name: 'third' });
@@ -169,8 +172,10 @@ describe('Tabs', function() {
 
 
   describe('closing window by index', function() {
+
+    const browser = new Browser();
+
     before(function() {
-      browser.tabs.closeAll();
       browser.open({ name: 'first' });
       browser.open({ name: 'second' });
       browser.open({ name: 'third' });
@@ -188,6 +193,9 @@ describe('Tabs', function() {
 
 
   describe('closing window', function() {
+
+    const browser = new Browser();
+
     before(function() {
       browser.open({ name: 'first' });
       browser.open({ name: 'second' });
@@ -204,8 +212,10 @@ describe('Tabs', function() {
 
 
   describe('closing all tabs', function() {
+
+    const browser = new Browser();
+
     before(function() {
-      browser.tabs.closeAll();
       browser.open({ name: 'first' });
       browser.open({ name: 'second' });
       browser.open({ name: 'third' });
@@ -221,8 +231,10 @@ describe('Tabs', function() {
 
 
   describe('tabs array', function() {
+
+    const browser = new Browser();
+
     before(function() {
-      browser.tabs.closeAll();
       browser.open({ name: 'first' });
       browser.open({ name: 'second' });
       browser.open();
@@ -256,25 +268,18 @@ describe('Tabs', function() {
 
 
   describe('new browser', function() {
-    let newBrowser = null;
 
-    before(function() {
-      newBrowser = new Browser();
-    });
+    const browser = new Browser();
 
     it('should have no open windows', function() {
-      assert(!newBrowser.window);
-      assert.equal(newBrowser.tabs.length, 0);
+      assert(!browser.window);
+      assert.equal(browser.tabs.length, 0);
     });
 
     after(function() {
-      newBrowser.destroy();
+      browser.destroy();
     });
   });
 
-
-  after(function() {
-    browser.destroy();
-  });
 
 });

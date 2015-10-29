@@ -153,10 +153,14 @@ describe('History', function() {
 
         before(function(done) {
           window.document.magic = 123;
-          window.addEventListener('popstate', function(event) {
+
+          function onPopstate(event) {
+            window.removeEventListener('popstate', onPopstate);
             lastEvent = event;
             done();
-          });
+          }
+
+          window.addEventListener('popstate', onPopstate);
           window.history.back();
           browser.wait().done();
         });
@@ -183,12 +187,16 @@ describe('History', function() {
           browser.history.pushState({ is: 'first' }, null, '/first');
           browser.history.pushState({ is: 'second' },   null, '/second');
           browser.back();
-          browser.window.addEventListener('popstate', function(event) {
+          await browser.wait();
+
+          function onPopstate(event) {
             lastEvent = event;
             done();
-          });
+          }
+
+          browser.window.addEventListener('popstate', onPopstate);
           browser.history.forward();
-          browser.wait().done();
+          await browser.wait();
         });
 
         it('should fire popstate event', function() {
