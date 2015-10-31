@@ -176,6 +176,24 @@ browser.proxy = 'http://me:secret@myproxy:8080'
 Collection of errors accumulated by the browser while loading page and executing
 scripts.
 
+#### browser.wait
+
+Waits for the browser to complete loading resources and processing JavaScript events.
+
+Accepts two parameters, both optional:
+
+1. options: Options that determine how long to wait (see below)
+2. callback: Called with error or null and browser - Can be omitted and a Promise would be returned 
+
+To determine how long to wait:
+
+* duration: Do not wait more than this duration (milliseconds or string of
+             the form "5s"). Defaults to "5s".
+* element: Stop when this element(s) appear in the DOM.
+* function:  Stop when function returns true; this function is called with
+             the active window and expected time to the next event (0 to
+             Infinity).
+
 #### Browser.localhost(host, port)
 
 Allows you to make requests against a named domain and HTTP/S port, and will
