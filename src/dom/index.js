@@ -10,4 +10,5 @@ require('./iframe');
 require('./forms');
 require('./jsdom_patches');
 require('./scripts');
+require('./canvas');
 
