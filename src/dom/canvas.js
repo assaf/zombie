@@ -13,7 +13,7 @@ const defineSetter    = require('jsdom/lib/jsdom/utils').defineSetter;
 // https://github.com/tmpvar/jsdom/commit/f8d890342145bf7ee3ec5f4b12cbef88e7ced9de
 
 DOM.Document.prototype._elementBuilders.canvas = function(doc, s) {
-  var element = new DOM.HTMLCanvasElement(doc, s);
+  let element = new DOM.HTMLCanvasElement(doc, s);
   element._init();
   return element;
 }
@@ -31,7 +31,13 @@ DOM.HTMLCanvasElement.prototype._init = function() {
 
 DOM.HTMLCanvasElement.prototype.getContext = function(contextId) {
   if (this._nodeCanvas) {
-    return this._nodeCanvas.getContext(contextId) || null;
+    let ctx = this._nodeCanvas.getContext(contextId) || null;
+    // Replace ctx.canvas
+    // DOM expects to find reference to element in ctx.canvas. By default
+    // node-canvas sets reference to Canvas object.
+    // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/canvas
+    if (ctx) ctx.canvas = this;
+    return ctx;
   }
 
   notImplemented("HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)",

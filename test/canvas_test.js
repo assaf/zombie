@@ -33,21 +33,30 @@ describe('Canvas', function() {
     browser.assert.attribute('canvas', 'height', 2);
   });
 
-
-  it('should draw red rectangle (requires node-canvas)', function() {
+  describe('node-canvas', function() {
     try {
       require.resolve('canvas');
     } catch (e) {
-      this.skip();
+      before(function() { this.skip(); });
     }
 
-    browser.assert.evaluate(function() {
-      var c = browser.query('canvas');
-      var ctx = c.getContext('2d');
-      ctx.fillStyle = 'red';
-      ctx.fillRect(0,0,1,2);
-      return ctx.getImageData(0,0,1,1).data;
-    }, [255, 0, 0, 255]);
+    it('should draw red rectangle', function() {
+      browser.assert.evaluate(function() {
+        let c = browser.query('canvas');
+        let ctx = c.getContext('2d');
+        ctx.fillStyle = 'red';
+        ctx.fillRect(0,0,1,2);
+        return ctx.getImageData(0,0,1,1).data;
+      }, [255, 0, 0, 255]);
+    });
+
+    it('should have reference to element in ctx.canvas', function() {
+      browser.assert.evaluate(function() {
+        let c = browser.query('canvas');
+        let ctx = c.getContext('2d');
+        return ctx.canvas === c;
+      });
+    });
   });
 
   after(function() {
