@@ -359,8 +359,8 @@ With two/three arguments, asserts that the returned value matches the expected
 value.
 
 ```js
-browser.assert.evaluate('$('form').data('valid')');
-browser.assert.evaluate('$('form').data('errors').length', 3);
+browser.assert.evaluate('$("form").data("valid")');
+browser.assert.evaluate('$("form").data("errors").length', 3);
 ```
 
 #### assert.global(name, expected, message)
