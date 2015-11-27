@@ -1,3 +1,5 @@
+require('jsdom');  // work-around for node.js import of jsdom Windows.js before jsdom living module
+
 const assert            = require('assert');
 const Assert            = require('./assert');
 const Bluebird          = require('bluebird');
@@ -1355,4 +1357,3 @@ class Browser extends EventEmitter {
 
 
 module.exports = Browser;
-

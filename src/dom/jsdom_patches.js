@@ -49,11 +49,9 @@ DOM.HTMLAnchorElement.prototype._eventDefaults.click = function(event) {
 // Attempt to load the image, this will trigger a 'load' event when succesful
 // jsdom seemed to only queue the 'load' event
 DOM.HTMLImageElement.prototype._attrModified = function(name, value, oldVal) {
-  if (name === 'src' && value && value !== oldVal) {
-    const src = resourceLoader.resolveResourceUrl(this._ownerDocument, value);
-    if (this.src !== src)
-      resourceLoader.load(this, value);
-  }
+  if (name === 'src' && value && value !== oldVal)
+    resourceLoader.load(this, value);
+  DOM.HTMLElement.prototype._attrModified.call(this, name, value, oldVal);
 };
 
 
@@ -225,4 +223,3 @@ Utils.resolveHref = function (baseUrl, href) {
   else
     return URL.format(resolved);
 };
-
