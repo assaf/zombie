@@ -90,6 +90,11 @@ function setupWindow(window, args) {
 
   let   closed        = false;
 
+  // Catch all errors
+  window.onerror = ((message, filename, lineno, colno, error) => {
+    window._eventQueue.enqueue(() => browser.emit('error', error));
+  });
+
   // Access to browser
   Object.defineProperty(window, 'browser', {
     value:      browser,
