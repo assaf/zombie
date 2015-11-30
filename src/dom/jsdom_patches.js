@@ -149,36 +149,6 @@ DOM.EventTarget.prototype.dispatchEvent = function(event) {
 };
 
 
-// Wrap raise to catch and propagate all errors to window
-const jsdomRaise = DOM.Document.prototype.raise;
-DOM.Document.prototype.raise = function(type, message, data) {
-  jsdomRaise.call(this, type, message, data);
-
-  const error = data && (data.exception || data.error);
-  if (!error)
-    return;
-
-  const document  = this;
-  const window    = document.defaultView;
-  // Deconstruct the stack trace and strip the Zombie part of it
-  // (anything leading to this file).  Add the document location at
-  // the end.
-  const partial = [];
-  // "RangeError: Maximum call stack size exceeded" doesn't have a stack trace
-  if (error.stack) {
-    for (let line of error.stack.split('\n')) {
-      if (~line.indexOf('contextify/lib/contextify.js'))
-        break;
-      partial.push(line);
-    }
-  }
-  partial.push(`    in ${document.location.href}`);
-  error.stack = partial.join('\n');
-
-  window._eventQueue.onerror(error);
-};
-
-
 // Fix resource loading to keep track of in-progress requests. Need this to wait
 // for all resources (mainly JavaScript) to complete loading before terminating
 // browser.wait.
