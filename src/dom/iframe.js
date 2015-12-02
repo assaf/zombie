@@ -54,7 +54,7 @@ function refreshNameAccessor(frame) {
 function isInDocument(el) {
   const document = el._ownerDocument;
   let   current = el;
-  while ((current = current._parentNode))
+  while ((current = current.parentNode))
     if (current === document)
       return true;
   return false;
@@ -113,4 +113,3 @@ DOM.HTMLFrameElement.prototype.__defineGetter__('contentWindow', function() {
   }
   return this._contentWindow;
 });
-
