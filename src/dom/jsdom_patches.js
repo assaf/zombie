@@ -194,3 +194,22 @@ Utils.resolveHref = function (baseUrl, href) {
   else
     return URL.format(resolved);
 };
+
+
+// Add capability to set files to <input type="file">
+// This is a work-around for https://github.com/tmpvar/jsdom/issues/1272
+// See jsdom/lib/jsdom/level2/html.js
+const filesSymbol = Symbol('patched_files');
+Object.defineProperty(DOM.HTMLInputElement.prototype, 'files', {
+  get() {
+    if (this.type === 'file')
+      this[filesSymbol] = this[filesSymbol] || [];
+    else
+      this[filesSymbol] = null;
+    return this[filesSymbol];
+  },
+
+  set(files) {
+    this[filesSymbol] = files;
+  }
+});
