@@ -416,7 +416,7 @@ function setupWindow(window, args) {
   // JSDOM fires DCL event on document but not on window
   function windowLoaded(event) {
     document.removeEventListener('DOMContentLoaded', windowLoaded);
-    window.dispatchEvent(event);
+    window._eventQueue.enqueue(() => window.dispatchEvent(event));
   }
   document.addEventListener('DOMContentLoaded', windowLoaded);
 
