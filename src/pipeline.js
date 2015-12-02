@@ -142,7 +142,7 @@ class Pipeline extends Array {
   }
 
 
-  // -- Retrieve actualy resource --
+  // -- Retrieve actual resource --
 
   // Used to perform HTTP request (also supports file: resources).  This is always
   // the last request handler.
@@ -168,7 +168,7 @@ class Pipeline extends Array {
 
     }
 
-    // We're going to use cookies later when recieving response.
+    // We're going to use cookies later when receiving response.
     const { cookies }   = browser;
     const cookieHeader  = cookies.serialize(hostname, pathname);
     if (cookieHeader)

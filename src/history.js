@@ -17,7 +17,7 @@
 // window, the container must first create a new history and supply a focus
 // function. The result is another function it can use to create the new window.
 //
-// From there on, it can navigate in history and add new windows by chaing the
+// From there on, it can navigate in history and add new windows by changing the
 // current location (or using assign/replace).
 //
 // It can be used like this:
@@ -181,7 +181,7 @@ class Entry {
   // - The current entry uses the same window as the new entry, also need to
   //   keep window intact
   //
-  // keepAlive - Call destory on every document except this one, since it's
+  // keepAlive - Call destroy on every document except this one, since it's
   //             being replaced.
   destroy(keepAlive) {
     if (this.next) {

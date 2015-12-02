@@ -69,7 +69,7 @@ module.exports = class Tabs extends Array {
     // If name window in open tab, reuse that tab. Otherwise, open new window.
     const named = options.name && this.find(options.name.toString());
     if (named) {
-      // Select this as the currenly open tab. Changing the location would then
+      // Select this as the currently open tab. Changing the location would then
       // select a different window.
       this._current = named;
       if (options.url)
@@ -99,7 +99,7 @@ module.exports = class Tabs extends Array {
     this.push(window);
     if (name && (this.propertyIsEnumerable(name) || !this[name]))
       this[name] = window;
-    // Select this as the currenly open tab
+    // Select this as the currently open tab
     this.current = active = window;
     return window;
   }
