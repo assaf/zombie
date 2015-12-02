@@ -65,7 +65,7 @@ class Timeout {
 }
 
 
-// Wapper for an interval (setInterval)
+// Wrapper for an interval (setInterval)
 class Interval {
 
   // eventQueue - Reference to the event queue

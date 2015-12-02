@@ -350,7 +350,7 @@ class Browser extends EventEmitter {
   // target - Target element (e.g a link)
   // callback - Called with error or nothing
   //
-  // If called without callback, returns a promsie
+  // If called without callback, returns a promise
   fire(selector, eventName, callback) {
     assert(this.window, 'No window open');
     const target = this.query(selector);
@@ -368,7 +368,7 @@ class Browser extends EventEmitter {
   // selector - Element or CSS selector
   // callback - Called with error or nothing
   //
-  // If called without callback, returns a promsie
+  // If called without callback, returns a promise
   click(selector, callback) {
     return this.fire(selector, 'click', callback);
   }
@@ -1112,7 +1112,7 @@ class Browser extends EventEmitter {
     return this._storages.save();
   }
 
-  // Load local/session stroage from a text string (e.g. previously created using `browser.saveStorage`.
+  // Load local/session storage from a text string (e.g. previously created using `browser.saveStorage`.
   loadStorage(serialized) {
     this._storages.load(serialized);
   }
@@ -1314,7 +1314,7 @@ class Browser extends EventEmitter {
   //   Browser.proxy = 'http://myproxy:8080'
   static proxy = null
 
-  // If true, supress `console.log` output from scripts (ignored when DEBUG=zombie)
+  // If true, suppress `console.log` output from scripts (ignored when DEBUG=zombie)
   static silent = false
 
   // You can use visit with a path, and it will make a request relative to this host/URL.

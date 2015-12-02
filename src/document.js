@@ -190,7 +190,7 @@ function setupWindow(window, args) {
 
   // -- JavaScript evaluation
 
-  // Evaulate in context of window. This can be called with a script (String) or a function.
+  // Evaluate in context of window. This can be called with a script (String) or a function.
   window._evaluate = function(code, filename) {
     const originalInScope = browser._windowInScope;
     try {

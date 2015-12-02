@@ -1,4 +1,4 @@
-// Implemenets XMLHttpRequest.
+// Implements XMLHttpRequest.
 // See http://www.w3.org/TR/XMLHttpRequest/#the-abort()-method
 
 
@@ -207,13 +207,13 @@ class XMLHttpRequest {
 
 
   get status() {
-    // Status code/headers available immediatly, 0 if request errored
+    // Status code/headers available immediately, 0 if request errored
     return this._response ? this._response.status :
            this._error    ? 0 : null;
   }
 
   get statusText() {
-    // Status code/headers available immediatly, '' if request errored
+    // Status code/headers available immediately, '' if request errored
     return this._response ? this._response.statusText :
            this._error    ? '' : null;
   }
