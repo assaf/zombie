@@ -87,12 +87,34 @@ class Pipeline extends Array {
     this.push(handler);
   }
 
+  // Remove a request or response handler.
+  removeHandler(handler) {
+    assert(handler.call, 'Handler must be a function');
+    for(var key in this){
+      if(this[key] === handler){
+        delete this[key];
+        break;
+      }
+    }
+  }
+
   // Add a request or response handler.  This handler will be used by any new
   // pipeline instance (browser).
   static addHandler(handler) {
     assert(handler.call, 'Handler must be a function');
     assert(handler.length === 2 || handler.length === 3, 'Handler function takes 2 (request handler) or 3 (response handler) arguments');
     this._default.push(handler);
+  }
+  
+  // Remove a request or response handler.
+  static removeHandler(handler) {
+    assert(handler.call, 'Handler must be a function');
+    for(var key in this._default){
+      if(this[key] === handler){
+        delete this._default[key];
+        break;
+      }
+    }
   }
 
 

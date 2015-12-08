@@ -195,6 +195,43 @@ describe('Resources', function() {
       browser.pipeline.pop();
     });
   });
+  
+  describe('removeHandler request', function() {
+    let pipelineHandler; 
+    before(function(){
+      pipelineHandler = function(browser, request){
+        return new Fetch.Response('empty', { status: 204 });
+      }
+      browser.pipeline.addHandler(pipelineHandler);
+      return browser.visit('/resources/resource');
+    });
+    it('should remove the handler from the pipeline', function() {
+      let pipelineHasHandler = false
+        , pipelineHasHandlerAfter = false;
+      for (let i=0; i<browser.pipeline.length; i++) {
+        if (browser.pipeline[i] === pipelineHandler) {
+            pipelineHasHandler = true;
+            break;
+        }
+      }
+      browser.assert.status(204);
+      assert(pipelineHasHandler, 'Browser\'s pipeline should have a handler');
+      browser.pipeline.removeHandler(pipelineHandler);
+      for (let i=0; i<browser.pipeline.length; i++) {
+        if (browser.pipeline[i] === pipelineHandler) {
+            pipelineHasHandlerAfter = true;
+            break;
+        }
+      }
+      assert(!pipelineHasHandlerAfter, 'Pipeline should not have a handler after its removal');
+    });
+    
+    it('should not use the handler after it has been removed', function(){
+      return browser.visit('/resources/resource').then(function(){
+        browser.assert.status(200);
+      })
+    })
+  });
 
   describe('addHandler redirect', function () {
     before(function() {
