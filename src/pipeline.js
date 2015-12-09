@@ -92,7 +92,7 @@ class Pipeline extends Array {
     assert(handler.call, 'Handler must be a function');
     var index = this.indexOf(handler);
     if (index > -1) {
-        delete this[index];
+      this.splice(index,1);
     }
   }
 
@@ -109,7 +109,7 @@ class Pipeline extends Array {
     assert(handler.call, 'Handler must be a function');
     var index = this._default.indexOf(handler);
     if (index > -1) {
-        delete this._default[index];
+      this._default.splice(index,1);
     }
   }
 

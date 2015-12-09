@@ -202,20 +202,25 @@ describe('Resources', function() {
       pipelineHandler = function(browser, request){
         return new Fetch.Response('empty', { status: 204 });
       }
+      const pipelineLength = browser.pipeline.length;
       browser.pipeline.addHandler(pipelineHandler);
+      assert.equal(browser.pipeline.length, pipelineLength+1, 'Pipeline\'s length should increase by 1 after adding a handler');
       return browser.visit('/resources/resource');
     });
     it('should remove the handler from the pipeline', function() {
       let pipelineHasHandler = false
-        , pipelineHasHandlerAfter = false;
+        , pipelineHasHandlerAfter = false
+        , pipelineLengthBefore = browser.pipeline.length;
+        
+      browser.assert.status(204);
+      
       for (let i=0; i<browser.pipeline.length; i++) {
         if (browser.pipeline[i] === pipelineHandler) {
             pipelineHasHandler = true;
             break;
         }
       }
-      browser.assert.status(204);
-      assert(pipelineHasHandler, 'Browser\'s pipeline should have a handler');
+      assert(pipelineHasHandler, 'Pipeline should have a handler');
       browser.pipeline.removeHandler(pipelineHandler);
       for (let i=0; i<browser.pipeline.length; i++) {
         if (browser.pipeline[i] === pipelineHandler) {
@@ -224,6 +229,7 @@ describe('Resources', function() {
         }
       }
       assert(!pipelineHasHandlerAfter, 'Pipeline should not have a handler after its removal');
+      assert.equal(browser.pipeline.length, pipelineLengthBefore-1, 'Pipeline\'s length should decrease by 1 after removing a handler');
     });
     
     it('should not use the handler after it has been removed', function(){
