@@ -90,11 +90,9 @@ class Pipeline extends Array {
   // Remove a request or response handler.
   removeHandler(handler) {
     assert(handler.call, 'Handler must be a function');
-    for(var key in this){
-      if(this[key] === handler){
-        delete this[key];
-        break;
-      }
+    var index = this.indexOf(handler);
+    if (index > -1) {
+        delete this[index];
     }
   }
 
@@ -109,11 +107,9 @@ class Pipeline extends Array {
   // Remove a request or response handler.
   static removeHandler(handler) {
     assert(handler.call, 'Handler must be a function');
-    for(var key in this._default){
-      if(this[key] === handler){
-        delete this._default[key];
-        break;
-      }
+    var index = this._default.indexOf(handler);
+    if (index > -1) {
+        delete this._default[index];
     }
   }
 
