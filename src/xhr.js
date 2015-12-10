@@ -84,6 +84,7 @@ class XMLHttpRequest {
       throw new DOMException(DOMException.NOT_SUPPORTED_ERR, 'Only HTTP/S protocol supported');
     url.hostname = url.hostname || this._window.location.hostname;
     url.host = url.port ? `${url.hostname}:${url.port}` : url.hostname;
+    headers.set("Referer", this._window.location.href);
     if (url.host !== this._window.location.host) {
       headers.set('Origin', `${this._window.location.protocol}//${this._window.location.host}`);
       this._cors = headers.get('Origin');
