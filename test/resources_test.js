@@ -47,7 +47,51 @@ describe('Resources', function() {
     });
   });
 
+  describe('request object', function(){
+    let myRequest;
 
+    before(function(){
+      brains.static('/forms/post', `
+        <html>
+          <head>
+            <title>Request test</title>
+          </head>
+          <body>
+            <form action="/forms/post/echo" method="post">
+              <input type="text" name="name"></input>
+              <input type="text" name="email"></input>
+              <input type="submit" value="submit">
+            </form>
+          </body>
+        </html>`);
+      
+      brains.post('/forms/post/echo', function(req, res) {
+        res.send(`
+          <html>
+            <body>${req.query.my_param}</body>
+          </html>
+        `);
+      });
+      
+      return browser.visit('/forms/post').then(function(){
+        const handler = function(browser, request){
+          myRequest = request;
+          browser.pipeline.removeHandler(handler);
+        }
+        browser.pipeline.addHandler(handler);
+        
+        browser.fill('name', 'myname');
+        browser.fill('email', 'myemail@zombie.co');
+        
+        return browser.pressButton('submit');
+      });
+    });
+   
+    it('should contain a body when using POST request', function(){
+      assert.equal(myRequest.body, 'name=myname&email=myemail%40zombie.co');
+    });
+  });
+  
   describe('deflate', function() {
     before(function() {
       brains.get('/resources/deflate', function(req, res) {
