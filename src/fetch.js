@@ -26,7 +26,7 @@ class Headers {
       for (let [name, value] of init)
         this.append(name, value);
     else if (init instanceof Object)
-      _.each(init, function(value, name) {
+      _.each(init, (value, name)=> {
         this.append(name, value);
       });
   }
