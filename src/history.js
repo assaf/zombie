@@ -288,6 +288,7 @@ class History {
       args.name      = window.name;
       args.parent    = parentFrom(window);
       args.referrer  = window.location.href;
+      args.opener    = window.opener || null;
     }
     const document  = loadDocument(args);
     this.addEntry(document.defaultView, document.location.href);
