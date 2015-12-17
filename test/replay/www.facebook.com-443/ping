@@ -1,0 +1,20 @@
+GET /connect/ping?client_id=1293201667373751&domain=example.com&origin=1&redirect_uri=http%3A%2F%2Fstatic.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FZA4h4nBDFsE.js%3Fversion%3D41%23cb%3Dfcce1edaf72%26domain%3Dexample.com%26origin%3Dhttp%253A%252F%252Fexample.com%252Ff3e5a693f24%26relation%3Dparent&response_type=token%2Csigned_request%2Ccode&sdk=joey
+accept: text/html,*/*
+content-type: application/x-www-form-urlencoded;charset=UTF-8
+host: www.facebook.com
+
+HTTP/1.1 302 Found
+location: http://static.ak.facebook.com/connect/xd_arbiter/ZA4h4nBDFsE.js?version=41#cb=fcce1edaf72&domain=example.com&origin=http%3A%2F%2Fexample.com%2Ff3e5a693f24&relation=parent&error=unknown_user
+cache-control: private, no-cache, no-store, must-revalidate
+expires: Sat, 01 Jan 2000 00:00:00 GMT
+pragma: no-cache
+public-key-pins-report-only: max-age=500; pin-sha256="WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18="; pin-sha256="r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E="; pin-sha256="q4PO2G2cbkZhZ82+JgmRUyGMoAeozA+BSXVXQWB8XWQ="; report-uri="http://reports.fb.com/hpkp/"
+strict-transport-security: max-age=15552000; preload
+x-xss-protection: 0
+x-content-type-options: nosniff
+content-type: text/html
+x-fb-debug: fwoIW98GxIHOirTroGDRB1HLAWnzpk9BlWZ8E3iI0XKCs6rp22MoY5XzQkH8VaPq81S42AKr3NU6rhNE+pR/Pw==
+date: Thu, 17 Dec 2015 10:24:11 GMT
+connection: close
+content-length: 0
+
