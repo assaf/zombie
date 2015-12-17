@@ -4927,10 +4927,14 @@ try {
                     if (require.__markCompiled)
                         require.__markCompiled();
                     
-                    
+                    var seed = 1;
+                    function random() {
+                        var x = Math.sin(seed++) * 10000;
+                        return x - Math.floor(x);
+                    }
                     
                     function guid() {
-                        return 'f' + (Math.random() * (1 << 30)).toString(16).replace('.', '');
+                        return 'f' + (random() * (1 << 30)).toString(16).replace('.', '');
                     }
                     __annotator(guid, {
                         'module': 'guid',
