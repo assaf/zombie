@@ -28,15 +28,18 @@ describe('Facebook login with SDK test', function(){
              var js, fjs = d.getElementsByTagName(s)[0];
              if (d.getElementById(id)) {return;}
              js = d.createElement(s); js.id = id;
-             js.src = "https://connect.facebook.net/en_US/all/debug.js";
+             js.src = "/scripts/fb_sdk_debug_2.5.js";
              fjs.parentNode.insertBefore(js, fjs);
            }(document, 'script', 'facebook-jssdk'));
         </script>
         </head>
+        <body>
+        </body>
         </html>`);
     })
       
     it('should visit the facebook login page', async function(){
+        this.timeout(5000);
         await browser.visit('/facebook');
         console.log(browser.html());
     });
