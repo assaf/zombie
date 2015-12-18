@@ -10,6 +10,7 @@ describe('Facebook login with SDK test', function(){
     const facebookId = '103059683402561';
     
     const browser = new Browser();
+    browser.silent = true;
     
     before(function(){
         return brains.ready();
@@ -48,7 +49,7 @@ describe('Facebook login with SDK test', function(){
         this.timeout(5000);
         await browser.visit('/facebook');
         initialWindow = browser.window;
-        console.log(browser.html());
+        //console.log(browser.html());
     });
     it('should include fb-root element on the page', function(){
         browser.assert.element('#fb-root');

@@ -109,7 +109,6 @@ describe('Window opener property and close method', function(){
       assert(browser.tabs.current == initialWindow);
     });
     it('should restore _eventLoop.active', function(){
-      console.log(browser._eventLoop.active._request.url);
       assert(browser._eventLoop.active == initialWindow);
     });
     it('should continue eventLoop of the opener', async function(){
@@ -182,7 +181,6 @@ describe('Window opener property and close method', function(){
       try{
         await browser.wait();
       }catch(err){
-        console.log(err);
         assert(/No window open/.test(err.message));
         done();
         return;
