@@ -311,6 +311,7 @@ function setupWindow(window, args) {
       // Only parent window gets the close event
       browser.emit('closed', window);
       history.destroy(); // do this last to prevent infinite loop
+      browser._eventLoop.active = browser.tabs.current || null;
     } else
       browser.log('Scripts may not close windows that were not opened by script');
   };
