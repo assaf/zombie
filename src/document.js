@@ -413,7 +413,7 @@ Window.prototype.postMessage = function(data) {
   event.source = (this.browser._windowInScope || this);
   const origin = event.source.location;
   event.origin = URL.format({ protocol: origin.protocol, host: origin.host });
-  this.dispatchEvent(event);
+  this._evaluate(()=>{this.dispatchEvent(event)});
 };
 
 
