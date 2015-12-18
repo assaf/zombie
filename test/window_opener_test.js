@@ -230,7 +230,7 @@ describe('Window opener property and close method', function(){
     
   });
   
-  describe.skip('inherit opener', function() {
+  describe('inherit opener', function() {
     
     before(async function(){
       browser.tabs.closeAll();
