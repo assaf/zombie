@@ -1,0 +1,24 @@
+GET /v2.5/dialog/oauth?app_id=1293201667373751&client_id=1293201667373751&display=popup&domain=example.com&e2e=%7B%7D&locale=en_US&origin=1&redirect_uri=http%3A%2F%2Fstatic.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FZA4h4nBDFsE.js%3Fversion%3D41%23cb%3Df3614c66c2aa%26domain%3Dexample.com%26origin%3Dhttp%253A%252F%252Fexample.com%252Ff3e5a693f24%26relation%3Dopener%26frame%3Df3076d6d53f8&response_type=token%2Csigned_request&return_scopes=true&scope=email&sdk=joey&version=v2.5
+accept: text/html,*/*
+content-type: application/x-www-form-urlencoded;charset=UTF-8
+host: www.facebook.com
+
+HTTP/1.1 302 Found
+location: https://www.facebook.com/login.php?skip_api_login=1&api_key=1293201667373751&signed_next=1&next=https%3A%2F%2Fwww.facebook.com%2Fv2.5%2Fdialog%2Foauth%3Fredirect_uri%3Dhttp%253A%252F%252Fstatic.ak.facebook.com%252Fconnect%252Fxd_arbiter%252FZA4h4nBDFsE.js%253Fversion%253D41%2523cb%253Df3614c66c2aa%2526domain%253Dexample.com%2526origin%253Dhttp%25253A%25252F%25252Fexample.com%25252Ff3e5a693f24%2526relation%253Dopener%2526frame%253Df3076d6d53f8%26display%3Dpopup%26scope%3Demail%26response_type%3Dtoken%252Csigned_request%26domain%3Dexample.com%26return_scopes%3Dtrue%26origin%3D1%26client_id%3D1293201667373751%26ret%3Dlogin%26sdk%3Djoey&cancel_url=http%3A%2F%2Fstatic.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FZA4h4nBDFsE.js%3Fversion%3D41%23cb%3Df3614c66c2aa%26domain%3Dexample.com%26origin%3Dhttp%253A%252F%252Fexample.com%252Ff3e5a693f24%26relation%3Dopener%26frame%3Df3076d6d53f8%26error%3Daccess_denied%26error_code%3D200%26error_description%3DPermissions%2Berror%26error_reason%3Duser_denied%26e2e%3D%257B%257D&display=popup
+p3p: CP="Facebook does not have a P3P policy. Learn why here: http://fb.me/p3p"
+x-frame-options: DENY
+x-content-type-options: nosniff
+facebook-api-version: v2.5
+expires: Sat, 01 Jan 2000 00:00:00 GMT
+x-xss-protection: 0
+strict-transport-security: max-age=15552000; preload
+public-key-pins-report-only: max-age=500; pin-sha256="WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18="; pin-sha256="r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E="; pin-sha256="q4PO2G2cbkZhZ82+JgmRUyGMoAeozA+BSXVXQWB8XWQ="; report-uri="http://reports.fb.com/hpkp/"
+pragma: no-cache
+cache-control: private, no-cache, no-store, must-revalidate
+set-cookie: reg_ext_ref=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/; domain=.facebook.com; httponly
+content-type: text/html
+x-fb-debug: 2Oh6vFq0cQ6i4b+e0CkQFar79PTTFohf6RJvuDxqAC/ZmLrDsuggaqLyKSF6JtxhOe1hGJNhQ40UlprmQ9AB5Q==
+date: Fri, 18 Dec 2015 21:23:54 GMT
+connection: close
+content-length: 0
+
