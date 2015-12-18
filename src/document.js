@@ -306,8 +306,7 @@ function setupWindow(window, args) {
 
     // Only opener window can close window; any code that's not running from
     // within a window's context can also close window.
-    if (browser._windowInScope === opener || browser._windowInScope === null) {
-      browser.tabs._closed(window);
+    if (browser._windowInScope === opener || browser._windowInScope === window || browser._windowInScope === null) {
       browser.tabs._closed(window._history.current.window);
       // Only parent window gets the close event
       browser.emit('closed', window);
