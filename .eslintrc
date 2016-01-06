@@ -7,7 +7,7 @@
   // http://eslint.org/docs/rules/
   rules: {
     strict:               0,
-    curly:                [2, 'multi'],
+    curly:                [1, 'multi'],
     quotes:               [2, 'single'],
     eol-last:             [0],
     no-mixed-requires:    [0],
