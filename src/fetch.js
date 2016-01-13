@@ -25,7 +25,7 @@ class Headers {
     if (init instanceof Headers || init instanceof Array)
       for (let [name, value] of init)
         this.append(name, value);
-    else if (init instanceof Object)
+    else if (typeof init === "object")
       _.each(init, (value, name)=> {
         this.append(name, value);
       });
