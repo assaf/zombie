@@ -1,15 +1,16 @@
 // Fix things that JSDOM doesn't do quite right.
 
 
-const DOM             = require('./index');
-const Fetch           = require('../fetch');
-const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
-const Utils           = require('jsdom/lib/jsdom/utils');
-const URL             = require('url');
+const DOM                 = require('./index');
+const Fetch               = require('../fetch');
+const resourceLoader      = require('jsdom/lib/jsdom/browser/resource-loader');
+const Utils               = require('jsdom/lib/jsdom/utils');
+const URL                 = require('url');
+const createHTMLColection = require('jsdom/lib/jsdom/living/html-collection').create;
 
 
 DOM.HTMLDocument.prototype.__defineGetter__('scripts', function() {
-  return new DOM.HTMLCollection(this, ()=> this.querySelectorAll('script'));
+  return createHTMLColection(this, ()=> this.querySelectorAll('script'));
 });
 
 
@@ -49,11 +50,9 @@ DOM.HTMLAnchorElement.prototype._eventDefaults.click = function(event) {
 // Attempt to load the image, this will trigger a 'load' event when succesful
 // jsdom seemed to only queue the 'load' event
 DOM.HTMLImageElement.prototype._attrModified = function(name, value, oldVal) {
-  if (name === 'src' && value && value !== oldVal) {
-    const src = resourceLoader.resolveResourceUrl(this._ownerDocument, value);
-    if (this.src !== src)
-      resourceLoader.load(this, value);
-  }
+  if (name === 'src' && value && value !== oldVal)
+    resourceLoader.load(this, value);
+  DOM.HTMLElement.prototype._attrModified.call(this, name, value, oldVal);
 };
 
 
@@ -151,36 +150,6 @@ DOM.EventTarget.prototype.dispatchEvent = function(event) {
 };
 
 
-// Wrap raise to catch and propagate all errors to window
-const jsdomRaise = DOM.Document.prototype.raise;
-DOM.Document.prototype.raise = function(type, message, data) {
-  jsdomRaise.call(this, type, message, data);
-
-  const error = data && (data.exception || data.error);
-  if (!error)
-    return;
-
-  const document  = this;
-  const window    = document.defaultView;
-  // Deconstruct the stack trace and strip the Zombie part of it
-  // (anything leading to this file).  Add the document location at
-  // the end.
-  const partial = [];
-  // "RangeError: Maximum call stack size exceeded" doesn't have a stack trace
-  if (error.stack) {
-    for (let line of error.stack.split('\n')) {
-      if (~line.indexOf('contextify/lib/contextify.js'))
-        break;
-      partial.push(line);
-    }
-  }
-  partial.push(`    in ${document.location.href}`);
-  error.stack = partial.join('\n');
-
-  window._eventQueue.onerror(error);
-};
-
-
 // Fix resource loading to keep track of in-progress requests. Need this to wait
 // for all resources (mainly JavaScript) to complete loading before terminating
 // browser.wait.
@@ -226,3 +195,21 @@ Utils.resolveHref = function (baseUrl, href) {
     return URL.format(resolved);
 };
 
+
+// Add capability to set files to <input type="file">
+// This is a work-around for https://github.com/tmpvar/jsdom/issues/1272
+// See jsdom/lib/jsdom/level2/html.js
+const filesSymbol = Symbol('patched_files');
+Object.defineProperty(DOM.HTMLInputElement.prototype, 'files', {
+  get() {
+    if (this.type === 'file')
+      this[filesSymbol] = this[filesSymbol] || [];
+    else
+      this[filesSymbol] = null;
+    return this[filesSymbol];
+  },
+
+  set(files) {
+    this[filesSymbol] = files;
+  }
+});
