@@ -1428,9 +1428,8 @@ describe('Forms', function() {
     });
 
     it('should return empty string if name attribute not set', function() {
-      for (let tagName of ['form', 'input', 'textarea', 'select', 'button']) {
+      for (let tagName of ['form', 'input', 'textarea', 'select', 'button'])
         browser.assert.attribute(tagName, 'name', null);
-      }
     });
     it('should return empty string if value attribute not set', function() {
       for (let tagName of ['input', 'textarea', 'select', 'button']) {
