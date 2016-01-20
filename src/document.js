@@ -158,10 +158,14 @@ function setupWindow(window, args) {
   window.URL = DOMURL;
 
   // Web sockets
+  window._allWebSockets = [];
+
   window.WebSocket = function(url, protocol) {
     url = resourceLoader.resolveResourceUrl(document, url);
     const origin = `${window.location.protocol}//${window.location.host}`;
-    return new WebSocket(url, { origin, protocol });
+    const ws = new WebSocket(url, { origin, protocol });
+    window._allWebSockets.push(ws);
+    return ws;
   };
 
   window.Image = function(width, height) {
@@ -288,6 +292,11 @@ function setupWindow(window, args) {
     if (closed)
       return;
     closed = true;
+
+    for (const ws of window._allWebSockets) {
+      ws.removeAllListeners();
+      ws.close();
+    }
 
     // Close all frames first
     for (let i = 0; i < window._length; ++i)
