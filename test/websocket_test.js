@@ -5,8 +5,7 @@ const WebSocket = require('ws');
 
 
 describe('WebSockets', function() {
-  const browser = new Browser();
-  const prompts = [];
+  let serverWS = null;
 
   before(function() {
     return brains.ready();
@@ -14,68 +13,119 @@ describe('WebSockets', function() {
 
   before(function(done) {
     const server = new WebSocket.Server({ port: 3004 }, done);
-    server.on('connection', function(client) {
-      client.send('Hello');
+    server.on('connection', function(ws) {
+      serverWS = ws;
+      ws.send('Hello');
     });
   });
 
-  before(function() {
-    brains.static('/websockets', `
-      <html>
-        <head>
-          <script src="/scripts/jquery.js"></script>
-        </head>
-        <body>
-          <span id="ws-url"></span>
-        </body>
-        <script>
-          $(function() {
+  describe('short session', function() {
+    const browser = new Browser();
+    const prompts = [];
+
+    before(function() {
+      brains.static('/websockets', `
+        <html>
+          <head>
+            <script src="/scripts/jquery.js"></script>
+          </head>
+          <body>
+            <span id="ws-url"></span>
+          </body>
+          <script>
+            $(function() {
+              var ws = new WebSocket('ws://example.com:3004');
+              $('#ws-url').text(ws.url);
+              ws.onopen = function() {
+                alert('open');
+              };
+              ws.onmessage = function(message) {
+                alert(message.data);
+              };
+              ws.onclose = function() {
+                alert('close');
+              };
+              setTimeout(function() {
+                ws.close();
+              }, 100);
+            });
+          </script>
+        </html>
+      `);
+    });
+
+    before(function(done) {
+      browser.on('alert', function(message) {
+        prompts.push(message);
+        if (message === 'close') {
+          done();
+        }
+      });
+
+      browser.visit('/websockets', ()=> null);
+    });
+
+    it('should be possible', function() {
+      browser.assert.text('#ws-url', 'ws://example.com:3004');
+    });
+    it('should raise open event after connecting', function() {
+      assert.equal(prompts[0], 'open');
+    });
+    it('should raise message event for each message', function() {
+      assert.equal(prompts[1], 'Hello');
+    });
+    it('should raise close event when closed', function() {
+      assert.equal(prompts[2], 'close');
+    });
+
+    after(function() {
+      browser.destroy();
+    });
+  });
+
+  describe('connected indefinitely', function() {
+    const browser = new Browser();
+
+    before(function() {
+      brains.static('/websockets2', `
+        <html>
+          <script>
             var ws = new WebSocket('ws://example.com:3004');
-            $('#ws-url').text(ws.url);
-            ws.onopen = function() {
-              alert('open');
-            };
             ws.onmessage = function(message) {
               alert(message.data);
-            };
-            ws.onclose = function() {
-              alert('close');
-            };
-            setTimeout(function() {
-              ws.close();
-            }, 100);
-          });
-        </script>
-      </html>
-    `);
-  });
 
-  before(function(done) {
-    browser.on('alert', function(message) {
-      prompts.push(message);
-      if (message === 'close')
-        done();
+              // If message is received in a destroyed browser, this will throw an exception.
+              setTimeout(function() {
+                alert('timeout');
+              }, 100);
+            };
+          </script>
+        </html>
+      `);
     });
 
-    browser.visit('/websockets', ()=> null);
-  });
+    before(function(done) {
+      browser.on('alert', function(message) {
+        if (message === 'Hello')
+          done();
+      });
 
+      browser.visit('/websockets2', ()=> null);
+    });
 
-  it('should be possible', function() {
-    browser.assert.text('#ws-url', 'ws://example.com:3004');
-  });
-  it('should raise open event after connecting', function() {
-    assert.equal(prompts[0], 'open');
-  });
-  it('should raise message event for each message', function() {
-    assert.equal(prompts[1], 'Hello');
-  });
-  it('should raise close event when closed', function() {
-    assert.equal(prompts[2], 'close');
-  });
+    it('should close connection when leaving the page', function(done) {
+      browser.visit('/');
 
+      serverWS.send('after destroy');
 
-  after(function() {
-    browser.destroy();
+      browser.wait(function() {
+        assert.equal(serverWS.readyState, WebSocket.CLOSED);
+        done();
+      });
+    });
+
+    after(function() {
+      browser.destroy();
+    });
   });
 });
