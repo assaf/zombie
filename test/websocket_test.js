@@ -57,16 +57,15 @@ describe('WebSockets', function() {
     before(function(done) {
       browser.on('alert', function(message) {
         prompts.push(message);
-        if (message === 'close') {
+        if (message === 'close')
           done();
-        }
       });
 
       browser.visit('/websockets', ()=> null);
     });
 
     it('should be possible', function() {
-      browser.assert.text('#ws-url', 'ws://example.com:3004');
+      browser.assert.text('#ws-url', 'ws://example.com:3004/');
     });
     it('should raise open event after connecting', function() {
       assert.equal(prompts[0], 'open');
