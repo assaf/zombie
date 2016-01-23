@@ -332,7 +332,7 @@ class History {
         name:     name,
         url:      url,
         parent:   parent,
-        referrer: this.current && this.current.window.document.referrer
+        referrer: this.current.url || this.current.window.document.referrer
       };
       const document = loadDocument(args);
       this.addEntry(document.defaultView, url);
