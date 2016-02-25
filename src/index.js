@@ -827,8 +827,8 @@ class Browser extends EventEmitter {
     const option = this.query(selector);
     if (option && !option.selected) {
       const select = this.xpath('./ancestor::select', option).iterateNext();
-      option.selected = true;
       select.focus();
+      option.selected = true;
       this.fire(select, 'change', false);
     }
     return this;
@@ -1355,4 +1355,3 @@ class Browser extends EventEmitter {
 
 
 module.exports = Browser;
-
