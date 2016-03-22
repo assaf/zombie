@@ -52,7 +52,7 @@
     "ms": "^0.7.1",
     "request": "^2.65.0",
     "tough-cookie": "^2.2.0",
-    "ws": "^0.8.0"
+    "ws": "^1.0.1"
   },
   "devDependencies": {
     "babel": "5.8.29",
