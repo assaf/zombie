@@ -187,6 +187,58 @@ describe('Window', function() {
     });
   });
 
+
+  describe('.fetch', function() {
+    before(function() {
+      brains.get('/window/fetch/data', (req, res) => {
+        assert.equal(req.get('X-Test'), 'ok');
+        res.send();
+      });
+    });
+
+    it('should process HeadersInit as an array from different context', async function() {
+      brains.static('/window/fetch/array-test', `
+        <html>
+          <script>
+            fetch('data', {
+              headers: [
+                ['X-Test', 'ok']
+              ]
+            }).then(function() {
+              document.dispatchEvent(new Event('fetched'));
+            });
+          </script>
+        </html>
+      `);
+
+      await browser.visit('/window/fetch/array-test');
+      await new Promise(resolve => {
+        browser.document.addEventListener('fetched', resolve);
+      });
+    });
+
+    it('should process HeadersInit as an object from different context', async function() {
+      brains.static('/window/fetch/object-test', `
+        <html>
+          <script>
+            fetch('data', {
+              headers: {
+                'X-Test': 'ok'
+              }
+            }).then(function() {
+              document.dispatchEvent(new Event('fetched'));
+            });
+          </script>
+        </html>
+      `);
+
+      await browser.visit('/window/fetch/object-test');
+      await new Promise(resolve => {
+        browser.document.addEventListener('fetched', resolve);
+      });
+    });
+  });
+
   describe('atob', function() {
     it('should decode base-64 string', function() {
       browser.open();
