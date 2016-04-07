@@ -320,6 +320,33 @@ describe('Cookies', function() {
   });
 
 
+  describe('invalidate cookies and redirect', function() {
+    let cookies = {};
+
+    before(function() {
+      brains.get('/cookies/invalidate', function(req, res) {
+        res.clearCookie('_delete');
+        res.redirect('/cookies/invalidated');
+      });
+
+      brains.get('/cookies/invalidated', function(req, res) {
+        Object.assign(cookies, req.cookies);
+        res.send();
+      });
+
+      // Need to ensure that there are no cookies from other tests
+      browser.deleteCookies();
+      browser.setCookie({ name: '_delete', domain: 'example.com', path: '/', value: 'test' });
+      return browser.visit('/cookies/invalidate');
+    });
+
+    it('should unset cookie before redirecting', function() {
+      assert.strictEqual(cookies.hasOwnProperty('_delete'), false);
+      assert.strictEqual(browser.getCookie('_delete'), null);
+    });
+  });
+
+
   describe('duplicates', function() {
 
     before(async function() {

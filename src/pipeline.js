@@ -103,7 +103,7 @@ class Pipeline extends Array {
     assert(handler.length === 2 || handler.length === 3, 'Handler function takes 2 (request handler) or 3 (response handler) arguments');
     this._default.push(handler);
   }
-  
+
   // Remove a request or response handler.
   static removeHandler(handler) {
     assert(handler.call, 'Handler must be a function');
@@ -273,6 +273,9 @@ class Pipeline extends Array {
         request.headers.delete('Content-Transfer-Encoding');
       }
 
+      // The Cookie header will be recomputed when the pipeline runs. This
+      // ensures that cookies can be invalidated by the redirect response.
+      request.headers.delete('Cookie');
       // This request is referer for next
       request.headers.set('Referer', request.url);
       request.url = Utils.resolveHref(request.url, location);
