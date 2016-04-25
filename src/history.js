@@ -452,7 +452,7 @@ class History {
   }
 
   // This method is available from Location.
-  replaceState(state, title, url = this.url) {
+  replaceState(state, title, url = this.current.window.location.pathname) {
     url = resourceLoader.resolveResourceUrl(this.current.window.document, url);
     // TODO: check same origin
     this.replaceEntry(this.current.window, url, state || {});
@@ -488,4 +488,3 @@ module.exports = function createHistory(browser, focus) {
   const history = new History(browser, focus);
   return history.open.bind(history);
 };
-
