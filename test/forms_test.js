@@ -801,14 +801,14 @@ describe('Forms', function() {
     });
 
     it('should not fail', function() {
-      browser
+      return browser
         .fill('Hunter', 'Bruce')
-        .fill('hunter_hobbies', 'Trying to get home')
-        .fill('#hunter-password', 'klaatubarada')
-        .fill('input[name=hunter_invalidtype]', 'necktie?')
-        .check('Chainsaw')
-        .choose('Powerglove')
-        .select('Type', 'Evil');
+        .then(() => browser.fill('hunter_hobbies', 'Trying to get home'))
+        .then(() => browser.fill('#hunter-password', 'klaatubarada'))
+        .then(() => browser.fill('input[name=hunter_invalidtype]', 'necktie?'))
+        .then(() => browser.check('Chainsaw'))
+        .then(() => browser.choose('Powerglove'))
+        .then(() => browser.select('Type', 'Evil'));
     });
   });
 
@@ -817,15 +817,14 @@ describe('Forms', function() {
 
     describe('by calling reset', function() {
 
-      before(async function() {
-        await browser.visit('/forms/form');
-        browser
-          .fill('Name', 'ArmBiter')
-          .fill('likes', 'Arm Biting')
-          .check('You bet')
-          .choose('Scary')
-          .select('state', 'dead');
-        browser.querySelector('form').reset();
+      before(function() {
+        return browser.visit('/forms/form')
+          .then(() => browser.fill('Name', 'ArmBiter'))
+          .then(() => browser.fill('likes', 'Arm Biting'))
+          .then(() => browser.check('You bet'))
+          .then(() => browser.choose('Scary'))
+          .then(() => browser.select('state', 'dead'))
+          .tap(() => browser.querySelector('form').reset());
       });
 
       it('should reset input field to original value', function() {
@@ -901,25 +900,24 @@ describe('Forms', function() {
   describe('submit form', function() {
 
     describe('by calling submit', function() {
-      before(async function() {
-        await browser.visit('/forms/form');
-        browser
-          .fill('Name', 'ArmBiter')
-          .fill('likes', 'Arm Biting')
-          .check('You bet')
-          .check('Certainly')
-          .choose('Scary')
-          .select('state', 'dead')
-          .select('looks', 'Choose one')
-          .select('#field-hobbies', 'Eat Brains')
-          .select('#field-hobbies', 'Sleep')
-          .check('Brains?')
-          .fill('#address1_city', 'Paris')
-          .fill('#address1_street', 'CDG')
-          .fill('#address2_city', 'Mikolaiv')
-          .fill('#address2_street', 'PGS');
-        browser.querySelector('form').submit();
-        await browser.wait();
+      before(function() {
+        return browser.visit('/forms/form')
+          .then(() => browser.fill('Name', 'ArmBiter'))
+          .then(() => browser.fill('likes', 'Arm Biting'))
+          .then(() => browser.check('You bet'))
+          .then(() => browser.check('Certainly'))
+          .then(() => browser.choose('Scary'))
+          .then(() => browser.select('state', 'dead'))
+          .then(() => browser.select('looks', 'Choose one'))
+          .then(() => browser.select('#field-hobbies', 'Eat Brains'))
+          .then(() => browser.select('#field-hobbies', 'Sleep'))
+          .then(() => browser.check('Brains?'))
+          .then(() => browser.fill('#address1_city', 'Paris'))
+          .then(() => browser.fill('#address1_street', 'CDG'))
+          .then(() => browser.fill('#address2_city', 'Mikolaiv'))
+          .then(() => browser.fill('#address2_street', 'PGS'))
+          .then(() => browser.querySelector('form').submit())
+          .then(() => browser.wait());
       });
 
       it('should open new page', function() {
