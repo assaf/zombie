@@ -1,6 +1,7 @@
 const assert  = require('assert');
 const brains  = require('./helpers/brains');
 const Browser = require('../src');
+const util    = require('util');
 
 
 describe('Browser events', function() {
@@ -10,6 +11,7 @@ describe('Browser events', function() {
     log:      [],
     resource: []
   };
+  const error = new Error('error');
 
   before(function() {
     return brains.ready();
@@ -25,7 +27,7 @@ describe('Browser events', function() {
         events.console.push({ level: level, message: message });
       });
       browser.console.log('Logging', 'message');
-      browser.console.error('Some', new Error('error'));
+      browser.console.error('Some', error);
     });
 
     it('should receive console events with the log level', function() {
@@ -35,7 +37,7 @@ describe('Browser events', function() {
 
     it('should receive console events with the message', function() {
       assert.deepEqual(events.console[0].message, 'Logging message');
-      assert.deepEqual(events.console[1].message, 'Some [Error: error]');
+      assert.deepEqual(events.console[1].message, 'Some ' + util.format(error));
     });
 
     after(function() {
@@ -46,15 +48,16 @@ describe('Browser events', function() {
 
   describe('logging a message', function() {
     it('should receive log events', function() {
+      const error = new Error('error');
       // Zombie log
       browser.on('log', function(message) {
         events.log.push(message);
       });
       browser.log('Zombie', 'log');
-      browser.log('Zombie', new Error('error'));
+      browser.log('Zombie', error);
 
       assert.equal(events.log[0], 'Zombie log');
-      assert.equal(events.log[1], 'Zombie [Error: error]');
+      assert.equal(events.log[1], 'Zombie ' + util.format(error));
     });
   });
 
