@@ -128,4 +128,56 @@ describe('WebSockets', function() {
       browser.destroy();
     });
   });
+
+  describe('binary data', function() {
+    const browser = new Browser();
+
+    before(function() {
+      brains.static('/websockets-binary', `
+        <html>
+          <script>
+            var ws = new WebSocket('ws://example.com:3004');
+            ws.onmessage = function(message) {
+              // If message is received in a destroyed browser, this will throw an exception.
+              setTimeout(function() {
+                alert('timeout');
+              }, 100);
+
+              // Allow 'buffer' to act as an alias for 'nodebuffer' because
+              // versions of engine.io-client < 1.6.12 used 'buffer' for node clients
+              ws.binaryType = 'buffer';
+              alert(ws.binaryType);
+            };
+          </script>
+        </html>
+      `);
+    });
+
+    before(function(done) {
+      const self = this;
+      browser.on('alert', function(binaryType) {
+        self.binaryType = binaryType;
+        done();
+      });
+
+      browser.visit('/websockets-binary', ()=> null);
+    });
+
+    it('should convert buffer binary types to nodebuffer', function(done) {
+      browser.visit('/');
+
+      assert.equal(this.binaryType, 'nodebuffer');
+
+      serverWS.send('after destroy');
+
+      browser.wait(function() {
+        assert.equal(serverWS.readyState, WebSocket.CLOSED);
+        done();
+      });
+    });
+
+    after(function() {
+      browser.destroy();
+    });
+  });
 });

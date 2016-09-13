@@ -164,6 +164,24 @@ function setupWindow(window, args) {
     url = resourceLoader.resolveResourceUrl(document, url);
     const origin = `${window.location.protocol}//${window.location.host}`;
     const ws = new WebSocket(url, { origin, protocol });
+
+    // The < 1.x implementations of ws used to allows 'buffer' to be defined
+    // as the binary type in node environments. Now, the supported type is
+    // 'nodebuffer'. Version of engine.io-client <= 1.6.12 use the 'buffer'
+    // type and this is a shim to allow that to keep working unti that version
+    // of engine.io-client does not need to be supported anymore
+    const origProperty = Object.getOwnPropertyDescriptor(WebSocket.prototype, 'binaryType');
+    Object.defineProperty(ws, 'binaryType', {
+      get: function get() {
+        return origProperty.get.call(this);
+      },
+      set: function set(type) {
+        if (type === 'buffer') {
+          type = 'nodebuffer';
+        }
+        return origProperty.set.call(this, type);
+      }
+    });
     window._allWebSockets.push(ws);
     return ws;
   };
