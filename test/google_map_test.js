@@ -28,6 +28,7 @@ describe('Google map', function() {
   });
 
   before(async function() {
+    this.timeout(5000);
     browser.visit('/browser/map');
     await browser.wait({ element: '.gmnoprint' });
   });

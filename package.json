@@ -72,7 +72,7 @@
     "mocha": "^2.2.5",
     "morgan": "^1.6.1",
     "multiparty": "^4.1.2",
-    "replay": "^2.0.6",
+    "replay": "^2.1.2",
     "requirejs": "^2.1.20"
   },
   "repository": {

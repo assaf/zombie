@@ -1,0 +1,18 @@
+GET /maps/api/js/AuthenticationService.Authenticate?1shttp%3A%2F%2Fexample.com%2Fbrowser%2Fmap&callback=_xdc_._ke984o&token=130437
+host: maps.googleapis.com
+
+HTTP/1.1 200 OK
+content-type: text/javascript; charset=UTF-8
+date: Tue, 13 Sep 2016 13:37:35 GMT
+pragma: no-cache
+expires: Fri, 01 Jan 1990 00:00:00 GMT
+cache-control: no-cache, must-revalidate
+content-disposition: attachment
+server: mafe
+x-xss-protection: 1; mode=block
+x-frame-options: SAMEORIGIN
+accept-ranges: none
+vary: Accept-Encoding
+connection: close
+
+/**/_xdc_._ke984o && _xdc_._ke984o( [1,null,0] )
