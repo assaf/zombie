@@ -1,6 +1,7 @@
 ## Version 4.3.0 2016-10-24
 
 ADDED support for node v6
+
 CHANGED updated to use ws 1.x
 
 701 passing (14s)
