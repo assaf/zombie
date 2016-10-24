@@ -1,6 +1,6 @@
 {
   "name": "zombie",
-  "version": "4.2.1",
+  "version": "4.3.0",
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "https://www.npmjs.com/package/zombie",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
@@ -8,7 +8,8 @@
     "Bob Lail <bob.lailfamily@gmail.com> (http://boblail.tumblr.com/)",
     "Brian McDaniel (https://github.com/brianmcd)",
     "Damian Janowski",
-    "José Valim <jose.valim@plataformatec.com.br> (http://blog.plataformatec.com.br/)"
+    "José Valim <jose.valim@plataformatec.com.br> (http://blog.plataformatec.com.br/)",
+    "Matt Lavin <matt.lavin@gmail.com> (https://github.com/mdlavin)"
   ],
   "engines": {
     "node": ">=4.0.0"
