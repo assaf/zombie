@@ -1,0 +1,25 @@
+POST /login.php?login_attempt=1&next=https%3A%2F%2Fwww.facebook.com%2Fv2.5%2Fdialog%2Foauth%3Fredirect_uri%3Dhttp%253A%252F%252Fstatic.ak.facebook.com%252Fconnect%252Fxd_arbiter%252FZA4h4nBDFsE.js%253Fversion%253D41%2523cb%253Df3614c66c2aa%2526domain%253Dexample.com%2526origin%253Dhttp%25253A%25252F%25252Fexample.com%25252Ff3e5a693f24%2526relation%253Dopener%2526frame%253Df3076d6d53f8%26display%3Dpopup%26scope%3Demail%26response_type%3Dtoken%252Csigned_request%26domain%3Dexample.com%26return_scopes%3Dtrue%26origin%3D1%26client_id%3D1293201667373751%26ret%3Dlogin%26sdk%3Djoey&popup=1&lwv=100
+accept: text/html,*/*
+content-type: application/x-www-form-urlencoded;charset=UTF-8
+host: www.facebook.com
+body: lsd=AVqke9P7&api_key=1293201667373751&cancel_url=http%3A%2F%2Fstatic.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FZA4h4nBDFsE.js%3Fversion%3D41%23cb%3Df3614c66c2aa%26domain%3Dexample.com%26origin%3Dhttp%253A%252F%252Fexample.com%252Ff3e5a693f24%26relation%3Dopener%26frame%3Df3076d6d53f8%26error%3Daccess_denied%26error_code%3D200%26error_description%3DPermissions%2Berror%26error_reason%3Duser_denied%26e2e%3D%257B%257D&display=popup&enable_profile_selector=&isprivate=&legacy_return=1&profile_selector_ids=&skip_api_login=1&signed_next=1&trynum=1&lgndim=eyJ3IjoxMjgwLCJoIjo4MDAsImF3IjoxMjgwLCJhaCI6ODAwLCJjIjoyNH0%3D&lgnrnd=132354_yJlX&email=nancy_najetmd_romanberg%40tfbnw.net&pass=1450464323&default_persistent=0&cancel=Cancel&qsstamp=W1tbMiwzLDQsMTIsMTMsMTgsMzIsMzUsNDgsNTQsNTYsNjUsNjcsNzgsODYsMTAyLDEwNiwxNTYsMjIzLDIzNywyNTYsMjg0LDMwMSwzMDcsMzExLDMzNiwzNjMsMzg2LDQwMSw0MTcsNDQzLDQ1NCw0NTgsNDcwLDQ3Myw1MDIsNTE3LDU0Miw1NjAsNTYzLDU4NCw3MjddXSwiQVpuZjJkaGo4d3lMN0NtaDc2QnJJbVpfcGhldEdzYWR0aGJuRmFwNzNYbkNaXzlDUzUyT1hGbUJOYUJTVGJKSjFKUVJySXQxYWJxcVg3eFB3Z0JiVGpKS1R4NUwzOFJNQXlsMzA5amQ0cGV0VWNRTTBKcE1salAwUDllcnMySlhib2JMaW5xblcwTnh2TWhVSXM4Sm1hLU1sc0oxQmg1S0FWWXpmUmxnRDFMT3llUlliMlNiZnBXeWNaM19ualhpeVFDajV0TWQzQVlRRUFLY2hUVC1iMTJIS285Ti0wWExCQ015Rk5JN3FxaDI4USJd&login=Log%20In
+
+HTTP/1.1 302 Found
+location: https://www.facebook.com/v2.5/dialog/oauth?redirect_uri=http%3A%2F%2Fstatic.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FZA4h4nBDFsE.js%3Fversion%3D41%23cb%3Df3614c66c2aa%26domain%3Dexample.com%26origin%3Dhttp%253A%252F%252Fexample.com%252Ff3e5a693f24%26relation%3Dopener%26frame%3Df3076d6d53f8&display=popup&scope=email&response_type=token%2Csigned_request&domain=example.com&return_scopes=true&origin=1&client_id=1293201667373751&ret=login&sdk=joey&ext=1450477436&hash=AebEPYLjSaRHMHp7
+x-content-type-options: nosniff
+p3p: CP="Facebook does not have a P3P policy. Learn why here: http://fb.me/p3p"
+set-cookie: act=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=-1450473834; path=/; domain=.facebook.com; httponly
+set-cookie: datr=anl0VuKtgpmnFqoUipXpm379; expires=Sun, 17-Dec-2017 21:23:55 GMT; Max-Age=63072000; path=/; domain=.facebook.com; httponly
+set-cookie: c_user=100010955882441; path=/; domain=.facebook.com; secure
+set-cookie: fr=0ky1aofCdjZJSGJbN.AWVi7wSGTtDWhuPD2WN0ZZgxyBg.BWdHls.VP.AAA.0.AWX1_ilH; expires=Thu, 17-Mar-2016 21:23:56 GMT; Max-Age=7776000; path=/; domain=.facebook.com; httponly
+set-cookie: xs=82%3AqZ016RfwTlRpVw%3A2%3A1450473836%3A-1; path=/; domain=.facebook.com; secure; httponly
+set-cookie: csm=2; path=/; domain=.facebook.com
+set-cookie: s=Aa5pzIWrwuBhYo07.BWdHls; path=/; domain=.facebook.com; secure; httponly
+set-cookie: pl=y; path=/; domain=.facebook.com; secure; httponly
+set-cookie: lu=RgwuN2CkWejN3MtlOLW-7k0Q; expires=Sun, 17-Dec-2017 21:23:56 GMT; Max-Age=63072000; path=/; domain=.facebook.com; secure; httponly
+content-type: text/html
+x-fb-debug: EVPTCfoFdPCECyvt/u59l6v62RecI2lU80ST7W5JAeb2+2V4PHSy/iBEFMkdd8Hiv36bV4y9sNyNIJNB4Ir5Kw==
+date: Fri, 18 Dec 2015 21:23:56 GMT
+connection: close
+content-length: 0
+

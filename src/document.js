@@ -333,11 +333,12 @@ function setupWindow(window, args) {
 
     // Only opener window can close window; any code that's not running from
     // within a window's context can also close window.
-    if (browser._windowInScope === opener || browser._windowInScope === null) {
-      browser.tabs._closed(window);
+    if (browser._windowInScope === opener || browser._windowInScope === window || browser._windowInScope === null) {
+      browser.tabs._closed(window._history.current.window);
       // Only parent window gets the close event
       browser.emit('closed', window);
       history.destroy(); // do this last to prevent infinite loop
+      browser._eventLoop.active = browser.tabs.current || null;
     } else
       browser.log('Scripts may not close windows that were not opened by script');
   };
@@ -438,7 +439,7 @@ Window.prototype.postMessage = function(data) {
   event.source = (this.browser._windowInScope || this);
   const origin = event.source.location;
   event.origin = URL.format({ protocol: origin.protocol, host: origin.host });
-  this.dispatchEvent(event);
+  this._evaluate(()=>{this.dispatchEvent(event)});
 };
 
 

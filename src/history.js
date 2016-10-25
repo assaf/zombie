@@ -288,6 +288,7 @@ class History {
       args.name      = window.name;
       args.parent    = parentFrom(window);
       args.referrer  = window.location.href;
+      args.opener    = window.opener || null;
     }
     const document  = loadDocument(args);
     this.addEntry(document.defaultView, document.location.href);
@@ -303,13 +304,15 @@ class History {
 
   // This method is available from Location, used to navigate to a new page.
   assign(url) {
-    let name    = '';
-    let parent  = null;
+    let name = '';
+    let parent = null;
+    let opener = null;
 
     if (this.current) {
       url     = resourceLoader.resolveResourceUrl(this.current.window.document, url);
       name    = this.current.window.name;
       parent  = parentFrom(this.current.window);
+      opener  = this.current.window.opener || null;
     }
     if (this.current && this.current.url === url) {
       this.replace(url);
@@ -332,6 +335,7 @@ class History {
         name:     name,
         url:      url,
         parent:   parent,
+        opener:   opener,
         referrer: this.current && this.current.window.document.referrer
       };
       const document = loadDocument(args);
@@ -343,10 +347,14 @@ class History {
   replace(url) {
     url = URL.format(url);
     let name = '';
+    let parent = null;
+    let opener = null;
 
     if (this.current) {
-      url = resourceLoader.resolveResourceUrl(this.current.window.document, url);
-      name = this.current.window.name;
+      url     = resourceLoader.resolveResourceUrl(this.current.window.document, url);
+      name    = this.current.window.name;
+      parent  = parentFrom(this.current.window);
+      opener  = this.current.window.opener || null;
     }
 
     if (hashChange(this.current, url)) {
@@ -363,7 +371,8 @@ class History {
         history:  this,
         name:     name,
         url:      url,
-        parent:   parentFrom(this.current.window)
+        parent:   parent,
+        opener:   opener
       };
       const document = loadDocument(args);
       this.replaceEntry(document.defaultView, url);
@@ -380,7 +389,8 @@ class History {
         name:     window.name,
         url:      url,
         parent:   parentFrom(window),
-        referrer: window.document.referrer
+        referrer: window.document.referrer,
+        opener:   window.opener || null
       };
       const document = loadDocument(args);
       this.replaceEntry(document.defaultView, url);

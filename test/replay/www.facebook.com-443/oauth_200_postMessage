@@ -1,0 +1,23 @@
+GET /v2.5/dialog/oauth?redirect_uri=http%3A%2F%2Fstatic.ak.facebook.com%2Fconnect%2Fxd_arbiter%2FZA4h4nBDFsE.js%3Fversion%3D41%23cb%3Df3614c66c2aa%26domain%3Dexample.com%26origin%3Dhttp%253A%252F%252Fexample.com%252Ff3e5a693f24%26relation%3Dopener%26frame%3Df3076d6d53f8&display=popup&scope=email&response_type=token%2Csigned_request&domain=example.com&return_scopes=true&origin=1&client_id=1293201667373751&ret=login&sdk=joey&ext=1450477436&hash=AebEPYLjSaRHMHp7
+accept: text/html,*/*
+host: www.facebook.com
+
+HTTP/1.1 200 OK
+pragma: no-cache
+x-frame-options: DENY
+p3p: CP="Facebook does not have a P3P policy. Learn why here: http://fb.me/p3p"
+strict-transport-security: max-age=15552000; preload
+x-content-type-options: nosniff
+facebook-api-version: v2.5
+expires: Sat, 01 Jan 2000 00:00:00 GMT
+x-xss-protection: 0
+public-key-pins-report-only: max-age=500; pin-sha256="WoiWRyIOVNa9ihaBciRSC7XHjliYS9VwUGOIud4PB18="; pin-sha256="r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E="; pin-sha256="q4PO2G2cbkZhZ82+JgmRUyGMoAeozA+BSXVXQWB8XWQ="; report-uri="http://reports.fb.com/hpkp/"
+cache-control: private, no-cache, no-store, must-revalidate
+set-cookie: _js_datr=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=-1450473835; path=/; domain=.facebook.com; httponly
+vary: Accept-Encoding
+content-type: text/html
+x-fb-debug: wPWQkc7hrQaVyo+nI0Sq09y2hlbrMFjaBa8rY+cmtz8lZWWWELRHTm0bHTsZ5yT6nJLs+f7/6tGQYqTj40LUDg==
+date: Fri, 18 Dec 2015 21:23:56 GMT
+connection: close
+
+<script type="text/javascript">var message = "cb=f3614c66c2aa&domain=example.com&origin=http\u00253A\u00252F\u00252Fexample.com\u00252Ff3e5a693f24&relation=opener&frame=f3076d6d53f8&granted_scopes=user_friends\u00252Cemail\u00252Ccontact_email\u00252Cpublic_profile&denied_scopes=&signed_request=GnUij00GMEwHYPFfwR924HDA3EHGrRpNbHqpU54aE-I.eyJhbGdvcml0aG0iOiJITUFDLVNIQTI1NiIsImNvZGUiOiJBUUF1dVFvV2lNNkVSbXk5Tl9OVVdBck9YRzVUaVpKMUplZ1dnVnFac292UG1sZlhFZTFNQ0VKWldDVkIwSGZhRWVFd3g5Y2t4NHR5Zmt5a1NJUzlZRlZxMWc5N29kRTF0UVN6MzQtQXd1QmtLQUZIQVNmckF6V1RTd20yd2NHRVpNRW0yaWRxcFdIcGNnSFUzSi1oMldadlVCaGxxaGtLT0pNaUFIcTloakxWdDdqOVQzdWxSUlVoenZZYllNYjhOeVFjQlhITThHRXdlNG5MZzFTY2ljZG1scGt1aHd5T0xIYjZnYWxXcnZHcFZYUk9nMHNNMXJXc1F2VnRnOGFMSU9xREVZZ1NKTXkyZXhxbHptSFVxd1BOOEgyNFFRSTBqYmdSZVI4TzF5ZnNOR3BkRDc1MHpMUzl4X2s3Z0R3M3dxbEpVdHpoRFNfQ1JvVk9VZEJtSGNDYyIsImlzc3VlZF9hdCI6MTQ1MDQ3MzgzNiwidXNlcl9pZCI6IjEwMzA1OTY4MzQwMjU2MSJ9&access_token=CAASYKPoBurcBAFIBEG0Hy2vxbZB5t6Orp60zgZA0ntn9OQd3Erjzy1IUlqTOtrnT2euQw5jpyGONpHWhLqXWrWAaJcgDfGfXC9pgvirJeNfWbtVXkn1g86ZAdjhZCK0ZC9SLopu3fm0VA9JnUBfjSKZA3cKwtf2OLIFMMG3kkEqZAIu8Y7W9svr93XHbZCVKYgYZD&expires_in=5764&base_domain=", origin = "http:\/\/example.com", domain = "example.com"; var captures=window.location.hostname.match(/\.(facebook\.sg|facebookcorewwwi\.onion)$/);document.domain=captures?captures[1]:'facebook.com';(function(){var a=window.opener||window.parent,b='fb_xdm_frame_'+location.protocol.replace(':','');function c(){try{a.frames[b].proxyMessage(message,origin);}catch(e){setTimeout(c,100);}}function d(){__fbNative.postMessage(message,origin);}if(window==top&&/FBAN\/\w+;/i.test(navigator.userAgent)){if(window.__fbNative&&__fbNative.postMessage){d();}else window.addEventListener('fbNativeReady',d);}else c();})();</script>
