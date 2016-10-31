@@ -420,11 +420,6 @@ function setupWindow(window, args) {
   // This implementation should be dropped in favor of
   // jsdom/lib/jsdom/living/post-message.js when it supports source and origin.
   window.postMessage = function(data) {
-    const baseEvent = this.document.createEvent('MessageEvent');
-    baseEvent.initEvent('message', false, false);
-    const event = Object.assign({}, baseEvent);  // ok that's ugly, but we need to patch an immutable object
-    event.data = data;
-
     // Window A (source) calls B.postMessage, to determine A we need the
     // caller's window.
 
@@ -434,16 +429,26 @@ function setupWindow(window, args) {
     // version of the object returned by getGlobal, they are not the same object
     // ie, _windowInScope.foo == _windowInScope.getGlobal().foo, but
     // _windowInScope != _windowInScope.getGlobal()
-    event.source = (this.browser._windowInScope || this);
-    const origin = event.source.location;
-    event.origin = URL.format({ protocol: origin.protocol, host: origin.host });
+    const source = (this.browser._windowInScope || this);
+
+    const origin = source.location;
+    const eventOrigin = URL.format({ protocol: origin.protocol, host: origin.host });
+
+    const event = this.document.createEvent('MessageEvent');
+    event.initMessageEvent('message', false, false, data, eventOrigin, null, source, []);
+
     this.dispatchEvent(event);
   };
 
   // JSDOM fires DCL event on document but not on window
   function windowLoaded(event) {
     document.removeEventListener('DOMContentLoaded', windowLoaded);
-    window.dispatchEvent(event);
+
+    // JSDom > 7.1 does not allow re-dispatching the same event, so
+    // a copy of the event needs to be created for the new dispatch
+    const windowContentLoaded = document.createEvent('HTMLEvents');
+    windowContentLoaded.initEvent('DOMContentLoaded', false, false);
+    window.dispatchEvent(windowContentLoaded);
   }
   document.addEventListener('DOMContentLoaded', windowLoaded);
 

@@ -23,6 +23,7 @@ const Tough             = require('tough-cookie');
 const { Cookie }        = Tough;
 const URL               = require('url');
 const Utils             = require('jsdom/lib/jsdom/utils');
+const fileListSymbols   = require('jsdom/lib/jsdom/living/filelist-symbols'); 
 
 
 // Version number.  We get this from package.json.
@@ -886,7 +887,14 @@ class Browser extends EventEmitter {
       file.size = stat.size;
 
       field.value = filename;
-      field.files = field.files || [];
+      const oldFiles = field.files;
+      if (typeof(oldFiles) !== 'array') {
+        // JSDOM does not support an API to mock a list of files, and the default
+        // type of the 'files' attribute is a FileList object. 
+        Object.defineProperty(field, 'files', {
+          value: []
+        });
+      }
       field.files.push(file);
     }
     field.focus();

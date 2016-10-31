@@ -374,7 +374,7 @@ describe('Forms', function() {
       await browser.visit('/forms/form');
 
       browser.on('event', function(event, target) {
-        switch(event._type) {
+        switch(event.type) {
           case 'change': {
             changed = target;
             break;

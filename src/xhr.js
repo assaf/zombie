@@ -7,10 +7,9 @@ const Fetch   = require('./fetch');
 const ms      = require('ms');
 const URL     = require('url');
 const Utils   = require('jsdom/lib/jsdom/utils');
-
+const EventTarget = require('jsdom/lib/jsdom/living/generated/EventTarget');
 
 const { DOMException } = DOM;
-const { EventTarget }  = DOM;
 
 
 class XMLHttpRequest {
@@ -18,9 +17,9 @@ class XMLHttpRequest {
 
   constructor(window) {
     //super();
-    EventTarget.call(this);
-    for (let method in EventTarget.prototype)
-      this[method] = EventTarget.prototype[method];
+    EventTarget.setup(this);
+    for (let method in EventTarget.interface.prototype)
+      this[method] = EventTarget.interface.prototype[method];
 
     this._window      = window;
     this._browser     = window.browser;
