@@ -2,6 +2,7 @@
 
 const DOM             = require('./index');
 const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
+const reportException = require('jsdom/lib/jsdom/living/helpers/runtime-script-errors');
 
 
 // -- Patches to JSDOM --
@@ -26,16 +27,26 @@ DOM.languageProcessors.javascript = function(element, buffer, filename) {
     window.document._currentScript = element;
     window._evaluate(code, filename);
   } catch (error) {
-    if (error.hasOwnProperty('stack')) {
-      const cast = new Error(error.message || error.toString());
-      cast.stack = error.stack;
-      document.raise('error', error.message, { exception: cast });
-    } else
-      document.raise('error', error.message, { exception: error });
+    enhanceStackTrace(error, document.location.href);
+    reportException(window, error);
   } finally {
     window.document._currentScript = null;
   }
 };
+
+function enhanceStackTrace(error, document_ref) {
+  const partial = [];
+  // "RangeError: Maximum call stack size exceeded" doesn't have a stack trace
+  if (error.stack)
+    for (let line of error.stack.split('\n')) {
+      if (~line.indexOf('vm.js'))
+        break;
+      partial.push(line);
+    }
+  partial.push(`    in ${document_ref}`);
+  error.stack = partial.join('\n');
+  return error;
+}
 
 
 // HTML5 parser doesn't play well with JSDOM so we need this trickey to sort of
@@ -75,4 +86,3 @@ DOM.HTMLScriptElement._init = function() {
     }
   });
 };
-

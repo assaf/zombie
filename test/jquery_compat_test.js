@@ -14,7 +14,7 @@ describe('Compatibility with jQuery', function() {
     return brains.ready();
   });
 
-  for (let version of JQUERY_VERSIONS) {
+  for (let version of JQUERY_VERSIONS)
 
     describe(version, function() {
       before(function() {
@@ -202,10 +202,8 @@ describe('Compatibility with jQuery', function() {
       }
 
     });
-  }
 
   after(function() {
     browser.destroy();
   });
 });
-

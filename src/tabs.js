@@ -167,4 +167,3 @@ module.exports = class Tabs extends Array {
     return a && b && a._globalProxy === b._globalProxy;
   }
 };
-
