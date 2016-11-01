@@ -4,7 +4,7 @@ const brains  = require('./helpers/brains');
 const Browser = require('../src');
 
 
-const JQUERY_VERSIONS = ['1.4.4', '1.5.1', '1.6.3', '1.7.1', '1.8.0', '1.9.1', '2.0.3'];
+const JQUERY_VERSIONS = ['1.4.4', '1.5.1', '1.6.3', '1.7.1', '1.8.0', '1.9.1', '1.10.2', '1.12.4', '2.0.3'];
 
 
 describe('Compatibility with jQuery', function() {
@@ -201,6 +201,16 @@ describe('Compatibility with jQuery', function() {
           });
       }
 
+      describe('width', function() {
+        it('does not fail', function(done) {
+          browser.visit(`/compat/jquery-${version}`, function() {
+            const el = browser.window.$('#option');
+            const w = el.width();
+            done();
+          });
+        });
+      });
+      
     });
 
   after(function() {
