@@ -1,3 +1,15 @@
+## Version 5.0.0 2016-11-03
+
+Bumping the major version because jsdom is such a core component to zombie
+that major updates to it have the impact to show as breaking changes to
+zombie users.
+
+UPDATED jsdom to ^7
+
+701 passing (16s)
+  12 pending
+
+
 ## Version 4.3.0 2016-10-24
 
 ADDED support for node v6
