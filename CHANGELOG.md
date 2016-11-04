@@ -1,3 +1,11 @@
+## Version 5.0.1 2016-11-04
+
+ADDED stub implementation of HTMLElement.getClientRects() to support jquery 1.12 implementation of width()
+
+701 passing (16s)
+  12 pending
+
+
 ## Version 5.0.0 2016-11-03
 
 Bumping the major version because jsdom is such a core component to zombie
