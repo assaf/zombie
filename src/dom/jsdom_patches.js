@@ -55,6 +55,17 @@ DOM.HTMLImageElement.prototype._attrModified = function(name, value, oldVal) {
   DOM.HTMLElement.prototype._attrModified.call(this, name, value, oldVal);
 };
 
+// Implement getClientRects
+DOM.HTMLElement.prototype.getClientRects = function () {
+  return [{
+    bottom: 0,
+    height: 0,
+    left: 0,
+    right: 0,
+    top: 0,
+    width: 0
+  }];
+};
 
 // Implement insertAdjacentHTML
 DOM.HTMLElement.prototype.insertAdjacentHTML = function(position, html) {
