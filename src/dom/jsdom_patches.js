@@ -57,6 +57,12 @@ DOM.HTMLImageElement.prototype._attrModified = function(name, value, oldVal) {
 
 // Implement getClientRects
 DOM.HTMLElement.prototype.getClientRects = function () {
+  const style = this.style;
+
+  if (style && style.display === 'none') {
+    return [];
+  }
+
   return [{
     bottom: 0,
     height: 0,
@@ -66,6 +72,19 @@ DOM.HTMLElement.prototype.getClientRects = function () {
     width: 0
   }];
 };
+
+Object.defineProperty(DOM.HTMLElement.prototype, 'offsetHeight', {
+  get: function () {
+    return 0;
+  }
+});
+
+Object.defineProperty(DOM.HTMLElement.prototype, 'offsetWidth', {
+  get: function () {
+    return 0;
+  }
+});
+
 
 // Implement insertAdjacentHTML
 DOM.HTMLElement.prototype.insertAdjacentHTML = function(position, html) {

@@ -210,7 +210,23 @@ describe('Compatibility with jQuery', function() {
           });
         });
       });
-      
+
+      if (version < '2')
+        describe('support.reliableHiddenOffsets', function () {
+          it('is true', function (done) {
+            browser.visit(`/compat/jquery-${version}`, function() {
+              browser.window.$(function () {
+                let reliableOffsets = browser.window.$.support.reliableHiddenOffsets;
+                if (typeof(reliableOffsets) === 'function')
+                  reliableOffsets = reliableOffsets();
+                
+                assert.equal(reliableOffsets, true);
+                done();
+              });
+            });
+          });
+        });
+
     });
 
   after(function() {
