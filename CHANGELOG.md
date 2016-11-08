@@ -1,3 +1,12 @@
+## Version 5.0.2 2016-11-04
+
+ADDED implementations of offsetWidth, offsetHeight and fixed getClientRects
+so that jquery will detect reliableHiddenOffsets as true
+
+  726 passing (17s)
+  12 pending
+
+
 ## Version 5.0.1 2016-11-04
 
 ADDED stub implementation of HTMLElement.getClientRects() to support jquery 1.12 implementation of width()
