@@ -1,3 +1,11 @@
+## Version 5.0.4 2016-11-09
+
+CHANGED Honor timeout in refresh meta tag.
+
+  727 passing (17s)
+  12 pending
+
+
 ## Version 5.0.3 2016-11-09
 
 CHANGED button() to find input elements with type 'reset' and 'button' in
