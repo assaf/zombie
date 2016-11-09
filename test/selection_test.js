@@ -21,6 +21,9 @@ describe('Selection', function() {
               <label>Email <input type="text" name="email"></label>
               <label>Password <input type="password" name="password"></label>
               <button>Sign Me Up</button>
+              <input type="reset" value="Reset">
+              <input type="button" value="A generic button">
+              <input type="submit" value="Send">
             </form>
           </div>
           <div class="now">Walking Aimlessly</div>
@@ -135,6 +138,14 @@ describe('Selection', function() {
       it('should return the button with equally text content', function() {
         const elem = browser.querySelector('.now + button');
         assert.equal(browser.button('Do not press!'), elem);
+      });
+      it('should find button-like inputs', function() {
+        const resetButton = browser.querySelector('form input[type="reset"]');
+        const genericButton = browser.querySelector('form input[type="button"]');
+        const submitButton = browser.querySelector('form input[type="submit"]');
+        assert.equal(browser.button('Reset'), resetButton);
+        assert.equal(browser.button('A generic button'), genericButton);
+        assert.equal(browser.button('Send'), submitButton);
       });
     });
   });
