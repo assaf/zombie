@@ -1,4 +1,13 @@
-## Version 5.0.2 2016-11-04
+## Version 5.0.3 2016-11-09
+
+CHANGED button() to find input elements with type 'reset' and 'button' in
+addition to 'submit'
+
+  727 passing (17s)
+  12 pending
+
+
+## Version 5.0.2 2016-11-08
 
 ADDED implementations of offsetWidth, offsetHeight and fixed getClientRects
 so that jquery will detect reliableHiddenOffsets as true
