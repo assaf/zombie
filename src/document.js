@@ -501,8 +501,8 @@ function createDocument(args) {
 }
 
 
-// Get refresh URL from <meta> tag
-function getMetaRefreshURL(document) {
+// Get refresh URL and timeout from <meta> tag
+function getMetaRefresh(document) {
   const refresh = document.querySelector('meta[http-equiv="refresh"]');
   if (refresh) {
     const content = refresh.getAttribute('content');
@@ -511,7 +511,7 @@ function getMetaRefreshURL(document) {
       const refreshTimeout = parseInt(match[1], 10);
       const refreshURL     = match[2] || document.location.href;
       if (refreshTimeout >= 0)
-        return refreshURL;
+        return { refreshTimeout, refreshURL };
     }
   }
   return null;
@@ -633,20 +633,27 @@ function parseResponse({ browser, history, document, response }) {
       //       return browser.query('meta[http-equiv="refresh"]');
       //     }
       //   });
-      const refreshURL = getMetaRefreshURL(document);
-      if (refreshURL)
-        // Allow completion function to run
-        window._eventQueue.enqueue(function() {
+      const refresh = getMetaRefresh(document);
+
+      if (refresh) {
+        const { refreshTimeout } = refresh;
+        const { refreshURL }     = refresh;
+
+        window._eventQueue.setTimeout(function() {
+          // Allow completion function to run
           window._eventQueue.enqueue(function() {
-            // Count a meta-refresh in the redirects count.
-            history.replace(refreshURL || document.location.href);
-            // This results in a new window getting loaded
-            const newWindow = history.current.window;
-            newWindow.addEventListener('load', function() {
-              ++newWindow._request._redirectCount;
+            window._eventQueue.enqueue(function() {
+              // Count a meta-refresh in the redirects count.
+              history.replace(refreshURL);
+              // This results in a new window getting loaded
+              const newWindow = history.current.window;
+              newWindow.addEventListener('load', function() {
+                ++newWindow._request._redirectCount;
+              });
             });
           });
-        });
+        }, refreshTimeout * 1000);
+      }
 
     })
     .catch(function(error) {
