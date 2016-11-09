@@ -341,6 +341,51 @@ describe('Window', function() {
   });
 
 
+  describe('refresh with timeout', function() {
+    before(function() {
+      brains.static('/windows/foo', `
+        <html>
+          <title>Foo</title>
+        </html>
+      `);
+      brains.static('/windows/bar', `
+        <html>
+          <title>Bar</title>
+        </html>
+      `);
+      brains.get('/windows/refresh-with-timeout', function(req, res) {
+        res.send(`
+          <html>
+            <head>
+              <title>Refresh</title>
+              <meta http-equiv="refresh" content="1; url=/windows/foo">
+            </head>
+            <body>
+              <script>
+                setTimeout(function() {
+                  window.location = '/windows/bar';
+                }, 10);
+              </script>
+            </body>
+          </html>
+        `);
+      });
+    });
+
+
+    it('should honor the timeout', async function() {
+      await browser.visit('/windows/refresh-with-timeout');
+      browser.assert.url('/windows/bar');
+    });
+
+
+    afterEach(function() {
+      browser.deleteCookies();
+    });
+
+  });
+
+
   describe('resize', function() {
     it('should change window dimensions', function() {
       const window = browser.open();
