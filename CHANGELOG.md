@@ -1,3 +1,11 @@
+## Version 5.0.5 2016-11-22
+
+CHANGED Support aborting XMLHttpRequests in the DONE state
+
+  731 passing (22s)
+  12 pending
+
+
 ## Version 5.0.4 2016-11-09
 
 CHANGED Honor timeout in refresh meta tag.
