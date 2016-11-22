@@ -44,8 +44,14 @@ class XMLHttpRequest {
       this.readyState = XMLHttpRequest.UNSENT;
       return;
     }
-    // Tell any pending request it has been aborted.
-    request.aborted = true;
+    // Aborting a done request sets its readyState to UNSENT and does not trigger a readystatechange event
+    // https://xhr.spec.whatwg.org/#the-abort()-method
+    if (this.readyState === XMLHttpRequest.DONE) {
+      this.readyState = XMLHttpRequest.UNSENT;
+    } else {
+      // Tell any pending request it has been aborted.
+      request.aborted = true;
+    }
     this._response  = null;
     this._error     = null;
     this._pending   = null;

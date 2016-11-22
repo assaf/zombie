@@ -513,21 +513,47 @@ describe('XMLHttpRequest', function() {
 
   describe('abort', function() {
     before(function() {
+      brains.static('/xhr/functions.js', `
+        function newTrackedXMLHttpRequest(cb) {
+          var xhr = new XMLHttpRequest();
+          document.readyStatesReceived = { 1:[], 2:[], 3:[], 4:[] };
+          document.xhr = xhr;
+          xhr.onreadystatechange = function() {
+            document.readyStatesReceived[xhr.readyState].push(Date.now());
+            if (cb !== undefined) {
+              cb(xhr.readyState);
+            }
+          };
+          return xhr;
+        }
+      `);
       brains.static('/xhr/abort', `
         <html>
-          <head></head>
+          <head><script src='/xhr/functions.js'></script></head>
           <body>
             <script>
-              document.readyStatesReceived = { 1:[], 2:[], 3:[], 4:[] };
-              var xhr = new XMLHttpRequest();
-              xhr.onreadystatechange = function(){
-                document.readyStatesReceived[xhr.readyState].push(Date.now())
-              };
+              var xhr = newTrackedXMLHttpRequest();
               xhr.open('POST', '/xhr/onreadystatechange', true);
               xhr.send();
               setImmediate(function() {
                 xhr.abort();
               });
+            </script>
+          </body>
+        </html>`);
+      brains.static('/xhr/abort_finished', `
+        <html>
+          <head><script src='/xhr/functions.js'></script></head>
+          <body>
+            <script>
+              var xhr = newTrackedXMLHttpRequest(function(state) {
+                // Abort the request after it already finished
+                if (state === 4) {
+                  xhr.abort();
+                }
+              });
+              xhr.open('POST', '/xhr/onreadystatechange', true);
+              xhr.send();
             </script>
           </body>
         </html>`);
@@ -537,21 +563,39 @@ describe('XMLHttpRequest', function() {
         });
       });
       brains.static('/xhr/onreadystatechange', 'foo');
-      return browser.visit('/xhr/abort');
     });
-
-    it('should get exactly one readyState of type 1, and 4', function() {
-      assert.equal(browser.document.readyStatesReceived[1].length, 1);
-      assert.equal(browser.document.readyStatesReceived[2].length, 0);
-      assert.equal(browser.document.readyStatesReceived[3].length, 0);
-      assert.equal(browser.document.readyStatesReceived[4].length, 1);
+    describe('unfinished request', function() {
+      before(function() {
+        return browser.visit('/xhr/abort');
+      });
+      it('should get exactly one readyState of type 1, and 4', function() {
+        assert.equal(browser.document.readyStatesReceived[1].length, 1);
+        assert.equal(browser.document.readyStatesReceived[2].length, 0);
+        assert.equal(browser.document.readyStatesReceived[3].length, 0);
+        assert.equal(browser.document.readyStatesReceived[4].length, 1);
+      });
+      it('should get the readyStateChanges in chronological order', function() {
+        assert(browser.document.readyStatesReceived[1][0] <=
+               browser.document.readyStatesReceived[4][0]);
+      });
+      it('should be in DONE state', function() {
+        assert(browser.document.xhr.readyState === 4);
+      });
     });
-
-    it('should get the readyStateChanges in chronological order', function() {
-      assert(browser.document.readyStatesReceived[1][0] <=
-             browser.document.readyStatesReceived[4][0]);
+    describe('finished request', function() {
+      before(function() {
+        return browser.visit('/xhr/abort_finished');
+      });
+      it('should go through states 1 through 4', function() {
+        assert.equal(browser.document.readyStatesReceived[1].length, 1);
+        assert.equal(browser.document.readyStatesReceived[2].length, 1);
+        assert.equal(browser.document.readyStatesReceived[3].length, 1);
+        assert.equal(browser.document.readyStatesReceived[4].length, 1);
+      });
+      it('should be in UNSET state', function() {
+        assert(browser.document.xhr.readyState === 0);
+      });
     });
-
   });
 
 
