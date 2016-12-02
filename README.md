@@ -190,7 +190,10 @@ do this:
 
 ```js
 Browser.localhost('example.com', 3000)
-browser.visit('/path', function() {
+before(function(done) {
+  browser.visit('/path', done);
+});
+it("check the location", function() {
   assert(browser.location.href == 'http://example.com/path');
 });
 ```
