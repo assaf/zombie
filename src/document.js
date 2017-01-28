@@ -572,7 +572,7 @@ function buildRequest(args) {
     return new Fetch.Request(URL.format(uri), { method, headers });
   }
 
-  const mimeType = (args.encoding || '').split(';')[0];
+  const mimeType = (args.encoding || '').split(';')[0].toLowerCase();
   // Default mime type, but can also be specified in form encoding
   if (mimeType === '' || mimeType === 'application/x-www-form-urlencoded') {
     const urlEncoded = [...params]
