@@ -52,7 +52,7 @@ class Pipeline extends Array {
 
   _getOriginalResponse(request) {
     const browser         = this._browser;
-    const requestHandlers = this.filter(fn => fn.length === 2).concat(Pipeline.makeHTTPRequest);
+    const requestHandlers = this.getRequestHandlers().concat(Pipeline.makeHTTPRequest);
 
     return Bluebird.reduce(requestHandlers, function(lastResponse, requestHandler) {
         return lastResponse || requestHandler(browser, request);
@@ -65,7 +65,7 @@ class Pipeline extends Array {
 
   _prepareResponse(request, originalResponse) {
     const browser           = this._browser;
-    const responseHandlers  = this.filter(fn => fn.length === 3);
+    const responseHandlers  = this.getResponseHandlers();
 
     return Bluebird.reduce(responseHandlers, function(lastResponse, responseHandler) {
         return responseHandler(browser, request, lastResponse);
@@ -111,6 +111,16 @@ class Pipeline extends Array {
     if (index > -1) {
       this._default.splice(index,1);
     }
+  }
+
+  // Get array of request handlers
+  getRequestHandlers() {
+    return [].concat(this).filter(fn => fn.length === 2);
+  }
+
+  // Get array of request handlers
+  getResponseHandlers() {
+    return [].concat(this).filter(fn => fn.length === 3);
   }
 
 
