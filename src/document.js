@@ -440,6 +440,12 @@ function setupWindow(window, args) {
     this.dispatchEvent(event);
   };
 
+  // Inject HTMLDocument.hasFocus function
+  // https://developer.mozilla.org/en-US/docs/Web/API/Document/hasFocus
+  window._document.hasFocus = function() {
+    return browser.tabs.current.document === this;
+  };
+
   // JSDOM fires DCL event on document but not on window
   function windowLoaded(event) {
     document.removeEventListener('DOMContentLoaded', windowLoaded);
