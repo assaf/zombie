@@ -73,7 +73,7 @@ class XMLHttpRequest {
     this._method = method.toUpperCase();
     if (/^(CONNECT|TRACE|TRACK)$/.test(this._method))
       throw new DOMException(DOMException.SECURITY_ERR, 'Unsupported HTTP method');
-    if (!/^(DELETE|GET|HEAD|OPTIONS|POST|PUT)$/.test(this._method))
+    if (!/^(DELETE|GET|HEAD|OPTIONS|POST|PUT|PATCH)$/.test(this._method))
       throw new DOMException(DOMException.SYNTAX_ERR, 'Unsupported HTTP method');
 
     const headers = new Fetch.Headers();
@@ -279,4 +279,3 @@ XMLHttpRequest.LOADING          = 3;
 XMLHttpRequest.DONE             = 4;
 
 module.exports = XMLHttpRequest;
-
