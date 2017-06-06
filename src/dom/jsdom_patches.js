@@ -1,16 +1,16 @@
 // Fix things that JSDOM doesn't do quite right.
 
 
-const DOM                 = require('./index');
-const Fetch               = require('../fetch');
-const resourceLoader      = require('jsdom/lib/jsdom/browser/resource-loader');
-const Utils               = require('jsdom/lib/jsdom/utils');
-const URL                 = require('url');
-const createHTMLColection = require('jsdom/lib/jsdom/living/html-collection').create;
+const DOM                  = require('./index');
+const Fetch                = require('../fetch');
+const resourceLoader       = require('jsdom/lib/jsdom/browser/resource-loader');
+const Utils                = require('jsdom/lib/jsdom/utils');
+const URL                  = require('url');
+const createHTMLCollection = require('jsdom/lib/jsdom/living/html-collection').create;
 
 
 DOM.HTMLDocument.prototype.__defineGetter__('scripts', function() {
-  return createHTMLColection(this, ()=> this.querySelectorAll('script'));
+  return createHTMLCollection(this, ()=> this.querySelectorAll('script'));
 });
 
 
