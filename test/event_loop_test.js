@@ -341,9 +341,9 @@ describe('EventLoop', function() {
         await browser.visit('/eventloop/requestAnimationFrame');
         browser.window.cancelAnimationFrame(browser.window.requestAnimationFrame(function() {
           this.document.title += '.';
-        });
+        }));
         await browser.wait();
-      }));
+      });
 
       it('should fire the immediate', function() {
         browser.assert.text('title', '');
@@ -520,4 +520,3 @@ describe('EventLoop', function() {
     browser.destroy();
   });
 });
-
