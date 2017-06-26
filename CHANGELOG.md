@@ -1,3 +1,11 @@
+## Version 5.0.7 2017-06-26
+
+FIXED `browser.fill` with React was not working
+
+  732 passing (28s)
+  12 pending
+
+
 ## Version 5.0.6 2017-06-26
 
 ADDED support for [cancelAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window/cancelAnimationFrame)
