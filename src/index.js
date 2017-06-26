@@ -23,7 +23,7 @@ const Tough             = require('tough-cookie');
 const { Cookie }        = Tough;
 const URL               = require('url');
 const Utils             = require('jsdom/lib/jsdom/utils');
-const fileListSymbols   = require('jsdom/lib/jsdom/living/filelist-symbols'); 
+const fileListSymbols   = require('jsdom/lib/jsdom/living/filelist-symbols');
 
 
 // Version number.  We get this from package.json.
@@ -728,7 +728,12 @@ class Browser extends EventEmitter {
 
     // Switch focus to field, change value and emit the input event (HTML5)
     field.focus();
-    field.value = value;
+
+    // `field.value = value` does not work if there is a custom property descriptor, e.g. in React
+    // TODO: check what the actual spec compliant way of doing this is
+    const descriptor = Object.getOwnPropertyDescriptor(field.constructor.prototype, 'value');
+    descriptor.set.call(field, value);
+
     this.fire(field, 'input', false);
     // Switch focus out of field, if value changed, this will emit change event
     field.blur();
@@ -890,7 +895,7 @@ class Browser extends EventEmitter {
       const oldFiles = field.files;
       if (typeof(oldFiles) !== 'array') {
         // JSDOM does not support an API to mock a list of files, and the default
-        // type of the 'files' attribute is a FileList object. 
+        // type of the 'files' attribute is a FileList object.
         Object.defineProperty(field, 'files', {
           value: []
         });
