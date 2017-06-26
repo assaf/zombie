@@ -252,6 +252,7 @@ function setupWindow(window, args) {
   window.setImmediate   = (fn)=> eventQueue.setTimeout(fn, 0);
   window.clearImmediate = eventQueue.clearTimeout.bind(eventQueue);
   window.requestAnimationFrame  = window.setImmediate;
+  window.cancelAnimationFrame  = window.clearImmediate;
 
 
   // Constructor for EventSource, URL is relative to document's.
