@@ -115,12 +115,22 @@ class Pipeline extends Array {
 
   // Get array of request handlers
   getRequestHandlers() {
-    return [].concat(this).filter(fn => fn.length === 2);
+    // N.B. inheriting from an Array is slightly broken, so just iterate manually
+    const result = [];
+    for (let i = 0; i < this.length; i++)
+      if (this[i].length === 2)
+        result.push(this[i]);
+    return result;
   }
 
   // Get array of request handlers
   getResponseHandlers() {
-    return [].concat(this).filter(fn => fn.length === 3);
+    // N.B. inheriting from an Array is slightly broken, so just iterate manually
+    const result = [];
+    for (let i = 0; i < this.length; i++)
+      if (this[i].length === 3)
+        result.push(this[i]);
+    return result;
   }
 
 
