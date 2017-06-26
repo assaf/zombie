@@ -1,6 +1,7 @@
 ## Version 5.0.6 2017-06-26
 
 ADDED support for [cancelAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window/cancelAnimationFrame)
+
 ADDED support for [document.hasFocus](https://developer.mozilla.org/en-US/docs/Web/API/Document/hasFocus)
 
   732 passing (22s)
