@@ -1,3 +1,12 @@
+## Version 5.0.6 2017-06-26
+
+ADDED support for [cancelAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window/cancelAnimationFrame)
+ADDED support for [document.hasFocus](https://developer.mozilla.org/en-US/docs/Web/API/Document/hasFocus)
+
+  732 passing (22s)
+  12 pending
+
+
 ## Version 5.0.5 2016-11-22
 
 CHANGED Support aborting XMLHttpRequests in the DONE state
@@ -1253,11 +1262,11 @@ Event loop keeps processing past errors.
 ## Version 0.11.0  2011-11-20
 
 Changed error handling for the better.
-    
+
 Calling browser.wait or browser.visit no longer passed the
 resource/JavaScript error as the first argument, and will continue
 processing if there are multiple errors.
-    
+
 Instead, an array of errors is passed as the fourth argument.  You can
 also access `browser.errors` and to get just the last one, e.g.  to
 check if any errors were reported, use `browser.error`.
@@ -1315,7 +1324,7 @@ Fixes #164 jQuery selectors with explicit context fail.
 
 Better stack traces for client-side JS.  This will help in debugging and
 filing issues.
-    
+
 Updated installation instructions for OS X/Windows.
 
 Upgraded to JSDOM 0.2.4 and testing with jQuery 1.6.3.
