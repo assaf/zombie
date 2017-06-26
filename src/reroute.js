@@ -32,6 +32,9 @@ let   enabled = false;
 //     *.example.com
 //             *.com
 function findTargetPort(hostname, port) {
+  if (!hostname)
+    return null;
+
   const route = routing.get(hostname);
   if (route)
     return route[port];
@@ -52,7 +55,17 @@ function enableRerouting() {
 
   const connect = Net.Socket.prototype.connect;
   Net.Socket.prototype.connect = function(options, callback) {
-    if (typeof options === 'object') {
+    if (Array.isArray(options) && options.some(opts => findTargetPort(opts.host, opts.port))) {
+      // we hackily update the array in place, because the array has already been extended with
+      // extra methods
+      options.forEach((opts, i) => {
+        const port = findTargetPort(opts.host, opts.port);
+        if (port)
+          options[i] = Object.assign({}, opts, { host: 'localhost', port });
+      });
+      return connect.call(this, options, callback);
+    }
+    if (options && typeof options === 'object' && !Array.isArray(options)) {
       const port = findTargetPort(options.host, options.port);
       if (port) {
         options = Object.assign({}, options, { host: 'localhost', port });
@@ -80,5 +93,3 @@ module.exports = function addRoute(source, target) {
   // Enable Socket.connect routing
   enableRerouting();
 };
-
-
