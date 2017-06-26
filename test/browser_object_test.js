@@ -146,7 +146,7 @@ describe('Browser', function() {
           assert(!browser.success);
         });
         it('should capture response document', function() {
-          assert.equal(browser.source.trim(), 'Cannot GET /browser/missing'); // Express output
+          assert(browser.source.indexOf('Cannot GET /browser/missing') !== -1); // Express output
         });
         it('should return response document with the error', function() {
           browser.assert.text('body', 'Cannot GET /browser/missing'); // Express output
@@ -735,4 +735,3 @@ describe('Browser', function() {
     browser.destroy();
   });
 });
-
