@@ -184,7 +184,7 @@ describe('Forms', function() {
       });
     });
 
-    describe('fill input with same the same value', function() {
+    describe('fill input with the same value', function() {
       before(function() {
         browser.fill('Name', '');
       });

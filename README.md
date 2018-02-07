@@ -7,7 +7,7 @@
 <img width="12" src="data:image/gif;base64,R0lGODlhAQABAPAAAP">
 [![JS.ORG](https://img.shields.io/badge/js.org-zombie-ffb400.svg?style=flat-square)](http://js.org)
 
-**Zombie 5.x** is tested to work with node.js 4 or later.
+**Zombie 5.x** is tested to work with node.js 4 to 6.
 If you need to use Node 0.12 or earlier, consider using Zombie 2.x.
 
 
