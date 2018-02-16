@@ -545,7 +545,7 @@ module.exports = class EventLoop extends EventEmitter {
           // We're waiting for some events to come along, don't know when,
           // but they'll call run for us
           this.emit('tick', 0);
-        else if (jsdomQueue.tail) {
+        else if (jsdomQueue && jsdomQueue.tail) {
           jsdomQueue.resume();
           this.run();
         } else {
@@ -564,4 +564,3 @@ module.exports = class EventLoop extends EventEmitter {
   }
 
 };
-
