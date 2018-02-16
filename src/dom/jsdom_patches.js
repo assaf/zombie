@@ -7,7 +7,7 @@ const resourceLoader       = require('jsdom/lib/jsdom/browser/resource-loader');
 const Utils                = require('jsdom/lib/jsdom/utils');
 const URL                  = require('url');
 const {
-
+  idlUtils,
   HTMLElementImpl,
   HTMLAnchorElementImpl,
   HTMLImageElementImpl
@@ -163,7 +163,7 @@ Object.defineProperty(DOM.CSSStyleDeclaration.prototype, 'opacity', {
 const jsdomDispatchEvent = DOM.EventTarget.prototype.dispatchEvent;
 DOM.EventTarget.prototype.dispatchEvent = function(event) {
   // Could be node, window or document
-  const document = this._ownerDocument || this.document || this;
+  const document = idlUtils.implForWrapper(this)._ownerDocument || this.document || this;
   const window   = document.defaultView;
   // Fail miserably on objects that don't have ownerDocument: nodes and XHR
   // request have those
