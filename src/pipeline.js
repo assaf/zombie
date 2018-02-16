@@ -103,7 +103,7 @@ class Pipeline extends Array {
     assert(handler.length === 2 || handler.length === 3, 'Handler function takes 2 (request handler) or 3 (response handler) arguments');
     this._default.push(handler);
   }
-  
+
   // Remove a request or response handler.
   static removeHandler(handler) {
     assert(handler.call, 'Handler must be a function');
@@ -144,8 +144,9 @@ class Pipeline extends Array {
     if (browser.document)
     // Resolve URL relative to document URL/base, or for new browser, using
     // Browser.site
-      request.url = resourceLoader.resolveResourceUrl(browser.document, request.url);
+      request.url = URL.resolve(browser.document.URL, URL.format(request.url));
     else
+      // TODO check this
       request.url = Utils.resolveHref(browser.site || 'http://localhost', request.url);
   }
 
@@ -315,4 +316,3 @@ Pipeline._default = [
 ];
 
 module.exports = Pipeline;
-

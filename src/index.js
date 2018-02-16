@@ -538,7 +538,7 @@ class Browser extends EventEmitter {
       [options, callback] = [{}, options];
 
     const site = /^(https?:|file:)/i.test(this.site) ? this.site : `http://${this.site || 'localhost'}/`;
-    url = Utils.resolveHref(site, URL.format(url));
+    url = URL.resolve(site, url);
 
     if (this.window)
       this.tabs.close(this.window);
