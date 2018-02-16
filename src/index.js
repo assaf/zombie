@@ -23,7 +23,6 @@ const Tough             = require('tough-cookie');
 const { Cookie }        = Tough;
 const URL               = require('url');
 const Utils             = require('jsdom/lib/jsdom/utils');
-const fileListSymbols   = require('jsdom/lib/jsdom/living/filelist-symbols');
 
 
 // Version number.  We get this from package.json.
