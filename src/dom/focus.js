@@ -70,12 +70,14 @@ CONTROLS.forEach(function(elementType) {
 const INPUTS = [DOM.HTMLInputElement, DOM.HTMLTextAreaElement, DOM.HTMLSelectElement];
 
 INPUTS.forEach(function(elementType) {
-  elementType.prototype._eventDefaults.focus = function(event) {
+  // DEBUG elementType.prototype._eventDefaults.focus = function(event) {
+  elementType.prototype._focus = function(event) {
     const element       = event.target;
     element._focusValue = element.value || '';
   };
 
-  elementType.prototype._eventDefaults.blur = function(event) {
+  // DEBUG elementType.prototype._eventDefaults.blur = function(event) {
+  elementType.prototype._blur = function(event) {
     const element     = event.target;
     const focusValue  = element._focusValue;
     if (focusValue !== element.value) { // null == undefined
@@ -85,4 +87,3 @@ INPUTS.forEach(function(elementType) {
     }
   };
 });
-

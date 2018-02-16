@@ -142,7 +142,8 @@ DOM.HTMLFormElement.prototype._dispatchSubmitEvent = function(button) {
 
 // Default behavior for submit events is to call the form's submit method, but we
 // also pass the submitting button.
-DOM.HTMLFormElement.prototype._eventDefaults.submit = function(event) {
+// DEBUG DOM.HTMLFormElement.prototype._eventDefaults.submit = function(event) {
+DOM.HTMLFormElement.prototype._submit = function(event) {
   event.target.submit(event._button);
 };
 
@@ -258,7 +259,8 @@ DOM.HTMLInputElement.prototype.click = function() {
 
 
 // Default behavior for form BUTTON: submit form.
-DOM.HTMLButtonElement.prototype._eventDefaults.click = function(event) {
+// DEBUG DOM.HTMLButtonElement.prototype._eventDefaults.click = function(event) {
+DOM.HTMLButtonElement.prototype._click = function(event) {
   const button = event.target;
   if (button.getAttribute('disabled'))
     return false;
@@ -267,4 +269,3 @@ DOM.HTMLButtonElement.prototype._eventDefaults.click = function(event) {
   if (form)
     return form._dispatchSubmitEvent(button);
 };
-
