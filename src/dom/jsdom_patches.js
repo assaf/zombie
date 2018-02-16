@@ -6,8 +6,11 @@ const Fetch                = require('../fetch');
 const resourceLoader       = require('jsdom/lib/jsdom/browser/resource-loader');
 const Utils                = require('jsdom/lib/jsdom/utils');
 const URL                  = require('url');
-const createHTMLCollection = require('jsdom/lib/jsdom/living/html-collection').create;
-
+const {
+  HTMLElementImpl,
+  HTMLAnchorElementImpl,
+  HTMLImageElementImpl
+}                          = require('./impl');
 
 DOM.HTMLDocument.prototype.__defineGetter__('scripts', function() {
   return createHTMLCollection(this, ()=> this.querySelectorAll('script'));
