@@ -147,7 +147,7 @@ class Pipeline extends Array {
       request.url = URL.resolve(browser.document.URL, URL.format(request.url));
     else
       // TODO check this
-      request.url = Utils.resolveHref(browser.site || 'http://localhost', request.url);
+      request.url = URL.resolve(browser.site || 'http://localhost', request.url);
   }
 
 
@@ -296,7 +296,7 @@ class Pipeline extends Array {
 
       // This request is referer for next
       request.headers.set('Referer', request.url);
-      request.url = Utils.resolveHref(request.url, location);
+      request.url = URL.resolve(request.url, location);
       return browser.pipeline._runPipeline(request);
     } else
       return response;

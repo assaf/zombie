@@ -79,7 +79,7 @@ class XMLHttpRequest {
     const headers = new Fetch.Headers();
 
     // Normalize the URL and check security
-    url = URL.parse(Utils.resolveHref(this._window.location.href, url));
+    url = URL.parse(URL.resolve(this._window.location.href, url));
     // Don't consider port if they are standard for http and https
     if ((url.protocol === 'https:' && url.port === '443') ||
         (url.protocol === 'http:'  && url.port === '80'))
@@ -279,4 +279,3 @@ XMLHttpRequest.LOADING          = 3;
 XMLHttpRequest.DONE             = 4;
 
 module.exports = XMLHttpRequest;
-

@@ -59,7 +59,7 @@ class DOMURL {
     if (url == null)
        throw new TypeError('Failed to construct \'URL\': Invalid URL');
     if (base)
-      url = Utils.resolveHref(base, url);
+      url = URL.resolve(base, url);
     const parsed = URL.parse(url || 'about:blank');
     const origin = parsed.protocol && parsed.hostname && `${parsed.protocol}//${parsed.hostname}`;
     Object.defineProperties(this, {
