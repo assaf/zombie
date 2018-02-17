@@ -187,12 +187,12 @@ DOM.EventTarget.prototype.dispatchEvent = function(event) {
 // Fix resource loading to keep track of in-progress requests. Need this to wait
 // for all resources (mainly JavaScript) to complete loading before terminating
 // browser.wait.
-resourceLoader.load = function(element, href, callback) {
+resourceLoader.load = function(element, href, encoding, callback) {
   const document      = element.ownerDocument;
   const window        = document.defaultView;
   const tagName       = element.tagName.toLowerCase();
   const loadResource  = document.implementation._hasFeature('FetchExternalResources', tagName);
-  const url           = resourceLoader.resolveResourceUrl(document, href);
+  const url           = URL.resolve(document.URL, href);
 
   if (loadResource) {
     // This guarantees that all scripts are executed in order, must add to the
