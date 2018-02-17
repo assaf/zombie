@@ -46,7 +46,9 @@ describe('Browser', function() {
       });
 
       it('should create HTML document', function() {
-        assert.equal(browser.document.constructor.name, 'HTMLDocument');
+        // TODO: check that 'Document' is indeed the correct contructor
+        // from jsdom/lib/jsdom/living/generated/Document.js:15
+        assert.equal(browser.document.constructor.name, 'Document');
       });
       it('should load document from server', function() {
         browser.assert.text('body h1', 'Hello World');
