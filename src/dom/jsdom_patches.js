@@ -17,37 +17,31 @@ DOM.HTMLDocument.prototype.__defineGetter__('scripts', function() {
   return createHTMLCollection(this, ()=> this.querySelectorAll('script'));
 });
 
-
-// Default behavior for clicking on links: navigate to new URL if specified.
-DOM.HTMLAnchorElement.prototype._eventDefaults =
-  Object.assign({}, DOM.HTMLElement.prototype._eventDefaults);
-DOM.HTMLAnchorElement.prototype._eventDefaults.click = function(event) {
-  const anchor = event.target;
-  if (!anchor.href)
-    return;
-
-  const window      = anchor.ownerDocument.defaultView;
+HTMLAnchorElementImpl.implementation.prototype._activationBehavior = function(){
+  const window      = this.ownerDocument.defaultView;
   const { browser } = window;
+  const target = this.target || '_self';
+
   // Decide which window to open this link in
-  switch (anchor.target || '_self') {
+  switch (target) {
     case '_self': {   // navigate same window
-      window.location = anchor.href;
+      window.location = this.href;
       break;
     }
     case '_parent': { // navigate parent window
-      window.parent.location = anchor.href;
+      window.parent.location = this.href;
       break;
     }
     case '_top': {    // navigate top window
-      window.top.location = anchor.href;
+      window.top.location = this.href;
       break;
     }
     default: { // open named window
-      browser.tabs.open({ name: anchor.target, url: anchor.href });
+      browser.tabs.open({ name: target, url: this.href });
       break;
     }
   }
-  browser.emit('link', anchor.href, anchor.target || '_self');
+  browser.emit('link', this.href, target);
 };
 
 
