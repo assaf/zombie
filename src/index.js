@@ -890,7 +890,7 @@ class Browser extends EventEmitter {
       file.type = Mime.lookup(filename);
       file.size = stat.size;
 
-      field.value = filename;
+      Object.defineProperty(field, 'value', {value: filename});
       const oldFiles = field.files;
       if (typeof(oldFiles) !== 'array') {
         // JSDOM does not support an API to mock a list of files, and the default
