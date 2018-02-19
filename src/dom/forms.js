@@ -143,7 +143,7 @@ DOM.HTMLFormElement.prototype._dispatchSubmitEvent = function(button) {
   event._button = button;
   const inputElementImpl = idlUtils.implForWrapper(event._button);
   const bodyElementImpl = domSymbolTree.parent(domSymbolTree.parent(inputElementImpl));
-  bodyElementImpl.addEventListener('submit', _submit, {})
+  bodyElementImpl.addEventListener('submit', _submit, {once: true})
   return this.dispatchEvent(event);
 };
 
@@ -237,7 +237,7 @@ DOM.HTMLButtonElement.prototype._click = function(event) {
 
 DOM.HTMLInputElement.prototype._click = function(event) {
   if (event.defaultPrevented) return;
-  
+
   const input = event.target;
 
   function change() {
