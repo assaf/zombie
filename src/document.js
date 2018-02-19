@@ -17,7 +17,6 @@ const Window          = require('jsdom/lib/jsdom/browser/Window');
 const XMLHttpRequest  = require('./xhr');
 const { idlUtils }    = require('./dom/impl');
 
-
 // File access, not implemented yet
 class File {
 }
@@ -170,7 +169,7 @@ function setupWindow(window, args) {
   window._allWebSockets = [];
 
   window.WebSocket = function(url, protocol) {
-    url = resourceLoader.resolveResourceUrl(document, url);
+    url = URL.resolve(document.URL, url);
     const origin = `${window.location.protocol}//${window.location.host}`;
     const ws = new WebSocket(url, { origin, protocol });
 
@@ -264,7 +263,7 @@ function setupWindow(window, args) {
 
   // Constructor for EventSource, URL is relative to document's.
   window.EventSource = function(url) {
-    url = resourceLoader.resolveResourceUrl(document, url);
+    url = URL.resolve(document.URL, url);
     const eventSource = new EventSource(url);
     eventQueue.addEventSource(eventSource);
     return eventSource;
@@ -305,7 +304,7 @@ function setupWindow(window, args) {
 
   // Open one window from another.
   window.open = function(url, name) {
-    url = url && resourceLoader.resolveResourceUrl(document, url);
+    url = (url !== null) ? URL.resolve(document.URL, url || '') : null;
     return browser.tabs.open({ name: name, url: url, opener: window });
   };
 

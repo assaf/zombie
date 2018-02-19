@@ -13,10 +13,6 @@ const {
   HTMLImageElementImpl
 }                          = require('./impl');
 
-DOM.HTMLDocument.prototype.__defineGetter__('scripts', function() {
-  return createHTMLCollection(this, ()=> this.querySelectorAll('script'));
-});
-
 HTMLAnchorElementImpl.implementation.prototype._activationBehavior = function(){
   const window      = this.ownerDocument.defaultView;
   const { browser } = window;
