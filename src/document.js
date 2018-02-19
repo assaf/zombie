@@ -151,6 +151,9 @@ function setupWindow(window, args) {
   window.UIEvent =        DOM.UIEvent;
   window.screen =         new Screen();
 
+  // for inline event handlers
+  window._globalProxy.Function = Function;
+
   // Fetch API
   window.fetch =          window.resources._fetch.bind(window.resources);
   window.Request =        Fetch.Request;
