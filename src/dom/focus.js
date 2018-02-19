@@ -17,14 +17,14 @@ DOM.HTMLDocument.prototype.__defineGetter__('activeElement', function() {
 // Change the current element in focus (or null for blur)
 function setFocus(document, element) {
   const inFocus = document._inFocus;
-  const inputElementImpl = idlUtils.implForWrapper(element);
   if (element !== inFocus) {
+    const inputElementImpl = idlUtils.implForWrapper(element || inFocus);
     if (inFocus) {
       const onblur = document.createEvent('HTMLEvents');
       onblur.initEvent('blur', false, false);
       inputElementImpl.addEventListener('blur', _blur, {});
       inFocus.dispatchEvent(onblur);
-      element._blur(onblur);
+      inFocus._blur(onblur);
     }
     if (element) { // null to blur
       const onfocus = document.createEvent('HTMLEvents');
