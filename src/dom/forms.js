@@ -3,8 +3,7 @@ const DOM   = require('./index');
 const File  = require('fs');
 const Mime  = require('mime');
 const Path  = require('path');
-
-const { idlUtils, domSymbolTree }    = require('./impl');
+const { idlUtils, domSymbolTree, HTMLInputElementImpl }    = require('./impl');
 
 
 // The Form
@@ -131,6 +130,10 @@ DOM.HTMLFormElement.prototype.submit = function(button) {
   process(0);
 };
 
+// override input.checked being set in jsdom, we set in manually in zombie
+HTMLInputElementImpl.implementation.prototype._preClickActivationSteps = function(){};
+
+
 
 
 // Replace dispatchEvent so we can send the button along the event.
@@ -167,6 +170,8 @@ DOM.HTMLInputElement.prototype.click = function() {
   function click() {
     const clickEvent = input.ownerDocument.createEvent('HTMLEvents');
     clickEvent.initEvent('click', true, true);
+    const labelElementImpl = domSymbolTree.parent(idlUtils.implForWrapper(input));
+    labelElementImpl.addEventListener('click', input._click, {})
     return input.dispatchEvent(clickEvent);
   }
 
