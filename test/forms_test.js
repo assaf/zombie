@@ -147,7 +147,7 @@ describe('Forms', function() {
             <div id="scary">${req.body.scary}</div>
             <div id="state">${req.body.state}</div>
             <div id="empty-text">${req.body.empty_text}</div>
-            <div id="empty-checkbox">${req.body.empty_checkbox || 'nothing'}</div>
+            <div id="empty-checkbox">${req.body.empty_checkbox}</div>
             <div id="unselected_state">${req.body.unselected_state}</div>
             <div id="hobbies">${JSON.stringify(req.body.hobbies)}</div>
             <div id="addresses">${JSON.stringify(req.body.addresses)}</div>
@@ -964,7 +964,7 @@ describe('Forms', function() {
         browser.assert.text('#empty-text', '');
       });
       it('should send checked field with no value', function() {
-        browser.assert.text('#empty-checkbox', '1');
+        browser.assert.text('#empty-checkbox', 'on');
       });
     });
 
