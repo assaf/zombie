@@ -23,7 +23,7 @@ const Tough             = require('tough-cookie');
 const { Cookie }        = Tough;
 const URL               = require('url');
 const Utils             = require('jsdom/lib/jsdom/utils');
-
+const { idlUtils }    = require('./dom/impl');
 
 // Version number.  We get this from package.json.
 const VERSION = require(`${__dirname}/../package.json`).version;
@@ -952,6 +952,8 @@ class Browser extends EventEmitter {
     assert(button, `No BUTTON '${selector}'`);
     assert(!button.disabled, 'This button is disabled');
     button.focus();
+    const impl = idlUtils.implForWrapper(button);
+    impl.addEventListener('click', button._click, {});
     return this.fire(button, 'click', callback);
   }
 

@@ -11,6 +11,9 @@ exports.HTMLAnchorElementImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLAncho
 exports.HTMLImageElementImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLImageElement-impl.js');
 exports.DocumentImpl =  require('jsdom/lib/jsdom/living/nodes/Document-impl.js');
 
+exports.domSymbolTree = require('jsdom/lib/jsdom/living/helpers/internal-constants').domSymbolTree;
+
+
 
 /*
 exports.CDATASectionImpl =  require('jsdom/lib/jsdom/living/nodes/CDATASection-impl.js')
