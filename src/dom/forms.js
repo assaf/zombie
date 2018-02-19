@@ -236,6 +236,8 @@ DOM.HTMLButtonElement.prototype._click = function(event) {
 };
 
 DOM.HTMLInputElement.prototype._click = function(event) {
+  if (event.defaultPrevented) return;
+  
   const input = event.target;
 
   function change() {
