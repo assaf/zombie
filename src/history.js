@@ -271,9 +271,11 @@ class History {
 
   // Call with two argument to update window.location and current.url to new URL
   updateLocation(window, url) {
+    const documentImpl = idlUtils.implForWrapper(window.document)
     if (window === this.current)
       this.current.url = url;
-    idlUtils.implForWrapper(window.document)._URL = whatwgURL.parseURL(url);
+    documentImpl._URL = whatwgURL.parseURL(url);
+    documentImpl._location = new Location(this, url);
   }
 
   // Returns window.location
