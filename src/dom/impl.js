@@ -10,9 +10,9 @@ exports.HTMLScriptElementImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLScrip
 exports.HTMLAnchorElementImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLAnchorElement-impl.js');
 exports.HTMLImageElementImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLImageElement-impl.js');
 exports.DocumentImpl =  require('jsdom/lib/jsdom/living/nodes/Document-impl.js');
+exports.HTMLFrameElementImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLFrameElement-impl.js')
 
 exports.domSymbolTree = require('jsdom/lib/jsdom/living/helpers/internal-constants').domSymbolTree;
-
 
 
 /*
@@ -54,7 +54,6 @@ exports.ElementImpl =  require('jsdom/lib/jsdom/living/nodes/Element-impl.js')
 exports.HTMLOptionElementImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLOptionElement-impl.js')
 exports.HTMLTitleElementImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLTitleElement-impl.js')
 exports.ElementCSSInlineStyleImpl =  require('jsdom/lib/jsdom/living/nodes/ElementCSSInlineStyle-impl.js')
-exports.HTMLFrameElementImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLFrameElement-impl.js')
 exports.HTMLOptionsCollectionImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLOptionsCollection-impl.js')
 exports.HTMLTrackElementImpl =  require('jsdom/lib/jsdom/living/nodes/HTMLTrackElement-impl.js')
 exports.ElementContentEditableImpl =  require('jsdom/lib/jsdom/living/nodes/ElementContentEditable-impl.js')

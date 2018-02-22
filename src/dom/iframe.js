@@ -1,8 +1,11 @@
 // Support for iframes.
 
 
-const DOM             = require('./index');
-const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
+const DOM                 = require('./index');
+// const resourceLoader      = require('jsdom/lib/jsdom/browser/resource-loader');
+const URL                 = require('url');
+const { HTMLFrameElementImpl,
+        HTMLElementImpl } = require('./impl');
 
 
 function loadFrame(frame) {
@@ -60,9 +63,8 @@ function isInDocument(el) {
   return false;
 }
 
-
-DOM.HTMLFrameElement.prototype._attrModified = function (name, value, oldVal) {
-  DOM.HTMLElement.prototype._attrModified.call(this, name, value, oldVal);
+HTMLFrameElementImpl.implementation.prototype._attrModified = function (name, value, oldVal) {
+  HTMLElementImpl.implementation.prototype._attrModified.call(this, name, value, oldVal);
   if (name === 'name') {
     if (oldVal)
       // I do not know why this only works with _global and not with _defaultView :(
@@ -72,26 +74,26 @@ DOM.HTMLFrameElement.prototype._attrModified = function (name, value, oldVal) {
     loadFrame(this);
 };
 
-DOM.HTMLFrameElement.prototype._detach = function () {
-  DOM.HTMLElement.prototype._detach.call(this);
+HTMLFrameElementImpl.implementation.prototype._detach = function () {
+  HTMLElementImpl.implementation.prototype._detach.call(this);
   if (this.contentWindow)
     this.contentWindow.close();
   refreshAccessors(this._ownerDocument);
   refreshNameAccessor(this);
 };
 
-DOM.HTMLFrameElement.prototype._attach = function () {
-  DOM.HTMLElement.prototype._attach.call(this);
+HTMLFrameElementImpl.implementation.prototype._attach = function () {
+  HTMLElementImpl.implementation.prototype._attach.call(this);
   loadFrame(this);
   refreshAccessors(this._ownerDocument);
   refreshNameAccessor(this);
 };
 
-DOM.HTMLFrameElement.prototype.__defineGetter__('contentDocument', function() {
+HTMLFrameElementImpl.implementation.prototype.__defineGetter__('contentDocument', function() {
   return this.contentWindow.document;
 });
 
-DOM.HTMLFrameElement.prototype.__defineGetter__('contentWindow', function() {
+HTMLFrameElementImpl.implementation.prototype.__defineGetter__('contentWindow', function() {
   if (!this._contentWindow) {
     const createHistory   = require('../history');
     const parentDocument  = this._ownerDocument;
@@ -104,9 +106,10 @@ DOM.HTMLFrameElement.prototype.__defineGetter__('contentWindow', function() {
     });
 
     const src = this.src.trim() === '' ? 'about:blank' : this.src;
+
     this._contentWindow = openWindow({
-      name:     this.name,
-      url:      resourceLoader.resolveResourceUrl(parentDocument, src),
+      name:     this.getAttribute('name'),
+      url:      URL.resolve(parentDocument.URL, src),
       parent:   parentWindow,
       referrer: parentWindow.location.href
     });
