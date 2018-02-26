@@ -16,7 +16,7 @@ const {
 HTMLAnchorElementImpl.implementation.prototype._activationBehavior = function(){
   const window      = this.ownerDocument.defaultView;
   const { browser } = window;
-  const target = this.target || '_self';
+  const target = idlUtils.wrapperForImpl(this).target || '_self';
 
   // Decide which window to open this link in
   switch (target) {
