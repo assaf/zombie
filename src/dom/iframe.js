@@ -5,29 +5,34 @@ const DOM                 = require('./index');
 // const resourceLoader      = require('jsdom/lib/jsdom/browser/resource-loader');
 const URL                 = require('url');
 const { HTMLFrameElementImpl,
-        HTMLElementImpl } = require('./impl');
+        HTMLElementImpl,
+        idlUtils }        = require('./impl');
 
 
-function loadFrame(frame) {
+function loadFrame(frameImpl) {
   // Close current content window in order to open a new one
-  if (frame._contentWindow) {
-    frame._contentWindow.close();
-    delete frame._contentWindow;
+  if (frameImpl._contentWindow) {
+    frameImpl._contentWindow.close();
+    delete frameImpl._contentWindow;
   }
 
   function onload() {
-    frame.contentWindow.removeEventListener('load', onload);
-    const parentDocument = frame._ownerDocument;
-    const loadEvent = parentDocument.createEvent('HTMLEvents');
-    loadEvent.initEvent('load', false, false);
-    frame.dispatchEvent(loadEvent);
+    frameImpl.contentWindow.removeEventListener('load', onload);
+    const parentDocument = frameImpl._ownerDocument;
+    const loadEventImpl = parentDocument.createEvent('HTMLEvents');
+    loadEventImpl.initEvent('load', false, false);
+
+    const frame = idlUtils.wrapperForImpl(frameImpl)
+    const loadEvent = idlUtils.wrapperForImpl(loadEventImpl)
+
+    DOM.EventTarget.prototype.dispatchEvent.call(frame, loadEvent)
   }
 
   // This is both an accessor to the contentWindow and a side-effect of creating
   // the window and loading the document based on the value of frame.src
   //
   // Not happy about this hack
-  frame.contentWindow.addEventListener('load', onload);
+  frameImpl.contentWindow.addEventListener('load', onload);
 }
 
 
