@@ -22,17 +22,21 @@ function setFocus(document, element) {
     if (inFocus) {
       const onblur = document.createEvent('HTMLEvents');
       onblur.initEvent('blur', false, false);
-      inputElementImpl.addEventListener('blur', _blur, {});
-      inFocus.dispatchEvent(onblur);
-      inFocus._blur(onblur);
+      // DEBUG
+      const dispatchResult = inFocus.dispatchEvent(onblur);
+      // inputElementImpl.addEventListener('blur', _blur, {});
+      inFocus._blur && inFocus._blur(onblur);
     }
     if (element) { // null to blur
       const onfocus = document.createEvent('HTMLEvents');
       onfocus.initEvent('focus', false, false);
-      inputElementImpl.addEventListener('focus', _focus, {});
-      element.dispatchEvent(onfocus);
+      // DEBUG
+      const dispatchResult = element.dispatchEvent(onfocus);
+      // inputElementImpl.addEventListener('focus', _focus, {});
+      element._focus && element._focus(onfocus);
       document._inFocus = element;
       document.defaultView.browser.emit('focus', element);
+      // return dispatchResult;
     }
   }
 }
@@ -84,6 +88,7 @@ INPUTS.forEach(function(elementType) {
   elementType.prototype._blur = function(event) {
     const element     = event.target;
     const focusValue  = element._focusValue;
+    // debugger DEBUG: check change value and switch focus on forms_test.js
     if (focusValue !== element.value) { // null == undefined
       const change = element.ownerDocument.createEvent('HTMLEvents');
       change.initEvent('change', false, false);

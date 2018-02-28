@@ -154,12 +154,22 @@ Object.defineProperty(DOM.CSSStyleDeclaration.prototype, 'opacity', {
 const jsdomDispatchEvent = DOM.EventTarget.prototype.dispatchEvent;
 DOM.EventTarget.prototype.dispatchEvent = function(event) {
   // Could be node, window or document
-  const document = idlUtils.implForWrapper(this)._ownerDocument || this.document || this;
+  const eventImpl = idlUtils.implForWrapper(this);
+  const document = eventImpl._ownerDocument || this.document || this;
+
   const window   = document.defaultView;
   // Fail miserably on objects that don't have ownerDocument: nodes and XHR
   // request have those
   const { browser } = window;
   browser.emit('event', event, this);
+
+  if (event.type === 'readystatechange' && this[`on${event.type}`]) {
+    this[idlUtils.implSymbol]._eventListeners[event.type] = [{
+      callback: this[`on${event.type}`],
+      options: {}
+    }];
+  }
+
 
   const originalInScope = browser._windowInScope;
   try {

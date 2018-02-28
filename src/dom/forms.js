@@ -143,8 +143,12 @@ DOM.HTMLFormElement.prototype._dispatchSubmitEvent = function(button) {
   event._button = button;
   const inputElementImpl = idlUtils.implForWrapper(event._button);
   const bodyElementImpl = domSymbolTree.parent(domSymbolTree.parent(inputElementImpl));
-  bodyElementImpl.addEventListener('submit', _submit, {once: true})
-  return this.dispatchEvent(event);
+  // DEBUG
+  const dispatchResult = this.dispatchEvent(event);
+  // bodyElementImpl.addEventListener('submit', _submit, {once: true})
+  // debugger
+  this._submit(event);
+  return dispatchResult;
 };
 
 
@@ -171,8 +175,11 @@ DOM.HTMLInputElement.prototype.click = function() {
     const clickEvent = input.ownerDocument.createEvent('HTMLEvents');
     clickEvent.initEvent('click', true, true);
     const labelElementImpl = domSymbolTree.parent(idlUtils.implForWrapper(input));
-    labelElementImpl.addEventListener('click', input._click, {})
-    return input.dispatchEvent(clickEvent);
+    const dispatchResult = input.dispatchEvent(clickEvent);
+    // DEBUG
+    // labelElementImpl.addEventListener('click', input._click, { once: true })
+    input._click && input._click(clickEvent);
+    return dispatchResult;
   }
 
   switch (input.type) {

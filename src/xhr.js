@@ -10,6 +10,7 @@ const Utils   = require('jsdom/lib/jsdom/utils');
 const EventTarget = require('jsdom/lib/jsdom/living/generated/EventTarget');
 
 const { DOMException } = DOM;
+const { idlUtils }   = require('./dom/impl');
 
 
 class XMLHttpRequest {
@@ -33,6 +34,7 @@ class XMLHttpRequest {
 
     // XHR events need the first to dispatch, the second to propagate up to window
     this._ownerDocument = window.document;
+    idlUtils.implForWrapper(this)._ownerDocument = this._ownerDocument
   }
 
 
