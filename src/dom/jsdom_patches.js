@@ -163,7 +163,7 @@ DOM.EventTarget.prototype.dispatchEvent = function(event) {
   const { browser } = window;
   browser.emit('event', event, this);
 
-  if (event.type === 'readystatechange' && this[`on${event.type}`]) {
+  if ((event.type === 'readystatechange' || event.type=== 'load') && this[`on${event.type}`]) {
     this[idlUtils.implSymbol]._eventListeners[event.type] = [{
       callback: this[`on${event.type}`],
       options: {}

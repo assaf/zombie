@@ -147,7 +147,7 @@ DOM.HTMLFormElement.prototype._dispatchSubmitEvent = function(button) {
   const dispatchResult = this.dispatchEvent(event);
   // bodyElementImpl.addEventListener('submit', _submit, {once: true})
   // debugger
-  this._submit(event);
+  dispatchResult && this._submit(event);
   return dispatchResult;
 };
 
@@ -233,6 +233,7 @@ DOM.HTMLInputElement.prototype.click = function() {
 
 // HTMLForm listeners
 DOM.HTMLButtonElement.prototype._click = function(event) {
+  if (event.defaultPrevented) return;
   const button = event.target;
   if (button.getAttribute('disabled'))
     return false;

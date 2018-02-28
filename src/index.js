@@ -362,6 +362,7 @@ class Browser extends EventEmitter {
     const event = this.document.createEvent(eventType);
     event.initEvent(eventName, true, true);
     target.dispatchEvent(event);
+    if (selector.tagName === 'BUTTON' || selector.tagName == 'INPUT') selector._click(event);
     return this._wait(null, callback);
   }
 
@@ -953,7 +954,6 @@ class Browser extends EventEmitter {
     assert(!button.disabled, 'This button is disabled');
     button.focus();
     const impl = idlUtils.implForWrapper(button);
-    impl.addEventListener('click', button._click, {});
     return this.fire(button, 'click', callback);
   }
 
