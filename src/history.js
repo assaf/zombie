@@ -274,7 +274,7 @@ class History {
     const documentImpl = idlUtils.implForWrapper(window.document)
     if (window === this.current)
       this.current.url = url;
-    documentImpl._URL = whatwgURL.parseURL(url);
+    documentImpl._URL = whatwgURL.parseURL(url || 'about:blank');
     documentImpl._location = new Location(this, url);
   }
 
