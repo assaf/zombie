@@ -198,7 +198,7 @@ function setupWindow(window, args) {
   };
 
   window.Image = function(width, height) {
-    const img   = new DOM.HTMLImageElement(window.document);
+    const img   = window.document.createElement('img');
     img.width   = width;
     img.height  = height;
     return img;
