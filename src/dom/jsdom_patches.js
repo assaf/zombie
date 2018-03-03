@@ -163,14 +163,6 @@ DOM.EventTarget.prototype.dispatchEvent = function(event) {
   const { browser } = window;
   browser.emit('event', event, this);
 
-  if ((event.type === 'readystatechange' || event.type=== 'load') && this[`on${event.type}`]) {
-    this[idlUtils.implSymbol]._eventListeners[event.type] = [{
-      callback: this[`on${event.type}`],
-      options: {}
-    }];
-  }
-
-
   const originalInScope = browser._windowInScope;
   try {
     // The current window, postMessage and window.close need this

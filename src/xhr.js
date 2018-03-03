@@ -261,13 +261,23 @@ class XMLHttpRequest {
     const event = new DOM.Event('xhr');
     event.initEvent(eventName, true, true);
     event.error = error;
-    this.dispatchEvent(event);
+    this._dispatchEvent(event);
     this._browser.emit('xhr', eventName, this._url);
   }
 
   // Raise error coming from jsdom
   raise(type, message, data) {
     this._ownerDocument.raise(type, message, data);
+  }
+
+  _dispatchEvent(event) {
+    const listener = this[`on${event.type}`];
+    if (listener)
+      this[idlUtils.implSymbol]._eventListeners[event.type] = [{
+        callback: listener,
+        options: {}
+      }];
+    this.dispatchEvent(event);
   }
 
 }
