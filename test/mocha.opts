@@ -1,4 +1,3 @@
-
 --compilers js:babel/register
 --require ./test/helpers/first
 --reporter spec
