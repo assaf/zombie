@@ -39,7 +39,7 @@ describe('Data Attribute Test', function() {
     });
   });
 
-  describe.only('event target', function() {
+  describe('event target', function() {
     let dataValue;
     before(async function() {
       await browser.load(`
@@ -66,7 +66,7 @@ describe('Data Attribute Test', function() {
 
   });
 
-  describe.only('javascript event target', function() {
+  describe('javascript event target', function() {
     let dataValue;
     before(async function() {
       await browser.load(`
