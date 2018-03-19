@@ -1,6 +1,6 @@
 {
   "name": "zombie",
-  "version": "5.0.8",
+  "version": "6.0.0",
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "https://www.npmjs.com/package/zombie",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
@@ -12,7 +12,7 @@
     "Matt Lavin <matt.lavin@gmail.com> (https://github.com/mdlavin)"
   ],
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=8.0.0"
   },
   "keywords": [
     "test",
