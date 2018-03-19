@@ -1,3 +1,15 @@
+## Version 6.0.0 2018-03-19
+
+Zombie 6.0.0 is tested to run on Node 8.10 and Node 9.8.  We no longer support
+Node 4/6.
+
+Upgraded from JSDOM 7.2.2 to JSDOM 11.5.1.  Tons on new stuff, see:
+https://github.com/jsdom/jsdom/blob/master/Changelog.md#1151
+
+  734 passing (21s)
+  12 pending
+
+
 ## Version 5.0.8 2018-02-22
 
 FIXED rerouting in Node 8
