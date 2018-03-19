@@ -4,3 +4,4 @@
 --timeout 2s
 --growl
 --check-leaks
+--exit
