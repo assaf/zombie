@@ -174,6 +174,23 @@ browser.proxy = 'http://me:secret@myproxy:8080'
 Collection of errors accumulated by the browser while loading page and executing
 scripts.
 
+#### browser.source
+
+Returns a string of the source HTML from the last response.
+
+#### browser.html(element)
+
+Returns a string of HTML for a selected HTML element. If argument `element` is `undefined`, the function returns a string of the source HTML from the last response.
+
+Example uses:
+
+```
+browser.html('div');
+browser.html('div#contain');
+browser.html('.selector');
+browser.html();
+```
+
 #### Browser.localhost(host, port)
 
 Allows you to make requests against a named domain and HTTP/S port, and will
