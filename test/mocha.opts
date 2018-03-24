@@ -1,4 +1,4 @@
---compilers js:babel/register
+--require babel-core/register
 --require ./test/helpers/first
 --reporter spec
 --timeout 2s
