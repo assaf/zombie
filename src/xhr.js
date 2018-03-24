@@ -34,8 +34,8 @@ class XMLHttpRequest {
 
     // XHR events need the first to dispatch, the second to propagate up to window
     this._ownerDocument = window.document;
-    this._ownerDocument._defaultView = window; // DEBUG
-    window[idlUtils.wrapperSymbol] = window; // DEBUG
+    this._ownerDocument._defaultView = window;
+    window[idlUtils.wrapperSymbol] = window;
     idlUtils.implForWrapper(this)._ownerDocument = this._ownerDocument;
   }
 

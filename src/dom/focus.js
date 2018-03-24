@@ -22,21 +22,16 @@ function setFocus(document, element) {
     if (inFocus) {
       const onblur = document.createEvent('HTMLEvents');
       onblur.initEvent('blur', false, false);
-      // DEBUG
       const dispatchResult = inFocus.dispatchEvent(onblur);
-      // inputElementImpl.addEventListener('blur', _blur, {});
       inFocus._blur && inFocus._blur(onblur);
     }
     if (element) { // null to blur
       const onfocus = document.createEvent('HTMLEvents');
       onfocus.initEvent('focus', false, false);
-      // DEBUG
       const dispatchResult = element.dispatchEvent(onfocus);
-      // inputElementImpl.addEventListener('focus', _focus, {});
       element._focus && element._focus(onfocus);
       document._inFocus = element;
       document.defaultView.browser.emit('focus', element);
-      // return dispatchResult;
     }
   }
 }
@@ -78,17 +73,14 @@ CONTROLS.forEach(function(elementType) {
 const INPUTS = [DOM.HTMLInputElement, DOM.HTMLTextAreaElement, DOM.HTMLSelectElement];
 
 INPUTS.forEach(function(elementType) {
-  // DEBUG elementType.prototype._eventDefaults.focus = function(event) {
   elementType.prototype._focus = function(event) {
     const element       = event.target;
     element._focusValue = element.value || '';
   };
 
-  // DEBUG elementType.prototype._eventDefaults.blur = function(event) {
   elementType.prototype._blur = function(event) {
     const element     = event.target;
     const focusValue  = element._focusValue;
-    // debugger DEBUG: check change value and switch focus on forms_test.js
     if (focusValue !== element.value) { // null == undefined
       const change = element.ownerDocument.createEvent('HTMLEvents');
       change.initEvent('change', false, false);

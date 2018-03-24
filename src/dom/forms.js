@@ -143,10 +143,7 @@ DOM.HTMLFormElement.prototype._dispatchSubmitEvent = function(button) {
   event._button = button;
   const inputElementImpl = idlUtils.implForWrapper(event._button);
   const bodyElementImpl = domSymbolTree.parent(domSymbolTree.parent(inputElementImpl));
-  // DEBUG
   const dispatchResult = this.dispatchEvent(event);
-  // bodyElementImpl.addEventListener('submit', _submit, {once: true})
-  // debugger
   dispatchResult && this._submit(event);
   return dispatchResult;
 };
@@ -154,7 +151,6 @@ DOM.HTMLFormElement.prototype._dispatchSubmitEvent = function(button) {
 
 // Default behavior for submit events is to call the form's submit method, but we
 // also pass the submitting button.
-// DEBUG DOM.HTMLFormElement.prototype._eventDefaults.submit = function(event) {
 DOM.HTMLFormElement.prototype._submit = function(event) {
   event.target.submit(event._button);
 };
@@ -176,8 +172,6 @@ DOM.HTMLInputElement.prototype.click = function() {
     clickEvent.initEvent('click', true, true);
     const labelElementImpl = domSymbolTree.parent(idlUtils.implForWrapper(input));
     const dispatchResult = input.dispatchEvent(clickEvent);
-    // DEBUG
-    // labelElementImpl.addEventListener('click', input._click, { once: true })
     input._click && input._click(clickEvent);
     return dispatchResult;
   }
