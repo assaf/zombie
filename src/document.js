@@ -231,7 +231,8 @@ function setupWindow(window, args) {
       browser.emit('evaluated', code, result, filename);
       return result;
     } catch (error) {
-      error.filename = error.filename || filename;
+      if (error && typeof error === 'object') 
+        error.filename = error.filename || filename;
       throw error;
     } finally {
       browser._windowInScope = originalInScope;
