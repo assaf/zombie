@@ -303,6 +303,10 @@ function setupWindow(window, args) {
     return response;
   };
 
+  window.getSelection = function() {
+    return {};
+  };
+
 
   // -- Opening and closing --
 
