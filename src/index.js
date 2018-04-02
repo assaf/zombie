@@ -23,8 +23,7 @@ const Tough             = require('tough-cookie');
 const { Cookie }        = Tough;
 const URL               = require('url');
 const Utils             = require('jsdom/lib/jsdom/utils');
-const fileListSymbols   = require('jsdom/lib/jsdom/living/filelist-symbols');
-
+const { idlUtils }    = require('./dom/impl');
 
 // Version number.  We get this from package.json.
 const VERSION = require(`${__dirname}/../package.json`).version;
@@ -363,6 +362,7 @@ class Browser extends EventEmitter {
     const event = this.document.createEvent(eventType);
     event.initEvent(eventName, true, true);
     target.dispatchEvent(event);
+    if (selector.tagName === 'BUTTON' || selector.tagName == 'INPUT') selector._click(event);
     return this._wait(null, callback);
   }
 
@@ -539,7 +539,7 @@ class Browser extends EventEmitter {
       [options, callback] = [{}, options];
 
     const site = /^(https?:|file:)/i.test(this.site) ? this.site : `http://${this.site || 'localhost'}/`;
-    url = Utils.resolveHref(site, URL.format(url));
+    url = URL.resolve(site, url);
 
     if (this.window)
       this.tabs.close(this.window);
@@ -891,7 +891,7 @@ class Browser extends EventEmitter {
       file.type = Mime.lookup(filename);
       file.size = stat.size;
 
-      field.value = filename;
+      Object.defineProperty(field, 'value', {value: filename});
       const oldFiles = field.files;
       if (typeof(oldFiles) !== 'array') {
         // JSDOM does not support an API to mock a list of files, and the default
@@ -953,6 +953,7 @@ class Browser extends EventEmitter {
     assert(button, `No BUTTON '${selector}'`);
     assert(!button.disabled, 'This button is disabled');
     button.focus();
+    const impl = idlUtils.implForWrapper(button);
     return this.fire(button, 'click', callback);
   }
 

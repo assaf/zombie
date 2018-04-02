@@ -18,6 +18,7 @@
 
 const assert            = require('assert');
 const { EventEmitter }  = require('events');
+const { idlUtils }    = require('./dom/impl');
 
 
 // Wrapper for a timeout (setTimeout)
@@ -534,7 +535,7 @@ module.exports = class EventLoop extends EventEmitter {
         if (this.waiting === 0)
           return;
 
-        const jsdomQueue  = this.active.document._queue;
+        const jsdomQueue  = idlUtils.implForWrapper(this.active.document)._queue;
         const event       = this.active._eventQueue.dequeue();
         if (event) {
           // Process queued function, tick, and on to next event
@@ -564,4 +565,3 @@ module.exports = class EventLoop extends EventEmitter {
   }
 
 };
-
