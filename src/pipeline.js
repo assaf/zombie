@@ -294,6 +294,9 @@ class Pipeline extends Array {
         request.headers.delete('Content-Transfer-Encoding');
       }
 
+      // The Cookie header will be recomputed when the pipeline runs. This
+      // ensures that cookies can be invalidated by the redirect response.
+      request.headers.delete('Cookie');
       // This request is referer for next
       request.headers.set('Referer', request.url);
       request.url = URL.resolve(request.url, location);
