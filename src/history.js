@@ -52,6 +52,7 @@ class Location {
 
   replace(url) {
     this._history.replace(url);
+    this._url = url;
   }
 
   reload() {
