@@ -233,8 +233,13 @@ Browser.extend(function(browser) {
 });
 ```
 
+### Browser.evaluate
 
+You can use this to evaluate javascript in the browser, it's similar to `browser.assert.evaluate`
 
+```js
+Browser.evaluate('document.querySelector("a").class')
+```
 
 ## Assertions
 
