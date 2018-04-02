@@ -539,7 +539,7 @@ domain.
 Consider this code:
 
 ```js
-browser.setCookie(name: 'session', domain: 'example.com', value: 'delicious');
+browser.setCookie({ name: 'session', domain: 'example.com', value: 'delicious' });
 browser.visit('http://example.com', function() {
   const value = browser.getCookie('session');
   console.log('Cookie', value);
