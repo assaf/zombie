@@ -745,11 +745,10 @@ describe('Forms', function() {
         });
         const changeListener = (e) => {
           selectField.removeEventListener('change', changeListener);
-          if (e.target.value === 'value2') {
+          if (e.target.value === 'value2')
             done();
-          } else {
+          else
             done(new Error('Expected e.target.value to be "value2", was "' + e.target.value + '"'));
-          };
         };
         selectField.addEventListener('change', changeListener);
         browser.select('#onfocus-selector', 'value2');
