@@ -216,7 +216,9 @@ class Pipeline extends Array {
     const consumeBody = /^POST|PUT/.test(request.method) && request._consume() || Promise.resolve(null);
     return consumeBody
       .then(function(body) {
-
+        
+        request.body = body;
+        
         const httpRequest = new Request({
           method:         request.method,
           uri:            request.url,
