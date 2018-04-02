@@ -15,7 +15,7 @@ const VM              = require('vm');
 const WebSocket       = require('ws');
 const Window          = require('jsdom/lib/jsdom/browser/Window');
 const XMLHttpRequest  = require('./xhr');
-
+const { idlUtils }    = require('./dom/impl');
 
 // File access, not implemented yet
 class File {
@@ -58,7 +58,7 @@ class DOMURL {
     if (url == null)
        throw new TypeError('Failed to construct \'URL\': Invalid URL');
     if (base)
-      url = Utils.resolveHref(base, url);
+      url = URL.resolve(base, url);
     const parsed = URL.parse(url || 'about:blank');
     const origin = parsed.protocol && parsed.hostname && `${parsed.protocol}//${parsed.hostname}`;
     Object.defineProperties(this, {
@@ -119,19 +119,22 @@ function setupWindow(window, args) {
   const emptySet = [];
   emptySet.item = ()=> undefined;
   emptySet.namedItem = ()=> undefined;
-  window.navigator = {
-    appName:        'Zombie',
-    appVersion:     browser.constructor.VERSION,
-    cookieEnabled:  true,
-    javaEnabled:    ()=> false,
-    language:       browser.language,
-    mimeTypes:      emptySet,
-    noUI:           true,
-    platform:       process.platform,
-    plugins:        emptySet,
-    userAgent:      browser.userAgent,
-    vendor:         'Zombie Industries'
-  };
+  Object.defineProperty(window, 'navigator', {
+    writable: false,
+    value: {
+      appName:        'Zombie',
+      appVersion:     browser.constructor.VERSION,
+      cookieEnabled:  true,
+      javaEnabled:    ()=> false,
+      language:       browser.language,
+      mimeTypes:      emptySet,
+      noUI:           true,
+      platform:       process.platform,
+      plugins:        emptySet,
+      userAgent:      browser.userAgent,
+      vendor:         'Zombie Industries'
+    }
+  });
 
   // Add cookies, storage, alerts/confirm, XHR, WebSockets, JSON, Screen, etc
   Object.defineProperty(window, 'cookies', {
@@ -147,6 +150,9 @@ function setupWindow(window, args) {
   window.MutationEvent =  DOM.MutationEvent;
   window.UIEvent =        DOM.UIEvent;
   window.screen =         new Screen();
+
+  // for inline event handlers
+  window._globalProxy.Function = Function;
 
   // Fetch API
   window.fetch =          window.resources._fetch.bind(window.resources);
@@ -166,7 +172,7 @@ function setupWindow(window, args) {
   window._allWebSockets = [];
 
   window.WebSocket = function(url, protocol) {
-    url = resourceLoader.resolveResourceUrl(document, url);
+    url = URL.resolve(document.URL, url);
     const origin = `${window.location.protocol}//${window.location.host}`;
     const ws = new WebSocket(url, { origin, protocol });
 
@@ -192,7 +198,7 @@ function setupWindow(window, args) {
   };
 
   window.Image = function(width, height) {
-    const img   = new DOM.HTMLImageElement(window.document);
+    const img   = window.document.createElement('img');
     img.width   = width;
     img.height  = height;
     return img;
@@ -219,19 +225,23 @@ function setupWindow(window, args) {
 
   // Evaluate in context of window. This can be called with a script (String) or a function.
   window._evaluate = function(code, filename) {
+    const context = new VM.createContext(window);
     const originalInScope = browser._windowInScope;
     try {
       // The current window, postMessage and window.close need this
       browser._windowInScope = window;
       let result;
+      if (typeof code == 'buffer' || code instanceof Buffer)
+        code = code.toString();
       if (typeof code === 'string' || code instanceof String)
-        result = VM.runInContext(code, window, { filename });
+        result = VM.runInContext(code, context, { filename });
       else if (code)
         result = code.call(window);
       browser.emit('evaluated', code, result, filename);
       return result;
     } catch (error) {
-      error.filename = error.filename || filename;
+      if (error && typeof error === 'object') 
+        error.filename = error.filename || filename;
       throw error;
     } finally {
       browser._windowInScope = originalInScope;
@@ -257,7 +267,7 @@ function setupWindow(window, args) {
 
   // Constructor for EventSource, URL is relative to document's.
   window.EventSource = function(url) {
-    url = resourceLoader.resolveResourceUrl(document, url);
+    url = URL.resolve(document.URL, url);
     const eventSource = new EventSource(url);
     eventQueue.addEventSource(eventSource);
     return eventSource;
@@ -298,7 +308,7 @@ function setupWindow(window, args) {
 
   // Open one window from another.
   window.open = function(url, name) {
-    url = url && resourceLoader.resolveResourceUrl(document, url);
+    url = (url !== null) ? URL.resolve(document.URL, url || '') : null;
     return browser.tabs.open({ name: name, url: url, opener: window });
   };
 
@@ -384,7 +394,10 @@ function setupWindow(window, args) {
   });
 
   // DOM History object
-  window.history  = windowHistory;
+  Object.defineProperty(window, 'history', {
+    writable: false,
+    value: windowHistory
+  });
   /// Actual history, see location getter/setter
   window._history = history;
 
@@ -401,7 +414,7 @@ function setupWindow(window, args) {
 
   // Form submission uses this
   window._submit = function(formArgs) {
-    const url     = resourceLoader.resolveResourceUrl(document, formArgs.url);
+    const url     = URL.resolve(document.URL, formArgs.url);
     const target  = formArgs.target || '_self';
     browser.emit('submit', url, target);
     // Figure out which history is going to handle this
@@ -479,9 +492,21 @@ function createDocument(args) {
     ProcessExternalResources: [],
     MutationEvents:           '2.0'
   };
+
+  const window  = new Window({
+    parsingMode:  'html',
+    contentType:  'text/html',
+    url:          args.url,
+    referrer:     args.referrer
+  });
+
+  const { document } = window;
+  const documentImpl = idlUtils.implForWrapper(document)
+
   if (args.browser.hasFeature('scripts', true)) {
     features.FetchExternalResources.push('script');
     features.ProcessExternalResources.push('script');
+    window._runScripts = 'dangerously';
   }
   if (args.browser.hasFeature('css', false)) {
     features.FetchExternalResources.push('css');
@@ -492,14 +517,8 @@ function createDocument(args) {
   if (args.browser.hasFeature('iframe', true))
     features.FetchExternalResources.push('iframe');
 
-  const window  = new Window({
-    parsingMode:  'html',
-    contentType:  'text/html',
-    url:          args.url,
-    referrer:     args.referrer
-  });
-  const { document } = window;
-  browserFeatures.applyDocumentFeatures(document, features);
+
+  browserFeatures.applyDocumentFeatures(documentImpl, features);
   setupWindow(window, args);
 
   // Give event handler chance to register listeners.
@@ -560,7 +579,7 @@ function buildRequest(args) {
   const { browser, method } = args;
   const params  = args.params || new Map();
   const site    = /^(https?:|file:)/i.test(browser.site) ? browser.site : `http://${browser.site || 'locahost'}`;
-  const url     = Utils.resolveHref(site, URL.format(args.url));
+  const url     = URL.resolve(site, URL.format(args.url));
 
   const headers = new Fetch.Headers(args.headers);
 

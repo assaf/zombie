@@ -1,6 +1,6 @@
 const assert = require('assert');
 const Utils  = require('jsdom/lib/jsdom/utils');
-
+const URL    = require('url');
 
 describe('Utils', function() {
   describe('resolving HREFs', function() {
@@ -15,7 +15,7 @@ describe('Utils', function() {
 
     it('returns the correct URL', function() {
       patterns.forEach(function(pattern) {
-        assert.equal(Utils.resolveHref(pattern[0], pattern[1]), pattern[2]);
+        assert.equal(URL.resolve(pattern[0], pattern[1]), pattern[2]);
       });
     });
   });

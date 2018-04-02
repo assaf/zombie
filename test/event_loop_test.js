@@ -2,6 +2,7 @@ const assert    = require('assert');
 const Bluebird  = require('bluebird');
 const brains    = require('./helpers/brains');
 const Browser   = require('../src');
+const { idlUtils }    = require('../src/dom/impl');
 
 
 describe('EventLoop', function() {
@@ -16,6 +17,14 @@ describe('EventLoop', function() {
       `);
     });
     return brains.ready();
+  });
+
+  describe('jsdomQueue', function() {
+    it('should have a ResourceQueue defined on the document impl', async function(){
+      await browser.visit('/eventloop/function');
+      const jsdomQueue  = idlUtils.implForWrapper(browser.document)._queue;
+      assert.equal(jsdomQueue.constructor.name, 'ResourceQueue');
+    })
   });
 
   describe('setTimeout', function() {

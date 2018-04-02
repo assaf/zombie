@@ -213,20 +213,20 @@ describe('Document', function() {
 
     it('should act link an array', function() {
       assert.equal(scripts.length, 3);
-      assert.equal(scripts[0].src, '/scripts/jquery.js');
-      assert.equal(scripts.foo.src, '/scripts/jquery.js?foo');
+      assert.equal(scripts[0].src, 'http://example.com/scripts/jquery.js');
+      assert.equal(scripts.foo.src, 'http://example.com/scripts/jquery.js?foo');
     });
 
     it('should be an HTMLCollection', function() {
       assert.equal(scripts.length, 3);
-      assert.equal(scripts.item(0).src, '/scripts/jquery.js');
-      assert.equal(scripts.namedItem('foo').src, '/scripts/jquery.js?foo');
+      assert.equal(scripts.item(0).src, 'http://example.com/scripts/jquery.js');
+      assert.equal(scripts.namedItem('foo').src, 'http://example.com/scripts/jquery.js?foo');
     });
 
     it('should find all scripts in document', function() {
-      assert.equal(scripts[0].src, '/scripts/jquery.js');
+      assert.equal(scripts[0].src, 'http://example.com/scripts/jquery.js');
       assert.equal(scripts[1].src, '');
-      assert.equal(scripts[2].src, '/scripts/jquery.js?foo');
+      assert.equal(scripts[2].src, 'http://example.com/scripts/jquery.js?foo');
     });
   });
 
