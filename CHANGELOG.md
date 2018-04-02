@@ -1,3 +1,23 @@
+## Version 6.1.0 2018-04-02
+
+Documenting browser.evaluate #1014
+
+Fix potential memory leak when deleting all cookies  #1016
+
+Fetch HeadersInit as an Array fixed and tests  #1037
+
+Added ability to disable html5 history using history5 option #359
+
+Clear cookie header on redirect #1038
+
+Reorder events in selectOption - causes a bad interaction in some 2-way binding scenarios #1023
+
+Inline scripts with invalid type attribute get executed #978
+
+  742 passing (20s)
+  12 pending
+
+
 ## Version 6.0.0 2018-04-02
 
 Zombie 6.0.0 is tested to run on Node 8.10 and Node 9.8.  We no longer support
