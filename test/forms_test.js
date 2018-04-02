@@ -96,6 +96,11 @@ describe('Forms', function() {
               <option value="mar_2011"> Mar 2011 </option>
             </select>
 
+            <select name="onfocus-selector" id="onfocus-selector">
+              <option value="value1" selected>value1</option>
+              <option value="value2">value2</option>
+            </select>
+
             <input type="unknown" name="unknown" value="yes">
             <input type="reset" value="Reset">
             <input type="submit" name="button" value="Submit">
@@ -725,6 +730,29 @@ describe('Forms', function() {
 
       it('should fire blur event on previous field', function() {
         assert(true);
+      });
+    });
+
+    describe('with onfocus handler', function() {
+      before(function() {
+        return browser.visit('/forms/form');
+      });
+
+      it('should fire the onchange event with the new value', function(done) {
+        const selectField = browser.querySelector('#onfocus-selector');
+        selectField.addEventListener('focus', (e) => {
+          e.target.value = 'value1';
+        });
+        const changeListener = (e) => {
+          selectField.removeEventListener('change', changeListener);
+          if (e.target.value === 'value2') {
+            done();
+          } else {
+            done(new Error('Expected e.target.value to be "value2", was "' + e.target.value + '"'));
+          };
+        };
+        selectField.addEventListener('change', changeListener);
+        browser.select('#onfocus-selector', 'value2');
       });
     });
   });
