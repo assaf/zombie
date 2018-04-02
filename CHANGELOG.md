@@ -6,6 +6,11 @@ Node 4/6.
 Upgraded from JSDOM 7.2.2 to JSDOM 11.5.1.  Tons on new stuff, see:
 https://github.com/jsdom/jsdom/blob/master/Changelog.md#1151
 
+Various browser methods, like focus, fill, etc now take a callback, or return a
+promise.
+
+Resolved issue with about:blank pages.
+
   737 passing (20s)
   12 pending
 
