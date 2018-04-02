@@ -708,13 +708,17 @@ function parseResponse({ browser, history, document, response }) {
 // Returns a new document with a new window.  The document contents is loaded
 // asynchronously, and will trigger a loaded/error event.
 module.exports = function loadDocument(args) {
-  const { browser, history, html, url } = args;
+  var { browser, history, html, url } = args;
   assert(browser && browser.visit, 'Missing parameter browser');
   assert(history && history.reload, 'Missing parameter history');
 
   const document = createDocument(Object.assign({ url }, args));
   const window   = document.defaultView;
 
+  if (url && (url =='about:blank')){
+    html = '<html><head></head><body></body></html>';
+  }
+  
   if (html) {
     window._eventQueue.enqueue(function() {
       document.write(html);
