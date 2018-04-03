@@ -3,14 +3,12 @@
 
 [![NPM](https://img.shields.io/npm/v/zombie.svg?style=flat-square&label=latest)](https://www.npmjs.com/package/zombie)
 [![Changelog](https://img.shields.io/badge/see-CHANGELOG-red.svg?style=flat-square)](https://github.com/assaf/zombie/blob/master/CHANGELOG.md)
-<img width="12" src="data:image/gif;base64,R0lGODlhAQABAPAAAP">
-![Node](https://img.shields.io/node/v/zombie.svg?style=flat-square&label=io.js)
 [![Travis.ci](https://img.shields.io/travis/assaf/zombie.svg?style=flat-square)](https://travis-ci.org/assaf/zombie)
 <img width="12" src="data:image/gif;base64,R0lGODlhAQABAPAAAP">
 [![JS.ORG](https://img.shields.io/badge/js.org-zombie-ffb400.svg?style=flat-square)](http://js.org)
 
-**Zombie 4.x** is tested to work with [io.js 1.6 or later](https://iojs.org/en/index.html).
-If you need to use Node 0.12 or earlier, consider using Zombie 2.x.
+**Zombie 6.x** is tested to work with Node 8 or later.
+If you need to use Node 6, consider using Zombie 5.x.
 
 
 
@@ -121,7 +119,7 @@ Well, that was easy.
 
 ## Installing
 
-To install Zombie.js you will need [io.js](https://iojs.org/):
+To install Zombie.js you will need [Node.js](https://nodejs.org/):
 
 ```bash
 $ npm install zombie --save-dev
@@ -175,6 +173,23 @@ browser.proxy = 'http://me:secret@myproxy:8080'
 
 Collection of errors accumulated by the browser while loading page and executing
 scripts.
+
+#### browser.source
+
+Returns a string of the source HTML from the last response.
+
+#### browser.html(element)
+
+Returns a string of HTML for a selected HTML element. If argument `element` is `undefined`, the function returns a string of the source HTML from the last response.
+
+Example uses:
+
+```
+browser.html('div');
+browser.html('div#contain');
+browser.html('.selector');
+browser.html();
+```
 
 #### Browser.localhost(host, port)
 
@@ -231,8 +246,13 @@ Browser.extend(function(browser) {
 });
 ```
 
+### Browser.evaluate
 
+You can use this to evaluate javascript in the browser, it's similar to `browser.assert.evaluate`
 
+```js
+Browser.evaluate('document.querySelector("a").class')
+```
 
 ## Assertions
 
@@ -359,8 +379,8 @@ With two/three arguments, asserts that the returned value matches the expected
 value.
 
 ```js
-browser.assert.evaluate('$('form').data('valid')');
-browser.assert.evaluate('$('form').data('errors').length', 3);
+browser.assert.evaluate('$("form").data("valid")');
+browser.assert.evaluate('$("form").data("errors").length', 3);
 ```
 
 #### assert.global(name, expected, message)
@@ -524,7 +544,7 @@ domain.
 Consider this code:
 
 ```js
-browser.setCookie(name: 'session', domain: 'example.com', value: 'delicious');
+browser.setCookie({ name: 'session', domain: 'example.com', value: 'delicious' });
 browser.visit('http://example.com', function() {
   const value = browser.getCookie('session');
   console.log('Cookie', value);
