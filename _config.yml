@@ -1,0 +1,8 @@
+title: Zombie
+description: Insanely fast, full-stack, headless browser testing using node.js
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-minimal
+
+gems:
+  - jekyll-mentions
