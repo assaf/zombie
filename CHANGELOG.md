@@ -1,3 +1,207 @@
+## Version 6.1.0 2018-04-02
+
+Documenting browser.evaluate #1014
+
+Fix potential memory leak when deleting all cookies  #1016
+
+Fetch HeadersInit as an Array fixed and tests  #1037
+
+Added ability to disable html5 history using history5 option #359
+
+Clear cookie header on redirect #1038
+
+Reorder events in selectOption - causes a bad interaction in some 2-way binding scenarios #1023
+
+Inline scripts with invalid type attribute get executed #978
+
+  742 passing (20s)
+  12 pending
+
+
+## Version 6.0.0 2018-04-02
+
+Zombie 6.0.0 is tested to run on Node 8.10 and Node 9.8.  We no longer support
+Node 4/6.
+
+Upgraded from JSDOM 7.2.2 to JSDOM 11.5.1.  Tons on new stuff, see:
+https://github.com/jsdom/jsdom/blob/master/Changelog.md#1151
+
+Various browser methods, like focus, fill, etc now take a callback, or return a
+promise.
+
+Resolved issue with about:blank pages.
+
+  737 passing (20s)
+  12 pending
+
+
+## Version 5.0.8 2018-02-22
+
+FIXED rerouting in Node 8
+
+
+## Version 5.0.7 2017-06-26
+
+FIXED `browser.fill` with React was not working
+
+  732 passing (28s)
+  12 pending
+
+
+## Version 5.0.6 2017-06-26
+
+ADDED support for [cancelAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window/cancelAnimationFrame)
+
+ADDED support for [document.hasFocus](https://developer.mozilla.org/en-US/docs/Web/API/Document/hasFocus)
+
+  732 passing (22s)
+  12 pending
+
+
+## Version 5.0.5 2016-11-22
+
+CHANGED Support aborting XMLHttpRequests in the DONE state
+
+  731 passing (22s)
+  12 pending
+
+
+## Version 5.0.4 2016-11-09
+
+CHANGED Honor timeout in refresh meta tag.
+
+  727 passing (17s)
+  12 pending
+
+
+## Version 5.0.3 2016-11-09
+
+CHANGED button() to find input elements with type 'reset' and 'button' in
+addition to 'submit'
+
+  727 passing (17s)
+  12 pending
+
+
+## Version 5.0.2 2016-11-08
+
+ADDED implementations of offsetWidth, offsetHeight and fixed getClientRects
+so that jquery will detect reliableHiddenOffsets as true
+
+  726 passing (17s)
+  12 pending
+
+
+## Version 5.0.1 2016-11-04
+
+ADDED stub implementation of HTMLElement.getClientRects() to support jquery 1.12 implementation of width()
+
+701 passing (16s)
+  12 pending
+
+
+## Version 5.0.0 2016-11-03
+
+Bumping the major version because jsdom is such a core component to zombie
+that major updates to it have the impact to show as breaking changes to
+zombie users.
+
+UPDATED jsdom to ^7
+
+701 passing (16s)
+  12 pending
+
+
+## Version 4.3.0 2016-10-24
+
+ADDED support for node v6
+
+CHANGED updated to use ws 1.x
+
+701 passing (14s)
+  12 pending
+
+
+## Version 4.2.1 2015-10-28
+
+FIXED missing lib directory
+
+697 passing (27s)
+  12 pending
+
+
+## Version 4.2.0 2015-10-28
+
+CHANGED updated to use Bluebird 3.x
+
+697 passing (23s)
+  12 pending
+
+
+## Version 4.1.0 2015-08-21
+
+FIXED using properties instead of attributes whenever possible
+
+FIXED storage should use Map instead of object literal
+
+697 passing (23s)
+  12 pending
+
+
+## Version 4.0.13 2015-06-25
+
+FIXED Multipart submission breaks for simple values
+
+697 passing (24s)
+  12 pending
+
+
+## Version 4.0.12 2015-06-23
+
+Work around some Babel.js bugs.
+
+697 passing (24s)
+  12 pending
+
+
+## Version 4.0.11 2015-06-12
+
+Upgraded to JSDOM 5.3.0.
+
+ 697 passing (24s)
+  12 pending
+
+
+## Version 4.0.10 2015-04-29
+
+Upgraded to JSDOM 5.2.0 and tough-cookie 1.1.0
+
+ 694 passing (22s)
+  12 pending
+
+
+## Version 4.0.9 2015-04-25
+
+Upgraded to JSDOM 5.1.0
+
+FIXED assertion errors not propagating out of wait callback
+
+ 694 passing (22s)
+  12 pending
+
+
+## Version 4.0.8 2015-04-19
+
+Upgraded to JSDOM 5.0.1
+
+ADDED expose Browser.Request/Response/Headers
+
+CHANGED use regexp instead of startsWith
+
+ 694 passing (22s)
+  12 pending
+
+
 ## Version 4.0.7 2015-04-10
 
 Version 4.0 requires io.js, see:
@@ -1109,11 +1313,11 @@ Event loop keeps processing past errors.
 ## Version 0.11.0  2011-11-20
 
 Changed error handling for the better.
-    
+
 Calling browser.wait or browser.visit no longer passed the
 resource/JavaScript error as the first argument, and will continue
 processing if there are multiple errors.
-    
+
 Instead, an array of errors is passed as the fourth argument.  You can
 also access `browser.errors` and to get just the last one, e.g.  to
 check if any errors were reported, use `browser.error`.
@@ -1171,7 +1375,7 @@ Fixes #164 jQuery selectors with explicit context fail.
 
 Better stack traces for client-side JS.  This will help in debugging and
 filing issues.
-    
+
 Updated installation instructions for OS X/Windows.
 
 Upgraded to JSDOM 0.2.4 and testing with jQuery 1.6.3.

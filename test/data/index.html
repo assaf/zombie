@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Insanely fast, headless full-stack testing using Node.js</title>
+    <link href="css/screen.css" media="screen,projection" rel="stylesheet" type="text/css">
+    <link href="css/print.css" media="print" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+    <div id="header">
+      <div class="title"><a href="/">Zombie.js</a></div>
+    </div>
+    <div id="sidebar">
+      <ul class="navigation">
+        <li><a href="/">Getting Started</a></li>
+        <li><a href="api.html">The API</a></li>
+        <li><a href="selectors.html">CSS Selectors</a></li>
+        <li><a href="troubleshoot.html">Troubleshooting</a></li>
+        <li><a href="guts.html">The Guts</a></li>
+        <li><a href="zombie.pdf">Download PDF</a></li>
+        <li>&nbsp;</li>
+        <li><a href="https://groups.google.com/forum/?hl=en#!forum/zombie-js">Google Group</a></li>
+        <li><a href="irc://irc.freenode.net/zombie.js">IRC: #zombie.js</a></li>
+        <li><a href="https://github.com/assaf/zombie">Github/Issues</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+        <li><a href="source/">Annotated Source</a></li>
+        <li><a href="http://travis-ci.org/assaf/zombie"><img src="http://travis-ci.org/assaf/zombie.png"></a></li>
+      </ul>
+      <div class="donate">
+        <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+          <input type="hidden" name="cmd" value="_s-xclick">
+          <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+          ">
+          <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+          <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+        </form>
+        More Magic!
+      </div>
+    </div>
+    <div id="content">
+      <h1>Zombie.js</h1><b>Insanely fast, headless full-stack testing using Node.js</b>
+      <html><h2 id="The-Bite">The Bite</h2><p>If you're going to write an insanely fast, headless browser, how can you not
+call it Zombie?  Zombie it is.</p><p>Zombie.js is a lightweight framework for testing client-side JavaScript code in
+a simulated environment.  No browser required.</p><p>Let's try to sign up to a page and see what happens:</p><pre><code>var zombie = require("zombie");
+var assert = require("assert");
+
+// Load the page from localhost
+zombie.visit("http://localhost:3000/", function (err, browser, status) {
+
+  // Fill email, password and submit form
+  browser.
+    fill("email", "zombie@underworld.dead").
+    fill("password", "eat-the-living").
+    pressButton("Sign Me Up!", function(err, browser, status) {
+
+      // Form submitted, new page loaded.
+      assert.equal(browser.text("title"), "Welcome To Brains Depot");
+
+    })
+
+});</code></pre><p>Well, that was easy.</p><h2 id="Infection">Infection</h2><p>To install Zombie.js you need Node.js, NPM, a C++ compiler and Python.</p><p>On OS X start by installing XCode, that will get you the build
+toolchain.  Next, assuming you're using
+<a href="http://mxcl.github.com/homebrew/">Homebrew</a>:</p><pre><code>$ brew install node
+$ node --version
+v0.4.10
+$ curl http://npmjs.org/install.sh | sudo sh
+$ npm --version
+1.0.22
+$ npm install zombie</code></pre><p>On Ubuntu try these steps:</p><pre><code>$ apt-get install build-essential python node
+$ node --version
+v0.4.0
+$ curl http://npmjs.org/install.sh | sudo sh
+$ npm --version
+1.0.22
+$ npm install zombie</code></pre><p>I have no idea if you can get Zombie to install on Windows. Maybe with
+Cygwin. Good luck.</p><h2 id="Walking">Walking</h2><p>To start off we're going to need a browser.  A browser maintains state
+across requests: history, cookies, HTML 5 local and session stroage.  A
+browser has a main window, and typically a document loaded into that
+window.</p><p>You can create a new <code>zombie.Browser</code> and point it at a document, either
+by setting the <code>location</code> property or calling its <code>visit</code> function.  As
+a shortcut, you can just call the <code>zombie.visit</code> function with a URL and
+callback.</p><p>The browser will load the document and if the document includes any
+scripts, also load and execute these scripts.  It will then process some
+events, for example, anything your scripts do on page load.  All of
+that, just like a real browser, happens asynchronously.</p><p>To wait for the page to fully load and all events to fire, you pass
+<code>visit</code> a callback function.  This function takes two arguments.  If
+everything is successful (page loaded, events run), the callback is
+called with <code>null</code> and a reference to the browser.  If anything went
+wrong (page not loaded, event errors), the callback is called with an
+error.</p><p>If you worked with Node.js before you're familiar with this callback
+pattern.  Every time you see a callback in the Zombie.js API, it works
+that way: the first argument is an error, or null if there is no error.
+And if there are no errors, the remaining arguments may hold interesting
+values.</p><p>For example, the callback you pass to <code>visit</code> receives the browser as
+the second argument and HTTP status code as the third argument.</p><p>Whenever you want to wait for all events to be processed, just call
+<code>browser.wait</code> with a callback.</p><p>Read more <a href="api">on the Browser API</a></p><h2 id="Hunting">Hunting</h2><p>There are several ways you can inspect the contents of a document.  For
+starters, there's the <a href="http://www.w3.org/DOM/DOMTR">DOM API</a>, which you
+can use to find elements and traverse the document tree.</p><p>You can also use CSS selectors to pick a specific element or node list.
+Zombie.js implements the <a href="http://www.w3.org/TR/selectors-api/">DOM Selector
+API</a>.  These functions are
+available from every element, the document, and the <code>Browser</code> object
+itself.</p><p>To get the HTML contents of an element, read its <code>innerHTML</code> property.
+If you want to include the element itself with its attributes, read the
+element's <code>outerHTML</code> property instead.  Alternatively, you can call the
+<code>browser.html</code> function with a CSS selector and optional context
+element.  If the function selects multiple elements, it will return the
+combined HTML of them all.</p><p>To see the textual contents of an element, read its <code>textContent</code>
+property.  Alternatively, you can call the <code>browser.text</code> function with
+a CSS selector and optional context element.  If the function selects
+multiple elements, it will return the combined text contents of them
+all.</p><p>Here are a few examples for checking the contents of a document:</p><pre><code>// Make sure we have an element with the ID brains.
+assert.ok(browser.querySelector("#brains"));
+
+// Make sure body has two elements with the class hand.
+assert.equal(browser.body.querySelectorAll(".hand").length, 2);
+
+// Check the document title.
+assert.equal(browser.text("title"), "The Living Dead");
+
+// Show me the document contents.
+console.log(browser.html());
+
+// Show me the contents of the parts table:
+console.log(browser.html("table.parts"));</code></pre><p>CSS selectors are implemented by Sizzle.js.  In addition to CSS 3
+selectors you get additional and quite useful extensions, such as
+<code>:not(selector)</code>, <code>[NAME!=VALUE]</code>, <code>:contains(TEXT)</code>, <code>:first/:last</code> and
+so forth.  Check out the <a href="https://github.com/jeresig/sizzle/wiki">Sizzle.js
+documentation</a> for more details.</p><p>Read more <a href="api">on the Browser API</a> and <a href="selectors">CSS
+selectors</a></p><h2 id="Feeding">Feeding</h2><p>You're going to want to perform some actions, like clicking links,
+entering text, submitting forms.  You can certainly do that using the
+<a href="http://www.w3.org/DOM/DOMTR">DOM API</a>, or several of the convenience
+functions we're going to cover next.</p><p>To click a link on the page, use <code>clickLink</code> with selector and callback.
+The first argument can be a CSS selector (see <em>Hunting</em>), the <code>A</code>
+element, or the text contents of the <code>A</code> element you want to click.</p><p>The second argument is a callback, which much like the <code>visit</code> callback
+gets fired after all events are processed, with either an error, or
+<code>null</code>, the browser and the HTTP status code.</p><p>Let's see that in action:</p><pre><code>// Now go to the shopping cart page and check that we have
+// three bodies there.
+browser.clickLink("View Cart", function(err, browser, status) {
+  assert.equal(browser.querySelectorAll("#cart .body"), 3);
+});</code></pre><p>To submit a form, use <code>pressButton</code>.  The first argument can be a CSS
+selector, the button/input element. the button name (the value of the
+<code>name</code> argument) or the text that shows on the button.  You can press
+any <code>BUTTON</code> element or <code>INPUT</code> of type <code>submit</code>, <code>reset</code> or <code>button</code>.
+The second argument is a callback, just like <code>clickLink</code>.</p><p>Of course, before submitting a form, you'll need to fill it with values.
+For text fields, use the <code>fill</code> function, which takes two arguments:
+selector and the field value.  This time the selector can be a CSS
+selector, the input element, the field name (its <code>name</code> attribute), or
+the text that shows on the label associated with that field.</p><p>Zombie.js supports text fields, password fields, text areas, and also
+the new HTML 5 fields types like email, search and url.</p><p>The <code>fill</code> function returns a reference to the browser, so you can chain
+several functions together.  Its sibling functions <code>check</code> and <code>uncheck</code>
+(for check boxes), <code>choose</code> (for radio buttons) and <code>select</code> (for drop
+downs) work the same way.</p><p>Let's combine all of that into one example:</p><pre><code>// Fill in the form and submit.
+browser.
+  fill("Your Name", "Arm Biter").
+  fill("Profession", "Living dead").
+  select("Born", "1968").
+  uncheck("Send me the newsletter").
+  pressButton("Sign me up", function(err, browser, status) {
+    // Make sure we got redirected to thank you page.
+    assert.equal(browser.location, "http://localhost:3003/thankyou");
+  });</code></pre><p>Read more <a href="api">on the Browser API</a></p><h2 id="Readiness">Readiness</h2><p>Zombie.js supports the following:</p><ul><li>HTML5 parsing and dealing with tag soups</li><li><a href="http://www.w3.org/DOM/DOMTR">DOM Level 3</a> implementation</li><li>HTML5 form fields (<code>search</code>, <code>url</code>, etc)</li><li>CSS3 Selectors with <a href="http://sizzlejs.com/">some extensions</a></li><li>Cookies and <a href="http://dev.w3.org/html5/webstorage/">Web Storage</a></li><li><code>XMLHttpRequest</code> in all its glory</li><li><code>setTimeout</code>/<code>setInterval</code> and messing with the system clock</li><li><code>pushState</code>, <code>popstate</code> and <code>hashchange</code> events</li><li>Scripts that use <code>document.write</code></li><li><code>alert</code>, <code>confirm</code> and <code>prompt</code></li></ul><h2 id="In-The-Family">In The Family</h2><p><strong><a href="https://github.com/plataformatec/capybara-zombie">capybara-zombie</a></strong> -- Capybara driver for zombie.js running on top of node.</p><p><strong><a href="https://github.com/mileskin/zombie-jasmine-spike">zombie-jasmine-spike</a></strong> -- Spike project for trying out Zombie.js with Jasmine</p><h2 id="Reporting-Glitches">Reporting Glitches</h2><p><strong>Step 1:</strong> Run Zombie with debugging turned on, the trace will help
+figure out what it's doing. For example:</p><pre><code>var browser = new zombie.Browser({ debug: true });
+browser.visit("http://thedead", function(err, browser, status) {
+  if (err)
+    throw(err.message);
+  ...
+});</code></pre><p><strong>Step 2:</strong> Wait for it to finish processing, then dump the current
+browser state:</p><p>   brower.dump();</p><p><strong>Step 3:</strong> If publicly available, include the URL of the page you're
+trying to access.  Even better, provide a test script I can run from the
+Node.js console (similar to step 1 above).</p><p>Read more <a href="troubleshoot">about troubleshooting</a></p><h2 id="Giving-Back">Giving Back</h2><ul><li>Find <a href="http://github.com/assaf/zombie">assaf/zombie on Github</a></li><li>Fork the project</li><li>Add tests</li><li>Make your changes</li><li>Send a pull request</li></ul><p>Read more <a href="guts">about the guts of Zombie.js</a> and check out the
+outstanding <a href="todo">to-dos</a>.</p><p>Follow announcements, ask questions on <a href="https://groups.google.com/forum/?hl=en#!forum/zombie-js">the Google
+Group</a></p><p>Get help on IRC: join <a href="irc://irc.freenode.net/zombie.js">zombie.js on
+Freenode</a> or <a href="http://webchat.freenode.net/?channels=zombie-js">web-based
+IRC</a></p><h2 id="Brains">Brains</h2><p>Zombie.js is copyright of <a href="http://labnotes.org">Assaf Arkin</a>, released
+under the MIT License</p><p>Blood, sweat and tears of joy:</p><p><a href="https://github.com/djanowski">Damian Janowski aka djanowski</a></p><p><a href="http://blog.plataformatec.com.br/">José Valim aka josevalim</a></p><p><a href="http://boblail.tumblr.com/">Bob Lail boblail</a></p><p>And all the fine people mentioned in <a href="changelog">the changelog</a>.</p><p>Zombie.js is written in
+<a href="http://jashkenas.github.com/coffee-script/">CoffeeScript</a> for
+<a href="http://nodejs.org/">Node.js</a></p><p>DOM emulation by Elijah Insua's <a href="http://jsdom.org/">JSDOM</a></p><p>HTML5 parsing by Aria Stewart's <a href="https://github.com/aredridel/html5">HTML5</a></p><p>CSS selectors by John Resig's <a href="http://sizzlejs.com/">Sizzle.js</a></p><p>XPath support using Google's <a href="http://code.google.com/p/ajaxslt/">AJAXSLT</a></p><p>Magical Zombie Girl by <a href="http://www.flickr.com/people/tohoscope/">Toho Scope</a></p><h2 id="See-Also">See Also</h2><p><strong>zombie-api</strong>(7), <strong>zombie-troubleshoot</strong>(7), <strong>zombie-selectors</strong>(7), <strong>zombie-changelog</strong>(7), <strong>zombie-todo</strong>(7)</p></html>
+
+    </div>
+    <div id="footer">
+      Zombie.js brought to you by <a href="https://github.com/assaf/zombie/contributors">very alive people</a>.
+    </div>
+  </body>
+</html>

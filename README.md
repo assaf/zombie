@@ -3,14 +3,12 @@
 
 [![NPM](https://img.shields.io/npm/v/zombie.svg?style=flat-square&label=latest)](https://www.npmjs.com/package/zombie)
 [![Changelog](https://img.shields.io/badge/see-CHANGELOG-red.svg?style=flat-square)](https://github.com/assaf/zombie/blob/master/CHANGELOG.md)
-<img width="12" src="data:image/gif;base64,R0lGODlhAQABAPAAAP">
-![Node](https://img.shields.io/node/v/zombie.svg?style=flat-square&label=io.js)
 [![Travis.ci](https://img.shields.io/travis/assaf/zombie.svg?style=flat-square)](https://travis-ci.org/assaf/zombie)
 <img width="12" src="data:image/gif;base64,R0lGODlhAQABAPAAAP">
 [![JS.ORG](https://img.shields.io/badge/js.org-zombie-ffb400.svg?style=flat-square)](http://js.org)
 
-**Zombie 4.x** is tested to work with [io.js](https://iojs.org/en/index.html).
-For Node compatibility, consider using Zombie 3.x.
+**Zombie 6.x** is tested to work with Node 8 or later.
+If you need to use Node 6, consider using Zombie 5.x.
 
 
 
@@ -121,14 +119,11 @@ Well, that was easy.
 
 ## Installing
 
-To install Zombie.js you will need [io.js](https://iojs.org/) or
-[Node.js](http://nodejs.org/) 0.10/0.12, and the [C++ toolchain and
-Python](https://github.com/TooTallNate/node-gyp).
+To install Zombie.js you will need [Node.js](https://nodejs.org/):
 
 ```bash
 $ npm install zombie --save-dev
 ```
-
 
 
 
@@ -179,6 +174,23 @@ browser.proxy = 'http://me:secret@myproxy:8080'
 Collection of errors accumulated by the browser while loading page and executing
 scripts.
 
+#### browser.source
+
+Returns a string of the source HTML from the last response.
+
+#### browser.html(element)
+
+Returns a string of HTML for a selected HTML element. If argument `element` is `undefined`, the function returns a string of the source HTML from the last response.
+
+Example uses:
+
+```
+browser.html('div');
+browser.html('div#contain');
+browser.html('.selector');
+browser.html();
+```
+
 #### Browser.localhost(host, port)
 
 Allows you to make requests against a named domain and HTTP/S port, and will
@@ -191,8 +203,9 @@ do this:
 ```js
 Browser.localhost('example.com', 3000)
 browser.visit('/path', function() {
-  assert(browser.location.href == 'http://example.com/path');
+  console.log(browser.location.href);
 });
+=> 'http://example.com/path'
 ```
 
 The first time you call `Browser.localhost`, if you didn't specify
@@ -366,8 +379,8 @@ With two/three arguments, asserts that the returned value matches the expected
 value.
 
 ```js
-browser.assert.evaluate('$('form').data('valid')');
-browser.assert.evaluate('$('form').data('errors').length', 3);
+browser.assert.evaluate('$("form").data("valid")');
+browser.assert.evaluate('$("form").data("errors").length', 3);
 ```
 
 #### assert.global(name, expected, message)
@@ -531,7 +544,7 @@ domain.
 Consider this code:
 
 ```js
-browser.setCookie(name: 'session', domain: 'example.com', value: 'delicious');
+browser.setCookie({ name: 'session', domain: 'example.com', value: 'delicious' });
 browser.visit('http://example.com', function() {
   const value = browser.getCookie('session');
   console.log('Cookie', value);
@@ -887,6 +900,22 @@ etc).
 
 
 
+## Authentication
+
+Zombie supports HTTP basic access authentication. To provide the login credentials:
+
+```js
+browser.on('authenticate', function(authentication) {
+  authentication.username = 'myusername';
+  authentication.password = 'mypassword';
+});
+
+browser.visit('/mypage');
+```
+
+
+
+
 ## Resources
 
 Zombie can retrieve with resources - HTML pages, scripts, XHR requests - over
@@ -927,7 +956,7 @@ has the property `status`, whereas Node HTTP module uses `statusCode`.
 
 You can use the browser directly to make requests against external resources.
 These requests will share the same cookies, authentication and other browser
-settings (also pipline).
+settings (also pipeline).
 
 The `fetch` method is based on the [Fetch
 API](https://fetch.spec.whatwg.org/#fetch-method).
