@@ -10,6 +10,7 @@ const Utils   = require('jsdom/lib/jsdom/utils');
 const EventTarget = require('jsdom/lib/jsdom/living/generated/EventTarget');
 
 const { DOMException } = DOM;
+const { idlUtils }   = require('./dom/impl');
 
 
 class XMLHttpRequest {
@@ -33,6 +34,9 @@ class XMLHttpRequest {
 
     // XHR events need the first to dispatch, the second to propagate up to window
     this._ownerDocument = window.document;
+    this._ownerDocument._defaultView = window;
+    window[idlUtils.wrapperSymbol] = window;
+    idlUtils.implForWrapper(this)._ownerDocument = this._ownerDocument;
   }
 
 
@@ -79,7 +83,7 @@ class XMLHttpRequest {
     const headers = new Fetch.Headers();
 
     // Normalize the URL and check security
-    url = URL.parse(Utils.resolveHref(this._window.location.href, url));
+    url = URL.parse(URL.resolve(this._window.location.href, url));
     // Don't consider port if they are standard for http and https
     if ((url.protocol === 'https:' && url.port === '443') ||
         (url.protocol === 'http:'  && url.port === '80'))
@@ -259,13 +263,23 @@ class XMLHttpRequest {
     const event = new DOM.Event('xhr');
     event.initEvent(eventName, true, true);
     event.error = error;
-    this.dispatchEvent(event);
+    this._dispatchEvent(event);
     this._browser.emit('xhr', eventName, this._url);
   }
 
   // Raise error coming from jsdom
   raise(type, message, data) {
     this._ownerDocument.raise(type, message, data);
+  }
+
+  _dispatchEvent(event) {
+    const listener = this[`on${event.type}`];
+    if (listener)
+      this[idlUtils.implSymbol]._eventListeners[event.type] = [{
+        callback: listener,
+        options: {}
+      }];
+    this.dispatchEvent(event);
   }
 
 }
@@ -279,4 +293,3 @@ XMLHttpRequest.LOADING          = 3;
 XMLHttpRequest.DONE             = 4;
 
 module.exports = XMLHttpRequest;
-

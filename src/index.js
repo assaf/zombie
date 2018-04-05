@@ -23,8 +23,7 @@ const Tough             = require('tough-cookie');
 const { Cookie }        = Tough;
 const URL               = require('url');
 const Utils             = require('jsdom/lib/jsdom/utils');
-const fileListSymbols   = require('jsdom/lib/jsdom/living/filelist-symbols');
-
+const { idlUtils }    = require('./dom/impl');
 
 // Version number.  We get this from package.json.
 const VERSION = require(`${__dirname}/../package.json`).version;
@@ -363,6 +362,7 @@ class Browser extends EventEmitter {
     const event = this.document.createEvent(eventType);
     event.initEvent(eventName, true, true);
     target.dispatchEvent(event);
+    if (selector.tagName === 'BUTTON' || selector.tagName == 'INPUT') selector._click(event);
     return this._wait(null, callback);
   }
 
@@ -539,7 +539,7 @@ class Browser extends EventEmitter {
       [options, callback] = [{}, options];
 
     const site = /^(https?:|file:)/i.test(this.site) ? this.site : `http://${this.site || 'localhost'}/`;
-    url = Utils.resolveHref(site, URL.format(url));
+    url = URL.resolve(site, url);
 
     if (this.window)
       this.tabs.close(this.window);
@@ -701,26 +701,30 @@ class Browser extends EventEmitter {
   }
 
 
-  // browser.focus(selector) : Element
+  // browser.focus(selector, callback) : null or lazy Promise
   //
   // Turns focus to the selected input field.  Shortcut for calling `field(selector).focus()`.
-  focus(selector) {
+  // callback - Called with error or nothing
+  //
+  // If called without callback, returns a promise
+  focus(selector, callback) {
     const field = this.field(selector) || this.query(selector);
     assert(field, `No form field matching '${selector}'`);
     field.focus();
-    return this;
+    return this._wait(null, callback);
   }
 
 
-  // browser.fill(selector, value) => this
+  // browser.fill(selector, value, callback) => null or lazy Promise
   //
   // Fill in a field: input field or text area.
   //
   // selector - CSS selector, field name or text of the field label
   // value - Field value
+  // callback - Called with error or nothing
   //
-  // Returns this.
-  fill(selector, value) {
+  // If called without callback, returns a promise
+  fill(selector, value, callback) {
     const field = this.field(selector);
     assert(field && (field.tagName === 'TEXTAREA' || (field.tagName === 'INPUT')), `No INPUT matching '${selector}'`);
     assert(!field.disabled, 'This INPUT field is disabled');
@@ -737,10 +741,10 @@ class Browser extends EventEmitter {
     this.fire(field, 'input', false);
     // Switch focus out of field, if value changed, this will emit change event
     field.blur();
-    return this;
+    return this._wait(null, callback);
   }
 
-  _setCheckbox(selector, value) {
+  _setCheckbox(selector, value, callback) {
     const field = this.field(selector);
     assert(field && field.tagName === 'INPUT' && field.type === 'checkbox', `No checkbox INPUT matching '${selector}'`);
     assert(!field.disabled, 'This INPUT field is disabled');
@@ -748,44 +752,47 @@ class Browser extends EventEmitter {
 
     if (field.checked ^ value)
       field.click();
-    return this;
+    return this.wait(null, callback);
   }
 
-  // browser.check(selector) => this
+  // browser.check(selector, callback) => null or lazy Promise
   //
   // Checks a checkbox.
   //
   // selector - CSS selector, field name or text of the field label
+  // callback - called with error or nothing.
   //
-  // Returns this.
-  check(selector) {
-    return this._setCheckbox(selector, true);
+  // If called without callback, returns a promise
+  check(selector, callback) {
+    return this._setCheckbox(selector, true, callback);
   }
 
-  // browser.uncheck(selector) => this
+  // browser.uncheck(selector, callback) => null or lazy Promise
   //
   // Unchecks a checkbox.
   //
   // selector - CSS selector, field name or text of the field label
+  // callback - called with error or nothing.
   //
-  // Returns this.
-  uncheck(selector) {
-    return this._setCheckbox(selector, false);
+  // If called without callback, returns a promise
+  uncheck(selector, callback) {
+    return this._setCheckbox(selector, false, callback);
   }
 
-  // browser.choose(selector) => this
+  // browser.choose(selector, callback) => null or lazy Promise
   //
   // Selects a radio box option.
   //
   // selector - CSS selector, field value or text of the field label
+  // callback - called with error or nothing.
   //
-  // Returns this.
-  choose(selector) {
+  // If called without callback, returns a promise
+  choose(selector, callback) {
     const field = this.field(selector) || this.field(`input[type=radio][value=\'${escape(selector)}\']`);
     assert(field && field.tagName === 'INPUT' && field.type === 'radio', `No radio INPUT matching '${selector}'`);
 
     field.click();
-    return this;
+    return this._wait(null, callback);
   }
 
   _findOption(selector, value) {
@@ -810,60 +817,62 @@ class Browser extends EventEmitter {
     throw new Error(`No OPTION '${value}'`);
   }
 
-  // browser.select(selector, value) => this
+  // browser.select(selector, value) => null or lazy Promise
   //
   // Selects an option.
   //
   // selector - CSS selector, field name or text of the field label
   // value - Value (or label) or option to select
+  // callback - called with error or nothing.
   //
-  // Returns this.
-  select(selector, value) {
+  // If called without callback, returns a promise
+  select(selector, value, callback) {
     const option = this._findOption(selector, value);
-    this.selectOption(option);
-    return this;
+    return this.selectOption(option, callback);
   }
 
-  // browser.selectOption(option) => this
+  // browser.selectOption(option) => null or lazy Promise
   //
   // Selects an option.
   //
   // option - option to select
+  // callback - called with error or nothing.
   //
-  // Returns this.
-  selectOption(selector) {
+  // If called without callback, returns a promise
+  selectOption(selector, callback) {
     const option = this.query(selector);
     if (option && !option.selected) {
       const select = this.xpath('./ancestor::select', option).iterateNext();
-      option.selected = true;
       select.focus();
+      option.selected = true;
       this.fire(select, 'change', false);
     }
-    return this;
+    return this._wait(null, callback);
   }
 
-  // browser.unselect(selector, value) => this
+  // browser.unselect(selector, value, callback) => null or lazy Promise
   //
   // Unselects an option.
   //
   // selector - CSS selector, field name or text of the field label
   // value - Value (or label) or option to unselect
+  // callback - called with error or nothing.
   //
-  // Returns this.
-  unselect(selector, value) {
+  // If called without callback, returns a promise
+  unselect(selector, value, callback) {
     const option = this._findOption(selector, value);
-    this.unselectOption(option);
-    return this;
+    return this.unselectOption(option, callback);
   }
 
-  // browser.unselectOption(option) => this
+  // browser.unselectOption(option, callback) => null or lazy Promise
   //
   // Unselects an option.
   //
   // selector - selector or option to unselect
+  // callback - called with error or nothing.
   //
-  // Returns this.
-  unselectOption(selector) {
+  // If called without callback, returns a promise
+  unselectOption(selector, callback) {
     const option = this.query(selector);
     if (option && option.selected) {
       const select = this.xpath('./ancestor::select', option).iterateNext();
@@ -872,15 +881,16 @@ class Browser extends EventEmitter {
       select.focus();
       this.fire(select, 'change', false);
     }
-    return this;
+    return this._wait(null, callback);
   }
 
-  // browser.attach(selector, filename) => this
+  // browser.attach(selector, filename, callback) => null or lazy Promise
   //
   // Attaches a file to the specified input field.  The second argument is the file name.
+  // callback - called with error or nothing.
   //
-  // Returns this.
-  attach(selector, filename) {
+  // If called without callback, returns a promise
+  attach(selector, filename, callback) {
     const field = this.field(selector);
     assert(field && field.tagName === 'INPUT' && field.type === 'file', `No file INPUT matching '${selector}'`);
 
@@ -891,7 +901,7 @@ class Browser extends EventEmitter {
       file.type = Mime.lookup(filename);
       file.size = stat.size;
 
-      field.value = filename;
+      Object.defineProperty(field, 'value', {value: filename});
       const oldFiles = field.files;
       if (typeof(oldFiles) !== 'array') {
         // JSDOM does not support an API to mock a list of files, and the default
@@ -904,7 +914,7 @@ class Browser extends EventEmitter {
     }
     field.focus();
     this.fire(field, 'change', false);
-    return this;
+    return this._wait(null, callback);
   }
 
   // browser.button(selector) : Element
@@ -953,6 +963,7 @@ class Browser extends EventEmitter {
     assert(button, `No BUTTON '${selector}'`);
     assert(!button.disabled, 'This button is disabled');
     button.focus();
+    const impl = idlUtils.implForWrapper(button);
     return this.fire(button, 'click', callback);
   }
 

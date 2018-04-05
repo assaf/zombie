@@ -7,8 +7,8 @@
 <img width="12" src="data:image/gif;base64,R0lGODlhAQABAPAAAP">
 [![JS.ORG](https://img.shields.io/badge/js.org-zombie-ffb400.svg?style=flat-square)](http://js.org)
 
-**Zombie 5.x** is tested to work with node.js 4 to 6.
-If you need to use Node 0.12 or earlier, consider using Zombie 2.x.
+**Zombie 6.x** is tested to work with Node 8 or later.
+If you need to use Node 6, consider using Zombie 5.x.
 
 
 
@@ -173,6 +173,23 @@ browser.proxy = 'http://me:secret@myproxy:8080'
 
 Collection of errors accumulated by the browser while loading page and executing
 scripts.
+
+#### browser.source
+
+Returns a string of the source HTML from the last response.
+
+#### browser.html(element)
+
+Returns a string of HTML for a selected HTML element. If argument `element` is `undefined`, the function returns a string of the source HTML from the last response.
+
+Example uses:
+
+```
+browser.html('div');
+browser.html('div#contain');
+browser.html('.selector');
+browser.html();
+```
 
 #### Browser.localhost(host, port)
 
@@ -522,7 +539,7 @@ domain.
 Consider this code:
 
 ```js
-browser.setCookie(name: 'session', domain: 'example.com', value: 'delicious');
+browser.setCookie({ name: 'session', domain: 'example.com', value: 'delicious' });
 browser.visit('http://example.com', function() {
   const value = browser.getCookie('session');
   console.log('Cookie', value);

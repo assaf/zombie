@@ -1,30 +1,38 @@
 // Support for iframes.
 
 
-const DOM             = require('./index');
-const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
+const DOM                 = require('./index');
+// const resourceLoader      = require('jsdom/lib/jsdom/browser/resource-loader');
+const URL                 = require('url');
+const { HTMLFrameElementImpl,
+        HTMLElementImpl,
+        idlUtils }        = require('./impl');
 
 
-function loadFrame(frame) {
+function loadFrame(frameImpl) {
   // Close current content window in order to open a new one
-  if (frame._contentWindow) {
-    frame._contentWindow.close();
-    delete frame._contentWindow;
+  if (frameImpl._contentWindow) {
+    frameImpl._contentWindow.close();
+    delete frameImpl._contentWindow;
   }
 
   function onload() {
-    frame.contentWindow.removeEventListener('load', onload);
-    const parentDocument = frame._ownerDocument;
-    const loadEvent = parentDocument.createEvent('HTMLEvents');
-    loadEvent.initEvent('load', false, false);
-    frame.dispatchEvent(loadEvent);
+    frameImpl.contentWindow.removeEventListener('load', onload);
+    const parentDocument = frameImpl._ownerDocument;
+    const loadEventImpl = parentDocument.createEvent('HTMLEvents');
+    loadEventImpl.initEvent('load', false, false);
+
+    const frame = idlUtils.wrapperForImpl(frameImpl)
+    const loadEvent = idlUtils.wrapperForImpl(loadEventImpl)
+
+    DOM.EventTarget.prototype.dispatchEvent.call(frame, loadEvent)
   }
 
   // This is both an accessor to the contentWindow and a side-effect of creating
   // the window and loading the document based on the value of frame.src
   //
   // Not happy about this hack
-  frame.contentWindow.addEventListener('load', onload);
+  frameImpl.contentWindow.addEventListener('load', onload);
 }
 
 
@@ -60,9 +68,8 @@ function isInDocument(el) {
   return false;
 }
 
-
-DOM.HTMLFrameElement.prototype._attrModified = function (name, value, oldVal) {
-  DOM.HTMLElement.prototype._attrModified.call(this, name, value, oldVal);
+HTMLFrameElementImpl.implementation.prototype._attrModified = function (name, value, oldVal) {
+  HTMLElementImpl.implementation.prototype._attrModified.call(this, name, value, oldVal);
   if (name === 'name') {
     if (oldVal)
       // I do not know why this only works with _global and not with _defaultView :(
@@ -72,26 +79,26 @@ DOM.HTMLFrameElement.prototype._attrModified = function (name, value, oldVal) {
     loadFrame(this);
 };
 
-DOM.HTMLFrameElement.prototype._detach = function () {
-  DOM.HTMLElement.prototype._detach.call(this);
+HTMLFrameElementImpl.implementation.prototype._detach = function () {
+  HTMLElementImpl.implementation.prototype._detach.call(this);
   if (this.contentWindow)
     this.contentWindow.close();
   refreshAccessors(this._ownerDocument);
   refreshNameAccessor(this);
 };
 
-DOM.HTMLFrameElement.prototype._attach = function () {
-  DOM.HTMLElement.prototype._attach.call(this);
+HTMLFrameElementImpl.implementation.prototype._attach = function () {
+  HTMLElementImpl.implementation.prototype._attach.call(this);
   loadFrame(this);
   refreshAccessors(this._ownerDocument);
   refreshNameAccessor(this);
 };
 
-DOM.HTMLFrameElement.prototype.__defineGetter__('contentDocument', function() {
+HTMLFrameElementImpl.implementation.prototype.__defineGetter__('contentDocument', function() {
   return this.contentWindow.document;
 });
 
-DOM.HTMLFrameElement.prototype.__defineGetter__('contentWindow', function() {
+HTMLFrameElementImpl.implementation.prototype.__defineGetter__('contentWindow', function() {
   if (!this._contentWindow) {
     const createHistory   = require('../history');
     const parentDocument  = this._ownerDocument;
@@ -104,9 +111,10 @@ DOM.HTMLFrameElement.prototype.__defineGetter__('contentWindow', function() {
     });
 
     const src = this.src.trim() === '' ? 'about:blank' : this.src;
+
     this._contentWindow = openWindow({
-      name:     this.name,
-      url:      resourceLoader.resolveResourceUrl(parentDocument, src),
+      name:     this.getAttribute('name'),
+      url:      URL.resolve(parentDocument.URL, src),
       parent:   parentWindow,
       referrer: parentWindow.location.href
     });

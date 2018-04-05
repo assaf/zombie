@@ -34,6 +34,10 @@ const loadDocument    = require('./document');
 const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
 const URL             = require('url');
 
+const { idlUtils }    = require('./dom/impl');
+
+const whatwgURL       = require('whatwg-url');
+
 
 class Location {
 
@@ -267,10 +271,11 @@ class History {
 
   // Call with two argument to update window.location and current.url to new URL
   updateLocation(window, url) {
+    const documentImpl = idlUtils.implForWrapper(window.document)
     if (window === this.current)
       this.current.url = url;
-    window.document._URL       = url;
-    window.document._location  = new Location(this, url);
+    documentImpl._URL = whatwgURL.parseURL(url || 'about:blank');
+    documentImpl._location = new Location(this, url);
   }
 
   // Returns window.location
@@ -307,7 +312,7 @@ class History {
     let parent  = null;
 
     if (this.current) {
-      url     = resourceLoader.resolveResourceUrl(this.current.window.document, url);
+      url     = URL.resolve(this.current.window.document.URL, url)
       name    = this.current.window.name;
       parent  = parentFrom(this.current.window);
     }
@@ -345,7 +350,7 @@ class History {
     let name = '';
 
     if (this.current) {
-      url = resourceLoader.resolveResourceUrl(this.current.window.document, url);
+      url = URL.resolve(this.current.window.document.URL, url)
       name = this.current.window.name;
     }
 
@@ -445,7 +450,7 @@ class History {
 
   // This method is available from Location.
   pushState(state, title, url = this.url) {
-    url = resourceLoader.resolveResourceUrl(this.current.window.document, url);
+    url = URL.resolve(this.current.window.document.URL, url)
     // TODO: check same origin
     this.addEntry(this.current.window, url, state || {});
     this.updateLocation(this.current.window, url);
@@ -453,7 +458,7 @@ class History {
 
   // This method is available from Location.
   replaceState(state, title, url = this.url) {
-    url = resourceLoader.resolveResourceUrl(this.current.window.document, url);
+    url = URL.resolve(this.current.window.document.URL, url)
     // TODO: check same origin
     this.replaceEntry(this.current.window, url, state || {});
     this.updateLocation(this.current.window, url);
@@ -488,4 +493,3 @@ module.exports = function createHistory(browser, focus) {
   const history = new History(browser, focus);
   return history.open.bind(history);
 };
-

@@ -376,7 +376,7 @@ describe('Scripts', function() {
         browser.assert.text('title', /internal.external/);
       });
 
-      it('should trigger onload event afert loading script', function() {
+      it('should trigger onload event after loading script', function() {
         browser.assert.text('title', /external.onload/);
       });
 
@@ -413,6 +413,26 @@ describe('Scripts', function() {
     });
   });
 
+  describe('scripts invalid type', function() {
+    before(function() {
+      brains.static('/script/invalid-type', `
+        <html>
+          <head>
+            <title>Types</title>
+          </head>
+          <body>
+            <script type="true/text/javascript">
+              document.title = "Executed"
+            </script>
+        </html>
+      `);
+      return browser.visit('/script/invalid-type');
+    });
+
+    it('should not run scripts with invalid type', function() {
+      browser.assert.text('title', 'Types');
+    });
+  });
 
   describe('script attributes', function() {
     before(function() {

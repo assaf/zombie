@@ -3,6 +3,7 @@ const DOM   = require('./index');
 const File  = require('fs');
 const Mime  = require('mime');
 const Path  = require('path');
+const { idlUtils, domSymbolTree, HTMLInputElementImpl }    = require('./impl');
 
 
 // The Form
@@ -129,6 +130,10 @@ DOM.HTMLFormElement.prototype.submit = function(button) {
   process(0);
 };
 
+// override input.checked being set in jsdom, we set in manually in zombie
+HTMLInputElementImpl.implementation.prototype._preClickActivationSteps = function(){};
+
+
 
 
 // Replace dispatchEvent so we can send the button along the event.
@@ -136,63 +141,23 @@ DOM.HTMLFormElement.prototype._dispatchSubmitEvent = function(button) {
   const event = this.ownerDocument.createEvent('HTMLEvents');
   event.initEvent('submit', true, true);
   event._button = button;
-  return this.dispatchEvent(event);
+  const inputElementImpl = idlUtils.implForWrapper(event._button);
+  const bodyElementImpl = domSymbolTree.parent(domSymbolTree.parent(inputElementImpl));
+  const dispatchResult = this.dispatchEvent(event);
+  dispatchResult && this._submit(event);
+  return dispatchResult;
 };
 
 
 // Default behavior for submit events is to call the form's submit method, but we
 // also pass the submitting button.
-DOM.HTMLFormElement.prototype._eventDefaults.submit = function(event) {
+DOM.HTMLFormElement.prototype._submit = function(event) {
   event.target.submit(event._button);
 };
 
 
 // Buttons
 // -------
-
-// Default behavior for clicking on inputs.
-DOM.HTMLInputElement.prototype._eventDefaults =
-  Object.assign({}, DOM.HTMLElement.prototype._eventDefaults);
-
-DOM.HTMLInputElement.prototype._eventDefaults.click = function(event) {
-  const input = event.target;
-
-  function change() {
-    const changeEvent = input.ownerDocument.createEvent('HTMLEvents');
-    changeEvent.initEvent('change', true, true);
-    input.dispatchEvent(changeEvent);
-  }
-
-  switch (input.type) {
-    case 'reset': {
-      if (input.form)
-        input.form.reset();
-      break;
-    }
-    case 'submit': {
-      if (input.form)
-        input.form._dispatchSubmitEvent(input);
-      break;
-    }
-    case 'image': {
-      if (input.form)
-        input.form._dispatchSubmitEvent(input);
-      break;
-    }
-    case 'checkbox': {
-      change();
-      break;
-    }
-    case 'radio': {
-      if (!input.getAttribute('readonly')) {
-        input.checked = true;
-        change();
-      }
-    }
-  }
-};
-
-
 
 // Current INPUT behavior on click is to capture sumbit and handle it, but
 // ignore all other clicks. We need those other clicks to occur, so we're going
@@ -205,7 +170,10 @@ DOM.HTMLInputElement.prototype.click = function() {
   function click() {
     const clickEvent = input.ownerDocument.createEvent('HTMLEvents');
     clickEvent.initEvent('click', true, true);
-    return input.dispatchEvent(clickEvent);
+    const labelElementImpl = domSymbolTree.parent(idlUtils.implForWrapper(input));
+    const dispatchResult = input.dispatchEvent(clickEvent);
+    input._click && input._click(clickEvent);
+    return dispatchResult;
   }
 
   switch (input.type) {
@@ -257,8 +225,9 @@ DOM.HTMLInputElement.prototype.click = function() {
 };
 
 
-// Default behavior for form BUTTON: submit form.
-DOM.HTMLButtonElement.prototype._eventDefaults.click = function(event) {
+// HTMLForm listeners
+DOM.HTMLButtonElement.prototype._click = function(event) {
+  if (event.defaultPrevented) return;
   const button = event.target;
   if (button.getAttribute('disabled'))
     return false;
@@ -268,3 +237,46 @@ DOM.HTMLButtonElement.prototype._eventDefaults.click = function(event) {
     return form._dispatchSubmitEvent(button);
 };
 
+DOM.HTMLInputElement.prototype._click = function(event) {
+  if (event.defaultPrevented) return;
+
+  const input = event.target;
+
+  function change() {
+    const changeEvent = input.ownerDocument.createEvent('HTMLEvents');
+    changeEvent.initEvent('change', true, true);
+    input.dispatchEvent(changeEvent);
+  }
+
+  switch (input.type) {
+    case 'reset': {
+      if (input.form)
+        input.form.reset();
+      break;
+    }
+    case 'submit': {
+      if (input.form)
+        input.form._dispatchSubmitEvent(input);
+      break;
+    }
+    case 'image': {
+      if (input.form)
+        input.form._dispatchSubmitEvent(input);
+      break;
+    }
+    case 'checkbox': {
+      change();
+      break;
+    }
+    case 'radio': {
+      if (!input.getAttribute('readonly')) {
+        input.checked = true;
+        change();
+      }
+    }
+  }
+};
+
+const _submit = function(event) {
+  event.target.submit(event._button);
+};

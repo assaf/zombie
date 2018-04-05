@@ -96,6 +96,11 @@ describe('Forms', function() {
               <option value="mar_2011"> Mar 2011 </option>
             </select>
 
+            <select name="onfocus-selector" id="onfocus-selector">
+              <option value="value1" selected>value1</option>
+              <option value="value2">value2</option>
+            </select>
+
             <input type="unknown" name="unknown" value="yes">
             <input type="reset" value="Reset">
             <input type="submit" name="button" value="Submit">
@@ -147,7 +152,7 @@ describe('Forms', function() {
             <div id="scary">${req.body.scary}</div>
             <div id="state">${req.body.state}</div>
             <div id="empty-text">${req.body.empty_text}</div>
-            <div id="empty-checkbox">${req.body.empty_checkbox || 'nothing'}</div>
+            <div id="empty-checkbox">${req.body.empty_checkbox}</div>
             <div id="unselected_state">${req.body.unselected_state}</div>
             <div id="hobbies">${JSON.stringify(req.body.hobbies)}</div>
             <div id="addresses">${JSON.stringify(req.body.addresses)}</div>
@@ -727,6 +732,28 @@ describe('Forms', function() {
         assert(true);
       });
     });
+
+    describe('with onfocus handler', function() {
+      before(function() {
+        return browser.visit('/forms/form');
+      });
+
+      it('should fire the onchange event with the new value', function(done) {
+        const selectField = browser.querySelector('#onfocus-selector');
+        selectField.addEventListener('focus', (e) => {
+          e.target.value = 'value1';
+        });
+        const changeListener = (e) => {
+          selectField.removeEventListener('change', changeListener);
+          if (e.target.value === 'value2')
+            done();
+          else
+            done(new Error('Expected e.target.value to be "value2", was "' + e.target.value + '"'));
+        };
+        selectField.addEventListener('change', changeListener);
+        browser.select('#onfocus-selector', 'value2');
+      });
+    });
   });
 
 
@@ -801,14 +828,14 @@ describe('Forms', function() {
     });
 
     it('should not fail', function() {
-      browser
+      return browser
         .fill('Hunter', 'Bruce')
-        .fill('hunter_hobbies', 'Trying to get home')
-        .fill('#hunter-password', 'klaatubarada')
-        .fill('input[name=hunter_invalidtype]', 'necktie?')
-        .check('Chainsaw')
-        .choose('Powerglove')
-        .select('Type', 'Evil');
+        .then(() => browser.fill('hunter_hobbies', 'Trying to get home'))
+        .then(() => browser.fill('#hunter-password', 'klaatubarada'))
+        .then(() => browser.fill('input[name=hunter_invalidtype]', 'necktie?'))
+        .then(() => browser.check('Chainsaw'))
+        .then(() => browser.choose('Powerglove'))
+        .then(() => browser.select('Type', 'Evil'));
     });
   });
 
@@ -817,15 +844,14 @@ describe('Forms', function() {
 
     describe('by calling reset', function() {
 
-      before(async function() {
-        await browser.visit('/forms/form');
-        browser
-          .fill('Name', 'ArmBiter')
-          .fill('likes', 'Arm Biting')
-          .check('You bet')
-          .choose('Scary')
-          .select('state', 'dead');
-        browser.querySelector('form').reset();
+      before(function() {
+        return browser.visit('/forms/form')
+          .then(() => browser.fill('Name', 'ArmBiter'))
+          .then(() => browser.fill('likes', 'Arm Biting'))
+          .then(() => browser.check('You bet'))
+          .then(() => browser.choose('Scary'))
+          .then(() => browser.select('state', 'dead'))
+          .tap(() => browser.querySelector('form').reset());
       });
 
       it('should reset input field to original value', function() {
@@ -901,25 +927,24 @@ describe('Forms', function() {
   describe('submit form', function() {
 
     describe('by calling submit', function() {
-      before(async function() {
-        await browser.visit('/forms/form');
-        browser
-          .fill('Name', 'ArmBiter')
-          .fill('likes', 'Arm Biting')
-          .check('You bet')
-          .check('Certainly')
-          .choose('Scary')
-          .select('state', 'dead')
-          .select('looks', 'Choose one')
-          .select('#field-hobbies', 'Eat Brains')
-          .select('#field-hobbies', 'Sleep')
-          .check('Brains?')
-          .fill('#address1_city', 'Paris')
-          .fill('#address1_street', 'CDG')
-          .fill('#address2_city', 'Mikolaiv')
-          .fill('#address2_street', 'PGS');
-        browser.querySelector('form').submit();
-        await browser.wait();
+      before(function() {
+        return browser.visit('/forms/form')
+          .then(() => browser.fill('Name', 'ArmBiter'))
+          .then(() => browser.fill('likes', 'Arm Biting'))
+          .then(() => browser.check('You bet'))
+          .then(() => browser.check('Certainly'))
+          .then(() => browser.choose('Scary'))
+          .then(() => browser.select('state', 'dead'))
+          .then(() => browser.select('looks', 'Choose one'))
+          .then(() => browser.select('#field-hobbies', 'Eat Brains'))
+          .then(() => browser.select('#field-hobbies', 'Sleep'))
+          .then(() => browser.check('Brains?'))
+          .then(() => browser.fill('#address1_city', 'Paris'))
+          .then(() => browser.fill('#address1_street', 'CDG'))
+          .then(() => browser.fill('#address2_city', 'Mikolaiv'))
+          .then(() => browser.fill('#address2_street', 'PGS'))
+          .then(() => browser.querySelector('form').submit())
+          .then(() => browser.wait());
       });
 
       it('should open new page', function() {
@@ -964,7 +989,7 @@ describe('Forms', function() {
         browser.assert.text('#empty-text', '');
       });
       it('should send checked field with no value', function() {
-        browser.assert.text('#empty-checkbox', '1');
+        browser.assert.text('#empty-checkbox', 'on');
       });
     });
 
