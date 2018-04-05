@@ -1,6 +1,6 @@
 {
   "name": "zombie",
-  "version": "5.0.7",
+  "version": "6.1.0",
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "https://www.npmjs.com/package/zombie",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
@@ -12,7 +12,7 @@
     "Matt Lavin <matt.lavin@gmail.com> (https://github.com/mdlavin)"
   ],
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=8.0.0"
   },
   "keywords": [
     "test",
@@ -44,33 +44,33 @@
   "dependencies": {
     "babel-runtime": "5.8.29",
     "bluebird": "^3.0",
-    "debug": "^2.2",
-    "eventsource": "^0.1.6",
+    "debug": "^3.1.0",
+    "eventsource": "^1.0.5",
     "iconv-lite": "^0.4.13",
-    "jsdom": "^7.2.2",
-    "lodash": "^3.10.1",
-    "mime": "^1.3.4",
-    "ms": "^0.7.1",
-    "request": "^2.65.0",
-    "tough-cookie": "^2.2.0",
-    "ws": "^1.0.1"
+    "jsdom": "11.5.1",
+    "lodash": "^4.17.5",
+    "mime": "^1.6.0",
+    "ms": "^2.1.1",
+    "request": "^2.85.0",
+    "tough-cookie": "^2.3.4",
+    "ws": "^5.1.1"
   },
   "devDependencies": {
     "babel": "5.8.29",
-    "babel-eslint": "^4.0.10",
+    "babel-eslint": "^4.1.8",
     "body-parser": "^1.13.3",
     "cookie-parser": "^1.3.5",
-    "del": "^2.0.2",
-    "eslint": "^1.7.3",
-    "express": "^4.13.3",
+    "del": "^3.0.0",
+    "eslint": "^1.10.3",
+    "express": "^4.16.3",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.3.0",
-    "gulp-eslint": "^1.0.0",
-    "gulp-exec": "^2.1.2",
-    "gulp-notify": "^2.0.1",
-    "gulp-sourcemaps": "^1.5.2",
+    "gulp-eslint": "^1.1.1",
+    "gulp-exec": "^3.0.1",
+    "gulp-notify": "^3.2.0",
+    "gulp-sourcemaps": "^2.6.4",
     "gulp-util": "^3.0.7",
-    "mocha": "^2.2.5",
+    "mocha": "^5.0.5",
     "morgan": "^1.6.1",
     "multiparty": "^4.1.2",
     "replay": "^2.1.2",

@@ -1,3 +1,45 @@
+## Version 6.1.0 2018-04-02
+
+Documenting browser.evaluate #1014
+
+Fix potential memory leak when deleting all cookies  #1016
+
+Fetch HeadersInit as an Array fixed and tests  #1037
+
+Added ability to disable html5 history using history5 option #359
+
+Clear cookie header on redirect #1038
+
+Reorder events in selectOption - causes a bad interaction in some 2-way binding scenarios #1023
+
+Inline scripts with invalid type attribute get executed #978
+
+  742 passing (20s)
+  12 pending
+
+
+## Version 6.0.0 2018-04-02
+
+Zombie 6.0.0 is tested to run on Node 8.10 and Node 9.8.  We no longer support
+Node 4/6.
+
+Upgraded from JSDOM 7.2.2 to JSDOM 11.5.1.  Tons on new stuff, see:
+https://github.com/jsdom/jsdom/blob/master/Changelog.md#1151
+
+Various browser methods, like focus, fill, etc now take a callback, or return a
+promise.
+
+Resolved issue with about:blank pages.
+
+  737 passing (20s)
+  12 pending
+
+
+## Version 5.0.8 2018-02-22
+
+FIXED rerouting in Node 8
+
+
 ## Version 5.0.7 2017-06-26
 
 FIXED `browser.fill` with React was not working

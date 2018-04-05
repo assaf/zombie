@@ -2,7 +2,7 @@
 
 
 const DOM = require('./index');
-
+const { idlUtils }    = require('./impl');
 
 const FOCUS_ELEMENTS = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'ANCHOR'];
 
@@ -18,15 +18,18 @@ DOM.HTMLDocument.prototype.__defineGetter__('activeElement', function() {
 function setFocus(document, element) {
   const inFocus = document._inFocus;
   if (element !== inFocus) {
+    const inputElementImpl = idlUtils.implForWrapper(element || inFocus);
     if (inFocus) {
       const onblur = document.createEvent('HTMLEvents');
       onblur.initEvent('blur', false, false);
-      inFocus.dispatchEvent(onblur);
+      const dispatchResult = inFocus.dispatchEvent(onblur);
+      inFocus._blur && inFocus._blur(onblur);
     }
     if (element) { // null to blur
       const onfocus = document.createEvent('HTMLEvents');
       onfocus.initEvent('focus', false, false);
-      element.dispatchEvent(onfocus);
+      const dispatchResult = element.dispatchEvent(onfocus);
+      element._focus && element._focus(onfocus);
       document._inFocus = element;
       document.defaultView.browser.emit('focus', element);
     }
@@ -70,12 +73,12 @@ CONTROLS.forEach(function(elementType) {
 const INPUTS = [DOM.HTMLInputElement, DOM.HTMLTextAreaElement, DOM.HTMLSelectElement];
 
 INPUTS.forEach(function(elementType) {
-  elementType.prototype._eventDefaults.focus = function(event) {
+  elementType.prototype._focus = function(event) {
     const element       = event.target;
     element._focusValue = element.value || '';
   };
 
-  elementType.prototype._eventDefaults.blur = function(event) {
+  elementType.prototype._blur = function(event) {
     const element     = event.target;
     const focusValue  = element._focusValue;
     if (focusValue !== element.value) { // null == undefined
@@ -86,3 +89,19 @@ INPUTS.forEach(function(elementType) {
   };
 });
 
+
+// HTMLForm listeners
+const _blur = function(event) {
+  const element     = event.target;
+  const focusValue  = element._focusValue;
+  if (focusValue !== element.value) { // null == undefined
+    const change = element.ownerDocument.createEvent('HTMLEvents');
+    change.initEvent('change', false, false);
+    element.dispatchEvent(change);
+  }
+}
+
+const _focus = function(event) {
+  const element       = event.target;
+  element._focusValue = element.value || '';
+};

@@ -182,7 +182,7 @@ describe('History', function() {
       describe('go forwards', function() {
         let lastEvent;
 
-        before(async function(done) {
+        before(async function() {
           await browser.visit('/');
           browser.history.pushState({ is: 'first' }, null, '/first');
           browser.history.pushState({ is: 'second' },   null, '/second');
@@ -191,7 +191,6 @@ describe('History', function() {
 
           function onPopstate(event) {
             lastEvent = event;
-            done();
           }
 
           browser.window.addEventListener('popstate', onPopstate);

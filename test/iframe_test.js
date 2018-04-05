@@ -57,7 +57,7 @@ describe('IFrame', function() {
     assert.equal(iframeDocument.URL, 'http://example.com/iframe/static');
   });
   it('should set frame src attribute', function() {
-    assert.equal(iframe.src, '/iframe/static');
+    assert.equal(iframe.src, 'http://example.com/iframe/static'); // DEBUG: changed from /iframe/static
   });
   it('should reference parent window from iframe', function() {
     assert.equal(iframe.contentWindow.parent, browser.window.parent);

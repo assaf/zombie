@@ -22,10 +22,10 @@ class Headers {
 
   constructor(init) {
     this._headers = [];
-    if (init instanceof Headers || init instanceof Array)
+    if (init instanceof Headers || Array.isArray(init))
       for (let [name, value] of init)
         this.append(name, value);
-    else if (typeof init === "object")
+    else if (typeof init === 'object')
       _.each(init, (value, name)=> {
         this.append(name, value);
       });

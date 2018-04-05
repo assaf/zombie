@@ -81,7 +81,7 @@ module.exports = class Cookies extends Array {
 
   // Deletes all cookies.
   deleteAll() {
-    this.length = 0;
+    this.splice(0, this.length);
   }
 
   // Update cookies with HTTP response

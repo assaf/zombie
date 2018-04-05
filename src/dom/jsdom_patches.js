@@ -6,53 +6,48 @@ const Fetch                = require('../fetch');
 const resourceLoader       = require('jsdom/lib/jsdom/browser/resource-loader');
 const Utils                = require('jsdom/lib/jsdom/utils');
 const URL                  = require('url');
-const createHTMLCollection = require('jsdom/lib/jsdom/living/html-collection').create;
+const {
+  idlUtils,
+  HTMLElementImpl,
+  HTMLAnchorElementImpl,
+  HTMLImageElementImpl
+}                          = require('./impl');
 
-
-DOM.HTMLDocument.prototype.__defineGetter__('scripts', function() {
-  return createHTMLCollection(this, ()=> this.querySelectorAll('script'));
-});
-
-
-// Default behavior for clicking on links: navigate to new URL if specified.
-DOM.HTMLAnchorElement.prototype._eventDefaults =
-  Object.assign({}, DOM.HTMLElement.prototype._eventDefaults);
-DOM.HTMLAnchorElement.prototype._eventDefaults.click = function(event) {
-  const anchor = event.target;
-  if (!anchor.href)
-    return;
-
-  const window      = anchor.ownerDocument.defaultView;
+HTMLAnchorElementImpl.implementation.prototype._activationBehavior = function(){
+  const window      = this.ownerDocument.defaultView;
   const { browser } = window;
+  const target = idlUtils.wrapperForImpl(this).target || '_self';
+
   // Decide which window to open this link in
-  switch (anchor.target || '_self') {
+  switch (target) {
     case '_self': {   // navigate same window
-      window.location = anchor.href;
+      window.location = this.href;
       break;
     }
     case '_parent': { // navigate parent window
-      window.parent.location = anchor.href;
+      window.parent.location = this.href;
       break;
     }
     case '_top': {    // navigate top window
-      window.top.location = anchor.href;
+      window.top.location = this.href;
       break;
     }
     default: { // open named window
-      browser.tabs.open({ name: anchor.target, url: anchor.href });
+      browser.tabs.open({ name: target, url: this.href });
       break;
     }
   }
-  browser.emit('link', anchor.href, anchor.target || '_self');
+  browser.emit('link', this.href, target);
 };
 
 
 // Attempt to load the image, this will trigger a 'load' event when succesful
 // jsdom seemed to only queue the 'load' event
-DOM.HTMLImageElement.prototype._attrModified = function(name, value, oldVal) {
+// DOM.HTMLImageElement.prototype._attrModified = function(name, value, oldVal) {
+HTMLImageElementImpl.implementation.prototype._attrModified = function(name, value, oldVal) {
   if (name === 'src' && value && value !== oldVal)
     resourceLoader.load(this, value);
-  DOM.HTMLElement.prototype._attrModified.call(this, name, value, oldVal);
+  HTMLElementImpl.implementation.prototype._attrModified.call(this, name, value, oldVal);
 };
 
 // Implement getClientRects
@@ -159,7 +154,9 @@ Object.defineProperty(DOM.CSSStyleDeclaration.prototype, 'opacity', {
 const jsdomDispatchEvent = DOM.EventTarget.prototype.dispatchEvent;
 DOM.EventTarget.prototype.dispatchEvent = function(event) {
   // Could be node, window or document
-  const document = this._ownerDocument || this.document || this;
+  const eventImpl = idlUtils.implForWrapper(this);
+  const document = eventImpl._ownerDocument || this.document || this;
+
   const window   = document.defaultView;
   // Fail miserably on objects that don't have ownerDocument: nodes and XHR
   // request have those
@@ -183,12 +180,12 @@ DOM.EventTarget.prototype.dispatchEvent = function(event) {
 // Fix resource loading to keep track of in-progress requests. Need this to wait
 // for all resources (mainly JavaScript) to complete loading before terminating
 // browser.wait.
-resourceLoader.load = function(element, href, callback) {
+resourceLoader.load = function(element, href, encoding, callback) {
   const document      = element.ownerDocument;
   const window        = document.defaultView;
   const tagName       = element.tagName.toLowerCase();
   const loadResource  = document.implementation._hasFeature('FetchExternalResources', tagName);
-  const url           = resourceLoader.resolveResourceUrl(document, href);
+  const url           = URL.resolve(document.URL, href);
 
   if (loadResource) {
     // This guarantees that all scripts are executed in order, must add to the
@@ -209,18 +206,4 @@ resourceLoader.load = function(element, href, callback) {
         });
     });
   }
-};
-
-// Fix residual Node bug. See https://github.com/joyent/node/pull/14146
-const jsdomResolveHref = Utils.resolveHref;
-Utils.resolveHref = function (baseUrl, href) {
-  const pattern = /file:?/;
-  const protocol = URL.parse(baseUrl).protocol;
-  const original = URL.parse(href);
-  const resolved = URL.parse(jsdomResolveHref(baseUrl, href));
-
-  if (!pattern.test(protocol) && pattern.test(original.protocol) && !original.host && resolved.host)
-    return URL.format(original);
-  else
-    return URL.format(resolved);
 };
