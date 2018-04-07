@@ -1,3 +1,11 @@
+## Version 6.1.1 2018-04-07
+
+Fixes btoa and atob function to match browser's spec #1160
+
+  742 passing (20s)
+  12 pending
+
+
 ## Version 6.1.0 2018-04-02
 
 Documenting browser.evaluate #1014
