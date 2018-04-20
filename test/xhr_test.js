@@ -293,6 +293,23 @@ describe('XMLHttpRequest', function() {
             </script>
           </body>
         </html>`);
+      brains.static('/cors-put/:path', `
+        <html>
+          <body>
+            <script>
+              var path = document.location.pathname.split('/')[2];
+              var xhr = new XMLHttpRequest();
+              xhr.onerror = function() {
+                document.title = 'error';
+              };
+              xhr.onload = function() {
+                document.title = xhr.responseText;
+              };
+              xhr.open('PUT', '//thirdparty.test/' + path);
+              xhr.send();                
+            </script>
+          </body>
+        </html>`);
     });
 
     describe('no access control header', function() {
@@ -330,6 +347,69 @@ describe('XMLHttpRequest', function() {
       it('should allow access', async function() {
         await browser.visit('/cors/access-star');
         browser.assert.text('title', 'Access *');
+      });
+    });
+
+    describe('no access control method header', function() {
+      before(async function() {
+        const cors = await thirdParty();
+        cors.put('/access-star-no-method', function(req, res) {
+          res.header('Access-Control-Allow-Origin', '*');
+          res.send('Access *');
+        });
+      });
+
+      it('should fail', async function() {
+        try {
+          await browser.visit('/cors-put/access-star-no-method');
+        } catch (error) {
+          browser.assert.text('title', 'error');
+          return;
+        }
+        assert(false, 'Error not propagated to window');
+      });
+
+      it('should capture error', function() {
+        assert.equal(browser.errors[0].toString(), 'Cannot make request with not-allowed method(PUT): 18');
+      });
+    });
+
+    describe('access * with allowed method', function() {
+      before(async function() {
+        const cors = await thirdParty();
+        cors.put('/access-star-with-method', function(req, res) {
+          res.header('Access-Control-Allow-Origin', '*');
+          res.header('Access-Control-Allow-Methods', 'PUT');
+          res.send('Access * with PUT');
+        });
+      });
+
+      it('should allow access', async function() {
+        await browser.visit('/cors-put/access-star-with-method');
+        browser.assert.text('title', 'Access * with PUT');
+      });
+    });
+
+    describe('no access with not simple request', function() {
+      before(async function() {
+        const cors = await thirdParty();
+        cors.put('/put-request', function(req, res) {
+          res.send('Access with PUT');
+        });
+      });
+
+      it('should fail', async function() {
+        try {
+          await browser.visit('/cors-put/put-request');
+        } catch (error) {
+          browser.assert.text('title', 'error');
+          return;
+        }
+        assert(false, 'Error not propagated to window');
+      });
+
+      it('should capture error', function() {
+        assert.equal(browser.errors[0].toString(), 'Cannot make request to different domain: 18');
       });
     });
 
