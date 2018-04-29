@@ -35,7 +35,7 @@ describe('History', function() {
       res.send(`<html><title>${req.headers.referer}</title></html>`);
     });
 
-    brains.get(`/history/referer2`, function(req, res) {
+    brains.get('/history/referer2', function(req, res) {
       res.send(`<html><title>${req.headers.referer}</title></html>`);
     });
 

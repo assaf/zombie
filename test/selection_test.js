@@ -112,16 +112,16 @@ describe('Selection', function() {
 
   describe('query html', function() {
     it('should query from document', function() {
-      assert.equal(browser.html('.now'), `<div class="now">Walking Aimlessly</div>`);
+      assert.equal(browser.html('.now'), '<div class="now">Walking Aimlessly</div>');
     });
     it('should query from context (exists)', function() {
-      assert.equal(browser.html('.now', browser.body), `<div class="now">Walking Aimlessly</div>`);
+      assert.equal(browser.html('.now', browser.body), '<div class="now">Walking Aimlessly</div>');
     });
     it('should query from context (unrelated)', function() {
       assert.equal(browser.html('.now', browser.querySelector('form')), '');
     });
     it('should combine multiple elements', function() {
-      assert.equal(browser.html('title, #main a'), `<title>The Living</title><a href="/browser/dead">Kill</a>`);
+      assert.equal(browser.html('title, #main a'), '<title>The Living</title><a href="/browser/dead">Kill</a>');
     });
   });
 
