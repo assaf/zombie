@@ -1,3 +1,13 @@
+## Version 6.1.2 2018-04-29
+
+Tested with Node 10.
+
+CORS and Access-Control-Allow-Methods #1161
+
+  747 passing (19s)
+  12 pending
+
+
 ## Version 6.1.1 2018-04-07
 
 Fixes btoa and atob function to match browser's spec #1160
