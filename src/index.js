@@ -185,11 +185,10 @@ class Browser extends EventEmitter {
 
     // Sets the browser options.
     options = options || {};
-    for (let name of BROWSER_OPTIONS) {
+    for (let name of BROWSER_OPTIONS)
       this[name] = options.hasOwnProperty(name) ?
         options[name] :
         (Browser[name] || null);
-    }
 
     // Last, run all extensions in order.
     for (let extension of Browser._extensions)
@@ -603,10 +602,10 @@ class Browser extends EventEmitter {
     } catch (error) {
       /* eslint no-empty:0 */
     }
-    for (let elem of Array.from(this.querySelectorAll('body a'))) {
+    for (let elem of Array.from(this.querySelectorAll('body a')))
       if (elem.textContent.trim() === selector)
         return elem;
-    }
+
     return null;
   }
 
@@ -682,13 +681,12 @@ class Browser extends EventEmitter {
     }
 
     // Use field name (case sensitive).
-    for (let elem of this.queryAll('input[name],textarea[name],select[name]')) {
+    for (let elem of this.queryAll('input[name],textarea[name],select[name]'))
       if (elem.getAttribute('name') === selector)
         return elem;
-    }
 
     // Try finding field from label.
-    for (let label of this.queryAll('label')) {
+    for (let label of this.queryAll('label'))
       if (label.textContent.trim() === selector) {
         // nLabel can either reference field or enclose it
         const forAttr = label.getAttribute('for');
@@ -696,7 +694,7 @@ class Browser extends EventEmitter {
           this.document.getElementById(forAttr) :
           label.querySelector('input,textarea,select');
       }
-    }
+
     return null;
   }
 
@@ -802,18 +800,18 @@ class Browser extends EventEmitter {
     assert(!field.readonly, 'This SELECT field is readonly');
 
     const options = Array.from(field.options);
-    for (let option of options) {
+    for (let option of options)
       if (option.value === value)
         return option;
-    }
-    for (let option of options) {
+
+    for (let option of options)
       if (option.label === value)
         return option;
-    }
-    for (let option of options) {
+
+    for (let option of options)
       if (option.textContent.trim() === value)
         return option;
-    }
+
     throw new Error(`No OPTION '${value}'`);
   }
 
@@ -903,13 +901,13 @@ class Browser extends EventEmitter {
 
       Object.defineProperty(field, 'value', {value: filename});
       const oldFiles = field.files;
-      if (typeof(oldFiles) !== 'array') {
+      if (typeof(oldFiles) !== 'array')
         // JSDOM does not support an API to mock a list of files, and the default
         // type of the 'files' attribute is a FileList object.
         Object.defineProperty(field, 'files', {
           value: []
         });
-      }
+
       field.files.push(file);
     }
     field.focus();
@@ -934,20 +932,19 @@ class Browser extends EventEmitter {
         return button;
     } catch (error) {
     }
-    for (let elem of Array.from(this.querySelectorAll('button'))) {
+    for (let elem of Array.from(this.querySelectorAll('button')))
       if (elem.textContent.trim() === selector)
         return elem;
-    }
 
     const inputs = Array.from(this.querySelectorAll('input[type=submit],input[type=button],input[type=reset],button'));
-    for (let input of inputs) {
+    for (let input of inputs)
       if (input.name === selector)
         return input;
-    }
-    for (let input of inputs) {
+
+    for (let input of inputs)
       if (input.value === selector)
         return input;
-    }
+
     return null;
   }
 
@@ -1082,7 +1079,7 @@ class Browser extends EventEmitter {
   loadCookies(serialized) {
     for (let line of serialized.split(/\n+/)) {
       line = line.trim();
-      if (line && line[0] !== `#`)
+      if (line && line[0] !== '#')
         this.cookies.push(Cookie.parse(line));
     }
   }
@@ -1242,11 +1239,11 @@ class Browser extends EventEmitter {
     }
     output.write(`Zombie: ${Browser.VERSION}\n`);
     output.write(`URL:    ${this.window.location.href}\n`);
-    output.write(`\nHistory:\n`);
+    output.write('\nHistory:\n');
     this.history.dump(output);
-    output.write(`\nCookies:\n`);
+    output.write('\nCookies:\n');
     this.cookies.dump(output);
-    output.write(`\nStorage:\n`);
+    output.write('\nStorage:\n');
 
     if (this.document) {
       const html  = this.html();

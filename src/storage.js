@@ -247,7 +247,7 @@ class Storages {
           serialized.push(`  ${escape(name)} = ${escape(value)}`);
       }
     }
-    return serialized.join(`\n`) + `\n`;
+    return serialized.join('\n') + '\n';
   }
 
   // browser.loadStorage uses this

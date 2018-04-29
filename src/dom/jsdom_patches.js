@@ -54,9 +54,8 @@ HTMLImageElementImpl.implementation.prototype._attrModified = function(name, val
 DOM.HTMLElement.prototype.getClientRects = function () {
   const style = this.style;
 
-  if (style && style.display === 'none') {
+  if (style && style.display === 'none')
     return [];
-  }
 
   return [{
     bottom: 0,

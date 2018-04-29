@@ -181,11 +181,11 @@ module.exports = class Assert {
     const matchingText = elements.filter(element => element.textContent.trim() === text);
     if (isRegExp(url)) {
       const matchedRegexp = matchingText.filter(element => url.test(element.href));
-      assert(matchedRegexp.length, message || `Expected at least one link matching the given text and URL`);
+      assert(matchedRegexp.length, message || 'Expected at least one link matching the given text and URL');
     } else {
       const absolute    = URL.resolve(this.browser.location.href, url);
       const matchedURL  = matchingText.filter(element => element.href === absolute);
-      assert(matchedURL.length, message || `Expected at least one link matching the given text and URL`);
+      assert(matchedURL.length, message || 'Expected at least one link matching the given text and URL');
     }
   }
 

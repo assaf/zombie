@@ -50,7 +50,7 @@ Object.defineProperty(HTMLScriptElementImpl, 'init', {
 function _eval(text, filename) {
   const typeString = this._getTypeString();
   const _defaultView = this._ownerDocument._defaultView;
-  if (_defaultView && _defaultView._runScripts === "dangerously" && jsMIMETypes.has(typeString.toLowerCase())) {
+  if (_defaultView && _defaultView._runScripts === 'dangerously' && jsMIMETypes.has(typeString.toLowerCase())) {
     this._ownerDocument._writeAfterElement = this;
     processJavaScript(this, text, filename);
     delete this._ownerDocument._writeAfterElement;
@@ -98,20 +98,20 @@ function enhanceStackTrace(error, document_ref) {
 }
 
 const jsMIMETypes = new Set([
-  "application/ecmascript",
-  "application/javascript",
-  "application/x-ecmascript",
-  "application/x-javascript",
-  "text/ecmascript",
-  "text/javascript",
-  "text/javascript1.0",
-  "text/javascript1.1",
-  "text/javascript1.2",
-  "text/javascript1.3",
-  "text/javascript1.4",
-  "text/javascript1.5",
-  "text/jscript",
-  "text/livescript",
-  "text/x-ecmascript",
-  "text/x-javascript"
+  'application/ecmascript',
+  'application/javascript',
+  'application/x-ecmascript',
+  'application/x-javascript',
+  'text/ecmascript',
+  'text/javascript',
+  'text/javascript1.0',
+  'text/javascript1.1',
+  'text/javascript1.2',
+  'text/javascript1.3',
+  'text/javascript1.4',
+  'text/javascript1.5',
+  'text/jscript',
+  'text/livescript',
+  'text/x-ecmascript',
+  'text/x-javascript'
 ]);
