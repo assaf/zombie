@@ -16,7 +16,7 @@ gulp.task('default', ['watch']);
 
 // gulp lint -> errors if code dirty
 gulp.task('lint', function () {
-  return gulp.src([ 'js/**/*.js', 'test/*.js' ])
+  return gulp.src([ 'src/**/*.js', 'test/*.js' ])
     .pipe(eslint())
     .pipe(eslint.formatEach())
     .pipe(eslint.failOnError());

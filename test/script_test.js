@@ -364,7 +364,7 @@ describe('Scripts', function() {
             </body>
           </html>
         `);
-        brains.static('/script/append.js', `document.title = document.title + 'external'`);
+        brains.static('/script/append.js', 'document.title = document.title + \'external\'');
         return browser.visit('/script/append');
       });
 

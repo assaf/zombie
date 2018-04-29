@@ -159,16 +159,14 @@ class EventQueue {
       return;
     this.queue = null;
 
-    for (let timer of this.timers) {
+    for (let timer of this.timers)
       if (timer)
         timer.stop();
-    }
     this.timers = null;
 
-    for (let eventSource of this.eventSources) {
+    for (let eventSource of this.eventSources)
       //if (eventSource)
         eventSource.close();
-    }
     this.eventSources = null;
   }
 

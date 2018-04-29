@@ -1,6 +1,6 @@
 // Patches to JSDOM for properly handling forms.
 const DOM   = require('./index');
-const File  = require('fs');
+const FS    = require('fs');
 const Mime  = require('mime');
 const Path  = require('path');
 const { idlUtils, domSymbolTree, HTMLInputElementImpl }    = require('./impl');
@@ -8,6 +8,28 @@ const { idlUtils, domSymbolTree, HTMLInputElementImpl }    = require('./impl');
 
 // The Form
 // --------
+
+class File {
+
+  constructor(filename) {
+    this.filename = filename;
+    this.mime     = Mime.getType(filename);
+  }
+
+  read() {
+    return FS.readFileSync(this.filename);
+  };
+
+  valueOf() {
+    return this.toString();
+  }
+
+  toString() {
+    return Path.basename(this.filename);
+  }
+
+}
+
 
 // Forms convert INPUT fields of type file into this object and pass it as
 // parameter to resource request.
@@ -17,17 +39,7 @@ const { idlUtils, domSymbolTree, HTMLInputElementImpl }    = require('./impl');
 // the full filename (`filename`) and the `read` method that returns the file
 // contents.
 function uploadedFile(filename) {
-  const file = {
-    valueOf() {
-      return Path.basename(filename);
-    }
-  };
-  file.filename = filename;
-  file.mime     = Mime.lookup(filename);
-  file.read     = function() {
-    return File.readFileSync(filename);
-  };
-  return file;
+  return new File(filename);
 }
 
 

@@ -185,11 +185,10 @@ class Browser extends EventEmitter {
 
     // Sets the browser options.
     options = options || {};
-    for (let name of BROWSER_OPTIONS) {
+    for (let name of BROWSER_OPTIONS)
       this[name] = options.hasOwnProperty(name) ?
         options[name] :
         (Browser[name] || null);
-    }
 
     // Last, run all extensions in order.
     for (let extension of Browser._extensions)
@@ -603,10 +602,10 @@ class Browser extends EventEmitter {
     } catch (error) {
       /* eslint no-empty:0 */
     }
-    for (let elem of Array.from(this.querySelectorAll('body a'))) {
+    for (let elem of Array.from(this.querySelectorAll('body a')))
       if (elem.textContent.trim() === selector)
         return elem;
-    }
+
     return null;
   }
 
@@ -682,13 +681,12 @@ class Browser extends EventEmitter {
     }
 
     // Use field name (case sensitive).
-    for (let elem of this.queryAll('input[name],textarea[name],select[name]')) {
+    for (let elem of this.queryAll('input[name],textarea[name],select[name]'))
       if (elem.getAttribute('name') === selector)
         return elem;
-    }
 
     // Try finding field from label.
-    for (let label of this.queryAll('label')) {
+    for (let label of this.queryAll('label'))
       if (label.textContent.trim() === selector) {
         // nLabel can either reference field or enclose it
         const forAttr = label.getAttribute('for');
@@ -696,7 +694,7 @@ class Browser extends EventEmitter {
           this.document.getElementById(forAttr) :
           label.querySelector('input,textarea,select');
       }
-    }
+
     return null;
   }
 
@@ -802,18 +800,18 @@ class Browser extends EventEmitter {
     assert(!field.readonly, 'This SELECT field is readonly');
 
     const options = Array.from(field.options);
-    for (let option of options) {
+    for (let option of options)
       if (option.value === value)
         return option;
-    }
-    for (let option of options) {
+
+    for (let option of options)
       if (option.label === value)
         return option;
-    }
-    for (let option of options) {
+
+    for (let option of options)
       if (option.textContent.trim() === value)
         return option;
-    }
+
     throw new Error(`No OPTION '${value}'`);
   }
 
@@ -898,18 +896,18 @@ class Browser extends EventEmitter {
       const stat = File.statSync(filename);
       const file = new (this.window.File)();
       file.name = Path.basename(filename);
-      file.type = Mime.lookup(filename);
+      file.type = Mime.getType(filename);
       file.size = stat.size;
 
       Object.defineProperty(field, 'value', {value: filename});
       const oldFiles = field.files;
-      if (typeof(oldFiles) !== 'array') {
+      if (typeof(oldFiles) !== 'array')
         // JSDOM does not support an API to mock a list of files, and the default
         // type of the 'files' attribute is a FileList object.
         Object.defineProperty(field, 'files', {
           value: []
         });
-      }
+
       field.files.push(file);
     }
     field.focus();
@@ -934,20 +932,19 @@ class Browser extends EventEmitter {
         return button;
     } catch (error) {
     }
-    for (let elem of Array.from(this.querySelectorAll('button'))) {
+    for (let elem of Array.from(this.querySelectorAll('button')))
       if (elem.textContent.trim() === selector)
         return elem;
-    }
 
     const inputs = Array.from(this.querySelectorAll('input[type=submit],input[type=button],input[type=reset],button'));
-    for (let input of inputs) {
+    for (let input of inputs)
       if (input.name === selector)
         return input;
-    }
-    for (let input of inputs) {
+
+    for (let input of inputs)
       if (input.value === selector)
         return input;
-    }
+
     return null;
   }
 
@@ -1082,7 +1079,7 @@ class Browser extends EventEmitter {
   loadCookies(serialized) {
     for (let line of serialized.split(/\n+/)) {
       line = line.trim();
-      if (line && line[0] !== `#`)
+      if (line && line[0] !== '#')
         this.cookies.push(Cookie.parse(line));
     }
   }
@@ -1242,11 +1239,11 @@ class Browser extends EventEmitter {
     }
     output.write(`Zombie: ${Browser.VERSION}\n`);
     output.write(`URL:    ${this.window.location.href}\n`);
-    output.write(`\nHistory:\n`);
+    output.write('\nHistory:\n');
     this.history.dump(output);
-    output.write(`\nCookies:\n`);
+    output.write('\nCookies:\n');
     this.cookies.dump(output);
-    output.write(`\nStorage:\n`);
+    output.write('\nStorage:\n');
 
     if (this.document) {
       const html  = this.html();
@@ -1317,67 +1314,68 @@ class Browser extends EventEmitter {
     return this._debugEnabled;
   }
 
-
-  // -- Static properties --
-
-  static VERSION  = VERSION
-
-  static Assert   = Assert
-  static Pipeline = Pipeline
-  static Headers  = Fetch.Headers
-  static Request  = Fetch.Request
-  static Response = Fetch.Response
-
-
-  // -- These defaults are used in any new browser instance --
-
-  // Which features are enabled.
-  static features = DEFAULT_FEATURES
-
-  // Proxy URL.
-  //
-  // Example
-  //   Browser.proxy = 'http://myproxy:8080'
-  static proxy = null
-
-  // If true, suppress `console.log` output from scripts (ignored when DEBUG=zombie)
-  static silent = false
-
-  // You can use visit with a path, and it will make a request relative to this host/URL.
-  static site = null
-
-  // Check SSL certificates against CA.  False by default since you're likely
-  // testing with a self-signed certificate.
-  static strictSSL = false
-
-  // Sets the outgoing IP address in case there is more than on available.
-  // Defaults to 0.0.0.0 which should select default interface
-  static localAddress = '0.0.0.0'
-
-  // User agent string sent to server.
-  static userAgent = `Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/${VERSION}`
-
-  // Navigator language code
-  static language = 'en-US'
-
-  // Default time to wait (visit, wait, etc).
-  static waitDuration = '5s'
-
-  // Indicates whether or not to validate and execute JavaScript, default true.
-  static runScripts = true
-
-
-  // -- Internal properties --
-
-  // Debug instance.  Create new instance when enabling debugging with Zombie.debug
-  static _debug = debug('zombie')
-
-  // Set after calling _enableDebugging
-  static _debugEnabled = null
-
-  // Browser extensions;
-  static _extensions = []
 }
+
+
+// -- Static properties --
+
+Browser.VERSION  = VERSION;
+
+Browser.Assert   = Assert;
+Browser.Pipeline = Pipeline;
+Browser.Headers  = Fetch.Headers;
+Browser.Request  = Fetch.Request;
+Browser.Response = Fetch.Response;
+
+
+// -- These defaults are used in any new browser instance --
+
+// Which features are enabled.
+Browser.features = DEFAULT_FEATURES;
+
+// Proxy URL.
+//
+// Example
+//   Browser.proxy = 'http://myproxy:8080'
+Browser.proxy = null;
+
+// If true, suppress `console.log` output from scripts (ignored when DEBUG=zombie)
+Browser.silent = false;
+
+// You can use visit with a path, and it will make a request relative to this host/URL.
+Browser.site = null;
+
+// Check SSL certificates against CA.  False by default since you're likely
+// testing with a self-signed certificate.
+Browser.strictSSL = false;
+
+// Sets the outgoing IP address in case there is more than on available.
+// Defaults to 0.0.0.0 which should select default interface
+Browser.localAddress = '0.0.0.0';
+
+// User agent string sent to server.
+Browser.userAgent = `Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/${VERSION}`;
+
+// Navigator language code
+Browser.language = 'en-US';
+
+// Default time to wait (visit, wait, etc).
+Browser.waitDuration = '5s';
+
+// Indicates whether or not to validate and execute JavaScript, default true.
+Browser.runScripts = true;
+
+
+// -- Internal properties --
+
+// Debug instance.  Create new instance when enabling debugging with Zombie.debug
+Browser._debug = debug('zombie');
+
+// Set after calling _enableDebugging
+Browser._debugEnabled = null;
+
+// Browser extensions;
+Browser._extensions = [];
 
 
 module.exports = Browser;

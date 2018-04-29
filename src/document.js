@@ -165,7 +165,7 @@ function setupWindow(window, args) {
   window.btoa = (string)=> new Buffer(string, 'binary').toString('base64');
 
   // Constructor for XHLHttpRequest
-  window.XMLHttpRequest = ()=> new XMLHttpRequest(window);
+  window.XMLHttpRequest = XMLHttpRequest.bind(null, window);
   window.URL = DOMURL;
 
   // Web sockets
@@ -187,9 +187,8 @@ function setupWindow(window, args) {
         return origProperty.get.call(this);
       },
       set: function set(type) {
-        if (type === 'buffer') {
+        if (type === 'buffer')
           type = 'nodebuffer';
-        }
         return origProperty.set.call(this, type);
       }
     });
@@ -556,12 +555,11 @@ function getHTMLFromResponseBody(buffer, contentType) {
 
   // Pick charset from content type
   if (mimeType)
-    for (let typeOption of typeOptions) {
+    for (let typeOption of typeOptions)
       if (/^charset=/i.test(typeOption)) {
         const charset = typeOption.split('=')[1];
         return iconv.decode(buffer, charset);
       }
-    }
 
   // Otherwise, HTML documents only, pick charset from meta tag
   // Otherwise, HTML documents only, default charset in US is windows-1252
@@ -708,20 +706,19 @@ function parseResponse({ browser, history, document, response }) {
 // Returns a new document with a new window.  The document contents is loaded
 // asynchronously, and will trigger a loaded/error event.
 module.exports = function loadDocument(args) {
-  var { browser, history, html, url } = args;
+  const { browser, history, url, html } = args;
   assert(browser && browser.visit, 'Missing parameter browser');
   assert(history && history.reload, 'Missing parameter history');
 
   const document = createDocument(Object.assign({ url }, args));
   const window   = document.defaultView;
 
-  if (url && (url =='about:blank')){
-    html = '<html><head></head><body></body></html>';
-  }
-  
-  if (html) {
+  const content = (url =='about:blank') ?
+    '<html><head></head><body></body></html>' : html;
+
+  if (content) {
     window._eventQueue.enqueue(function() {
-      document.write(html);
+      document.write(content);
       document.close();
       browser.emit('loaded', document);
     });
