@@ -1317,67 +1317,68 @@ class Browser extends EventEmitter {
     return this._debugEnabled;
   }
 
-
-  // -- Static properties --
-
-  static VERSION  = VERSION
-
-  static Assert   = Assert
-  static Pipeline = Pipeline
-  static Headers  = Fetch.Headers
-  static Request  = Fetch.Request
-  static Response = Fetch.Response
-
-
-  // -- These defaults are used in any new browser instance --
-
-  // Which features are enabled.
-  static features = DEFAULT_FEATURES
-
-  // Proxy URL.
-  //
-  // Example
-  //   Browser.proxy = 'http://myproxy:8080'
-  static proxy = null
-
-  // If true, suppress `console.log` output from scripts (ignored when DEBUG=zombie)
-  static silent = false
-
-  // You can use visit with a path, and it will make a request relative to this host/URL.
-  static site = null
-
-  // Check SSL certificates against CA.  False by default since you're likely
-  // testing with a self-signed certificate.
-  static strictSSL = false
-
-  // Sets the outgoing IP address in case there is more than on available.
-  // Defaults to 0.0.0.0 which should select default interface
-  static localAddress = '0.0.0.0'
-
-  // User agent string sent to server.
-  static userAgent = `Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/${VERSION}`
-
-  // Navigator language code
-  static language = 'en-US'
-
-  // Default time to wait (visit, wait, etc).
-  static waitDuration = '5s'
-
-  // Indicates whether or not to validate and execute JavaScript, default true.
-  static runScripts = true
-
-
-  // -- Internal properties --
-
-  // Debug instance.  Create new instance when enabling debugging with Zombie.debug
-  static _debug = debug('zombie')
-
-  // Set after calling _enableDebugging
-  static _debugEnabled = null
-
-  // Browser extensions;
-  static _extensions = []
 }
+
+
+// -- Static properties --
+
+Browser.VERSION  = VERSION;
+
+Browser.Assert   = Assert;
+Browser.Pipeline = Pipeline;
+Browser.Headers  = Fetch.Headers;
+Browser.Request  = Fetch.Request;
+Browser.Response = Fetch.Response;
+
+
+// -- These defaults are used in any new browser instance --
+
+// Which features are enabled.
+Browser.features = DEFAULT_FEATURES;
+
+// Proxy URL.
+//
+// Example
+//   Browser.proxy = 'http://myproxy:8080'
+Browser.proxy = null;
+
+// If true, suppress `console.log` output from scripts (ignored when DEBUG=zombie)
+Browser.silent = false;
+
+// You can use visit with a path, and it will make a request relative to this host/URL.
+Browser.site = null;
+
+// Check SSL certificates against CA.  False by default since you're likely
+// testing with a self-signed certificate.
+Browser.strictSSL = false;
+
+// Sets the outgoing IP address in case there is more than on available.
+// Defaults to 0.0.0.0 which should select default interface
+Browser.localAddress = '0.0.0.0';
+
+// User agent string sent to server.
+Browser.userAgent = `Mozilla/5.0 Chrome/10.0.613.0 Safari/534.15 Zombie.js/${VERSION}`;
+
+// Navigator language code
+Browser.language = 'en-US';
+
+// Default time to wait (visit, wait, etc).
+Browser.waitDuration = '5s';
+
+// Indicates whether or not to validate and execute JavaScript, default true.
+Browser.runScripts = true;
+
+
+// -- Internal properties --
+
+// Debug instance.  Create new instance when enabling debugging with Zombie.debug
+Browser._debug = debug('zombie');
+
+// Set after calling _enableDebugging
+Browser._debugEnabled = null;
+
+// Browser extensions;
+Browser._extensions = [];
 
 
 module.exports = Browser;

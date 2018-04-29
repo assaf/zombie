@@ -114,7 +114,7 @@ describe('Cookies', function() {
     it('should fail if no domain specified', function() {
       assert.throws(function() {
         assert.equal(browser.getCookie('no-domain'));
-      }, 'No domain specified and no open page');
+      }, /No domain specified and no open page/);
 
     });
   });

@@ -165,7 +165,7 @@ function setupWindow(window, args) {
   window.btoa = (string)=> new Buffer(string, 'binary').toString('base64');
 
   // Constructor for XHLHttpRequest
-  window.XMLHttpRequest = ()=> new XMLHttpRequest(window);
+  window.XMLHttpRequest = XMLHttpRequest.bind(null, window);
   window.URL = DOMURL;
 
   // Web sockets

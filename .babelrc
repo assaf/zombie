@@ -1,4 +1,10 @@
 {
-  "stage":    0,
-  "optional": [ "runtime" ]
+  "presets": [
+    [ "env", {
+      "targets": {
+        "node": "8.6"
+      }
+    }]
+  ],
+  "plugins": [ "transform-runtime" ]
 }
