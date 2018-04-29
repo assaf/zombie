@@ -13,7 +13,7 @@ class File {
 
   constructor(filename) {
     this.filename = filename;
-    this.mime     = Mime.lookup(filename);
+    this.mime     = Mime.getType(filename);
   }
 
   read() {

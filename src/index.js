@@ -896,7 +896,7 @@ class Browser extends EventEmitter {
       const stat = File.statSync(filename);
       const file = new (this.window.File)();
       file.name = Path.basename(filename);
-      file.type = Mime.lookup(filename);
+      file.type = Mime.getType(filename);
       file.size = stat.size;
 
       Object.defineProperty(field, 'value', {value: filename});
