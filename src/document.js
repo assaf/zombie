@@ -149,7 +149,12 @@ function setupWindow(window, args) {
   window.MouseEvent =     DOM.MouseEvent;
   window.MutationEvent =  DOM.MutationEvent;
   window.UIEvent =        DOM.UIEvent;
-  window.screen =         new Screen();
+  const screen =         new Screen();
+  Object.defineProperty(window, 'screen',{
+    get(){
+      return screen;
+    }
+  });
 
   // for inline event handlers
   window._globalProxy.Function = Function;
