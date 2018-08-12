@@ -43,11 +43,18 @@ Object.defineProperty(HTMLScriptElementImpl, 'init', {
       }
 
     }
+    obj._poppedOffStackOfOpenElements = function(){
+      //not being used, causing double js execution
+    }
   }
 });
 
 
 function _eval(text, filename) {
+  if (this._alreadyStarted) 
+    return;
+  
+  this._alreadyStarted = true;
   const typeString = this._getTypeString();
   const _defaultView = this._ownerDocument._defaultView;
   if (_defaultView && _defaultView._runScripts === 'dangerously' && jsMIMETypes.has(typeString.toLowerCase())) {

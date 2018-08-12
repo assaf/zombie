@@ -179,14 +179,12 @@ class XMLHttpRequest {
       // CORS request, check origin, may lead to new error
       if (this._cors) {
         const allowedOrigin = response.headers.get('Access-Control-Allow-Origin');
-        if (!(allowedOrigin === '*' || allowedOrigin === this._cors)) {
-          this._error = new DOMException(DOMException.SECURITY_ERR, 'Cannot make request to different domain');          
-        }
+        if (!(allowedOrigin === '*' || allowedOrigin === this._cors)) 
+          this._error = new DOMException(DOMException.SECURITY_ERR, 'Cannot make request to different domain')          
         else if (!/^(GET|HEAD|POST)$/.test(this._method)) {
           const allowedMethods = response.headers.get('Access-Control-Allow-Methods');        
-          if (!allowedMethods || allowedMethods.indexOf(request.method) == -1) {
+          if (!allowedMethods || allowedMethods.indexOf(request.method) == -1) 
             this._error = new DOMException(DOMException.SECURITY_ERR, 'Cannot make request with not-allowed method('+this._method+')');            
-          }
         }   
         if (this._error) {
           this._browser.errors.push(this._error);
