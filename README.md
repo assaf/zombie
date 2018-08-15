@@ -163,11 +163,152 @@ See [Tabs](#tabs) for detailed discussion.
 #### browser.proxy
 
 The `proxy` option takes a URL so you can tell Zombie what protocol, host and
-port to use. Also supports Basic authentication, e.g.:
+port to use.  Also supports Basic authentication, e.g.:
 
 ```js
 browser.proxy = 'http://me:secret@myproxy:8080'
 ```
+
+#### browser.attach(selection, filename, callback)
+
+Attaches a file to the specified input field.  The second argument is the file name.
+callback - called with error or nothing.
+
+#### browser.back([callback])
+
+Navigate to the previous page in history.  Returns the zombie.browser.Browser to allow 
+function chaining.
+
+#### browser.body
+
+Returns a zombie.dom.DOMNode representing the body element of the current document.
+
+#### browser.check(selector, [callback])
+
+Checks a checkbox.  If called without a callback, returns a promise.
+
+#### browser.choose(selector, [callback])
+
+selects a radio box option.  If called without a callback, returns a promise.
+
+#### browser.clickLink(selector, callback)
+
+Clicks on a link.  Clicking on a link can trigger other events, load new page, etc.  Use a 
+callback to be notified of completion.  Finds link by text content or selector.  
+
+#### browser.dump([output])
+
+Dump information to the console: Zombie version, current URL, history, cookies, event loop,
+etc.  Useful for debugging and submitting error reports. `output` defaults to 
+`process.stdout`.
+
+#### browser.evaluate(code, filename)
+
+Evaluates a JavaScript expression in the context of the current window and returns the
+result.  When evaluating external script, also include filename.
+
+You can also use this to evaluate a function in the context of the window: for timers and 
+asynchronous callbacks (e.g. XHR).
+
+#### browser.field(selector)
+
+Find and return an input field (`INPUT`, `TEXTAREA` or `SELECT`) based on a CSS selector, 
+field name (its `name` attribute) or the text value of a label associated with that field 
+(case sensitive, but ignores leading/trailing spaces).
+
+#### browser.fill(selector, value, callback)
+
+Fill in an input field or text area with the provided value.
+
+#### browser.fire(selector, eventName, [callback])
+
+Fire a DOM event.  You can use this to simulate a DOM event, e.g. clicking
+a link.  These events will bubble up and can be cancelled.  Like `wait`
+this method takes an optional callback.  If called without a callback, returns a promise.
+
+#### browser.link(selector)
+
+Finds and returns a link by its text content or selector.
+
+#### browser.load(html, [callback])
+
+Loads the HTML, processes events and calls the callback.  Without a callback, returns a 
+promise.
+
+#### browser.location
+
+Return the location of the current document (same as `window.location`).
+
+#### browser.pressButton(selector, [callback])
+
+Press a button (button element or input of type `submit`).  Typically this will submit the 
+form.  Use the callback to wait for the from submission, page to load and all events run 
+their course.
+
+#### browser.query(selector, [context])
+
+Evaluates the CSS selector against the document (or context node) and return an element.  
+`context` defaults to `document`.
+
+#### browser.queryAll(selector, [context])
+
+Evaluates the CSS selector against the document (or context node) and return array of nodes.
+`context` defaults to `document`.
+
+#### browser.querySelector(selector)
+
+Selects the first matching element and returns it.
+
+#### browser.redirected
+
+Returns True if the page request followed a redirect.
+
+#### browser.reload()
+
+Reloads the current page.  Returns the zombie.browser.Browser to allow function chaining.
+
+#### browser.select(selector, value, [callback])
+
+Selects an option inside of `selector` with given `value`. If called without a callback, 
+returns a promise.
+
+#### browser.selectOption(selector, [callback])
+
+Selects an option.
+
+#### browser.status
+
+Returns the status code returned for this window (200, 303, etc). The same as 
+`browser.statusCode`
+
+#### browser.success
+
+Return true if last response had status code 200 .. 299
+
+#### browser.text(selector, [context])
+
+Returns the text contents of the selected elements.  `context` defaults to document.
+
+#### browser.uncheck(selector, [callback])
+
+Unchecks a checkbox. If called without a callback, returns a promise.
+
+#### browser.unselect(selector, value, [callback])
+
+Unselects an option. If called without a callback, returns a promise.
+
+#### browser.unselectOption(selector, [callback])
+
+Unselects the an option. If called without a callback, returns a promise.
+
+#### browser.visit(url, options, [callback])
+
+Loads document from the specified URL, processes events and calls the callback, or returns a 
+promise.
+
+#### browser.click(selector, [callback])
+
+Click on the selected element.  If called without callback, returns a promise.
 
 #### browser.errors
 
@@ -180,11 +321,12 @@ Returns a string of the source HTML from the last response.
 
 #### browser.html(element)
 
-Returns a string of HTML for a selected HTML element. If argument `element` is `undefined`, the function returns a string of the source HTML from the last response.
+Returns a string of HTML for a selected HTML element. If argument `element` is `undefined`, 
+the function returns a string of the source HTML from the last response.
 
 Example uses:
 
-```
+```js
 browser.html('div');
 browser.html('div#contain');
 browser.html('.selector');
