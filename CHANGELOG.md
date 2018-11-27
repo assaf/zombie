@@ -1,3 +1,11 @@
+## Version 6.1.4 2018-11-27
+
+Updated dependencies
+
+  747 passing (23s)
+  12 pending
+
+
 ## Version 6.1.3 2018-08-11
 
 Upgraded to JSDom 11.12.0 #1168

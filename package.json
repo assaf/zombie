@@ -1,6 +1,6 @@
 {
   "name": "zombie",
-  "version": "6.1.3",
+  "version": "6.1.4",
   "description": "Insanely fast, full-stack, headless browser testing using Node.js",
   "homepage": "https://www.npmjs.com/package/zombie",
   "author": "Assaf Arkin <assaf@labnotes.org> (http://labnotes.org/)",
