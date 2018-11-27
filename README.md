@@ -97,6 +97,7 @@ describe('User visits signup page', function() {
 Well, that was easy.
 
 
+**WARNING:**  Crawling untrusted web pages with Zombie.js is not safe.
 
 
 ## Table of Contents
