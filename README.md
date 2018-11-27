@@ -7,9 +7,6 @@
 <img width="12" src="data:image/gif;base64,R0lGODlhAQABAPAAAP">
 [![JS.ORG](https://img.shields.io/badge/js.org-zombie-ffb400.svg?style=flat-square)](http://js.org)
 
-**Zombie 6.x** is tested to work with Node 8 or later.
-If you need to use Node 6, consider using Zombie 5.x.
-
 
 
 ## The Bite
