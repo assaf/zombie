@@ -353,6 +353,8 @@ class Request extends Body {
     if (this.redirect !== 'error')
       this.redirect = 'follow';
     this._redirectCount = 0;
+
+    this.time = Date.now()
   }
 
   // -- From Request interface --
