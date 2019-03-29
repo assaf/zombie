@@ -60,7 +60,10 @@ class DOMURL {
     if (base)
       url = URL.resolve(base, url);
     const parsed = URL.parse(url || 'about:blank');
+
     const origin = parsed.protocol && parsed.hostname && `${parsed.protocol}//${parsed.hostname}`;
+    const port = parsed.port || '';
+
     Object.defineProperties(this, {
       hash:     { value: parsed.hash,         enumerable: true },
       host:     { value: parsed.host,         enumerable: true },
@@ -69,8 +72,8 @@ class DOMURL {
       origin:   { value: origin,              enumerable: true },
       password: { value: parsed.password,     enumerable: true },
       pathname: { value: parsed.pathname,     enumerable: true },
-      port:     { value: parsed.port,         enumerable: true },
-      protocol: { value: parsed.protocol,     enumerable: true  },
+      port:     { value: port,                enumerable: true },
+      protocol: { value: parsed.protocol,     enumerable: true },
       search:   { value: parsed.search,       enumerable: true },
       username: { value: parsed.username,     enumerable: true }
     });

@@ -28,6 +28,25 @@ describe('Document', function() {
     });
   });
 
+  describe('location/DOMURL', function() {
+    before(function() {
+      brains.get('/somepath', function(req, res) {
+        res.send('<html></html>');
+      });
+
+      return browser.visit('/somepath');
+    });
+
+    describe('.port', function() {
+      it('should be a string', function() {
+        const location = browser.location;
+
+        // Browsers type this as ?string.
+        assert.equal(location.port, ''); 
+      })
+    });
+  });
+
 
   describe('activeElement', function() {
     before(function() {
