@@ -37,13 +37,22 @@ describe('Document', function() {
       return browser.visit('/somepath');
     });
 
-    describe('.port', function() {
+    describe('port', function() {
       it('should be a string', function() {
         const location = browser.location;
 
         // Browsers type this as ?string.
         assert.equal(location.port, ''); 
       })
+    });
+    describe('searchParams', function() {
+      it('should be present', function() {
+        const searchParams = browser.location.searchParams; 
+        const keys = Array.from(searchParams.keys());
+        
+        assert(Array.isArray(keys));
+        assert.equal(keys.length, 0);
+      });
     });
   });
 
