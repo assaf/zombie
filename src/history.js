@@ -142,8 +142,10 @@ class Location {
   }
 
   get searchParams() {
-    return URL.parse(this._url).searchParams ||
-      new URLSearchParams();
+    const url = URL.parse(this._url);
+    
+    if (url.search == null) return null; 
+    return new URL.URLSearchParams(url.search);
   }
 }
 
