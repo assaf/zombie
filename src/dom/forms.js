@@ -244,9 +244,19 @@ DOM.HTMLButtonElement.prototype._click = function(event) {
   if (button.getAttribute('disabled'))
     return false;
 
+  const buttonType = button.getAttribute('type');
+  if (buttonType === 'button')
+    return;
+
   const form = button.form;
-  if (form)
+  if (form) {
+    if (buttonType === 'reset') {
+      input.form.reset();
+      return;
+    }
+
     return form._dispatchSubmitEvent(button);
+  }
 };
 
 DOM.HTMLInputElement.prototype._click = function(event) {
