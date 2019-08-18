@@ -37,10 +37,9 @@ describe('User visits signup page', function() {
   describe('submits form', function() {
 
     before(function(done) {
-      browser
-        .fill('email',    'zombie@underworld.dead')
-        .fill('password', 'eat-the-living')
-        .pressButton('Sign Me Up!', done);
+      browser.fill('email', 'zombie@underworld.dead')
+      .then(() => browser.fill('password', 'eat-the-living'))
+      .then(() => browser.pressButton('Sign Me Up!', done));
     });
 
     it('should be successful', function() {
@@ -76,10 +75,9 @@ describe('User visits signup page', function() {
   describe('submits form', function() {
 
     before(function() {
-      browser
-        .fill('email',    'zombie@underworld.dead')
-        .fill('password', 'eat-the-living');
-      return browser.pressButton('Sign Me Up!');
+      return browser.fill('email', 'zombie@underworld.dead')
+      .then(() => browser.fill('password', 'eat-the-living'))
+      .then(() => browser.pressButton('Sign Me Up!'));
     });
 
     it('should be successful', function() {
@@ -214,9 +212,10 @@ Find and return an input field (`INPUT`, `TEXTAREA` or `SELECT`) based on a CSS 
 field name (its `name` attribute) or the text value of a label associated with that field 
 (case sensitive, but ignores leading/trailing spaces).
 
-#### browser.fill(selector, value, callback)
+#### browser.fill(selector, value, [callback])
 
-Fill in an input field or text area with the provided value.
+Fill in an input field or text area with the provided value. If called without a callback,
+returns a promise.
 
 #### browser.fire(selector, eventName, [callback])
 
