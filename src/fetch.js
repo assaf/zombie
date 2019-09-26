@@ -294,7 +294,7 @@ class Body {
       return null;
     // When Response has no body, we get stream that's no longer readable
     if (!this._stream.readable)
-      return new Buffer('');
+      return Buffer.from('');
 
     const decompressed = decompressStream(this._stream, this.headers);
 
