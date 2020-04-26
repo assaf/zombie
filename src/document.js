@@ -166,8 +166,8 @@ function setupWindow(window, args) {
   window.FormData =       Fetch.FormData;
 
   // Base-64 encoding/decoding
-  window.atob = (string)=> new Buffer(string, 'base64').toString('binary');
-  window.btoa = (string)=> new Buffer(string, 'binary').toString('base64');
+  window.atob = (string)=> Buffer.from(string, 'base64').toString('binary');
+  window.btoa = (string)=> Buffer.from(string, 'binary').toString('base64');
 
   // Constructor for XHLHttpRequest
   window.XMLHttpRequest = XMLHttpRequest.bind(null, window);

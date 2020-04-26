@@ -173,7 +173,7 @@ class Pipeline extends Array {
     const { username, password } = authenticate;
     if (username && password) {
       browser.log(`Authenticating as ${username}:${password}`);
-      const base64 = new Buffer(`${username}:${password}`).toString('base64');
+      const base64 = Buffer.from(`${username}:${password}`).toString('base64');
       request.headers.set('authorization',  `Basic ${base64}`);
     }
   }

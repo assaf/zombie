@@ -65,7 +65,7 @@ describe('WebSockets', function() {
     });
 
     it('should be possible', function() {
-      browser.assert.text('#ws-url', 'ws://example.com:3004');
+      browser.assert.text('#ws-url', 'ws://example.com:3004/');
     });
     it('should raise open event after connecting', function() {
       assert.equal(prompts[0], 'open');
