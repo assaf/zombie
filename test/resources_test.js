@@ -45,6 +45,10 @@ describe('Resources', function() {
     it('should include loaded JavaScript', function() {
       assert.equal(browser.resources[1].response.url, 'http://example.com/scripts/jquery-2.0.3.js');
     });
+    it('should include timing information', function() {
+      assert(browser.resources[0].request.time != null);
+      assert(browser.resources[0].response.time != null);
+    });
   });
 
 
