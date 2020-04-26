@@ -61,6 +61,20 @@ class Location {
   toString() {
     return this._url;
   }
+  
+  toJSON() {
+    return {
+      hostname: this.hostname,
+      href: this.href,
+      origin: this.origin,
+      hash: this.hash,
+      host: this.host,
+      pathname: this.pathname,
+      port: this.port,
+      protocol: this.protocol,
+      search: this.search
+    }
+  }
 
   get hostname() {
     return URL.parse(this._url).hostname;
