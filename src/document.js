@@ -16,6 +16,7 @@ const WebSocket       = require('ws');
 const Window          = require('jsdom/lib/jsdom/browser/Window');
 const XMLHttpRequest  = require('./xhr');
 const { idlUtils }    = require('./dom/impl');
+const whatwgURL       = require('whatwg-url');
 
 // File access, not implemented yet
 class File {
@@ -48,38 +49,6 @@ class Screen {
   get pixelDepth() {
     return 24;
   }
-}
-
-
-// DOM implementation of URL class
-class DOMURL {
-
-  constructor(url, base) {
-    if (url == null)
-       throw new TypeError('Failed to construct \'URL\': Invalid URL');
-    if (base)
-      url = URL.resolve(base, url);
-    const parsed = URL.parse(url || 'about:blank');
-    const origin = parsed.protocol && parsed.hostname && `${parsed.protocol}//${parsed.hostname}`;
-    Object.defineProperties(this, {
-      hash:     { value: parsed.hash,         enumerable: true },
-      host:     { value: parsed.host,         enumerable: true },
-      hostname: { value: parsed.hostname,     enumerable: true },
-      href:     { value: URL.format(parsed),  enumerable: true },
-      origin:   { value: origin,              enumerable: true },
-      password: { value: parsed.password,     enumerable: true },
-      pathname: { value: parsed.pathname,     enumerable: true },
-      port:     { value: parsed.port,         enumerable: true },
-      protocol: { value: parsed.protocol,     enumerable: true  },
-      search:   { value: parsed.search,       enumerable: true },
-      username: { value: parsed.username,     enumerable: true }
-    });
-  }
-
-  toString() {
-    return this.href;
-  }
-
 }
 
 
@@ -171,7 +140,7 @@ function setupWindow(window, args) {
 
   // Constructor for XHLHttpRequest
   window.XMLHttpRequest = XMLHttpRequest.bind(null, window);
-  window.URL = DOMURL;
+  window.URL = whatwgURL.URL;
 
   // Web sockets
   window._allWebSockets = [];

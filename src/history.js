@@ -140,6 +140,13 @@ class Location {
     const url  = Object.assign(URL.parse(this._url), { search: value });
     this.assign(URL.format(url));
   }
+
+  get searchParams() {
+    const url = URL.parse(this._url);
+    
+    if (url.search == null) return null; 
+    return new URL.URLSearchParams(url.search);
+  }
 }
 
 
