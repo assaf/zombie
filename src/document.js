@@ -456,6 +456,10 @@ function setupWindow(window, args) {
     event.initMessageEvent('message', false, false, data, eventOrigin, null, source, []);
 
     this.dispatchEvent(event);
+
+    const handled = browser.emit('message', data);
+    if (!handled)
+      browser.log('Unhandled message("%s")');
   };
 
   // Inject HTMLDocument.hasFocus function
