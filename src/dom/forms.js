@@ -244,6 +244,9 @@ DOM.HTMLButtonElement.prototype._click = function(event) {
   if (button.getAttribute('disabled'))
     return false;
 
+  if (button.type === 'button')
+    return false;
+
   const form = button.form;
   if (form)
     return form._dispatchSubmitEvent(button);
