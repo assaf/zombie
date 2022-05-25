@@ -45,7 +45,7 @@
     "babel-runtime": "6.26.0",
     "bluebird": "^3.5.1",
     "debug": "^4.1.0",
-    "eventsource": "^1.0.5",
+    "eventsource": "^2.0.2",
     "iconv-lite": "^0.4.21",
     "jsdom": "11.12.0",
     "lodash": "^4.17.10",
