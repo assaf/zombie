@@ -22,7 +22,6 @@ const Storages          = require('./storage');
 const Tough             = require('tough-cookie');
 const { Cookie }        = Tough;
 const URL               = require('url');
-const Utils             = require('jsdom/lib/jsdom/utils');
 const { idlUtils }    = require('./dom/impl');
 
 // Version number.  We get this from package.json.

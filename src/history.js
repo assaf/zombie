@@ -31,7 +31,6 @@
 
 const assert          = require('assert');
 const loadDocument    = require('./document');
-const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
 const URL             = require('url');
 
 const { idlUtils }    = require('./dom/impl');

@@ -3,7 +3,6 @@
 const assert        = require('assert');
 const { isRegExp }  = require('util');
 const URL           = require('url');
-const Utils         = require('jsdom/lib/jsdom/utils');
 
 
 // Used to assert that actual matches expected value, where expected may be a function or a string.

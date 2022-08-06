@@ -7,9 +7,7 @@ const { Headers }     = require('./fetch');
 const { isArray }     = require('util');
 const Path            = require('path');
 const Request         = require('request');
-const resourceLoader  = require('jsdom/lib/jsdom/browser/resource-loader');
 const URL             = require('url');
-const Utils           = require('jsdom/lib/jsdom/utils');
 
 
 // Pipeline is sequence of request/response handlers that are used to prepare a

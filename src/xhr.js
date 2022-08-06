@@ -6,7 +6,6 @@ const DOM     = require('./dom');
 const Fetch   = require('./fetch');
 const ms      = require('ms');
 const URL     = require('url');
-const Utils   = require('jsdom/lib/jsdom/utils');
 const EventTarget = require('jsdom/lib/jsdom/living/generated/EventTarget');
 
 const { DOMException } = DOM;

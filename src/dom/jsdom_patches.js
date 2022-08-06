@@ -4,7 +4,6 @@
 const DOM                  = require('./index');
 const Fetch                = require('../fetch');
 const resourceLoader       = require('jsdom/lib/jsdom/browser/resource-loader');
-const Utils                = require('jsdom/lib/jsdom/utils');
 const URL                  = require('url');
 const {
   idlUtils,
